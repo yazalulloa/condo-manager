@@ -1,0 +1,17 @@
+{@com.yaz.resource.domain.ApartmentTableResponse res}
+
+{#for item in res.results}
+
+
+{#include ApartmentsResource/grid_item item=item /}
+
+{/for}
+
+{#if res.nextPageUrl}
+    <div hx-get={res.nextPageUrl}
+    hx-trigger="revealed"
+    hx-swap="outerHTML">
+</div>
+{/if}
+
+{#include ApartmentsResource/counters dto=res.countersDto /}

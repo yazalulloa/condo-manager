@@ -1,0 +1,24 @@
+{@com.yaz.resource.domain.OidcDbTokenTableResponse res}
+
+{#for item in res.results}
+
+    <div  id="{item.cardId}" class="text-xs break-all hover:bg-[#00000014] border-solid p-0.5 oicd-token-grid">
+  <div>{item.token.id}</div>
+  <div>{item.token.idToken}</div>
+  <div>{item.token.accessToken}</div>
+  <div>{item.token.refreshToken}</div>
+  <div>{item.token.expiresIn}</div>
+
+{#include fragments/delete-btn deleteUrl=item.deleteUrl cardIdRef=item.cardIdRef/}
+</div>
+
+{/for}
+
+{#if res.nextPageUrl}
+    <div hx-get={res.nextPageUrl}
+    hx-trigger="revealed"
+    hx-swap="outerHTML">
+</div>
+{/if}
+
+{#include OidcDbTokenResource/counters totalCount=res.totalCount /}

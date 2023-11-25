@@ -1,0 +1,224 @@
+{@com.yaz.resource.domain.response.BuildingFormDto dto}
+
+{#if dto.shouldRedirect}
+<meta http-equiv="refresh" content="0; url=/buildings" />
+{#else}
+<form class="form-control"
+      {#if dto.isEdit}
+      hx-patch="/api/buildings/edit"
+      {#else}
+          hx-post="/api/buildings/new"
+      {/if}
+      hx-indicator=".htmx-indicator"
+      script="init call disableBtnInsideForm()"
+>
+
+    <input type="hidden" name="{inject:csrf.parameterName}" value="{inject:csrf.token}"/>
+
+  <div class="">
+    {#if dto.generalFieldError}
+    <span class='input-error error-message'> {dto.generalFieldError}</span>
+    {/if}
+  </div>
+
+  <label class="label input-group input-group-vertical">
+    <span class="label-text">ID</span>
+
+    <input
+      {#if dto.readOnlyId}
+          readonly
+      {/if}
+          class="input w-full input-bordered break-words"
+          name="id"
+          type="text"
+          placeholder="ID"
+          value="{dto.id}"
+          maxlength="20"
+          oninput="limitInputToMaxLength(this)"
+    >
+    {#if dto.idFieldError}
+    <span class='input-error error-message'>
+    {dto.idFieldError}
+  </span>
+    {/if}
+  </label>
+
+  <label class="label input-group input-group-vertical">
+    <span class="label-text">Nombre</span>
+
+    <input
+        class="input w-full input-bordered break-words"
+        name="name"
+        type="text"
+        placeholder="Nombre"
+        value="{dto.name}"
+        maxlength="100"
+        oninput="limitInputToMaxLength(this)"
+    >
+    {#if dto.nameFieldError}
+    <span class='input-error error-message'>
+    {dto.nameFieldError}
+  </span>
+    {/if}
+  </label>
+
+  <label class="label input-group input-group-vertical">
+    <span class="label-text">RIF</span>
+
+    <input
+        class="input w-full input-bordered break-words"
+        name="rif"
+        type="text"
+        placeholder="RIF"
+        value="{dto.rif}"
+        maxlength="100"
+        oninput="limitInputToMaxLength(this)"
+    >
+    {#if dto.rifFieldError}
+    <span class='input-error error-message'>
+    {dto.rifFieldError}
+  </span>
+    {/if}
+  </label>
+
+
+<div class="flex flex-row">
+<label class="label input-group input-group-vertical">
+  <span class="label-text">Moneda Principal</span>
+<select class="select select-bordered w-full" name="mainCurrency">
+    <option value="USD"
+{#if dto.mainCurrency == 'USD'}
+            selected
+{/if}
+>USD
+</option>
+  <option value="VED"
+    {#if dto.mainCurrency == 'VED'}
+          selected
+    {/if}
+  >VED
+  </option>
+</select>
+</label>
+
+  <label class="label input-group input-group-vertical">
+    <span class="label-text">Moneda Deudas</span>
+    <select class="select select-bordered w-full" name="debtCurrency">
+      <option value="USD"
+        {#if dto.debtCurrency == 'USD'}
+              selected
+        {/if}
+      >USD
+      </option>
+      <option value="VED"
+        {#if dto.debtCurrency == 'VED'}
+              selected
+        {/if}
+      >VED
+      </option>
+    </select>
+  </label>
+</div>
+
+<div class="flex flex-row gap-4 p-2">
+  <div class="flex flex-col center">
+    <label class="center label label-text">Monedas a mostrar al pagar</label>
+    <div class="flex flex-row">
+      <div class="form-control">
+        <label class="label cursor-pointer">
+          <span class="label-text p-2">USD</span>
+          <input type="checkbox"
+            {#if dto.currenciesToShowAmountToPay.contains('USD')}
+                 checked="checked"
+            {/if}
+                 value="USD" name="currenciesToShowAmountToPay"
+                 class="checkbox checkbox-primary"/>
+        </label>
+      </div>
+
+      <div class="form-control">
+        <label class="label cursor-pointer">
+          <span class="label-text p-2">VED</span>
+          <input type="checkbox"
+            {#if dto.currenciesToShowAmountToPay.contains('VED')}
+                 checked="checked"
+            {/if}
+                 value="VED"
+                 name="currenciesToShowAmountToPay"
+                 class="checkbox checkbox-primary"/>
+        </label>
+      </div>
+    </div>
+  </div>
+
+
+
+<div class="flex flex-col center">
+<label class="cursor-pointer label flex flex-row  gap-4">
+  <span class="label-text">Monto Fijo</span>
+  <input name="fixedPay" type="checkbox"
+    {#if dto.fixedPay}
+         checked="checked"
+    {/if}
+         class="checkbox checkbox-primary"
+         value="true"
+         script="on click toggle @hidden on next <input/>"/>
+    <input type="number" placeholder="Monto Fijo" name="fixedPayAmount" min="1"
+           oninput="limitInputToMaxLength(this)"
+           maxlength="10"
+           step=".01" class="input input-bordered"
+    value="{dto.fixedPayAmount}"
+{#if !dto.fixedPay}
+           hidden
+{/if}
+>
+{#if dto.fixedPayAmountFieldError}
+<span class='input-error error-message'>
+{dto.fixedPayAmountFieldError}
+</span>
+{/if}
+</label>
+
+<label class="cursor-pointer label flex flex-row  gap-4">
+  <span class="label-text">Redondear Pagos</span>
+    <input name="roundUpPayments" type="checkbox"
+{#if dto.roundUpPayments}
+           checked="checked"
+{/if}
+           value="true"
+           class="checkbox checkbox-primary"/>
+</label>
+</div>
+</div>
+
+<label class="label input-group input-group-vertical">
+  <span class="label-text">Configuracion email</span>
+
+    <input
+    class="input w-full input-bordered break-words"
+    name="emailConfig"
+    type="text"
+    placeholder="Configuracion email"
+    value="{dto.emailConfig}"
+    maxlength="100"
+    oninput="limitInputToMaxLength(this)"
+>
+{#if dto.rifFieldError}
+<span class='input-error error-message'>
+{dto.rifFieldError}
+</span>
+{/if}
+</label>
+  <div class="header">
+    <button id="apt-form-btn-submit" class="btn btn-primary">
+      {#if dto.isEdit}
+        Editar
+      {#else}
+        Crear
+      {/if}
+    </button>
+    <img class="htmx-indicator" src="/assets/bars.svg" alt="spinner">
+  </div>
+</form>
+{/if}
+

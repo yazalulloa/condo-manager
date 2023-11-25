@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "daisyui": "latest",
+    "htmx.org": "latest",
+    "hyperscript.org": "latest",
+    "tw-elements": "latest"
+  },
+  "devDependencies": {
+    "tailwindcss": "latest"
+  }
+}

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Editar Edificio</title>
+  <link href="/output.css" rel="stylesheet"/>
+  <script src="/index.js" defer></script>
+</head>
+<body hx-boost="true">
+
+<div class="p-8">
+  <form
+      hx-get="/api/buildings/edit_form"
+      hx-indicator=".htmx-indicator"
+      hx-trigger="load"
+      hx-vals="js:{buildingId: getLastUrlSegmentCurrent()}"
+      hx-swap="outerHTML">
+    <img class="htmx-indicator center img-small-size white-filter" src="/assets/bars.svg" alt="spinner">
+  </form>
+</div>
+
+</body>
+</html>

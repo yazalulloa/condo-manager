@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>OIDC Tokens</title>
+  <link href="out/css/output.css" rel="stylesheet"/>
+  <script src="out/js/index.js" defer></script>
+</head>
+<body hx-boost="true">
+
+<div class="header p-1">
+  <div id="oidc-token-counters"></div>
+</div>
+
+<div hx-indicator=".htmx-indicator">
+  <div class="oicd-token-grid p-2 font-bold">
+    <div>ID</div>
+    <div>IdToken</div>
+    <div>AccessToken</div>
+    <div>RefreshToken</div>
+    <div>ExpiresIn</div>
+    <div>Acciones</div>
+  </div>
+
+  <div hx-get="/api/oidc_tokens/grid" hx-indicator=".htmx-indicator" hx-trigger="load" hx-swap="innerHTML"></div>
+</div>
+
+<div>
+  <img class="htmx-indicator center img-small-size white-filter" src="/assets/bars.svg" alt="spinner">
+</div>
+
+
+</body>
+</html>

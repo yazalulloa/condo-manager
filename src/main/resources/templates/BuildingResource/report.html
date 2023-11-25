@@ -1,0 +1,21 @@
+{@com.yaz.resource.domain.response.BuildingReportResponse res}
+
+<span id="buildings-total-counter" hx-swap-oob="true">Edificios: {res.totalCount}</span>
+
+{#for item in res.results}
+    <div class="hover:bg-[#00000014] flex-wrap flex-row flex justify-between gap-0.5 rounded-lg p-4 bg-neutral"
+         script="on click call redirectTo('{item.itemUrl}')"
+>
+  <span>ID: {item.building.id}</span>
+  <span>Nombre: {item.building.name}</span>
+  <span>RIF: {item.building.rif}</span>
+  <span>Moneda Principal: {item.building.mainCurrency}</span>
+  <span>Moneda Deuda: {item.building.debtCurrency}</span>
+  <span>Monedas a mostrar {item.building.currenciesToShowAmountToPay}</span>
+  <span>{item.building.fixedPay}</span>
+  <span>{item.building.fixedPayAmount}</span>
+  <span>{item.building.roundUpPayments}</span>
+  <span>Cantidad de apartmentos: {item.building.amountOfApts}</span>
+  <span>Configuracion de email: {item.building.emailConfig}</span>
+</div>
+{/for}

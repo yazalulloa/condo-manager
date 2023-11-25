@@ -1,0 +1,18 @@
+{@com.yaz.resource.domain.ApartmentInitDto dto}
+
+
+{#include ApartmentsResource/grid res=dto.tableRes /}
+
+<div id="buildings-selector" hx-swap-oob="true">
+  <select class="select" name="building"
+          hx-indicator=".htmx-indicator"
+          hx-get="/api/apartments/grid"
+          hx-include="[name='q']"
+          hx-target="#apartment-rows">
+    <option value> Seleccione</option>
+
+    {#include BuildingResource/selector.html list=dto.buildings /}
+  </select>
+</div>
+
+{#include ApartmentsResource/form dto=dto.formDto /}

@@ -1,0 +1,17 @@
+{@com.yaz.resource.domain.HtmxTestResponse res}
+
+<form id="test-form"
+      hx-patch="/api/htmx_test">
+  <input type="hidden" name="{inject:csrf.parameterName}" value="{inject:csrf.token}"/>
+  <input value="{res.value}">
+  <button>Submit</button>
+</form>
+
+<div id="random" hx-swap-oob="true">Random: {res.random}</div>
+
+
+<tr id="row"  hx-swap-oob="true">
+  <td>{res.name}</td>
+  <td>{res.id}</td>
+  <td>{res.is}</td>
+</tr>

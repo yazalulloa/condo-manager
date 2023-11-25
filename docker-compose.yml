@@ -1,0 +1,10 @@
+version: '3'
+services:
+  cmy-vx:
+    container_name: condo-manager
+    image: condo-manager:latest
+    restart: always
+    ports:
+      - "13835:13835"
+    env_file:
+      - local.env

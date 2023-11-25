@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Edificios</title>
+  <link href="out/css/output.css" rel="stylesheet"/>
+  <script src="out/js/index.js" defer></script>
+</head>
+<body hx-boost="true">
+
+<div class="header p-1">
+  <span id="buildings-total-counter"></span>
+  <a class="btn btn-primary" href="/buildings/new.html">
+    Nuevo Edificio
+  </a>
+
+  <img class="htmx-indicator" src="/assets/bars.svg" alt="spinner">
+</div>
+
+<div class="p-1 gap-1 flex flex-col" hx-get="/api/buildings/report" hx-indicator=".htmx-indicator" hx-trigger="load"
+     hx-swap="innerHTML">
+
+</div>
+
+<div>
+  <img class="htmx-indicator center img-small-size white-filter" src="/assets/bars.svg" alt="spinner">
+</div>
+</body>
+</html>

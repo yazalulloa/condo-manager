@@ -1,0 +1,143 @@
+{@com.yaz.resource.domain.ApartmentFormDto dto}
+
+<form class="apt-form form-control"
+      id="apartment-form"
+{#if dto.isEdit}
+      hx-patch="/api/apartments"
+{#else}
+      hx-post="/api/apartments"
+{/if}
+      hx-indicator=".htmx-indicator"
+      hx-swap-oob="true"
+{#if dto.showForm}
+      script="init remove .hidden from #apt-form-container"
+{/if}
+{#if dto.hideForm}
+    script="init add .hidden to #apt-form-container
+{#if !dto.item}
+then send new_apt to #apt-search-input
+{/if}
+"
+{/if}
+>
+  <input type="hidden" name="{inject:csrf.parameterName}" value="{inject:csrf.token}"/>
+  <div id="apt-form-inputs">
+
+ <div class=""
+ script="init call disableBtnInsideForm()">
+   {#if dto.generalFieldError}
+   <span id="apartment-form-general-error" class='input-error error-message'>
+   {dto.generalFieldError}
+ </span>
+   {/if}
+ </div>
+    <div>
+      <label class="label input-group input-group-vertical">
+        <span class="label-text">Edificio</span>
+        {#if dto.readOnlyBuilding}
+            <input id="hidden-apt-building-id" hidden name="buildingId" value="{dto.buildingId}">
+        {/if}
+
+        <select class="select select-bordered w-full" name="buildingId"
+                {#if dto.readOnlyBuilding}disabled{/if}
+                >
+                {#for option in dto.buildings}
+                    <option
+                {#if option is dto.buildingId}  selected="selected" {/if}
+                                                value={option}>{option}</option>
+          {/for}
+        </select>
+        {#if dto.buildingIdFieldError}
+        <span class='input-error error-message'>
+        {dto.buildingIdFieldError}
+      </span>
+        {/if}
+      </label>
+    </div>
+
+    <label class="label input-group input-group-vertical">
+      <span class="label-text">Nro. Apt</span>
+        <input class="input w-full input-bordered break-words" type="text" name="number"
+               placeholder="Nro. Apt" maxlength="20" value={dto.number}
+        {#if dto.readOnlyNumber}readonly{/if}>
+      {#if dto.numberFieldError}
+      <span class='input-error error-message'>
+      {dto.numberFieldError}
+    </span>
+      {/if}
+    </label>
+
+    <label class="label input-group input-group-vertical">
+      <span class="label-text">Nombre</span>
+      <input class="input w-full input-bordered" type="text" name="name"
+             placeholder="Nombre" maxlength="200" value="{dto.name}">
+      {#if dto.nameFieldError}
+      <span class='input-error error-message'>
+      {dto.nameFieldError}
+    </span>
+      {/if}
+    </label>
+
+    <label class="label input-group input-group-vertical">
+      <span class="label-text">Alícuota</span>
+      <input id="apt-form-aliquot" class="input w-full input-bordered" type="number" name="aliquot"
+             placeholder="Alícuota" min="0" max="100" step=".01" value={dto.aliquot}>
+      {#if dto.aliquotFieldError}
+      <span class='input-error error-message'>
+      {dto.aliquotFieldError}
+    </span>
+      {/if}
+    </label>
+
+    <div class="w-full">
+      <div class="email-form-label">
+        <span class="font-bold label-text">Emails</span>
+        <button type="button" class="btn btn-square btn-outline btn-secondary"
+                hx-get="/apt_form_email.html"
+                hx-target="next .emails-form-anchor"
+                hx-swap="beforebegin">
+          <img src="/assets/plus.svg" alt="add-email">
+        </button>
+      </div>
+
+      {#for email in dto.emails}
+      <div class="">
+      <div class="input-group form-control email-form-label">
+          <input class="input w-full input-bordered break-words" type="email" name="emails"
+                 placeholder="Email" maxlength="320" value={email.value}>
+
+      <button>
+        <button type="button" script="on click remove closest <div/>"
+                class="btn max-w-1/4 btn-square btn-outline btn-error">
+          <img src="/assets/cross-svgrepo-com.svg" alt="remove-email">
+        </button>
+      </button>
+    </div>
+      {#if email.error}
+      <span class='error-message email-error-msg  '>
+      {email.error}
+    </span>
+      {/if}
+    </div>
+      {/for}
+
+
+      <div class="emails-form-anchor" hidden="hidden"></div>
+
+    </div>
+  </div>
+<div class="header">
+<button id="apt-form-btn-submit" class="btn btn-primary">
+{#if dto.isEdit}
+  Editar
+{#else}
+  Crear
+{/if}
+</button>
+  <img class="htmx-indicator" src="/assets/bars.svg" alt="spinner">
+</div>
+</form>
+
+{#if dto.item}
+{#include ApartmentsResource/grid_item item=dto.item /}
+{/if}

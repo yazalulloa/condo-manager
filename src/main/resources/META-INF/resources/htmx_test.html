@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link href="out/css/output.css" rel="stylesheet"/>
+  <title>Htmx test</title>
+  <script src="https://unpkg.com/htmx.org@1.9.8" integrity="sha384-rgjA7mptc2ETQqXoYC3/zJvkU7K/aP44Y+z7xQuJiVnB/422P/Ak+F/AqFR7E4Wr" crossorigin="anonymous"></script>
+
+</head>
+<body>
+
+<header>
+  <div id="random"></div>
+</header>
+<div hx-get="/api/htmx_test" hx-trigger="load"></div>
+
+<table>
+  <caption></caption>
+  <thead class="">
+  <tr>
+    <th>Name</th>
+    <th>ID</th>
+    <th>IS</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr id="row"></tr>
+
+  </tbody>
+</table>
+
+</body>
+</html>

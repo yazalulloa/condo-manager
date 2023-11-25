@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tasas de cambio</title>
+  <link href="out/css/output.css" rel="stylesheet"/>
+  <script src="out/js/index.js" defer></script>
+</head>
+<body hx-boost="true">
+
+
+<div class="header">
+  <span id="rates-total-counter"></span>
+  <button class="btn btn-primary" hx-get="/api/rates/bcv-lookup"
+          hx-indicator=".htmx-indicator">
+    GET LAST RATE
+  </button>
+  <label for="date"></label>
+  <input class="datepicker" id="date" type="date" name="date"
+         data-te-datepicker
+         hx-get="/api/rates"
+         hx-trigger="change"
+         hx-target="#rates"
+         hx-swap="innerHTML"
+         hx-indicator=".htmx-indicator">
+
+  <img class="htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">
+</div>
+
+<div>
+
+  <div class="oicd-token-grid p-2 font-bold">
+    <div>ID</div>
+    <div>Monedas</div>
+    <div>Tasa</div>
+    <div>Fecha</div>
+    <div>Creado</div>
+    <div>Acciones</div>
+  </div>
+
+  <div hx-ext="sse" sse-connect="/sse/new_rate" id="rates" hx-get="/api/rates" hx-trigger="load, sse:new_rate"
+       hx-indicator=".htmx-indicator" hx-swap="innerHTML">
+
+  </div>
+
+</div>
+<img class="htmx-indicator center img-small-size white-filter" src="/assets/bars.svg" alt="spinner">
+
+
+</body>
+</html>

@@ -1,0 +1,264 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  font-family: arial, sans-serif;
+}
+
+.original-state {
+  color: blue;
+}
+
+.red-transition {
+  color: red;
+  transition: all ease-in 1s;
+}
+
+.card-item {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  flex-basis: auto;
+  justify-content: space-between;
+  gap: 8px;
+  /*background-color: lightgray;*/
+  /*border-radius: 10px;*/
+  /*box-shadow: 2px 1px 1px black;*/
+  /*margin: 5px;*/
+  /*padding: 10px;*/
+}
+
+.grid-paginator {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  flex-basis: auto;
+  justify-content: space-evenly;
+  gap: 8px;
+  margin: 10px;
+}
+
+.htmx-indicator {
+  opacity: 0;
+  transition: opacity 200ms ease-in;
+}
+
+.htmx-request .htmx-indicator {
+  opacity: 1
+}
+
+.htmx-request.htmx-indicator {
+  opacity: 1
+}
+
+.fade-me-out .htmx-swapping {
+  opacity: 0;
+  transition: opacity 1s ease-out;
+}
+
+.center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.img-small-size {
+  width: 80px;
+  height: 80px;
+}
+
+.center-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 10px;
+}
+
+.delete-btn {
+  background: none;
+  color: inherit;
+  border: none;
+  padding: 2px;
+  font: inherit;
+  cursor: pointer;
+  outline: inherit;
+  border-radius: 50%;
+}
+
+.delete-btn:hover {
+  background-color: lightslategrey;
+}
+
+.delete-btn:active {
+  background-color: lightyellow;
+}
+
+.apt-emails {
+  height: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+.dfl-table {
+  /*border-collapse: collapse;*/
+  /*width: 100%;*/
+  text-align: center;
+}
+
+/*.dfl-table th {
+  position: sticky;
+  top: 0;
+}*/
+
+/*td, th {*/
+/*  border: 1px solid #dddddd;*/
+/*  text-align: center;*/
+/*  padding: 8px;*/
+/*}*/
+
+/*tr:nth-child(even) {*/
+/*  background-color: #dddddd;*/
+/*}*/
+
+/*.table-row:hover {*/
+/*  background-color: lightgray;*/
+/*}*/
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  gap: 16px;
+  text-align: center;
+  padding: 6px;
+  align-items: center;
+}
+
+.google-login-btn {
+  text-align: center;
+  gap: 12px;
+  width: 80px;
+  height: 80px;
+  background-color: blue;
+}
+
+.apt-form {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 12px;
+  padding: 6px;
+}
+
+.datepicker {
+  padding: 8px;
+}
+
+.form-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 10px;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.apt-form-title {
+  justify-content: space-between;
+}
+
+.form-field {
+  padding: 8px;
+}
+
+.main-container {
+  width: 100%;
+}
+
+.email-form-label {
+  display: flex;
+  flex-wrap: nowrap;
+  flex-direction: row;
+  justify-content: space-between;
+  align-content: center;
+  align-items: center;
+  padding: 8px;
+  gap: 8px;
+}
+
+.error-message {
+  color: red;
+}
+
+.error input {
+  box-shadow: 0 0 3px #CC0000;
+}
+
+.valid input {
+  box-shadow: 0 0 3px #36cc00;
+}
+
+.email-error-msg {
+  padding-left: 1rem;
+}
+
+.white-filter {
+  filter: invert(100%) sepia(0%) saturate(7472%) hue-rotate(87deg) brightness(97%) contrast(102%);
+}
+
+.apartment-grid-header {
+  display: grid;
+  border-bottom: 1px solid black;
+  grid-template-columns: 1fr 1fr 2fr 3fr 1fr 1fr;
+  grid-template-rows: auto;
+  grid-gap: 4px;
+  width: 100%;
+  text-align: center;
+}
+
+.apartment-grid-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr 2fr 3fr 1fr;
+  grid-template-rows: auto;
+  grid-gap: 4px;
+  width: 100%;
+}
+
+.apartment-grid-container {
+  display: grid;
+  border-bottom: 1px solid black;
+  grid-template-columns: 8fr 1fr;
+  grid-template-rows: auto;
+  grid-gap: 4px;
+  width: 100%;
+}
+
+.apartment-grid-container > * {
+  text-align: center;
+  margin: auto;
+  align-items: center;
+  width: 100%;
+}
+
+.oicd-token-grid {
+  display: grid;
+  border-bottom: 1px solid black;
+  grid-template-columns: repeat(6, 1fr);
+  grid-template-rows: auto;
+  grid-gap: 4px;
+  width: 100%;
+  text-align: center;
+}
+
+.oicd-token-grid > * {
+  text-align: center;
+  margin: auto;
+  width: 100%;
+}

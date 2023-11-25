@@ -1,0 +1,19 @@
+{@com.yaz.resource.domain.ApartmentTableResponse res}
+
+{#for item in res.results}
+
+
+{#include ApartmentsResource/card_item item=item /}
+
+
+{/for}
+
+{#if res.nextPageUrl}
+    <tr hx-get={res.nextPageUrl}
+    hx-trigger="revealed"
+    hx-swap="outerHTML">
+</tr>
+{/if}
+
+{#include ApartmentsResource/counters dto=res.countersDto /}
+

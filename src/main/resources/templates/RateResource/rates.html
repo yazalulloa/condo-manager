@@ -1,0 +1,22 @@
+{@com.yaz.resource.domain.RateTableResponse res}
+<span id="rates-total-counter" hx-swap-oob="true">Tasas: {res.totalCount}</span>
+
+{#for item in res.results}
+
+    <div class="hover:bg-[#00000014] border-solid p-0.5 oicd-token-grid"
+         id={item.cardId}>
+  <span>{item.rate.id}</span>
+  <span>{item.rate.fromCurrency} &rightarrow; {item.rate.toCurrency}</span>
+  <span>{item.rate.rate.toDouble}</span>
+  <span>{item.rate.dateOfRate}</span>
+  <span>{item.rate.formatCreatedAt}</span>
+
+{#include fragments/delete-btn deleteUrl=item.deleteUrl cardIdRef=item.cardIdRef/}
+
+</div>
+{/for}
+
+{#include fragments/next-page.html url = res.nextPageUrl /}
+
+
+
