@@ -3,7 +3,7 @@ FROM quay.io/quarkus/ubi-quarkus-graalvmce-builder-image:jdk-21.0.1 AS build
 COPY mvnw .
 COPY .mvn .mvn
 COPY pom.xml .
-RUN --mount=type=cache,target=/root/.m2 ./mvnw verify --fail-never
+RUN --mount=type=cache,target=/root/.m2 ./mvnw verify --fail-never -DskipTests
 
 COPY src ./src
 RUN --mount=type=cache,target=/root/.m2 ./mvnw clean package -DskipTests -Dnative
