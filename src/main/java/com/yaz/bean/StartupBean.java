@@ -1,16 +1,20 @@
 package com.yaz.bean;
 
-import io.quarkus.runtime.Startup;
-import io.quarkus.vertx.web.RouteFilter;
-import io.vertx.ext.web.RoutingContext;
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import com.yaz.service.NotificationService;
 import com.yaz.util.EnvUtil;
 import com.yaz.util.FileUtil;
 import com.yaz.util.JacksonUtil;
+import io.quarkus.runtime.Startup;
+import io.quarkus.runtime.StartupEvent;
+import io.quarkus.vertx.web.RouteFilter;
+import io.reactivex.rxjava3.core.Completable;
+import io.vertx.ext.web.RoutingContext;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
+import jakarta.inject.Inject;
+import java.util.concurrent.TimeUnit;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @ApplicationScoped
@@ -28,11 +32,19 @@ public class StartupBean {
     JacksonUtil.loadModules();
   }
 
+  void onStart(@Observes StartupEvent ev) {
+    log.info("The application is starting...");
+  }
+
   @Startup(value = Integer.MAX_VALUE)
   void afterStartup() {
+
     log.info("AFTER STARTUP");
     notificationService.sendAppStartup();
-    log.info("AFTER_STARTUP_SEND");
+//    Completable.complete()
+//        .delay(3, TimeUnit.SECONDS)
+//        .andThen(Completable.fromAction(() -> notificationService.sendAppStartup()))
+//        .subscribe(() -> log.info("AFTER_STARTUP_SEND"), throwable -> log.error("AFTER_STARTUP_SEND_ERROR", throwable));
   }
 
   @RouteFilter()
