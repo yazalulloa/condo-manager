@@ -1,16 +1,5 @@
 package com.yaz.service;
 
-import io.quarkus.cache.CacheInvalidate;
-import io.quarkus.cache.CacheInvalidateAll;
-import io.quarkus.cache.CacheResult;
-import io.smallrye.mutiny.Uni;
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
-import java.util.ArrayList;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import com.yaz.persistence.ApartmentRepository;
 import com.yaz.persistence.domain.ApartmentQuery;
 import com.yaz.persistence.entities.Apartment;
@@ -23,6 +12,17 @@ import com.yaz.service.cache.ApartmentCache;
 import com.yaz.util.Constants;
 import com.yaz.util.DateUtil;
 import com.yaz.util.SqlUtil;
+import io.quarkus.cache.CacheInvalidate;
+import io.quarkus.cache.CacheInvalidateAll;
+import io.quarkus.cache.CacheResult;
+import io.smallrye.mutiny.Uni;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import java.util.ArrayList;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @ApplicationScoped
@@ -87,8 +87,8 @@ public class ApartmentService {
               nextPageUrl += "&q=" + apartmentQuery.q();
             }
 
-            if (apartmentQuery.building() != null) {
-              nextPageUrl += "&building=" + apartmentQuery.building();
+            for (String building : apartmentQuery.buildings()) {
+              nextPageUrl += "&building=" + building;
             }
           }
 

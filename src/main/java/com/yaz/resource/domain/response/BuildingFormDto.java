@@ -30,7 +30,7 @@ public class BuildingFormDto {
   private final String mainCurrencyFieldError;
   private final Currency debtCurrency;
   private final String debtCurrencyFieldError;
-  private final Set<String> currenciesToShowAmountToPay;
+  private final Set<Currency> currenciesToShowAmountToPay;
   private final boolean fixedPay;
   private final BigDecimal fixedPayAmount;
   private final String fixedPayAmountFieldError;

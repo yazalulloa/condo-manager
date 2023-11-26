@@ -76,7 +76,7 @@ public class BuildingResource {
     return Uni.createFrom().item(Templates.form(BuildingFormDto.builder()
         .mainCurrency(Currency.VED)
         .debtCurrency(Currency.VED)
-        .currenciesToShowAmountToPay(Set.of(Currency.VED.name()))
+        .currenciesToShowAmountToPay(Set.of(Currency.VED))
         .build()));
   }
 
@@ -101,8 +101,7 @@ public class BuildingResource {
               .rif(building.rif())
               .mainCurrency(building.mainCurrency())
               .debtCurrency(building.debtCurrency())
-              .currenciesToShowAmountToPay(building.currenciesToShowAmountToPay().stream().map(Enum::name).collect(
-                  Collectors.toSet()))
+              .currenciesToShowAmountToPay(building.currenciesToShowAmountToPay())
               .fixedPay(building.fixedPay())
               .fixedPayAmount(building.fixedPayAmount())
               .roundUpPayments(building.roundUpPayments())
@@ -135,8 +134,7 @@ public class BuildingResource {
         .mainCurrencyFieldError(request.getMainCurrency() == null ? "Moneda principal no puede estar vacia" : null)
         .debtCurrency(request.getDebtCurrency())
         .debtCurrencyFieldError(request.getDebtCurrency() == null ? "Moneda deuda no puede estar vacia" : null)
-        .currenciesToShowAmountToPay(currenciesToShowAmountToPay.stream().map(Enum::name).collect(
-            Collectors.toSet()))
+        .currenciesToShowAmountToPay(currenciesToShowAmountToPay)
         .fixedPay(request.isFixedPay())
         .fixedPayAmount(fixedPayAmount)
         .fixedPayAmountFieldError(

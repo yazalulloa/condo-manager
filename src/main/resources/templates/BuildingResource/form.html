@@ -1,14 +1,14 @@
 {@com.yaz.resource.domain.response.BuildingFormDto dto}
 
 {#if dto.shouldRedirect}
-<meta http-equiv="refresh" content="0; url=/buildings" />
+<meta http-equiv="refresh" content="0; url=/buildings"/>
 {#else}
 <form class="form-control"
-      {#if dto.isEdit}
+{#if dto.isEdit}
       hx-patch="/api/buildings/edit"
-      {#else}
-          hx-post="/api/buildings/new"
-      {/if}
+{#else}
+      hx-post="/api/buildings/new"
+{/if}
       hx-indicator=".htmx-indicator"
       script="init call disableBtnInsideForm()"
 >
@@ -121,63 +121,53 @@
 </div>
 
 <div class="flex flex-row gap-4 p-2">
-  <div class="flex flex-col center">
-    <label class="center label label-text">Monedas a mostrar al pagar</label>
-    <div class="flex flex-row">
-      <div class="form-control">
-        <label class="label cursor-pointer">
-          <span class="label-text p-2">USD</span>
-          <input type="checkbox"
-            {#if dto.currenciesToShowAmountToPay.contains('USD')}
-                 checked="checked"
-            {/if}
-                 value="USD" name="currenciesToShowAmountToPay"
-                 class="checkbox checkbox-primary"/>
-        </label>
-      </div>
+<div class="flex flex-col center">
+  <label class="center label label-text">Monedas a mostrar al pagar</label>
+<div class="flex flex-row">
+{#each GLO_CURRENCIES}
+<div class="form-control">
 
-      <div class="form-control">
-        <label class="label cursor-pointer">
-          <span class="label-text p-2">VED</span>
-          <input type="checkbox"
-            {#if dto.currenciesToShowAmountToPay.contains('VED')}
-                 checked="checked"
-            {/if}
-                 value="VED"
-                 name="currenciesToShowAmountToPay"
-                 class="checkbox checkbox-primary"/>
-        </label>
-      </div>
-    </div>
-  </div>
+<label class="label cursor-pointer">
+<span class="label-text p-2">{it}</span>
+  <input type="checkbox"
+    {#if dto.currenciesToShowAmountToPay.contains(it)}
+         checked="checked"
+    {/if}
+        value="{it}" name="currenciesToShowAmountToPay"
+         class="checkbox checkbox-primary"/>
+</label>
+</div>
+{/each}
+</div>
+</div>
 
 
 
 <div class="flex flex-col center">
-<label class="cursor-pointer label flex flex-row  gap-4">
-  <span class="label-text">Monto Fijo</span>
-  <input name="fixedPay" type="checkbox"
+  <label class="cursor-pointer label flex flex-row  gap-4">
+    <span class="label-text">Monto Fijo</span>
+      <input name="fixedPay" type="checkbox"
     {#if dto.fixedPay}
-         checked="checked"
+             checked="checked"
     {/if}
-         class="checkbox checkbox-primary"
-         value="true"
-         script="on click toggle @hidden on next <input/>"/>
-    <input type="number" placeholder="Monto Fijo" name="fixedPayAmount" min="1"
-           oninput="limitInputToMaxLength(this)"
-           maxlength="10"
-           step=".01" class="input input-bordered"
-    value="{dto.fixedPayAmount}"
-{#if !dto.fixedPay}
-           hidden
-{/if}
->
-{#if dto.fixedPayAmountFieldError}
-<span class='input-error error-message'>
-{dto.fixedPayAmountFieldError}
-</span>
-{/if}
-</label>
+             class="checkbox checkbox-primary"
+             value="true"
+             script="on click toggle @hidden on next <input/>"/>
+        <input type="number" placeholder="Monto Fijo" name="fixedPayAmount" min="1"
+               oninput="limitInputToMaxLength(this)"
+               maxlength="10"
+               step=".01" class="input input-bordered"
+        value="{dto.fixedPayAmount}"
+    {#if !dto.fixedPay}
+               hidden
+    {/if}
+    >
+    {#if dto.fixedPayAmountFieldError}
+    <span class='input-error error-message'>
+    {dto.fixedPayAmountFieldError}
+  </span>
+    {/if}
+  </label>
 
 <label class="cursor-pointer label flex flex-row  gap-4">
   <span class="label-text">Redondear Pagos</span>
@@ -209,16 +199,16 @@
 </span>
 {/if}
 </label>
-  <div class="header">
-    <button id="apt-form-btn-submit" class="btn btn-primary">
-      {#if dto.isEdit}
-        Editar
-      {#else}
-        Crear
-      {/if}
-    </button>
-    <img class="htmx-indicator" src="/assets/bars.svg" alt="spinner">
-  </div>
+<div class="header">
+<button id="apt-form-btn-submit" class="btn btn-primary">
+{#if dto.isEdit}
+  Editar
+{#else}
+  Crear
+{/if}
+</button>
+  <img class="htmx-indicator" src="/assets/bars.svg" alt="spinner">
+</div>
 </form>
 {/if}
 

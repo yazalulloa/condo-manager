@@ -20,6 +20,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import com.yaz.persistence.domain.ApartmentQuery;
@@ -107,42 +108,26 @@ public class ApartmentsResource {
   }
 
   @GET
-  @Path("table")
-  @Produces(MediaType.TEXT_HTML)
-  public Uni<TemplateInstance> table(
-      @RestQuery String lastBuildingId,
-      @RestQuery String lastNumber,
-      @RestQuery String q,
-      @RestQuery String building) {
-
-    final var apartmentQuery = ApartmentQuery.builder()
-        .lastBuildingId(StringUtil.trimFilter(lastBuildingId))
-        .lastNumber(StringUtil.trimFilter(lastNumber))
-        .q(StringUtil.trimFilter(q))
-        .building(StringUtil.trimFilter(building))
-        .build();
-
-    log.info("Apartment query {}", apartmentQuery);
-
-    return apartmentService.tableResponse(apartmentQuery)
-        .map(Templates::table);
-  }
-
-  @GET
   @Path("grid")
   @Produces(MediaType.TEXT_HTML)
   public Uni<TemplateInstance> grid(
       @RestQuery String lastBuildingId,
       @RestQuery String lastNumber,
       @RestQuery String q,
-      @RestQuery String building) {
+      @RestQuery Set<String> building) {
+
+
+
 
     final var apartmentQuery = ApartmentQuery.builder()
         .lastBuildingId(StringUtil.trimFilter(lastBuildingId))
         .lastNumber(StringUtil.trimFilter(lastNumber))
         .q(StringUtil.trimFilter(q))
-        .building(StringUtil.trimFilter(building))
+        .buildings(building)
         .build();
+
+    log.info("Apartment query {}", apartmentQuery);
+    log.info("Apartment buildings {}", building);
 
     return apartmentService.tableResponse(apartmentQuery)
         .map(Templates::grid);
@@ -161,11 +146,11 @@ public class ApartmentsResource {
   @Produces(MediaType.TEXT_HTML)
   public Uni<TemplateInstance> counters(
       @RestQuery String q,
-      @RestQuery String building) {
+      @RestQuery Set<String> building) {
 
     final var apartmentQuery = ApartmentQuery.builder()
         .q(StringUtil.trimFilter(q))
-        .building(StringUtil.trimFilter(building))
+        .buildings(building)
         .build();
 
     return apartmentService.counters(apartmentQuery)
@@ -188,7 +173,7 @@ public class ApartmentsResource {
   @Produces
   public Uni<TemplateInstance> delete(
       @RestForm String q,
-      @RestForm String building,
+      @RestForm Set<String> building,
       @RestPath String buildingId, @RestPath String number) {
 
     log.info("Deleting apartment {} {}", buildingId, number);

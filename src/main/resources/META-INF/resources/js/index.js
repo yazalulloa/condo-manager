@@ -5,7 +5,7 @@ import {
   Input,
   Select,
   Sidenav,
-  Timepicker
+  Timepicker,
 } from "tw-elements";
 
 import './loader.js';
@@ -15,7 +15,7 @@ import _hyperscript from 'hyperscript.org';
 
 _hyperscript.browserInit();
 
-initTE({Carousel, Datepicker, Select, Timepicker, Input, Sidenav}, true); // set second parameter to true if you want to use a debugger
+initTE({Carousel, Datepicker, Select, Timepicker, Input, Sidenav}, false); // set second parameter to true if you want to use a debugger
 
 htmx.config.useTemplateFragments = true;
 // htmx.logAll();
@@ -46,6 +46,10 @@ window.addDisableEventToButtons = function () {
   for (let i = 0; i < buttons.length; i++) {
     disableButton(buttons[i]);
   }
+}
+
+window.initSelect = function () {
+  initTE({ Select });
 }
 
 function disableButton(button) {

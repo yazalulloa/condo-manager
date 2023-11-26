@@ -1,11 +1,13 @@
 package com.yaz.persistence.domain;
 
 
+import io.quarkus.qute.TemplateEnum;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
 import com.yaz.util.ConvertUtil;
 
+@TemplateEnum
 public enum Currency {
 
 

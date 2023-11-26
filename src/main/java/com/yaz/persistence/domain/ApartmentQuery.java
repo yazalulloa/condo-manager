@@ -3,6 +3,8 @@ package com.yaz.persistence.domain;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import java.util.Collections;
+import java.util.Set;
 import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -19,11 +21,8 @@ public class ApartmentQuery {
   private final String lastBuildingId;
   private final String lastNumber;
   private final String q;
-  private final String building;
+  @Builder.Default
+  private final Set<String> buildings = Collections.emptySet();
   @Builder.Default
   private final int limit = 25;
-
-  public static ApartmentQuery of(String q, String building) {
-    return ApartmentQuery.builder().q(q).building(building).build();
-  }
 }

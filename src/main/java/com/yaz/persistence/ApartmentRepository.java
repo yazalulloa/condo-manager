@@ -1,6 +1,11 @@
 package com.yaz.persistence;
 
 
+import com.yaz.persistence.domain.ApartmentQuery;
+import com.yaz.persistence.domain.MySqlQueryRequest;
+import com.yaz.persistence.entities.Apartment;
+import com.yaz.util.SqlUtil;
+import com.yaz.util.StringUtil;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.json.JsonObject;
@@ -17,17 +22,13 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
-import com.yaz.persistence.domain.ApartmentQuery;
-import com.yaz.persistence.domain.MySqlQueryRequest;
-import com.yaz.persistence.entities.Apartment;
-import com.yaz.util.SqlUtil;
-import com.yaz.util.StringUtil;
 
 @ApplicationScoped
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
@@ -240,40 +241,33 @@ public class ApartmentRepository {
   }
 
   public Uni<Optional<Long>> queryCount(ApartmentQuery query) {
+
+    final var buildings = query.buildings().stream()
+        .map(StringUtil::trimFilter)
+        .filter(Objects::nonNull)
+        .collect(Collectors.toSet());
+
     final var q = StringUtil.trimFilter(query.q());
-    final var building = StringUtil.trimFilter(query.building());
-    if (q != null || building != null) {
 
-      final var stringBuilder = new StringBuilder(" WHERE ");
-      boolean setAnd = false;
+    if (q != null || !buildings.isEmpty()) {
 
-      final var tupleSize = new AtomicInteger(0);
+      final var i = q != null && !buildings.isEmpty() ? 2 : 1;
+      final var tuple = new ArrayTuple(i);
 
-      if (building != null) {
-        stringBuilder.append(" apartments.building_id = ? ");
-        setAnd = true;
-        tupleSize.incrementAndGet();
+      final var params = new ArrayList<String>();
+      if (!buildings.isEmpty()) {
+        params.add("apartments.building_id IN (" + SqlUtil.params(buildings.size()) + ")");
+        buildings.forEach(tuple::addString);
       }
 
       if (q != null) {
-        if (setAnd) {
-          stringBuilder.append(" AND ");
-        }
-
-        stringBuilder.append(LIKE_QUERY);
-        tupleSize.incrementAndGet();
+        params.add(LIKE_QUERY);
+        tuple.addString("%" + q + "%");
       }
 
-      final var tuple = new ArrayTuple(tupleSize.get());
-      if (building != null) {
-        tuple.addValue(building);
-      }
+      final var queryParams = " WHERE " + String.join(" AND ", params);
 
-      if (q != null) {
-        tuple.addValue("%" + q + "%");
-      }
-
-      final var queryRequest = MySqlQueryRequest.normal(QUERY_COUNT_WHERE.formatted(stringBuilder.toString()), tuple);
+      final var queryRequest = MySqlQueryRequest.normal(QUERY_COUNT_WHERE.formatted(queryParams), tuple);
       return mySqlService.extractLong(queryRequest, "query_count")
           .map(Optional::of);
     }
@@ -294,7 +288,21 @@ public class ApartmentRepository {
       tupleSize.addAndGet(2);
     }
 
-    final var buildingOptional = Optional.ofNullable(query.building());
+    final var buildings = query.buildings().stream()
+        .map(StringUtil::trimFilter)
+        .filter(Objects::nonNull)
+        .collect(Collectors.toSet());
+
+    if (!buildings.isEmpty()) {
+      if (ifCursorQuery.get()) {
+        stringBuilder.append(" AND ");
+      }
+      ifCursorQuery.set(true);
+      stringBuilder.append("apartments.building_id IN (").append(SqlUtil.params(buildings.size())).append(")");
+      tupleSize.addAndGet(buildings.size());
+    }
+
+  /*  final var buildingOptional = Optional.ofNullable(query.building());
     buildingOptional.ifPresent(str -> {
       if (ifCursorQuery.get()) {
         stringBuilder.append(" AND ");
@@ -302,7 +310,7 @@ public class ApartmentRepository {
       ifCursorQuery.set(true);
       stringBuilder.append(" apartments.building_id = ? ");
       tupleSize.addAndGet(1);
-    });
+    });*/
 
     final var qOptional = Optional.ofNullable(query.q())
         .map(String::trim)
@@ -317,14 +325,16 @@ public class ApartmentRepository {
           tupleSize.addAndGet(1);
         });
 
-    final var params = new ArrayTuple(tupleSize.get());
-    Optional.ofNullable(buildingId).ifPresent(params::addValue);
-    Optional.ofNullable(number).ifPresent(params::addValue);
-    buildingOptional.ifPresent(params::addValue);
-    qOptional.map(s -> "%" + s + "%").ifPresent(params::addValue);
-    params.addValue(query.limit());
+    final var tuple = new ArrayTuple(tupleSize.get());
+    Optional.ofNullable(buildingId).ifPresent(tuple::addValue);
+    Optional.ofNullable(number).ifPresent(tuple::addValue);
+    if (!buildings.isEmpty()) {
+      buildings.forEach(tuple::addString);
+    }
+    qOptional.map(s -> "%" + s + "%").ifPresent(tuple::addValue);
+    tuple.addValue(query.limit());
 
-    return MySqlQueryRequest.normal(stringBuilder.toString(), new Tuple(params));
+    return MySqlQueryRequest.normal(stringBuilder.toString(), new Tuple(tuple));
   }
 
   public Uni<Boolean> exists(String buildingId, String number) {
