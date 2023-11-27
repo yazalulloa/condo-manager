@@ -7,8 +7,9 @@ RUN --mount=type=cache,target=/root/.m2 ./mvnw verify --fail-never -DskipTests
 
 COPY local.env .
 COPY local.env .env
-COPY local.env /project/.env
+#COPY local.env /project/.env
 COPY src ./src
+RUN source ./local.env
 RUN --mount=type=cache,target=/root/.m2 ./mvnw clean package -DskipTests -Dnative
 
 FROM registry.access.redhat.com/ubi8/ubi-minimal:8.8
