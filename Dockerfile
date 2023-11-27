@@ -6,14 +6,13 @@ COPY pom.xml .
 RUN --mount=type=cache,target=/root/.m2 ./mvnw verify --fail-never -DskipTests
 
 COPY local.env .
+COPY local.env .env
 COPY src ./src
 RUN --mount=type=cache,target=/root/.m2 ./mvnw clean package -DskipTests -Dnative
 
 FROM registry.access.redhat.com/ubi8/ubi-minimal:8.8
 WORKDIR /work/
 COPY --from=build /project/target/*-runner /work/application
-COPY local.env .
-COPY local.env .env
 RUN chmod 775 /work
 
 EXPOSE 13835
