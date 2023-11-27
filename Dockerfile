@@ -9,6 +9,7 @@ COPY local.env .
 COPY local.env .env
 #COPY local.env /project/.env
 COPY src ./src
+USER root
 RUN source ./local.env
 RUN --mount=type=cache,target=/root/.m2 ./mvnw clean package -DskipTests -Dnative
 
