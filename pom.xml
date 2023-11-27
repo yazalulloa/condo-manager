@@ -102,6 +102,10 @@
       <artifactId>quarkus-oidc-db-token-state-manager</artifactId>
     </dependency>
     <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-smallrye-health</artifactId>
+    </dependency>
+    <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-rx-java3</artifactId>
     </dependency>
