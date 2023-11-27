@@ -7,7 +7,6 @@ RUN --mount=type=cache,target=/root/.m2 ./mvnw verify --fail-never -DskipTests
 
 COPY local.env .
 COPY local.env .env
-COPY local.env /project/local.env
 COPY local.env /project/.env
 COPY src ./src
 RUN --mount=type=cache,target=/root/.m2 ./mvnw clean package -DskipTests -Dnative
