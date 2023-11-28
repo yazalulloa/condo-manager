@@ -1,27 +1,22 @@
 package com.yaz.service;
 
 import com.yaz.domain.NotificationEvent;
-import com.yaz.util.EnvUtil;
+import com.yaz.util.EnvParams;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 
 @Slf4j
 @ApplicationScoped
+@RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class NotificationService {
 
 
   private final TelegramRestService restService;
-  private final boolean enabled;
+  private final EnvParams envParams;
 
-  @Inject
-  public NotificationService(TelegramRestService restService,
-      @ConfigProperty(name = "app.notifications.enabled", defaultValue = "true") boolean enabled) {
-    this.restService = restService;
-    this.enabled = enabled;
-  }
   //private final SendLogs sendLogs;
   //private final TelegramChatService chatService;
 //  private final TranslationProvider translationProvider;
@@ -29,9 +24,9 @@ public class NotificationService {
   public void sendAppStartup() {
     final var event = NotificationEvent.APP_STARTUP;
     final var msg = event.name();//translationProvider.translate(event.name());
-    final var string = EnvUtil.addEnvInfo(msg, false);
+    final var string = envParams.addEnvInfo(msg, false);
 
-    if (enabled) {
+    if (envParams.isSendNotifications()) {
       restService.sendMessage(475635800, string)
           .subscribe()
           .with(

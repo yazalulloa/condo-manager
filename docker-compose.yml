@@ -6,5 +6,5 @@ services:
     restart: always
     ports:
       - "13835:13835"
-    env_file:
-      - local.env
+#    env_file:
+#      - local.env

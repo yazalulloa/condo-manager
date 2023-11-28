@@ -1,94 +1,62 @@
 package com.yaz.util;
 
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import java.time.Instant;
 import java.util.Optional;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 
+@ApplicationScoped
+@Data
 @Slf4j
-public class EnvUtil {
+public class EnvParams {
 
   private static final String APP_STARTED_AT = "APP_STARTED_AT";
   private static final String CURRENT_IP = "CURRENT_IP";
 
-  private EnvUtil() {
+  private final String cloud;
+  private final boolean isShowDir;
+  private final boolean sendNotifications;
+
+  @Inject
+  public EnvParams(
+      @ConfigProperty(name = "app.cloud-provider") String cloud,
+      @ConfigProperty(name = "app.is-show-dir", defaultValue = "false") boolean isShowDir,
+      @ConfigProperty(name = "app.send-notifications", defaultValue = "false") boolean sendNotifications) {
+    this.cloud = cloud;
+    this.isShowDir = isShowDir;
+    this.sendNotifications = sendNotifications;
   }
 
-  public static long getLong(String key) {
-    return Optional.ofNullable(System.getenv(key))
-        .map(str -> {
-          try {
-            return Long.parseLong(str);
-          } catch (Exception e) {
-            return null;
-          }
-        })
-        .orElseThrow();
-  }
-
-  public static int getInt(String key, int dflt) {
-    return Optional.ofNullable(System.getenv(key))
-        .map(str -> {
-          try {
-            return Integer.parseInt(str);
-          } catch (Exception e) {
-            return null;
-          }
-        })
-        .orElse(dflt);
-  }
-
-  public static boolean bool(String key) {
-    return Optional.ofNullable(System.getenv(key))
-        .map(str -> {
-          try {
-            return Boolean.parseBoolean(str);
-          } catch (Exception e) {
-            return false;
-          }
-        })
-        .orElse(false);
-  }
-
-  public static void saveCurrentIp(String ip) {
+  public void saveCurrentIp(String ip) {
     System.setProperty(CURRENT_IP, ip);
   }
 
-  public static String currentIp() {
+  public String currentIp() {
     return Optional.ofNullable(System.getProperty(CURRENT_IP))
         .orElse("");
   }
 
-  public static String cloud() {
-    return Optional.ofNullable(System.getenv("CLOUD_PROVIDER"))
-        .orElse("");
-  }
-
-  public static boolean isShowDir() {
-    return bool("SHOW_DIR");
-  }
-
-  public static boolean sendNotifications() {
-    return bool("SEND_NOTIFICATIONS");
-  }
-
-  public static void saveAppStartedAt() {
+  public void saveAppStartedAt() {
     System.setProperty(APP_STARTED_AT, String.valueOf(System.currentTimeMillis()));
   }
 
-  public static Long getAppStartedAt() {
+  public Long getAppStartedAt() {
     return Optional.ofNullable(System.getProperty(APP_STARTED_AT))
         .map(Long::valueOf)
         .orElse(null);
   }
 
-  public static String addEnvInfo(String msg) {
+  public String addEnvInfo(String msg) {
     return addEnvInfo(msg, true);
   }
 
-  public static String addEnvInfo(String msg, boolean addTimeUp) {
+  public String addEnvInfo(String msg, boolean addTimeUp) {
 
     final var builder = new StringBuilder(msg);
-    Optional.of(cloud())
+    Optional.of(cloud)
         .filter(s -> !s.isEmpty())
         .ifPresent(str -> builder.append("\n").append("CLOUD: ").append(str));
 

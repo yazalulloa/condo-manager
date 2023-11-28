@@ -7,9 +7,9 @@ import java.util.stream.Stream;
 public class SystemUtil {
 
 
-  public static String ipStr() {
+  /*public static String ipStr() {
     return "IP: " + EnvUtil.currentIp();
-  }
+  }*/
 
   public static String processorsStr() {
     final var availableProcessors = Runtime.getRuntime().availableProcessors();
@@ -60,7 +60,8 @@ public class SystemUtil {
 
   public static List<String> systemInfoList() {
     final var results = new ArrayList<String>();
-    results.add(ipStr());
+    // TODO add ip
+    //results.add(ipStr());
     results.add(processorsStr());
     results.add(maxMemoryStr());
     results.add(totalMemoryStr());
