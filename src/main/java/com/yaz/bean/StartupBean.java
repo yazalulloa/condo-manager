@@ -46,18 +46,5 @@ public class StartupBean {
 //        .subscribe(() -> log.info("AFTER_STARTUP_SEND"), throwable -> log.error("AFTER_STARTUP_SEND_ERROR", throwable));
   }
 
-  @RouteFilter()
-    //  (1)
-  void rerouteStatic(RoutingContext rc) {
-    final var path = rc.request().path();
 
-    final var indexOfDot = path.lastIndexOf(".");
-    final var count = path.chars().filter(ch -> ch == '/').count();
-
-    if (indexOfDot == -1 && count == 1) {
-      rc.reroute(path + ".html");
-      return;
-    }
-    rc.next();
-  }
 }

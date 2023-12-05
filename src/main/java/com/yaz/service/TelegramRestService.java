@@ -22,7 +22,7 @@ public class TelegramRestService {
     this.client = client;
   }
 
-  public Uni<TelegramMessage> request(SendMessage sendMessage) {
+  public Uni<String> request(SendMessage sendMessage) {
 
     final var build = sendMessage.toBuilder()
         .parseMode(Objects.requireNonNullElse(sendMessage.parseMode(), ParseMode.HTML))
@@ -31,7 +31,7 @@ public class TelegramRestService {
     return client.sendMessage(build);
   }
 
-  public Uni<TelegramMessage>  sendMessage(long chatId, String text) {
+  public Uni<String>  sendMessage(long chatId, String text) {
 
     final var sendMessage = SendMessage.builder()
         .chatId(chatId)
@@ -41,7 +41,7 @@ public class TelegramRestService {
     return request(sendMessage);
   }
 
-  public Uni<TelegramMessage> sendMessage(SendMessage sendMessage) {
+  public Uni<String> sendMessage(SendMessage sendMessage) {
     return request(sendMessage);
   }
 

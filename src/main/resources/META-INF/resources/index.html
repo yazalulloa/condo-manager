@@ -3,26 +3,31 @@
 <head>
   <meta charset="UTF-8">
   <title>Condominium Manager</title>
-  <link href="out/css/output.css" rel="stylesheet"/>
-  <script src="out/js/index.js" defer></script>
+  <link href="/output.css" rel="stylesheet"/>
+  <script src="/index.js" defer></script>
 </head>
 <body hx-boost="true">
 
 <div class="navbar bg-base-100">
-  <div class="navbar-start">
+  <div class="navbar-start"
+  script="init call initNav()">
     <div class="dropdown">
       <label tabindex="0" class="btn btn-ghost btn-circle">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" /></svg>
       </label>
       <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
         <li><a
+            id="nav-apartments"
             hx-get="/apartments"
             hx-target="#container"
+            hx-trigger="click, navigate"
             hx-swap="innerHTML"
         >Apartmentos</a></li>
         <li><a
+            id="nav-buildings"
             hx-get="/buildings"
             hx-target="#container"
+            hx-trigger="click, navigate"
             hx-swap="innerHTML"
         >Edificios</a></li>
       </ul>

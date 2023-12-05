@@ -15,7 +15,7 @@ import _hyperscript from 'hyperscript.org';
 
 _hyperscript.browserInit();
 
-initTE({Carousel, Datepicker, Select, Timepicker, Input, Sidenav}, false); // set second parameter to true if you want to use a debugger
+initTE({Carousel, Datepicker, Select, Timepicker, Input, Sidenav}, { allowReinits: true }, false); // set second parameter to true if you want to use a debugger
 
 htmx.config.useTemplateFragments = true;
 // htmx.logAll();
@@ -49,7 +49,7 @@ window.addDisableEventToButtons = function () {
 }
 
 window.initSelect = function () {
-  initTE({ Select });
+  initTE({Select}, { allowReinits: true }, false);
 }
 
 function disableButton(button) {
@@ -107,6 +107,34 @@ function getLastUrlSegment(url) {
 window.redirectTo = function (url) {
   window.location.href = '.' + url;
 }
+
+window.initNav = function () {
+  let lastUrlSegmentCurrent = getLastUrlSegmentCurrent();
+
+  if (!lastUrlSegmentCurrent || lastUrlSegmentCurrent === ''
+      || lastUrlSegmentCurrent === 'index.html'
+      || lastUrlSegmentCurrent === 'index'
+      || lastUrlSegmentCurrent === '/') {
+    let item = localStorage.getItem("current-nav");
+    if (item) {
+      let elem = document.getElementById(item);
+      elem?.dispatchEvent(new Event('navigate'));
+      return;
+    }
+    let navbar = document.getElementsByClassName("navbar-start");
+    if (navbar.length > 0) {
+      let nav = navbar[0];
+      let anchors = nav.getElementsByTagName("a");
+      if (anchors.length > 0) {
+        let anchor = anchors[0];
+        localStorage.setItem("current-nav", anchor.id);
+        anchor.dispatchEvent(new Event('navigate'));
+      }
+    }
+
+  }
+}
+
 function trimInput(el) {
   // console.log("trimming {}", el.value)
   el.value = el.value.trim();

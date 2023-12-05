@@ -31,6 +31,6 @@ public interface TelegramClient {
   @Path("sendMessage")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  Uni<TelegramMessage> sendMessage(SendMessage sendMessage);
+  Uni<String> sendMessage(SendMessage sendMessage);
 
 }
