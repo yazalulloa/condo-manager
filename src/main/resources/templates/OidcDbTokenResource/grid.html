@@ -7,7 +7,10 @@
   <div>{item.token.idToken}</div>
   <div>{item.token.accessToken}</div>
   <div>{item.token.refreshToken}</div>
-  <div>{item.token.expiresIn}</div>
+  <div>
+    <div>{item.token.expiresIn}</div>
+    <div>{item.token.expiresIn.fromEpoch}</div>
+  </div>
 
 {#include fragments/delete-btn deleteUrl=item.deleteUrl cardIdRef=item.cardIdRef/}
 </div>
