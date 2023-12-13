@@ -1,5 +1,15 @@
 package com.yaz.resource;
 
+import com.yaz.persistence.domain.BuildingQuery;
+import com.yaz.persistence.domain.Currency;
+import com.yaz.persistence.entities.Building;
+import com.yaz.resource.domain.request.BuildingRequest;
+import com.yaz.resource.domain.response.BuildingFormDto;
+import com.yaz.resource.domain.response.BuildingReportResponse;
+import com.yaz.service.BuildingService;
+import com.yaz.util.DateUtil;
+import com.yaz.util.DecimalUtil;
+import com.yaz.util.StringUtil;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
@@ -15,19 +25,8 @@ import jakarta.ws.rs.core.MediaType;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import com.yaz.persistence.domain.BuildingQuery;
-import com.yaz.persistence.domain.Currency;
-import com.yaz.persistence.entities.Building;
-import com.yaz.resource.domain.request.BuildingRequest;
-import com.yaz.resource.domain.response.BuildingFormDto;
-import com.yaz.resource.domain.response.BuildingReportResponse;
-import com.yaz.service.BuildingService;
-import com.yaz.util.DateUtil;
-import com.yaz.util.DecimalUtil;
-import com.yaz.util.StringUtil;
 import org.jboss.resteasy.reactive.RestQuery;
 
 @Path(BuildingResource.PATH)

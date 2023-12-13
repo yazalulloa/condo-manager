@@ -49,7 +49,7 @@ public class BuildingReportResponse {
     }
 
     private String genItemUrl() {
-      return BuildingReactiveRoutes.EDIT_PATH + getBuilding().id();
+      return "/buildings/edit" + "?buildingId=" + getBuilding().id();
     }
   }
 }

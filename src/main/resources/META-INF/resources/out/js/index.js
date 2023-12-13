@@ -17372,6 +17372,10 @@ window.disableBtnInsideForm = function() {
 window.getLastUrlSegmentCurrent = function() {
   return getLastUrlSegment(window.location.href);
 };
+window.getQueryParam = function(name) {
+  let params = new URL(document.location).searchParams;
+  return params.get(name);
+};
 window.limitInputToMaxLength = function(input) {
   input.value = input.value.trim();
   if (input.value.length > input.maxLength) {

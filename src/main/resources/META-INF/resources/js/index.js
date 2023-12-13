@@ -15,7 +15,8 @@ import _hyperscript from 'hyperscript.org';
 
 _hyperscript.browserInit();
 
-initTE({Carousel, Datepicker, Select, Timepicker, Input, Sidenav}, { allowReinits: true }, false); // set second parameter to true if you want to use a debugger
+initTE({Carousel, Datepicker, Select, Timepicker, Input, Sidenav},
+    {allowReinits: true}, false); // set second parameter to true if you want to use a debugger
 
 htmx.config.useTemplateFragments = true;
 // htmx.logAll();
@@ -49,7 +50,7 @@ window.addDisableEventToButtons = function () {
 }
 
 window.initSelect = function () {
-  initTE({Select}, { allowReinits: true }, false);
+  initTE({Select}, {allowReinits: true}, false);
 }
 
 function disableButton(button) {
@@ -90,6 +91,11 @@ window.disableBtnInsideForm = function () {
 
 window.getLastUrlSegmentCurrent = function () {
   return getLastUrlSegment(window.location.href);
+}
+
+window.getQueryParam = function (name) {
+  let params = (new URL(document.location)).searchParams;
+  return params.get(name);
 }
 
 window.limitInputToMaxLength = function (input) {
