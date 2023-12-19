@@ -141,6 +141,11 @@ window.initNav = function () {
   }
 }
 
+window.saveNavState = function (anchor) {
+  console.log("saving nav state {}", anchor.id);
+  localStorage.setItem("current-nav", anchor.id);
+}
+
 function trimInput(el) {
   // console.log("trimming {}", el.value)
   el.value = el.value.trim();

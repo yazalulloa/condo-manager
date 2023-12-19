@@ -1,5 +1,11 @@
 package com.yaz.service;
 
+import com.yaz.domain.BcvUsdRateResult;
+import com.yaz.domain.BcvUsdRateResult.State;
+import com.yaz.util.DateUtil;
+import com.yaz.util.DecimalUtil;
+import com.yaz.util.EventConstants;
+import com.yaz.util.RxUtil;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.Json;
@@ -8,12 +14,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import com.yaz.domain.BcvUsdRateResult;
-import com.yaz.domain.BcvUsdRateResult.State;
-import com.yaz.util.DateUtil;
-import com.yaz.util.DecimalUtil;
-import com.yaz.util.EventConstants;
-import com.yaz.util.RxUtil;
 
 @Slf4j
 @ApplicationScoped

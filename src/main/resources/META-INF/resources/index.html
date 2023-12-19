@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <title>Condominium Manager</title>
-  <link href="/output.css" rel="stylesheet"/>
-  <script src="/index.js" defer></script>
+  <link href="out/css/output.css" rel="stylesheet"/>
+  <script src="out/js/index.js" defer></script>
 </head>
 <body hx-boost="true">
 
@@ -22,14 +22,36 @@
             hx-target="#container"
             hx-trigger="click, navigate"
             hx-swap="innerHTML"
-        >Apartmentos</a></li>
+            hx-on::after-request="saveNavState(this)"
+        >Apartmentos</a>
+        </li>
         <li><a
             id="nav-buildings"
             hx-get="/buildings"
             hx-target="#container"
             hx-trigger="click, navigate"
             hx-swap="innerHTML"
-        >Edificios</a></li>
+            hx-on::after-request="saveNavState(this)"
+        >Edificios</a>
+        </li>
+        <li><a
+            id="nav-rates"
+            hx-get="/rates"
+            hx-target="#container"
+            hx-trigger="click, navigate"
+            hx-swap="innerHTML"
+            hx-on::after-request="saveNavState(this)"
+        >Tasas de cambio</a>
+        </li>
+        <li><a
+            id="nav-oidc-tokens"
+            hx-get="/oidc_tokens"
+            hx-target="#container"
+            hx-trigger="click, navigate"
+            hx-swap="innerHTML"
+            hx-on::after-request="saveNavState(this)"
+        >OIDC tokens</a>
+        </li>
       </ul>
     </div>
   </div>

@@ -17406,6 +17406,10 @@ window.initNav = function() {
     }
   }
 };
+window.saveNavState = function(anchor) {
+  console.log("saving nav state {}", anchor.id);
+  localStorage.setItem("current-nav", anchor.id);
+};
 var datePicker = document.querySelector("#datepicker-translated");
 if (datePicker) {
   const datepickerTranslated = new Nm(datePicker, {
