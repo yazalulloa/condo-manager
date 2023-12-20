@@ -1,5 +1,18 @@
 package com.yaz.resource;
 
+import com.yaz.persistence.domain.ApartmentQuery;
+import com.yaz.resource.domain.ApartmentFormDto;
+import com.yaz.resource.domain.ApartmentFormDto.EmailForm;
+import com.yaz.resource.domain.ApartmentInitDto;
+import com.yaz.resource.domain.ApartmentTableResponse;
+import com.yaz.resource.domain.AptItem;
+import com.yaz.resource.domain.request.ApartmentRequest;
+import com.yaz.resource.domain.response.AptCountersDto;
+import com.yaz.resource.msg.ApartmentMessages;
+import com.yaz.service.ApartmentService;
+import com.yaz.service.BuildingService;
+import com.yaz.util.DecimalUtil;
+import com.yaz.util.StringUtil;
 import io.quarkus.oidc.IdToken;
 import io.quarkus.oidc.UserInfo;
 import io.quarkus.qute.CheckedTemplate;
@@ -23,20 +36,6 @@ import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import com.yaz.persistence.domain.ApartmentQuery;
-import com.yaz.resource.domain.ApartmentFormDto;
-import com.yaz.resource.domain.ApartmentFormDto.EmailForm;
-import com.yaz.resource.domain.ApartmentInitDto;
-import com.yaz.resource.domain.ApartmentTableResponse;
-import com.yaz.resource.domain.AptItem;
-import com.yaz.resource.domain.request.ApartmentRequest;
-import com.yaz.resource.domain.response.AptCountersDto;
-import com.yaz.resource.msg.ApartmentMessages;
-import com.yaz.service.ApartmentService;
-import com.yaz.service.BuildingService;
-import com.yaz.util.DecimalUtil;
-import com.yaz.util.StringUtil;
-import org.apache.commons.validator.routines.EmailValidator;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.RestPath;
@@ -115,9 +114,6 @@ public class ApartmentsResource {
       @RestQuery String lastNumber,
       @RestQuery String q,
       @RestQuery Set<String> building) {
-
-
-
 
     final var apartmentQuery = ApartmentQuery.builder()
         .lastBuildingId(StringUtil.trimFilter(lastBuildingId))
@@ -237,7 +233,8 @@ public class ApartmentsResource {
           final var emailForms = request.getEmails().stream()
               .map(StringUtil::trimFilter)
               .map(str -> {
-                final var error = str == null ? null : EmailValidator.getInstance().isValid(str) ? null
+
+                final var error = str == null ? null : StringUtil.isValidEmail(str) ? null
                     : apartmentMessages.error_msg_apt_email_invalid();
 
                 return new EmailForm(str, error);
