@@ -1,13 +1,13 @@
 package com.yaz.resource.domain.response;
 
+import com.yaz.persistence.entities.Building;
+import com.yaz.resource.BuildingReactiveRoutes;
+import com.yaz.resource.BuildingResource;
 import java.util.Collection;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import com.yaz.persistence.entities.Building;
-import com.yaz.resource.BuildingReactiveRoutes;
-import com.yaz.resource.BuildingResource;
 
 @Data
 @Builder
@@ -17,6 +17,7 @@ public class BuildingReportResponse {
   private final long totalCount;
   private final String nextPageUrl;
   private final Collection<Item> results;
+  private final String buildingEditUrl = BuildingReactiveRoutes.EDIT_PATH;
 
   @Data
   @RequiredArgsConstructor
@@ -33,9 +34,6 @@ public class BuildingReportResponse {
     @Getter(lazy = true)
     private final String deleteUrl = genDeleteUrl();
 
-    @Getter(lazy = true)
-    private final String itemUrl = genItemUrl();
-
     private String genCardId() {
       return "rate-card-id-" + getBuilding().id();
     }
@@ -48,8 +46,5 @@ public class BuildingReportResponse {
       return "#" + genCardId();
     }
 
-    private String genItemUrl() {
-      return "/buildings/edit" + "?buildingId=" + getBuilding().id();
-    }
   }
 }

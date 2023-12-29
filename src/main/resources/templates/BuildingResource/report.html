@@ -4,7 +4,9 @@
 
 {#for item in res.results}
     <div class="hover:bg-[#00000014] flex-wrap flex-row flex justify-between gap-0.5 rounded-lg p-4 bg-neutral"
-         script="on click call redirectTo('{item.itemUrl}')"
+    script="on click call saveToLocalStorage('buildingId','{item.building.id}')
+         on click call redirectTo('{res.buildingEditUrl}')
+"
 >
   <span>ID: {item.building.id}</span>
   <span>Nombre: {item.building.name}</span>

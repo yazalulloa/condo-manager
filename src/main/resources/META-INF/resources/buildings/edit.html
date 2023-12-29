@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <title>Editar Edificio</title>
-  <link href="/output.css" rel="stylesheet"/>
-  <script src="/index.js" defer></script>
+  <link href="/out/css/output.css" rel="stylesheet"/>
+  <script src="/out/js/index.js" defer></script>
 </head>
 <body hx-boost="true">
 
@@ -13,7 +13,7 @@
       hx-get="/api/buildings/edit_form"
       hx-indicator=".htmx-indicator"
       hx-trigger="load"
-      hx-vals="js:{buildingId: getQueryParam('buildingId')}"
+      hx-vals="js:{buildingId: getFromLocalStorage('buildingId')}"
       hx-swap="outerHTML">
     <img class="htmx-indicator center img-small-size white-filter" src="/assets/bars.svg" alt="spinner">
   </form>

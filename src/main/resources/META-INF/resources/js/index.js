@@ -146,6 +146,14 @@ window.saveNavState = function (anchor) {
   localStorage.setItem("current-nav", anchor.id);
 }
 
+window.saveToLocalStorage = function (key, value) {
+  localStorage.setItem(key, value);
+}
+
+window.getFromLocalStorage = function (key) {
+  return localStorage.getItem(key);
+}
+
 function trimInput(el) {
   // console.log("trimming {}", el.value)
   el.value = el.value.trim();
