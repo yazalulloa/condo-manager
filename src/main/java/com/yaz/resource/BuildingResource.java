@@ -73,6 +73,7 @@ public class BuildingResource {
   @Produces(MediaType.TEXT_HTML)
   public Uni<TemplateInstance> newForm() {
     return Uni.createFrom().item(Templates.form(BuildingFormDto.builder()
+        .isNew(true)
         .mainCurrency(Currency.VED)
         .debtCurrency(Currency.VED)
         .currenciesToShowAmountToPay(Set.of(Currency.VED))

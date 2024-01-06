@@ -38,6 +38,7 @@ public class BuildingFormDto {
   private final String emailConfig;
   private final String emailConfigFieldError;
   private final boolean shouldRedirect;
+  private final boolean isNew;
 
   public boolean isSuccess() {
     return generalFieldError == null

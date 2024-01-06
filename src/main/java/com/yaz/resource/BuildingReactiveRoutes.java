@@ -21,14 +21,14 @@ public class BuildingReactiveRoutes {
     }
   }
 
-  @Route(path = EDIT_PATH, methods = Route.HttpMethod.GET)
+  /*@Route(path = EDIT_PATH, methods = Route.HttpMethod.GET)
   void editBuilding( RoutingContext routingContext) {
-    /*final var str = StringUtil.trimFilter(routingContext.request().getParam("buildingId"));
+    *//*final var str = StringUtil.trimFilter(routingContext.request().getParam("buildingId"));
     if (str == null) {
       routingContext.redirect("/buildings");
     } else {
       routingContext.reroute("/buildings/edit.html");
-    }*/
+    }*//*
     routingContext.reroute("/buildings/edit.html");
-  }
+  }*/
 }

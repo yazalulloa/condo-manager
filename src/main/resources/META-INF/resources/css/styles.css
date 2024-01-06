@@ -274,9 +274,7 @@
   background-clip: padding-box;
   border: 1px solid #ced4da;
   border-radius: 0.25rem;
-  transition: border-color
-
-  0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
 .std-form-control:focus {
@@ -290,4 +288,38 @@
   font-size: 0.75rem;
   font-weight: 700;
   color: #495057;
+}
+
+.cm-form-input {
+  display: block;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+  border-radius: 0.25rem;
+  border-width: 0;
+  outline-style: none;
+  width: 100%;
+  background-color: transparent;
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
+  transition-duration: 150ms;
+  transition-timing-function: linear;
+}
+
+.cm-form-label {
+  position: absolute;
+  top: 0;
+  left: 0.75rem;
+  margin-bottom: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
+  transition-duration: 150ms;
+  transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  pointer-events: none;
+  max-width: 90%;
+  padding-top: 0.37rem;
 }

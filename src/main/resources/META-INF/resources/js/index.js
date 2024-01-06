@@ -3,9 +3,11 @@ import {
   Datepicker,
   initTE,
   Input,
+  Ripple,
   Select,
   Sidenav,
   Timepicker,
+  Validation,
 } from "tw-elements";
 
 import './loader.js';
@@ -15,8 +17,24 @@ import _hyperscript from 'hyperscript.org';
 
 _hyperscript.browserInit();
 
-initTE({Carousel, Datepicker, Select, Timepicker, Input, Sidenav},
-    {allowReinits: true}, false); // set second parameter to true if you want to use a debugger
+import './elements.js';
+
+window.initComponents = function () {
+  console.log("INIT TW-ELEMENTS")
+  initTE({
+        Carousel,
+        Datepicker,
+        Input,
+        Ripple,
+        Select,
+        Sidenav,
+        Timepicker,
+        Validation,
+      },
+      {allowReinits: true}, true); // set second parameter to true if you want to use a debugger
+}
+
+initComponents();
 
 htmx.config.useTemplateFragments = true;
 // htmx.logAll();
@@ -47,10 +65,6 @@ window.addDisableEventToButtons = function () {
   for (let i = 0; i < buttons.length; i++) {
     disableButton(buttons[i]);
   }
-}
-
-window.initSelect = function () {
-  initTE({Select}, {allowReinits: true}, false);
 }
 
 function disableButton(button) {

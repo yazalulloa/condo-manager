@@ -4,66 +4,85 @@
 <meta http-equiv="refresh" content="0; url=/buildings"/>
 {#else}
 <form class="form-control"
+      hx-swap="outerHTML"
+      data-te-validation-init
 {#if dto.isEdit}
       hx-patch="/api/buildings/edit"
 {#else}
       hx-post="/api/buildings/new"
 {/if}
       hx-indicator=".htmx-indicator"
-      script="init call disableBtnInsideForm()"
+
+
+      script="
+      init call initComponents()
+      init call disableBtnInsideForm()
+        {#if !dto.isNew && !dto.isSuccess}
+      init set @data-te-validated to 'true'
+{/if}
+"
 >
 
-    <input type="hidden" name="{inject:csrf.parameterName}" value="{inject:csrf.token}"/>
+    <input type="hidden" name="{inject:csrf.parameterName}" value="{inject:csrf.token}"
+           script="init set @data-te-validation-state to invalid"/>
 
-  <div class="">
-    {#if dto.generalFieldError}
-    <span class='input-error error-message'> {dto.generalFieldError}</span>
+
+{#if dto.generalFieldError}
+<div>
+<span class='input-error error-message'> {dto.generalFieldError}</span>
+</div>
+{/if}
+
+
+  <div class="relative mb-3"
+       data-te-input-wrapper-init
+       data-te-validate="input"
+    {#if dto.idFieldError}
+        data-te-invalid-feedback="{dto.idFieldError}"
+       data-te-validation-state="invalid"
     {/if}
+  >
+    <input
+        type="text"
+        class="peer block min-h-[auto] w-full rounded border-0 bg-transparent px-3 py-[0.32rem] leading-[1.6] outline-none transition-all duration-150 ease-linear focus:placeholder:opacity-100 peer-focus:text-primary data-[te-input-state-active]:placeholder:opacity-100 motion-reduce:transition-none dark:text-neutral-200 dark:placeholder:text-neutral-200 dark:peer-focus:text-primary [&:not([data-te-input-placeholder-active])]:placeholder:opacity-0"
+        id="formBuildingId"
+        name="id"
+        placeholder="ID"
+        value="{dto.id}"
+        maxlength="20"
+        oninput="limitInputToMaxLength(this)"/>
+    <label
+        for="formBuildingId"
+        class="pointer-events-none absolute left-3 top-0 mb-0 max-w-[90%] origin-[0_0] truncate pt-[0.37rem] leading-[1.6] text-neutral-500 transition-all duration-150 ease-out peer-focus:-translate-y-[0.9rem] peer-focus:scale-[0.8] peer-focus:text-primary peer-data-[te-input-state-active]:-translate-y-[0.9rem] peer-data-[te-input-state-active]:scale-[0.8] motion-reduce:transition-none dark:text-neutral-200 dark:peer-focus:text-primary"
+    >ID
+    </label>
   </div>
 
-  <label class="label input-group input-group-vertical">
-    <span class="label-text">ID</span>
-
-    <input
-      {#if dto.readOnlyId}
-          readonly
-      {/if}
-          class="input w-full input-bordered break-words"
-          name="id"
-          type="text"
-          placeholder="ID"
-          value="{dto.id}"
-          maxlength="20"
-          oninput="limitInputToMaxLength(this)"
-    >
-    {#if dto.idFieldError}
-    <span class='input-error error-message'>
-    {dto.idFieldError}
-  </span>
+  <div class="relative mb-3"
+       data-te-input-wrapper-init
+       data-te-validate="input"
+    {#if dto.nameFieldError}
+        data-te-invalid-feedback="{dto.nameFieldError}"
+       data-te-validation-state="invalid"
     {/if}
-  </label>
-
-  <label class="label input-group input-group-vertical">
-    <span class="label-text">Nombre</span>
-
+  >
     <input
-        class="input w-full input-bordered break-words"
-        name="name"
         type="text"
+        class="peer block min-h-[auto] w-full rounded border-0 bg-transparent px-3 py-[0.32rem] leading-[1.6] outline-none transition-all duration-150 ease-linear focus:placeholder:opacity-100 peer-focus:text-primary data-[te-input-state-active]:placeholder:opacity-100 motion-reduce:transition-none dark:text-neutral-200 dark:placeholder:text-neutral-200 dark:peer-focus:text-primary [&:not([data-te-input-placeholder-active])]:placeholder:opacity-0"
+        id="formNameId"
+        name="name"
         placeholder="Nombre"
         value="{dto.name}"
         maxlength="100"
-        oninput="limitInputToMaxLength(this)"
-    >
-    {#if dto.nameFieldError}
-    <span class='input-error error-message'>
-    {dto.nameFieldError}
-  </span>
-    {/if}
-  </label>
+        oninput="limitInputToMaxLength(this)"/>
+    <label
+        for="formNameId"
+        class="pointer-events-none absolute left-3 top-0 mb-0 max-w-[90%] origin-[0_0] truncate pt-[0.37rem] leading-[1.6] text-neutral-500 transition-all duration-150 ease-out peer-focus:-translate-y-[0.9rem] peer-focus:scale-[0.8] peer-focus:text-primary peer-data-[te-input-state-active]:-translate-y-[0.9rem] peer-data-[te-input-state-active]:scale-[0.8] motion-reduce:transition-none dark:text-neutral-200 dark:peer-focus:text-primary"
+    >Nombre
+    </label>
+  </div>
 
-  <label class="label input-group input-group-vertical">
-    <span class="label-text">RIF</span>
+  <label class="label">
 
     <input
         class="input w-full input-bordered break-words"
@@ -83,7 +102,8 @@
 
 
 <div class="flex flex-row">
-<label class="label input-group input-group-vertical">
+<label class="label">
+
   <span class="label-text">Moneda Principal</span>
 <select class="select select-bordered w-full" name="mainCurrency">
     <option value="USD"
@@ -101,7 +121,7 @@
 </select>
 </label>
 
-  <label class="label input-group input-group-vertical">
+  <label class="label  ">
     <span class="label-text">Moneda Deudas</span>
     <select class="select select-bordered w-full" name="debtCurrency">
       <option value="USD"
@@ -181,7 +201,7 @@
 </div>
 </div>
 
-<label class="label input-group input-group-vertical">
+<label class="label  ">
   <span class="label-text">Configuracion email</span>
 
     <input

@@ -20,7 +20,7 @@ public class StaticReactiveRoutes {
     final var indexOfDot = path.lastIndexOf(".");
     final var count = path.chars().filter(ch -> ch == '/').count();
 
-    if (indexOfDot == -1 && count == 1) {
+    if (indexOfDot == -1 && (count == 1 || !path.startsWith("/api"))) {
       rc.reroute(path + ".html");
       return;
     }
