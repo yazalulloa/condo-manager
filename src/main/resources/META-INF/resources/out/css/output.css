@@ -5118,6 +5118,10 @@ details.collapse summary::-webkit-details-marker {
   flex-wrap: wrap;
 }
 
+.content-center {
+  align-content: center;
+}
+
 .items-end {
   align-items: flex-end;
 }
@@ -5713,6 +5717,14 @@ details.collapse summary::-webkit-details-marker {
 
 .p-\[auto\] {
   padding: auto;
+}
+
+.p-12 {
+  padding: 3rem;
+}
+
+.p-6 {
+  padding: 1.5rem;
 }
 
 .\!py-0 {
