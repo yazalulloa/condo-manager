@@ -7,11 +7,6 @@
 
 {/for}
 
-{#if res.nextPageUrl}
-    <div hx-get={res.nextPageUrl}
-    hx-trigger="revealed"
-    hx-swap="outerHTML">
-</div>
-{/if}
+{#include fragments/next-page.html url = res.nextPageUrl /}
 
 {#include ApartmentsResource/counters dto=res.countersDto /}

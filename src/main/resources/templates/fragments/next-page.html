@@ -1,7 +1,8 @@
 {#if url}
-<div hx-get={url}
+<div hx-get="{url}"
      hx-trigger="revealed"
      hx-target="this"
      hx-swap="outerHTML">
+  <img class="htmx-indicator center img-small-size white-filter" src="/assets/bars.svg" alt="spinner">
 </div>
 {/if}

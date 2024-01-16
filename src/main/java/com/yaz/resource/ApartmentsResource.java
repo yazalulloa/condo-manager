@@ -68,15 +68,13 @@ public class ApartmentsResource {
 
     public static native TemplateInstance grid(ApartmentTableResponse res);
 
-    public static native TemplateInstance table(ApartmentTableResponse res);
-
     public static native TemplateInstance form(ApartmentFormDto dto);
 
     public static native TemplateInstance init(ApartmentInitDto dto);
 
     public static native TemplateInstance counters(AptCountersDto dto);
 
-    public static native TemplateInstance card_item(AptItem item);
+    public static native TemplateInstance grid_item(AptItem item);
   }
 
   private final ApartmentService apartmentService;
@@ -335,6 +333,6 @@ public class ApartmentsResource {
     log.info("Deleting apartment {} {}", buildingId, number);
     return apartmentService.get(buildingId, number)
         .map(AptItem::new)
-        .map(Templates::card_item);
+        .map(Templates::grid_item);
   }
 }

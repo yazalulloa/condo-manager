@@ -1,28 +1,31 @@
 package com.yaz.service;
 
+import com.yaz.client.BcvClient;
+import com.yaz.domain.BcvUsdRateResult;
+import com.yaz.persistence.RateRepository;
+import com.yaz.persistence.domain.Currency;
+import com.yaz.persistence.domain.RateQuery;
+import com.yaz.persistence.entities.Rate;
+import com.yaz.resource.RateResource;
+import com.yaz.resource.domain.RateTableResponse;
+import com.yaz.resource.domain.RateTableResponse.Item;
+import com.yaz.service.cache.RateCache;
+import com.yaz.util.Constants;
+import com.yaz.util.ConvertUtil;
+import com.yaz.util.RxUtil;
+import com.yaz.util.SqlUtil;
+import io.quarkus.cache.CacheInvalidate;
+import io.quarkus.cache.CacheInvalidateAll;
+import io.quarkus.cache.CacheResult;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import io.smallrye.mutiny.Uni;
-import io.vertx.core.json.JsonObject;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import com.yaz.client.BcvClient;
-import com.yaz.domain.BcvUsdRateResult;
-import com.yaz.persistence.RateRepository;
-import com.yaz.persistence.domain.Currency;
-import com.yaz.persistence.domain.Paging;
-import com.yaz.persistence.domain.RateQuery;
-import com.yaz.persistence.entities.Rate;
-import com.yaz.resource.RateResource;
-import com.yaz.resource.domain.RateTableResponse;
-import com.yaz.resource.domain.RateTableResponse.Item;
-import com.yaz.util.ConvertUtil;
-import com.yaz.util.RxUtil;
-import com.yaz.util.SqlUtil;
 
 @Slf4j
 @ApplicationScoped
@@ -39,38 +42,38 @@ public class RateService {
   }
 
 
-  //@CacheResult(cacheName = RateCache.TOTAL_COUNT, lockTimeout = Constants.CACHE_TIMEOUT)
+  @CacheResult(cacheName = RateCache.TOTAL_COUNT, lockTimeout = Constants.CACHE_TIMEOUT)
   public Uni<Long> count() {
     return rateRepository.count();
   }
 
 
-  //  @CacheInvalidateAll(cacheName = RateCache.TOTAL_COUNT)
-//  @CacheInvalidateAll(cacheName = RateCache.SELECT)
-//  @CacheInvalidate(cacheName = RateCache.EXISTS)
-//  @CacheInvalidate(cacheName = RateCache.GET)
+  @CacheInvalidateAll(cacheName = RateCache.TOTAL_COUNT)
+  @CacheInvalidateAll(cacheName = RateCache.SELECT)
+  @CacheInvalidate(cacheName = RateCache.EXISTS)
+  @CacheInvalidate(cacheName = RateCache.GET)
   public Uni<Integer> delete(long id) {
     return rateRepository.delete(id);
   }
 
-  public Single<Paging<Rate>> paging(RateQuery rateQuery) {
+  /* public Single<Paging<Rate>> paging(RateQuery rateQuery) {
 
-    return Single.zip(RxUtil.single(count()), RxUtil.single(list(rateQuery)),
-        (totalCount, list) -> new Paging<>(totalCount, null, list));
-  }
+     return Single.zip(RxUtil.single(count()), RxUtil.single(list(rateQuery)),
+         (totalCount, list) -> new Paging<>(totalCount, null, list));
+   }
 
 
-  public Single<Paging<JsonObject>> pagingJson(RateQuery rateQuery) {
-    return Single.zip(RxUtil.single(count()), RxUtil.single(listJson(rateQuery)),
-        (totalCount, list) -> new Paging<>(totalCount, null, list));
-  }
+   public Single<Paging<JsonObject>> pagingJson(RateQuery rateQuery) {
+     return Single.zip(RxUtil.single(count()), RxUtil.single(listJson(rateQuery)),
+         (totalCount, list) -> new Paging<>(totalCount, null, list));
+   }
 
-  public Uni<List<JsonObject>> listJson(RateQuery rateQuery) {
+   public Uni<List<JsonObject>> listJson(RateQuery rateQuery) {
 
-    return rateRepository.listRows(rateQuery)
-        .map(SqlUtil::toJsonObject);
-  }
-
+     return rateRepository.listRows(rateQuery)
+         .map(SqlUtil::toJsonObject);
+   }*/
+  @CacheResult(cacheName = RateCache.SELECT, lockTimeout = Constants.CACHE_TIMEOUT)
   public Uni<List<Rate>> list(RateQuery rateQuery) {
     return rateRepository.listRows(rateQuery)
         .map(rows -> SqlUtil.toList(rows, Rate.class));
@@ -82,6 +85,8 @@ public class RateService {
         .flatMap(rows -> SqlUtil.parseOne(rows, Rate.class));
   }
 
+  @CacheInvalidateAll(cacheName = RateCache.TOTAL_COUNT)
+  @CacheInvalidateAll(cacheName = RateCache.SELECT)
   public Uni<Rate> save(Rate rate) {
 
     return rateRepository.save(rate)

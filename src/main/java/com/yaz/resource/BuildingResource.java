@@ -148,6 +148,8 @@ public class BuildingResource {
   @Path("new")
   @Produces(MediaType.TEXT_HTML)
   public Uni<TemplateInstance> create(@BeanParam BuildingRequest request) {
+
+    log.info("request: {}", request);
     final var buildingFormDto = formDto(request).toBuilder()
         .build();
 

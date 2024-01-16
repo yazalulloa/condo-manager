@@ -33,81 +33,49 @@
 </div>
 {/if}
 
-
-  <div class="relative mb-3"
-       data-te-input-wrapper-init
-       data-te-validate="input"
+  <cm-form-input
+      class=""
+      id="idField"
+      name="id"
+      value="{dto.id}"
+      maxlength="20"
+      placeholder="ID"
     {#if dto.idFieldError}
-        data-te-invalid-feedback="{dto.idFieldError}"
-       data-te-validation-state="invalid"
+        input-error="{dto.idFieldError}"
     {/if}
   >
-    <input
-        type="text"
-        class="peer block min-h-[auto] w-full rounded border-0 bg-transparent px-3 py-[0.32rem] leading-[1.6] outline-none transition-all duration-150 ease-linear focus:placeholder:opacity-100 peer-focus:text-primary data-[te-input-state-active]:placeholder:opacity-100 motion-reduce:transition-none dark:text-neutral-200 dark:placeholder:text-neutral-200 dark:peer-focus:text-primary [&:not([data-te-input-placeholder-active])]:placeholder:opacity-0"
-        id="formBuildingId"
-        name="id"
-        placeholder="ID"
-        value="{dto.id}"
-        maxlength="20"
-        oninput="limitInputToMaxLength(this)"/>
-    <label
-        for="formBuildingId"
-        class="pointer-events-none absolute left-3 top-0 mb-0 max-w-[90%] origin-[0_0] truncate pt-[0.37rem] leading-[1.6] text-neutral-500 transition-all duration-150 ease-out peer-focus:-translate-y-[0.9rem] peer-focus:scale-[0.8] peer-focus:text-primary peer-data-[te-input-state-active]:-translate-y-[0.9rem] peer-data-[te-input-state-active]:scale-[0.8] motion-reduce:transition-none dark:text-neutral-200 dark:peer-focus:text-primary"
-    >ID
-    </label>
-  </div>
 
-  <div class="relative mb-3"
-       data-te-input-wrapper-init
-       data-te-validate="input"
+  </cm-form-input>
+
+
+  <cm-form-input
+      id="nameField"
+      name="name"
+      value="{dto.name}"
+      maxlength="100"
+      placeholder="Nombre"
     {#if dto.nameFieldError}
-        data-te-invalid-feedback="{dto.nameFieldError}"
-       data-te-validation-state="invalid"
+        input-error="{dto.nameFieldError}"
     {/if}
   >
-    <input
-        type="text"
-        class="peer block min-h-[auto] w-full rounded border-0 bg-transparent px-3 py-[0.32rem] leading-[1.6] outline-none transition-all duration-150 ease-linear focus:placeholder:opacity-100 peer-focus:text-primary data-[te-input-state-active]:placeholder:opacity-100 motion-reduce:transition-none dark:text-neutral-200 dark:placeholder:text-neutral-200 dark:peer-focus:text-primary [&:not([data-te-input-placeholder-active])]:placeholder:opacity-0"
-        id="formNameId"
-        name="name"
-        placeholder="Nombre"
-        value="{dto.name}"
-        maxlength="100"
-        oninput="limitInputToMaxLength(this)"/>
-    <label
-        for="formNameId"
-        class="pointer-events-none absolute left-3 top-0 mb-0 max-w-[90%] origin-[0_0] truncate pt-[0.37rem] leading-[1.6] text-neutral-500 transition-all duration-150 ease-out peer-focus:-translate-y-[0.9rem] peer-focus:scale-[0.8] peer-focus:text-primary peer-data-[te-input-state-active]:-translate-y-[0.9rem] peer-data-[te-input-state-active]:scale-[0.8] motion-reduce:transition-none dark:text-neutral-200 dark:peer-focus:text-primary"
-    >Nombre
-    </label>
-  </div>
 
-  <div class="relative mb-3"
-       data-te-input-wrapper-init
-       data-te-validate="input"
+  </cm-form-input>
+
+  <cm-form-input
+      id="rifField"
+      name="rif"
+      value="{dto.rif}"
+      maxlength="20"
+      placeholder="RIF"
     {#if dto.rifFieldError}
-        data-te-invalid-feedback="{dto.rifFieldError}"
-       data-te-validation-state="invalid"
+        input-error="{dto.rifFieldError}"
     {/if}
   >
-    <input
-        type="text"
-        class="peer block min-h-[auto] w-full rounded border-0 bg-transparent px-3 py-[0.32rem] leading-[1.6] outline-none transition-all duration-150 ease-linear focus:placeholder:opacity-100 peer-focus:text-primary data-[te-input-state-active]:placeholder:opacity-100 motion-reduce:transition-none dark:text-neutral-200 dark:placeholder:text-neutral-200 dark:peer-focus:text-primary [&:not([data-te-input-placeholder-active])]:placeholder:opacity-0"
-        id="formRifId"
-        name="rif"
-        placeholder="RIF"
-        value="{dto.rif}"
-        maxlength="100"
-        oninput="limitInputToMaxLength(this)"/>
-    <label
-        for="formRifId"
-        class="pointer-events-none absolute left-3 top-0 mb-0 max-w-[90%] origin-[0_0] truncate pt-[0.37rem] leading-[1.6] text-neutral-500 transition-all duration-150 ease-out peer-focus:-translate-y-[0.9rem] peer-focus:scale-[0.8] peer-focus:text-primary peer-data-[te-input-state-active]:-translate-y-[0.9rem] peer-data-[te-input-state-active]:scale-[0.8] motion-reduce:transition-none dark:text-neutral-200 dark:peer-focus:text-primary"
-    >RIF
-    </label>
-  </div>
 
-<div class="content-center flex flex-row justify-center">
-<label class="label">
+  </cm-form-input>
+
+<div class="content-center flex flex-row justify-center gap-4">
+<label class="label gap-4">
 
   <span class="label-text">Moneda Principal</span>
 <select class="select select-bordered w-full" name="mainCurrency">
@@ -126,7 +94,7 @@
 </select>
 </label>
 
-  <label class="label  ">
+  <label class="label gap-4">
     <span class="label-text">Moneda Deudas</span>
     <select class="select select-bordered w-full" name="debtCurrency">
       <option value="USD"
@@ -169,68 +137,63 @@
 
 
 <div class="flex flex-col center">
-  <label class="cursor-pointer label flex flex-row  gap-4">
-    <span class="label-text">Monto Fijo</span>
-      <input name="fixedPay" type="checkbox"
-    {#if dto.fixedPay}
-             checked="checked"
-    {/if}
-             class="checkbox checkbox-primary"
-             value="true"
-             script="on click toggle @hidden on next <input/>"/>
-        <input type="number" placeholder="Monto Fijo" name="fixedPayAmount" min="1"
-               oninput="limitInputToMaxLength(this)"
-               maxlength="10"
-               step=".01" class="input input-bordered"
-        value="{dto.fixedPayAmount}"
-    {#if !dto.fixedPay}
-               hidden
-    {/if}
-    >
-    {#if dto.fixedPayAmountFieldError}
-    <span class='input-error error-message'>
-    {dto.fixedPayAmountFieldError}
-  </span>
-    {/if}
-  </label>
-
 <label class="cursor-pointer label flex flex-row  gap-4">
-  <span class="label-text">Redondear Pagos</span>
-    <input name="roundUpPayments" type="checkbox"
-{#if dto.roundUpPayments}
+  <span class="label-text">Monto Fijo</span>
+    <input name="fixedPay" type="checkbox"
+{#if dto.fixedPay}
            checked="checked"
 {/if}
+           class="checkbox checkbox-primary"
            value="true"
-           class="checkbox checkbox-primary"/>
-</label>
-</div>
-</div>
+           script="on click toggle @hidden on next <cm-form-input/>"/>
 
-    <div class="relative mb-3"
-         data-te-input-wrapper-init
-         data-te-validate="input"
-{#if dto.emailConfigFieldError}
-    data-te-invalid-feedback="{dto.emailConfigFieldError}"
-         data-te-validation-state="invalid"
+    <cm-form-input
+    type="number"
+    id="fixedAmountField"
+    name="fixedPayAmount"
+    min="1"
+    value="{dto.fixedPayAmount}"
+    maxlength="10"
+    step=".01"
+    placeholder="Monto fijo"
+
+{#if dto.fixedPayAmountFieldError}
+    input-error="{dto.fixedPayAmountFieldError}"
+{/if}
+{#if !dto.fixedPay}
+    hidden
 {/if}
 >
-  <input
-      type="text"
-      class="peer block min-h-[auto] w-full rounded border-0 bg-transparent px-3 py-[0.32rem] leading-[1.6] outline-none transition-all duration-150 ease-linear focus:placeholder:opacity-100 peer-focus:text-primary data-[te-input-state-active]:placeholder:opacity-100 motion-reduce:transition-none dark:text-neutral-200 dark:placeholder:text-neutral-200 dark:peer-focus:text-primary [&:not([data-te-input-placeholder-active])]:placeholder:opacity-0"
-      id="formRifId"
-      name="rif"
-      placeholder="Configuracion email"
-      value="{dto.emailConfig}"
-      maxlength="100"
-      oninput="limitInputToMaxLength(this)"/>
-  <label
-      for="formRifId"
-      class="pointer-events-none absolute left-3 top-0 mb-0 max-w-[90%] origin-[0_0] truncate pt-[0.37rem] leading-[1.6] text-neutral-500 transition-all duration-150 ease-out peer-focus:-translate-y-[0.9rem] peer-focus:scale-[0.8] peer-focus:text-primary peer-data-[te-input-state-active]:-translate-y-[0.9rem] peer-data-[te-input-state-active]:scale-[0.8] motion-reduce:transition-none dark:text-neutral-200 dark:peer-focus:text-primary"
-  >Configuracion email
+
+</cm-form-input>
+
+
+</label>
+
+  <label class="cursor-pointer label flex flex-row  gap-4">
+    <span class="label-text">Redondear Pagos</span>
+    <input name="roundUpPayments" type="checkbox"
+      {#if dto.roundUpPayments}
+           checked="checked"
+      {/if}
+           value="true"
+           class="checkbox checkbox-primary"/>
   </label>
 </div>
+</div>
 
+    <cm-form-input
+    id="emailConfigField"
+    name="emailConfig"
+    value="{dto.emailConfig}"
+    maxlength="100"
+    placeholder="Configuracion email"
+{#if dto.emailConfigFieldError}
+    input-error="{dto.emailConfigFieldError}"
+{/if}
+>
 
+</cm-form-input>
 
 <div class="header p-6">
 <button id="apt-form-btn-submit" class="btn btn-primary">
