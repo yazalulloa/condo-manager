@@ -39,9 +39,11 @@
     <div>Acciones</div>
   </div>
 
-  <div hx-ext="sse" sse-connect="/sse/new_rate" id="rates" hx-get="/api/rates" hx-trigger="load, sse:new_rate"
-       hx-indicator=".htmx-indicator" hx-swap="innerHTML">
+  <div hx-ext="sse" sse-connect="/api/sse/new_rate">
+    <div id="rates" hx-get="/api/rates" hx-trigger="load, sse:new_rate"
+         hx-indicator=".htmx-indicator" hx-swap="innerHTML">
 
+    </div>
   </div>
 
 </div>

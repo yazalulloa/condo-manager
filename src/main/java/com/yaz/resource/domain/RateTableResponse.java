@@ -1,5 +1,6 @@
 package com.yaz.resource.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.Collection;
 import lombok.Builder;
 import lombok.Data;
@@ -12,6 +13,7 @@ import com.yaz.resource.RateResource;
 public class RateTableResponse {
 
   private final long totalCount;
+  @JsonIgnore
   private final String nextPageUrl;
   private final Collection<Item> results;
 
@@ -19,16 +21,16 @@ public class RateTableResponse {
   public static class Item {
 
     private final Rate rate;
-
+    @JsonIgnore
     @Getter(lazy = true)
     private final String cardId = genCardId();
-
+    @JsonIgnore
     @Getter(lazy = true)
     private final String cardIdRef = genCardIdRef();
-
+    @JsonIgnore
     @Getter(lazy = true)
     private final String deleteUrl = genDeleteUrl();
-
+    @JsonIgnore
     @Getter(lazy = true)
     private final Boolean ifHidden = genIfHidden();
 

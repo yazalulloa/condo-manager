@@ -1,7 +1,8 @@
 {@com.yaz.resource.domain.response.BuildingFormDto dto}
 
 {#if dto.shouldRedirect}
-<meta http-equiv="refresh" content="0; url=/buildings"/>
+<div hx-get="/buildings" hx-indicator=".htmx-indicator" hx-trigger="load" ></div>
+
 {#else}
 <form class="form-control"
       hx-swap="outerHTML"
@@ -17,9 +18,9 @@
       script="
       init call initComponents()
       init call disableBtnInsideForm()
-        {#if !dto.isNew && !dto.isSuccess}
-      init set @data-te-validated to 'true'
-{/if}
+          {#if !dto.isNew && !dto.isSuccess}
+        init set @data-te-validated to 'true'
+  {/if}
 "
 >
 

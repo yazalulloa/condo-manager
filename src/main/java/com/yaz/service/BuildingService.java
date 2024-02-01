@@ -1,6 +1,7 @@
 package com.yaz.service;
 
 
+import com.yaz.resource.BuildingResource;
 import io.quarkus.cache.CacheResult;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -75,7 +76,7 @@ public class BuildingService {
 
             final var last = results.getLast();
 
-            nextPageUrl = RateResource.PATH;
+            nextPageUrl = BuildingResource.PATH + "/report";
             nextPageUrl += "?lastId=" + last.getBuilding().id();
 
           }

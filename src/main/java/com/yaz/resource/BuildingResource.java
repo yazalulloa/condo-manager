@@ -1,9 +1,12 @@
 package com.yaz.resource;
 
+import com.yaz.persistence.domain.ApartmentQuery;
 import com.yaz.persistence.domain.BuildingQuery;
 import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.entities.Building;
+import com.yaz.resource.ApartmentsResource.Templates;
 import com.yaz.resource.domain.request.BuildingRequest;
+import com.yaz.resource.domain.response.BuildingCountersDto;
 import com.yaz.resource.domain.response.BuildingFormDto;
 import com.yaz.resource.domain.response.BuildingReportResponse;
 import com.yaz.service.BuildingService;
@@ -16,6 +19,7 @@ import io.quarkus.security.Authenticated;
 import io.smallrye.mutiny.Uni;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.BeanParam;
+import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.POST;
@@ -27,11 +31,13 @@ import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jboss.resteasy.reactive.RestForm;
+import org.jboss.resteasy.reactive.RestPath;
 import org.jboss.resteasy.reactive.RestQuery;
 
-@Path(BuildingResource.PATH)
 @Slf4j
 @Authenticated
+@Path(BuildingResource.PATH)
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class BuildingResource {
 
@@ -48,6 +54,8 @@ public class BuildingResource {
     public static native TemplateInstance report(BuildingReportResponse res);
 
     public static native TemplateInstance form(BuildingFormDto dto);
+
+    public static native TemplateInstance counters(BuildingCountersDto dto);
   }
 
   @GET
@@ -65,6 +73,28 @@ public class BuildingResource {
 
     return service.report(BuildingQuery.of(lastId))
         .map(Templates::report);
+  }
+
+  @DELETE
+  @Path("{buildingId}")
+  @Produces(MediaType.TEXT_HTML)
+  public Uni<TemplateInstance> delete(@RestPath String buildingId) {
+
+    log.info("Deleting building {}", buildingId);
+
+    return service.delete(buildingId)
+        .invoke(l -> log.info("Building delete {} deleted {}", l, buildingId))
+        .replaceWith(counters());
+  }
+
+  @GET
+  @Path("counters")
+  @Produces(MediaType.TEXT_HTML)
+  public Uni<TemplateInstance> counters() {
+
+    return service.count()
+        .map(BuildingCountersDto::new)
+        .map(Templates::counters);
   }
 
 

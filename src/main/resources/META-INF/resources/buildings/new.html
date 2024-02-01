@@ -1,14 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Nuevo Edificio</title>
-  <link href="/out/css/output.css" rel="stylesheet"/>
-  <script src="/out/js/index.js" defer></script>
-</head>
-<body hx-boost="true">
+<div id="header-container" hx-swap-oob="true">
 
-<div class="p-12">
+</div>
+
+<div class="p-12" id="container" hx-swap-oob="true">
   <form
       hx-get="/api/buildings/new"
       hx-indicator=".htmx-indicator"
@@ -17,6 +11,3 @@
     <img class="htmx-indicator center img-small-size white-filter" src="/assets/bars.svg" alt="spinner">
   </form>
 </div>
-
-</body>
-</html>

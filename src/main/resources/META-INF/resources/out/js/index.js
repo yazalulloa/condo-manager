@@ -17560,7 +17560,8 @@ var loader = __toESM(require_loader(), 1);
           }
           return;
         case "htmx:afterProcessNode":
-          createEventSourceOnElement(evt.target);
+          ensureEventSourceOnElement(evt.target);
+          registerSSE(evt.target);
       }
     }
   });
@@ -17585,7 +17586,7 @@ var loader = __toESM(require_loader(), 1);
   function getLegacySSESwaps(elt) {
     var legacySSEValue = api.getAttributeValue(elt, "hx-sse");
     var returnArr = [];
-    if (legacySSEValue) {
+    if (legacySSEValue != null) {
       var values = splitOnWhitespace(legacySSEValue);
       for (var i2 = 0;i2 < values.length; i2++) {
         var value = values[i2].split(/:(.+)/);
@@ -17596,38 +17597,13 @@ var loader = __toESM(require_loader(), 1);
     }
     return returnArr;
   }
-  function createEventSourceOnElement(elt, retryCount) {
-    if (elt == null) {
+  function registerSSE(elt) {
+    var sourceElement = api.getClosestMatch(elt, hasEventSource);
+    if (sourceElement == null) {
       return null;
     }
-    var internalData = api.getInternalData(elt);
-    var sseURL = api.getAttributeValue(elt, "sse-connect");
-    if (sseURL == undefined) {
-      var legacyURL = getLegacySSEURL(elt);
-      if (legacyURL) {
-        sseURL = legacyURL;
-      } else {
-        return null;
-      }
-    }
-    var source = htmx.createEventSource(sseURL);
-    internalData.sseEventSource = source;
-    source.onerror = function(err) {
-      api.triggerErrorEvent(elt, "htmx:sseError", { error: err, source });
-      if (maybeCloseSSESource(elt)) {
-        return;
-      }
-      if (source.readyState === EventSource.CLOSED) {
-        retryCount = retryCount || 0;
-        var timeout = Math.random() * (2 ^ retryCount) * 500;
-        window.setTimeout(function() {
-          createEventSourceOnElement(elt, Math.min(7, retryCount + 1));
-        }, timeout);
-      }
-    };
-    source.onopen = function(evt) {
-      api.triggerEvent(elt, "htmx:sseOpen", { source });
-    };
+    var internalData = api.getInternalData(sourceElement);
+    var source = internalData.sseEventSource;
     queryAttributeOnThisOrChildren(elt, "sse-swap").forEach(function(child) {
       var sseSwapAttr = api.getAttributeValue(child, "sse-swap");
       if (sseSwapAttr) {
@@ -17638,14 +17614,16 @@ var loader = __toESM(require_loader(), 1);
       for (var i2 = 0;i2 < sseEventNames.length; i2++) {
         var sseEventName = sseEventNames[i2].trim();
         var listener = function(event) {
-          if (maybeCloseSSESource(elt)) {
-            source.removeEventListener(sseEventName, listener);
+          if (maybeCloseSSESource(sourceElement)) {
             return;
+          }
+          if (!api.bodyContains(child)) {
+            source.removeEventListener(sseEventName, listener);
           }
           swap(child, event.data);
           api.triggerEvent(elt, "htmx:sseMessage", event);
         };
-        api.getInternalData(elt).sseEventListener = listener;
+        api.getInternalData(child).sseEventListener = listener;
         source.addEventListener(sseEventName, listener);
       }
     });
@@ -17657,17 +17635,55 @@ var loader = __toESM(require_loader(), 1);
       if (sseEventName.slice(0, 4) != "sse:") {
         return;
       }
-      var listener = function(event) {
-        if (maybeCloseSSESource(elt)) {
-          source.removeEventListener(sseEventName, listener);
+      sseEventName = sseEventName.substr(4);
+      var listener = function() {
+        if (maybeCloseSSESource(sourceElement)) {
           return;
         }
-        htmx.trigger(child, sseEventName, event);
-        htmx.trigger(child, "htmx:sseMessage", event);
+        if (!api.bodyContains(child)) {
+          source.removeEventListener(sseEventName, listener);
+        }
       };
-      api.getInternalData(elt).sseEventListener = listener;
-      source.addEventListener(sseEventName.slice(4), listener);
     });
+  }
+  function ensureEventSourceOnElement(elt, retryCount) {
+    if (elt == null) {
+      return null;
+    }
+    queryAttributeOnThisOrChildren(elt, "sse-connect").forEach(function(child) {
+      var sseURL = api.getAttributeValue(child, "sse-connect");
+      if (sseURL == null) {
+        return;
+      }
+      ensureEventSource(child, sseURL, retryCount);
+    });
+    queryAttributeOnThisOrChildren(elt, "hx-sse").forEach(function(child) {
+      var sseURL = getLegacySSEURL(child);
+      if (sseURL == null) {
+        return;
+      }
+      ensureEventSource(child, sseURL, retryCount);
+    });
+  }
+  function ensureEventSource(elt, url, retryCount) {
+    var source = htmx.createEventSource(url);
+    source.onerror = function(err) {
+      api.triggerErrorEvent(elt, "htmx:sseError", { error: err, source });
+      if (maybeCloseSSESource(elt)) {
+        return;
+      }
+      if (source.readyState === EventSource.CLOSED) {
+        retryCount = retryCount || 0;
+        var timeout = Math.random() * (2 ^ retryCount) * 500;
+        window.setTimeout(function() {
+          ensureEventSourceOnElement(elt, Math.min(7, retryCount + 1));
+        }, timeout);
+      }
+    };
+    source.onopen = function(evt) {
+      api.triggerEvent(elt, "htmx:sseOpen", { source });
+    };
+    api.getInternalData(elt).sseEventSource = source;
   }
   function maybeCloseSSESource(elt) {
     if (!api.bodyContains(elt)) {
@@ -17681,10 +17697,10 @@ var loader = __toESM(require_loader(), 1);
   }
   function queryAttributeOnThisOrChildren(elt, attributeName) {
     var result = [];
-    if (api.hasAttribute(elt, attributeName) || api.hasAttribute(elt, "hx-sse")) {
+    if (api.hasAttribute(elt, attributeName)) {
       result.push(elt);
     }
-    elt.querySelectorAll("[" + attributeName + "], [data-" + attributeName + "], [hx-sse], [data-hx-sse]").forEach(function(node) {
+    elt.querySelectorAll("[" + attributeName + "], [data-" + attributeName + "]").forEach(function(node) {
       result.push(node);
     });
     return result;
@@ -17722,6 +17738,9 @@ var loader = __toESM(require_loader(), 1);
       });
     };
   }
+  function hasEventSource(node) {
+    return api.getInternalData(node).sseEventSource != null;
+  }
 })();
 
 // src/main/resources/META-INF/resources/js/index.js
@@ -17743,6 +17762,8 @@ var inputClasses = "peer block min-h-[auto] w-full rounded border-0 bg-transpare
 var labelClasses = "pointer-events-none absolute left-3 top-0 mb-0 max-w-[90%] origin-[0_0] truncate pt-[0.37rem] leading-[1.6] text-neutral-500 transition-all duration-150 ease-out peer-focus:-translate-y-[0.9rem] peer-focus:scale-[0.8] peer-focus:text-primary peer-data-[te-input-state-active]:-translate-y-[0.9rem] peer-data-[te-input-state-active]:scale-[0.8] motion-reduce:transition-none dark:text-neutral-200 dark:peer-focus:text-primary";
 
 class FormInput extends HTMLElement {
+  input;
+  formDiv;
   constructor() {
     super();
     let id = this.id ?? makeid(8);
@@ -17757,6 +17778,7 @@ class FormInput extends HTMLElement {
     input.name = this.getAttribute("name");
     input.value = this.getAttribute("value");
     input.maxLength = Number(this.getAttribute("maxlength"));
+    input.max = this.getAttribute("max");
     input.min = this.getAttribute("min");
     input.step = this.getAttribute("step");
     if (input.maxLength) {
@@ -17778,6 +17800,27 @@ class FormInput extends HTMLElement {
       div.setAttribute("data-te-validation-state", "invalid");
       this.removeAttribute("input-error");
     }
+    this.input = input;
+    this.formDiv = div;
+  }
+  connectedCallback() {
+    console.log("Custom element added to page.");
+    this.addEventListener("clear", (evt) => {
+      console.log("Clearing input");
+      this.input.value = this.input.type === "number" ? "0" : "";
+      console.log("Input value is now {}", this.input.value);
+      this.formDiv.removeAttribute("data-te-invalid-feedback");
+      this.formDiv.removeAttribute("data-te-validation-state");
+    });
+  }
+  disconnectedCallback() {
+    console.log("Custom element removed from page.");
+  }
+  adoptedCallback() {
+    console.log("Custom element moved to new page.");
+  }
+  attributeChangedCallback(name, oldValue, newValue) {
+    console.log(`Attribute ${name} has changed.`);
   }
 }
 customElements.define("cm-form-input", FormInput);
@@ -17817,6 +17860,18 @@ window.initComponents = function() {
     Timepicker: Sg,
     Validation: jh
   }, { allowReinits: true }, true);
+  let forms = document.getElementsByTagName("form");
+  console.log("forms: {}", forms.length);
+  for (let i2 = 0;i2 < forms.length; i2++) {
+    let form = forms[i2];
+    let validation = new jh(form);
+    form.addEventListener("dispose-validation", (evt) => {
+      evt.preventDefault();
+      console.log("disposing validation");
+      validation.dispose();
+      validation.init();
+    });
+  }
 };
 initComponents();
 htmx.config.useTemplateFragments = true;

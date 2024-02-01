@@ -1,6 +1,7 @@
 {@com.yaz.resource.domain.ApartmentFormDto dto}
 
-<form class="apt-form form-control"
+<form class="apt-form"
+      data-te-validation-init
       id="apartment-form"
 {#if dto.isEdit}
       hx-patch="/api/apartments"
@@ -9,20 +10,26 @@
 {/if}
       hx-indicator=".htmx-indicator"
       hx-swap-oob="true"
+      script="
+      init call initComponents()
 {#if dto.showForm}
-      script="init remove .hidden from #apt-form-container"
+     init remove .hidden from #apt-form-container
+{/if}
+{#if !dto.isNew && !dto.isSuccess}
+      init set @data-te-validated to 'true'
 {/if}
 {#if dto.hideForm}
-    script="init add .hidden to #apt-form-container
+    init add .hidden to #apt-form-container
 {#if !dto.item}
 then send new_apt to #apt-search-input
 {/if}
-"
 {/if}
+"
+
 >
   <input type="hidden" name="{inject:csrf.parameterName}" value="{inject:csrf.token}"/>
   <div id="apt-form-inputs"
-       script="init call initComponents()">
+       class="flex-col gap-2">
 
  <div class=""
  script="init call disableBtnInsideForm()">
@@ -32,31 +39,39 @@ then send new_apt to #apt-search-input
  </span>
    {/if}
  </div>
-    <div>
-      <label class="label  ">
-        <span class="label-text">Edificio</span>
-        {#if dto.readOnlyBuilding}
-            <input id="hidden-apt-building-id" hidden name="buildingId" value="{dto.buildingId}">
-        {/if}
 
-        <select class="select select-bordered w-full" name="buildingId"
-                {#if dto.readOnlyBuilding}disabled{/if}
-                >
-                {#for option in dto.buildings}
-                    <option
-                {#if option is dto.buildingId}  selected="selected" {/if}
-                                                value={option}>{option}</option>
-          {/for}
-        </select>
-        {#if dto.buildingIdFieldError}
-        <span class='input-error error-message'>
-        {dto.buildingIdFieldError}
-      </span>
-        {/if}
-      </label>
+    <div>
+      <select data-te-select-init
+              name="buildingId"
+              {#if dto.readOnlyBuilding}disabled{/if}
+      >
+              {#for option in dto.buildings}
+                  <option
+              {#if option is dto.buildingId}  selected="selected" {/if}
+                                              value={option}>{option}</option>
+              {/for}
+      </select>
+      <label data-te-select-label-ref>Edificio</label>
+      {#if dto.buildingIdFieldError}
+      <span class='input-error error-message'>{dto.buildingIdFieldError}</span>
+      {/if}
     </div>
 
-    <label class="label  ">
+    <cm-form-input
+        id="aptNumberField"
+        name="number"
+        value="{dto.number}"
+        maxlength="20"
+        placeholder="Nro. Apt"
+      {#if dto.numberFieldError}
+          input-error="{dto.numberFieldError}"
+      {/if}
+        {#if dto.readOnlyNumber}readonly{/if}
+    >
+
+    </cm-form-input>
+
+   <!-- <label class="label  ">
       <span class="label-text">Nro. Apt</span>
         <input class="input w-full input-bordered break-words" type="text" name="number"
                placeholder="Nro. Apt" maxlength="20" value={dto.number}
@@ -66,9 +81,21 @@ then send new_apt to #apt-search-input
       {dto.numberFieldError}
     </span>
       {/if}
-    </label>
+    </label> -->
 
-    <label class="label  ">
+      <cm-form-input
+      id="nameField"
+      name="name"
+      value="{dto.name}"
+      maxlength="200"
+      placeholder="Nombre"
+    {#if dto.nameFieldError}
+        input-error="{dto.nameFieldError}"
+    {/if}
+      >
+      </cm-form-input>
+
+    <!--   <label class="label  ">
       <span class="label-text">Nombre</span>
       <input class="input w-full input-bordered" type="text" name="name"
              placeholder="Nombre" maxlength="200" value="{dto.name}">
@@ -78,7 +105,24 @@ then send new_apt to #apt-search-input
     </span>
       {/if}
     </label>
+-->
 
+    <cm-form-input
+        id="nameField"
+        type="number"
+        name="aliquot"
+        value="{dto.aliquot}"
+        placeholder="Alícuota"
+        min="0"
+        max="100"
+        step=".01"
+      {#if dto.aliquotFieldError}
+          input-error="{dto.aliquotFieldError}"
+      {/if}
+    >
+
+    </cm-form-input>
+    <!--
     <label class="label  ">
       <span class="label-text">Alícuota</span>
       <input id="apt-form-aliquot" class="input w-full input-bordered" type="number" name="aliquot"
@@ -89,6 +133,7 @@ then send new_apt to #apt-search-input
     </span>
       {/if}
     </label>
+-->
 
     <div class="w-full">
       <div class="email-form-label">

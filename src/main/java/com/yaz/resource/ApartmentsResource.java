@@ -132,6 +132,10 @@ public class ApartmentsResource {
   @Produces(MediaType.TEXT_HTML)
   public Uni<TemplateInstance> form() {
     return baseFormDto()
+        .map(dto -> dto.toBuilder()
+            .isNew(true)
+            .aliquot(BigDecimal.ZERO)
+            .build())
         .map(Templates::form);
   }
 
@@ -164,7 +168,7 @@ public class ApartmentsResource {
 
   @DELETE
   @Path("{buildingId}/{number}")
-  @Produces
+  @Produces(MediaType.TEXT_HTML)
   public Uni<TemplateInstance> delete(
       @RestForm String q,
       @RestForm Set<String> building,

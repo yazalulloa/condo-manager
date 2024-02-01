@@ -37,16 +37,17 @@
            placeholder="Buscar..."
     >
 
-
+    <!--    on click set #apt-form-aliquot@value to '0'-->
     <button script="
     on click if #hidden-apt-building-id != null remove #hidden-apt-building-id end
     on click remove @disabled from <select/> in #apartment-form
     on click remove @disabled from <input/> in #apartment-form
-    on click tell <input/> in #apt-form-inputs set @value to ''
-    on click set #apt-form-aliquot@value to '0'
+
     on click put 'Crear' into #apt-form-btn-submit
     on click if #apartment-form-general-error != null remove #apartment-form-general-error end
     on click remove .hidden from #apt-form-container
+    on click send 'dispose-validation' to #apartment-form
+    on click send clear to <cm-form-input/> in #apt-form-inputs
 "
             class="btn btn-primary">
       Nuevo
@@ -68,12 +69,8 @@
      hx-trigger="load"
      hx-swap="innerHTML"></div>
 
-<div>
-  <img class="htmx-indicator center img-small-size white-filter" src="/assets/bars.svg" alt="spinner">
-</div>
-
 <div id="apt-form-container"
-     class="hidden form-container bg-neutral max-h-90per max-w-3/4 min-w-[310px] w-1/2 overflow-auto rounded-md">
+     class="hidden form-container border-2 border-gray-400   bg-base-100 max-h-90per max-w-3/4 min-w-[310px] w-1/2 overflow-auto rounded-md">
   <div class="header apt-form-title">
     <span class="font-bold">Nuevo Apartamento</span>
     <img class="htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">

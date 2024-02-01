@@ -1,5 +1,5 @@
 /*
-! tailwindcss v3.4.0 | MIT License | https://tailwindcss.com
+! tailwindcss v3.4.1 | MIT License | https://tailwindcss.com
 */
 
 /*
@@ -5160,6 +5160,10 @@ details.collapse summary::-webkit-details-marker {
   gap: 1rem;
 }
 
+.gap-2 {
+  gap: 0.5rem;
+}
+
 .space-x-2 > :not([hidden]) ~ :not([hidden]) {
   --tw-space-x-reverse: 0;
   margin-right: calc(0.5rem * var(--tw-space-x-reverse));
@@ -5352,6 +5356,10 @@ details.collapse summary::-webkit-details-marker {
   border-width: 0px;
 }
 
+.border-2 {
+  border-width: 2px;
+}
+
 .border-4 {
   border-width: 4px;
 }
@@ -5454,6 +5462,11 @@ details.collapse summary::-webkit-details-marker {
 .border-gray-300 {
   --tw-border-opacity: 1;
   border-color: rgb(209 213 219 / var(--tw-border-opacity));
+}
+
+.border-gray-400 {
+  --tw-border-opacity: 1;
+  border-color: rgb(156 163 175 / var(--tw-border-opacity));
 }
 
 .border-neutral-100 {
@@ -6310,11 +6323,6 @@ details.collapse summary::-webkit-details-marker {
 .text-white {
   --tw-text-opacity: 1;
   color: rgb(255 255 255 / var(--tw-text-opacity));
-}
-
-.text-primary-500 {
-  --tw-text-opacity: 1;
-  color: rgb(101 144 213 / var(--tw-text-opacity));
 }
 
 .underline {
@@ -8257,15 +8265,15 @@ details.collapse summary::-webkit-details-marker {
   }
 }
 
-:is(:where([dir="rtl"]) .rtl\:\!left-auto) {
+.rtl\:\!left-auto:where([dir="rtl"], [dir="rtl"] *) {
   left: auto !important;
 }
 
-:is(:where([dir="rtl"]) .rtl\:\!origin-\[50\%_50\%_0\]) {
+.rtl\:\!origin-\[50\%_50\%_0\]:where([dir="rtl"], [dir="rtl"] *) {
   transform-origin: 50% 50% 0 !important;
 }
 
-:is(:where([dir="rtl"]) .rtl\:\[direction\:rtl\]) {
+.rtl\:\[direction\:rtl\]:where([dir="rtl"], [dir="rtl"] *) {
   direction: rtl;
 }
 
@@ -8406,16 +8414,6 @@ details.collapse summary::-webkit-details-marker {
     color: rgb(255 255 255 / var(--tw-text-opacity));
   }
 
-  .dark\:text-neutral-600 {
-    --tw-text-opacity: 1;
-    color: rgb(82 82 82 / var(--tw-text-opacity));
-  }
-
-  .dark\:text-primary-200 {
-    --tw-text-opacity: 1;
-    color: rgb(199 215 240 / var(--tw-text-opacity));
-  }
-
   .dark\:shadow-\[0_4px_9px_-4px_rgba\(59\2c 113\2c 202\2c 0\.5\)\] {
     --tw-shadow: 0 4px 9px -4px rgba(59,113,202,0.5);
     --tw-shadow-colored: 0 4px 9px -4px var(--tw-shadow-color);
@@ -8440,16 +8438,6 @@ details.collapse summary::-webkit-details-marker {
   .dark\:placeholder\:text-neutral-200::placeholder {
     --tw-text-opacity: 1;
     color: rgb(229 229 229 / var(--tw-text-opacity));
-  }
-
-  .dark\:placeholder\:text-primary-200::-moz-placeholder {
-    --tw-text-opacity: 1;
-    color: rgb(199 215 240 / var(--tw-text-opacity));
-  }
-
-  .dark\:placeholder\:text-primary-200::placeholder {
-    --tw-text-opacity: 1;
-    color: rgb(199 215 240 / var(--tw-text-opacity));
   }
 
   .dark\:checked\:border-primary:checked {
@@ -8586,11 +8574,6 @@ details.collapse summary::-webkit-details-marker {
   .peer:focus ~ .dark\:peer-focus\:text-primary {
     --tw-text-opacity: 1;
     color: rgb(59 113 202 / var(--tw-text-opacity));
-  }
-
-  .peer:focus ~ .dark\:peer-focus\:text-secondary {
-    --tw-text-opacity: 1;
-    color: rgb(159 166 178 / var(--tw-text-opacity));
   }
 
   .dark\:data-\[te-autocomplete-item-active\]\:bg-white\/30[data-te-autocomplete-item-active] {

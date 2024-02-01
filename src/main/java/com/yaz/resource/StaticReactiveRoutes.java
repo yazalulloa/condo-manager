@@ -5,6 +5,7 @@ import io.quarkus.vertx.web.RouteFilter;
 import io.vertx.ext.web.RoutingContext;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
@@ -12,12 +13,12 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 @ApplicationScoped
 public class StaticReactiveRoutes {
 
-  private final String managementPath;
+  private final Set<String> nextPaths;
 
   @Inject
   public StaticReactiveRoutes(
       @ConfigProperty(name = "app.management.path") String managementPath) {
-    this.managementPath = managementPath;
+    this.nextPaths = Set.of(managementPath, "/api", "/rpc");
   }
 
   @RouteFilter()
@@ -33,10 +34,27 @@ public class StaticReactiveRoutes {
     final var indexOfDot = path.lastIndexOf(".");
     final var count = path.chars().filter(ch -> ch == '/').count();
 
-    if (indexOfDot == -1 && !path.startsWith(managementPath) && (count == 1 || !path.startsWith("/api"))) {
+    final var isNexPath = nextPaths.stream()
+        .map(path::startsWith)
+        .reduce(Boolean::logicalOr)
+        .orElse(false);
+
+    if (isNexPath) {
+      log.info("early_next {}", path);
+      rc.next();
+      return;
+    }
+
+    if (indexOfDot == -1 && count == 1) {
       rc.reroute(path + ".html");
       return;
     }
+log.info("next route");
+    /*if (indexOfDot == -1 && !path.startsWith(managementPath)
+        && (count == 1 || !path.startsWith("/api"))) {
+      rc.reroute(path + ".html");
+      return;
+    }*/
     rc.next();
   }
 

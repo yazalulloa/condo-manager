@@ -13,7 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import com.yaz.service.ServerSideEventHelper;
 import org.jboss.resteasy.reactive.RestPath;
 
-@Path("/sse")
+@Path("/api/sse")
 @Slf4j
 @Authenticated
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
@@ -25,6 +25,7 @@ public class SseResource {
   @Path("/{key}")
   @Produces(MediaType.SERVER_SENT_EVENTS)
   public void consume(@RestPath String key, @Context SseEventSink sseEventSink) {
+    log.info("consume key: {}", key);
     serverSideEventHelper.addSink(key, sseEventSink);
   }
 }

@@ -27,6 +27,7 @@ public class ApartmentFormDto {
   private final List<EmailForm> emails;
   private final boolean hideForm;
   private final AptItem item;
+  private final boolean isNew;
 
   public boolean isSuccess() {
     return generalFieldError == null

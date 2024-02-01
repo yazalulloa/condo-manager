@@ -3,21 +3,39 @@
 <span id="buildings-total-counter" hx-swap-oob="true">Edificios: {res.totalCount}</span>
 
 {#for item in res.results}
-    <div class="hover:bg-[#00000014] flex-wrap flex-row flex justify-between gap-0.5 rounded-lg p-4 bg-neutral"
-    script="on click call saveToLocalStorage('buildingId','{item.building.id}')
+    <div id="{item.cardId}" class="hover:bg-[#00000014] gap-2 rounded-lg p-4 bg-neutral">
+  <div script="on click call saveToLocalStorage('buildingId','{item.building.id}')
          on click call redirectTo('{res.buildingEditUrl}')
 "
->
-  <span>ID: {item.building.id}</span>
-  <span>Nombre: {item.building.name}</span>
-  <span>RIF: {item.building.rif}</span>
-  <span>Moneda Principal: {item.building.mainCurrency}</span>
-  <span>Moneda Deuda: {item.building.debtCurrency}</span>
-  <span>Monedas a mostrar {item.building.currenciesToShowAmountToPay}</span>
-  <span>{item.building.fixedPay}</span>
-  <span>{item.building.fixedPayAmount}</span>
-  <span>{item.building.roundUpPayments}</span>
-  <span>Cantidad de apartmentos: {item.building.amountOfApts}</span>
-  <span>Configuracion de email: {item.building.emailConfig}</span>
+       class="flex-wrap flex-row flex justify-between"
+  >
+    <span>ID: {item.building.id}</span>
+    <span>Nombre: {item.building.name}</span>
+    <span>RIF: {item.building.rif}</span>
+    <span>Moneda Principal: {item.building.mainCurrency}</span>
+    <span>Moneda Deuda: {item.building.debtCurrency}</span>
+    <span>Monedas a mostrar {item.building.currenciesToShowAmountToPay}</span>
+    {#if item.building.fixedPay}
+    <span>Monto fijo: {item.building.fixedPayAmount}</span>
+    {/if}
+    <span>Redondear pagos: {item.building.roundUpPayments}</span>
+    <span>Apartmentos: {item.building.amountOfApts}</span>
+    {#if item.building.emailConfig}
+    <span>Configuracion de email: {item.building.emailConfig}</span>
+    {/if}
+  </div>
+
+  <div class="align-middle">
+    <button class="delete-btn"
+            hx-headers='{"{inject:csrf.headerName}":"{inject:csrf.token}"}'
+            hx-delete={item.deleteUrl}
+                hx-target={item.cardIdRef}
+            hx-trigger="click"
+            hx-swap="delete">
+      <img src="/assets/trash.svg" alt="delete-row">
+    </button>
+  </div>
 </div>
 {/for}
+
+{#include fragments/next-page.html url = res.nextPageUrl /}

@@ -16,6 +16,10 @@ const inputClasses = "peer block min-h-[auto] w-full rounded border-0 bg-transpa
 const labelClasses = "pointer-events-none absolute left-3 top-0 mb-0 max-w-[90%] origin-[0_0] truncate pt-[0.37rem] leading-[1.6] text-neutral-500 transition-all duration-150 ease-out peer-focus:-translate-y-[0.9rem] peer-focus:scale-[0.8] peer-focus:text-primary peer-data-[te-input-state-active]:-translate-y-[0.9rem] peer-data-[te-input-state-active]:scale-[0.8] motion-reduce:transition-none dark:text-neutral-200 dark:peer-focus:text-primary";
 
 class FormInput extends HTMLElement {
+
+  input;
+  formDiv;
+
   constructor() {
     super();
 
@@ -38,6 +42,7 @@ class FormInput extends HTMLElement {
     input.name = this.getAttribute("name");
     input.value = this.getAttribute("value");
     input.maxLength = Number(this.getAttribute("maxlength"));
+    input.max = this.getAttribute("max");
     input.min = this.getAttribute("min");
     input.step = this.getAttribute("step");
 
@@ -62,9 +67,37 @@ class FormInput extends HTMLElement {
     let inputError = this.getAttribute("input-error")?.trim();
     if (inputError && inputError.length > 0) {
       div.setAttribute("data-te-invalid-feedback", inputError);
-      div.setAttribute("data-te-validation-state", "invalid")
+      div.setAttribute("data-te-validation-state", "invalid");
       this.removeAttribute("input-error");
     }
+
+    this.input = input;
+    this.formDiv = div;
+  }
+
+  connectedCallback() {
+    console.log("Custom element added to page.");
+
+    this.addEventListener("clear", evt => {
+      console.log("Clearing input");
+      this.input.value = this.input.type === "number" ? "0" : "";
+      console.log("Input value is now {}", this.input.value);
+      this.formDiv.removeAttribute("data-te-invalid-feedback");
+      this.formDiv.removeAttribute("data-te-validation-state");
+
+    })
+  }
+
+  disconnectedCallback() {
+    console.log("Custom element removed from page.");
+  }
+
+  adoptedCallback() {
+    console.log("Custom element moved to new page.");
+  }
+
+  attributeChangedCallback(name, oldValue, newValue) {
+    console.log(`Attribute ${name} has changed.`);
   }
 }
 

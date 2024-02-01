@@ -14,10 +14,9 @@ import './loader.js';
 import './sse.js';
 
 import _hyperscript from 'hyperscript.org';
+import './elements.js';
 
 _hyperscript.browserInit();
-
-import './elements.js';
 
 window.initComponents = function () {
   console.log("INIT TW-ELEMENTS")
@@ -32,6 +31,19 @@ window.initComponents = function () {
         Validation,
       },
       {allowReinits: true}, true); // set second parameter to true if you want to use a debugger
+
+  let forms = document.getElementsByTagName('form');
+  console.log("forms: {}", forms.length);
+  for (let i = 0; i < forms.length; i++) {
+    let form = forms[i];
+    let validation = new Validation(form);
+    form.addEventListener("dispose-validation", evt => {
+      evt.preventDefault();
+      console.log("disposing validation");
+      validation.dispose();
+      validation.init();
+    });
+  }
 }
 
 initComponents();
