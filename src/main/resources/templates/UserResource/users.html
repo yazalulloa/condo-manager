@@ -10,10 +10,10 @@
   <summary>
   <div class="hover:bg-[#00000014] gap-2 rounded-lg p-4 bg-neutral flex-wrap flex-row flex justify-between"
        id={item.cardId}>
-    <img src="{item.user.picture}" alt="Avatar" class="avatar w-10 h-10 rounded-full">
-    <span>{item.user.id}</span>
+    <img src="{item.user.picture}" alt="Avatar" class="w-10 h-10 rounded-full">
+    <span hidden="hidden">{item.user.id}</span>
     <span>{item.user.provider}</span>
-    <span>{item.user.providerId}</span>
+    <span hidden="hidden">{item.user.providerId}</span>
     <span>{item.user.email}</span>
     <span>{item.user.username}</span>
     <span>{item.user.name}</span>
