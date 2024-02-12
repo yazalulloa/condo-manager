@@ -1,10 +1,8 @@
 package com.yaz.resource;
 
-import com.yaz.persistence.domain.ApartmentQuery;
-import com.yaz.persistence.domain.BuildingQuery;
+import com.yaz.persistence.domain.query.BuildingQuery;
 import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.entities.Building;
-import com.yaz.resource.ApartmentsResource.Templates;
 import com.yaz.resource.domain.request.BuildingRequest;
 import com.yaz.resource.domain.response.BuildingCountersDto;
 import com.yaz.resource.domain.response.BuildingFormDto;
@@ -31,7 +29,6 @@ import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.RestPath;
 import org.jboss.resteasy.reactive.RestQuery;
 

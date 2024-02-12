@@ -148,6 +148,7 @@ window.initNav = function () {
       || lastUrlSegmentCurrent === 'index'
       || lastUrlSegmentCurrent === '/') {
     let item = localStorage.getItem("current-nav");
+    console.log("current-nav: {}", item);
     if (item) {
       let elem = document.getElementById(item);
       elem?.dispatchEvent(new Event('navigate'));

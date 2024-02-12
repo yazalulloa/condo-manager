@@ -30,7 +30,9 @@ public class NotificationService {
       restService.sendMessage(475635800, string)
           .subscribe()
           .with(
-              telegramMessage -> log.info("TELEGRAM_MESSAGE {}", telegramMessage),
+              telegramMessage -> {
+                //log.info("TELEGRAM_MESSAGE {}", telegramMessage);
+              },
               throwable -> log.error("TELEGRAM_ERROR", throwable));
     }
 

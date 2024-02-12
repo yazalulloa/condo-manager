@@ -12,7 +12,7 @@ import com.yaz.persistence.OidcDbTokenRepository;
 import com.yaz.persistence.domain.OidcDbTokenQueryRequest;
 import com.yaz.persistence.entities.OidcDbToken;
 import com.yaz.resource.OidcDbTokenResource;
-import com.yaz.resource.domain.OidcDbTokenTableResponse;
+import com.yaz.resource.domain.response.OidcDbTokenTableResponse;
 
 @Slf4j
 @ApplicationScoped

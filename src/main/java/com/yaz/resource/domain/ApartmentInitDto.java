@@ -1,5 +1,6 @@
 package com.yaz.resource.domain;
 
+import com.yaz.resource.domain.response.ApartmentTableResponse;
 import java.util.List;
 import lombok.Builder;
 import lombok.Data;

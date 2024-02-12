@@ -16,10 +16,10 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import com.yaz.persistence.domain.BuildingQuery;
+import com.yaz.persistence.domain.query.BuildingQuery;
 import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.domain.MySqlQueryRequest;
-import com.yaz.persistence.domain.SortOrder;
+import com.yaz.persistence.domain.query.SortOrder;
 import com.yaz.persistence.entities.Building;
 import com.yaz.util.SqlUtil;
 

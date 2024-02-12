@@ -1,5 +1,6 @@
 package com.yaz.resource;
 
+import com.yaz.resource.UserResource.Templates;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.smallrye.mutiny.Uni;
@@ -13,9 +14,9 @@ import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import com.yaz.persistence.domain.Currency;
-import com.yaz.persistence.domain.RateQuery;
+import com.yaz.persistence.domain.query.RateQuery;
 import com.yaz.persistence.entities.Rate;
-import com.yaz.resource.domain.RateTableResponse;
+import com.yaz.resource.domain.response.RateTableResponse;
 import com.yaz.service.RateService;
 import com.yaz.service.SaveNewBcvRate;
 import com.yaz.util.DateUtil;
@@ -40,6 +41,16 @@ public class RateResource {
   public static class Templates {
 
     public static native TemplateInstance rates(RateTableResponse res);
+
+    public static native TemplateInstance counters(long totalCount);
+  }
+
+  @GET
+  @Path("counters")
+  @Produces(MediaType.TEXT_HTML)
+  public Uni<TemplateInstance> counters() {
+    return service.count()
+        .map(Templates::counters);
   }
 
 
@@ -59,18 +70,15 @@ public class RateResource {
   @DELETE
   @Path("{id}")
   @Produces
-  public Uni<Response> delete(
+  public Uni<TemplateInstance> delete(
 //      @CookieParam("csrf-token") Cookie csrfCookie, @FormParam("csrf-token") String formCsrfToken,
 //      @HeaderParam("X-Csrf-Token") String headerCsrfToken,
       @RestPath long id) {
 
     //log.info("headerCsrfToken {} formCsrfToken {} cookie {}", headerCsrfToken, formCsrfToken, csrfCookie);
-    log.info("Deleting {}", id);
+    
     return service.delete(id)
-        .map(l -> {
-          log.info("Rate delete {} deleted {}", id, l);
-          return Response.ok().build();
-        });
+        .replaceWith(counters());
   }
 
   @GET

@@ -15,6 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class SqlUtil {
 
+  public static final String AND = " AND ";
+
   private SqlUtil() {
   }
 

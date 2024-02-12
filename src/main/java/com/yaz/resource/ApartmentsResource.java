@@ -1,10 +1,10 @@
 package com.yaz.resource;
 
-import com.yaz.persistence.domain.ApartmentQuery;
+import com.yaz.persistence.domain.query.ApartmentQuery;
 import com.yaz.resource.domain.ApartmentFormDto;
 import com.yaz.resource.domain.ApartmentFormDto.EmailForm;
 import com.yaz.resource.domain.ApartmentInitDto;
-import com.yaz.resource.domain.ApartmentTableResponse;
+import com.yaz.resource.domain.response.ApartmentTableResponse;
 import com.yaz.resource.domain.AptItem;
 import com.yaz.resource.domain.request.ApartmentRequest;
 import com.yaz.resource.domain.response.AptCountersDto;

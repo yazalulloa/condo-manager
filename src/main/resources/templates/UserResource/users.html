@@ -1,0 +1,25 @@
+{@com.yaz.resource.domain.response.UserTableResponse res}
+
+{#include UserResource/counters totalCount=res.totalCount /}
+
+{#for item in res.results}
+
+    <div class="hover:bg-[#00000014] gap-2 rounded-lg p-4 bg-neutral flex-wrap flex-row flex justify-between"
+         id={item.cardId}>
+  <span>{item.user.id}</span>
+  <span>{item.user.provider}</span>
+  <span>{item.user.providerId}</span>
+  <span>{item.user.email}</span>
+  <span>{item.user.username}</span>
+  <span>{item.user.name}</span>
+  <span>{item.user.createdAt.formatDate}</span>
+  <span>{item.user.lastLoginAt.formatDate}</span>
+
+{#include fragments/delete-btn deleteUrl=item.deleteUrl cardIdRef=item.cardIdRef/}
+
+</div>
+{/for}
+{#include fragments/next-page.html url = res.nextPageUrl /}
+
+
+

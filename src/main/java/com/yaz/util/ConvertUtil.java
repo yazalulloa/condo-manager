@@ -1,5 +1,7 @@
 package com.yaz.util;
 
+import com.yaz.persistence.domain.Currency;
+import com.yaz.persistence.entities.Rate;
 import io.vertx.core.json.JsonObject;
 import io.vertx.mutiny.core.buffer.Buffer;
 import io.vertx.mutiny.ext.web.client.HttpResponse;
@@ -21,8 +23,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.zip.CRC32;
-import com.yaz.persistence.domain.Currency;
-import com.yaz.persistence.entities.Rate;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.jsoup.Jsoup;
 //import org.apache.commons.lang3.time.DurationFormatUtils;
@@ -228,5 +228,13 @@ public class ConvertUtil {
         .etag(etag)
         .lastModified(lastModified)
         .build();
+  }
+
+  public static <T extends Enum<T>> T valueOfEnum(Class<T> enumType, String name) {
+    try {
+      return Enum.valueOf(enumType, name);
+    } catch (Exception e) {
+      return null;
+    }
   }
 }

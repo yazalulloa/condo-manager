@@ -1,4 +1,4 @@
-package com.yaz.persistence.domain;
+package com.yaz.persistence.domain.query;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
@@ -14,18 +14,12 @@ import lombok.extern.jackson.Jacksonized;
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class BuildingQuery {
+public class RateQuery {
 
-  private final String lastId;
-
+  private final long lastId;
+  private final String date;
   @Builder.Default
   private final SortOrder sortOrder = SortOrder.DESC;
   @Builder.Default
   private final int limit = 30;
-
-  public static BuildingQuery of(String lastId) {
-    return BuildingQuery.builder()
-        .lastId(lastId)
-        .build();
-  }
 }

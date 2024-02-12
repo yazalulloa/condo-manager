@@ -1,4 +1,4 @@
-package com.yaz.persistence.domain;
+package com.yaz.persistence.domain.query;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;

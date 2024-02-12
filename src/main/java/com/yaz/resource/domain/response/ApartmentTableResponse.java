@@ -1,5 +1,6 @@
-package com.yaz.resource.domain;
+package com.yaz.resource.domain.response;
 
+import com.yaz.resource.domain.AptItem;
 import java.util.List;
 import lombok.Builder;
 import lombok.Data;

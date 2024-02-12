@@ -1,4 +1,4 @@
-package com.yaz.resource.domain;
+package com.yaz.resource.domain.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.Collection;

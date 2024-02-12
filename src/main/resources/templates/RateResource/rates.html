@@ -1,5 +1,6 @@
-{@com.yaz.resource.domain.RateTableResponse res}
-<span id="rates-total-counter" hx-swap-oob="true">Tasas: {res.totalCount}</span>
+{@com.yaz.resource.domain.response.RateTableResponse res}
+
+{#include RateResource/counters totalCount=res.totalCount /}
 
 {#for item in res.results}
 

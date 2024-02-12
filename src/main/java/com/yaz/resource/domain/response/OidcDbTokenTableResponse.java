@@ -1,4 +1,4 @@
-package com.yaz.resource.domain;
+package com.yaz.resource.domain.response;
 
 import java.util.List;
 import lombok.Data;

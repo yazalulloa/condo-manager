@@ -1,7 +1,7 @@
 package com.yaz.persistence;
 
 
-import com.yaz.persistence.domain.ApartmentQuery;
+import com.yaz.persistence.domain.query.ApartmentQuery;
 import com.yaz.persistence.domain.MySqlQueryRequest;
 import com.yaz.persistence.entities.Apartment;
 import com.yaz.util.SqlUtil;
@@ -265,7 +265,7 @@ public class ApartmentRepository {
         tuple.addString("%" + q + "%");
       }
 
-      final var queryParams = " WHERE " + String.join(" AND ", params);
+      final var queryParams = " WHERE " + String.join(SqlUtil.AND, params);
 
       final var queryRequest = MySqlQueryRequest.normal(QUERY_COUNT_WHERE.formatted(queryParams), tuple);
       return mySqlService.extractLong(queryRequest, "query_count")
@@ -295,7 +295,7 @@ public class ApartmentRepository {
 
     if (!buildings.isEmpty()) {
       if (ifCursorQuery.get()) {
-        stringBuilder.append(" AND ");
+        stringBuilder.append(SqlUtil.AND);
       }
       ifCursorQuery.set(true);
       stringBuilder.append("apartments.building_id IN (").append(SqlUtil.params(buildings.size())).append(")");
@@ -305,7 +305,7 @@ public class ApartmentRepository {
   /*  final var buildingOptional = Optional.ofNullable(query.building());
     buildingOptional.ifPresent(str -> {
       if (ifCursorQuery.get()) {
-        stringBuilder.append(" AND ");
+        stringBuilder.append(SqlUtil.AND);
       }
       ifCursorQuery.set(true);
       stringBuilder.append(" apartments.building_id = ? ");
@@ -319,7 +319,7 @@ public class ApartmentRepository {
     qOptional
         .ifPresent(str -> {
           if (ifCursorQuery.get()) {
-            stringBuilder.append(" AND ");
+            stringBuilder.append(SqlUtil.AND);
           }
           stringBuilder.append(LIKE_QUERY);
           tupleSize.addAndGet(1);

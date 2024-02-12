@@ -1,8 +1,8 @@
 package com.yaz.resource.rpc;
 
-import com.yaz.persistence.domain.RateQuery;
+import com.yaz.persistence.domain.query.RateQuery;
 import com.yaz.persistence.entities.Rate;
-import com.yaz.resource.domain.RateTableResponse.Item;
+import com.yaz.resource.domain.response.RateTableResponse.Item;
 import com.yaz.service.RateService;
 import com.yaz.util.DateUtil;
 import io.smallrye.mutiny.Uni;

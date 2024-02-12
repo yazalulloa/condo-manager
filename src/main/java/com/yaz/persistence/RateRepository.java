@@ -19,8 +19,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.domain.MySqlQueryRequest;
-import com.yaz.persistence.domain.RateQuery;
-import com.yaz.persistence.domain.SortOrder;
+import com.yaz.persistence.domain.query.RateQuery;
+import com.yaz.persistence.domain.query.SortOrder;
 import com.yaz.persistence.entities.Rate;
 import com.yaz.util.SqlUtil;
 
@@ -58,7 +58,22 @@ public class RateRepository {
         .map(SqlResult::rowCount);
   }
 
-  public Uni<RowSet<Row>> listRows(RateQuery query) {
+  public Rate from(Row row) {
+    return Rate.builder()
+        .id(row.getLong("id"))
+        .fromCurrency(Currency.valueOf(row.getString("from_currency")))
+        .toCurrency(Currency.valueOf(row.getString("to_currency")))
+        .rate(row.getBigDecimal("rate"))
+        .dateOfRate(row.getLocalDate("date_of_rate"))
+        .source(Rate.Source.valueOf(row.getString("source")))
+        .createdAt(row.getLocalDateTime("created_at"))
+        .hash(row.getLong("hash"))
+        .etag(row.getString("etag"))
+        .lastModified(row.getString("last_modified"))
+        .build();
+  }
+
+  public Uni<List<Rate>> listRows(RateQuery query) {
     final var stringBuilder = new StringBuilder();
 
     final var tupleSize = new AtomicInteger(1);
@@ -79,7 +94,7 @@ public class RateRepository {
         .ifPresent(str -> {
 
           if (shouldSetAnd.get()) {
-            stringBuilder.append(" AND ");
+            stringBuilder.append(SqlUtil.AND);
           }
 
           stringBuilder.append(" date_of_rate <= ?");
@@ -96,7 +111,8 @@ public class RateRepository {
     final var queryRequest = MySqlQueryRequest.normal(
         SELECT.formatted(COLLECTION, stringBuilder.isEmpty() ? "" : "WHERE " + stringBuilder), params);
 
-    return mySqlService.request(queryRequest);
+    return mySqlService.request(queryRequest)
+        .map(rows -> SqlUtil.toList(rows, this::from));
   }
 
   public Uni<RowSet<Row>> fullSave(List<Rate> rates) {
@@ -140,12 +156,12 @@ public class RateRepository {
     list.add(MySqlQueryRequest.normal("SELECT LAST_INSERT_ID()"));
 
     return mySqlService.transaction(list)
-        .onItem()
-        .invoke(rows -> {
-          for (RowSet<Row> rowRowSet : rows) {
-            SqlUtil.print(rowRowSet);
-          }
-        })
+//        .onItem()
+//        .invoke(rows -> {
+//          for (RowSet<Row> rowRowSet : rows) {
+//            SqlUtil.print(rowRowSet);
+//          }
+//        })
         .map(rowSets -> {
 
           return rowSets.stream()

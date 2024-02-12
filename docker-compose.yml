@@ -5,6 +5,6 @@ services:
     image: condo-manager:latest
     restart: always
     ports:
-      - "13835:13835"
+      - "13845:13845"
 #    env_file:
 #      - local.env

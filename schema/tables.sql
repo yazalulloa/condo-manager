@@ -174,3 +174,18 @@ CREATE TABLE IF NOT EXISTS oidc_db_token_state_manager
     expires_in    BIGINT        NOT NULL,
     PRIMARY KEY (id)
 );
+
+CREATE TABLE IF NOT EXISTS users
+(
+    id            BINARY(16)                                                              NOT NULL,
+    provider_id   VARCHAR(100)                                                            NOT NULL,
+    provider      ENUM ('GOOGLE', 'GITHUB', 'MASTODON', 'MICROSOFT', 'APPLE', 'FACEBOOK') NOT NULL,
+    email         VARCHAR(320)                                                            NOT NULL,
+    username      VARCHAR(100)                                                            NOT NULL,
+    name          VARCHAR(200)                                                            NOT NULL,
+    picture       VARCHAR(500)                                                            NOT NULL,
+    data          JSON                                                                    NOT NULL,
+    created_at    DATETIME                                                                NOT NULL,
+    last_login_at DATETIME,
+    PRIMARY KEY (id)
+);

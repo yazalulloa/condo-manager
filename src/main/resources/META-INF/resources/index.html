@@ -53,6 +53,15 @@
               hx-on::after-request="saveNavState(this)"
           >OIDC tokens</a>
           </li>
+          <li><a
+              id="nav-users"
+              hx-get="/users"
+              hx-target="#container"
+              hx-trigger="click, navigate"
+              hx-swap="innerHTML"
+              hx-on::after-request="saveNavState(this)"
+          >Usuarios</a>
+          </li>
         </ul>
       </div>
     </div>

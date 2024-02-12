@@ -4,22 +4,23 @@ import com.yaz.client.BcvClient;
 import com.yaz.domain.BcvUsdRateResult;
 import com.yaz.persistence.RateRepository;
 import com.yaz.persistence.domain.Currency;
-import com.yaz.persistence.domain.RateQuery;
+import com.yaz.persistence.domain.query.RateQuery;
 import com.yaz.persistence.entities.Rate;
 import com.yaz.resource.RateResource;
-import com.yaz.resource.domain.RateTableResponse;
-import com.yaz.resource.domain.RateTableResponse.Item;
+import com.yaz.resource.domain.response.RateTableResponse;
+import com.yaz.resource.domain.response.RateTableResponse.Item;
 import com.yaz.service.cache.RateCache;
 import com.yaz.util.Constants;
 import com.yaz.util.ConvertUtil;
 import com.yaz.util.RxUtil;
-import com.yaz.util.SqlUtil;
 import io.quarkus.cache.CacheInvalidate;
 import io.quarkus.cache.CacheInvalidateAll;
 import io.quarkus.cache.CacheResult;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import io.smallrye.mutiny.Uni;
+import io.vertx.mutiny.sqlclient.RowIterator;
+import io.vertx.mutiny.sqlclient.RowSet;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.util.ArrayList;
@@ -32,19 +33,19 @@ import lombok.extern.slf4j.Slf4j;
 public class RateService {
 
 
-  private final RateRepository rateRepository;
+  private final RateRepository repository;
   private final BcvClient bcvClient;
 
   @Inject
-  public RateService(RateRepository rateRepository, BcvClient bcvClient) {
-    this.rateRepository = rateRepository;
+  public RateService(RateRepository repository, BcvClient bcvClient) {
+    this.repository = repository;
     this.bcvClient = bcvClient;
   }
 
 
   @CacheResult(cacheName = RateCache.TOTAL_COUNT, lockTimeout = Constants.CACHE_TIMEOUT)
   public Uni<Long> count() {
-    return rateRepository.count();
+    return repository.count();
   }
 
 
@@ -53,7 +54,7 @@ public class RateService {
   @CacheInvalidate(cacheName = RateCache.EXISTS)
   @CacheInvalidate(cacheName = RateCache.GET)
   public Uni<Integer> delete(long id) {
-    return rateRepository.delete(id);
+    return repository.delete(id);
   }
 
   /* public Single<Paging<Rate>> paging(RateQuery rateQuery) {
@@ -75,21 +76,23 @@ public class RateService {
    }*/
   @CacheResult(cacheName = RateCache.SELECT, lockTimeout = Constants.CACHE_TIMEOUT)
   public Uni<List<Rate>> list(RateQuery rateQuery) {
-    return rateRepository.listRows(rateQuery)
-        .map(rows -> SqlUtil.toList(rows, Rate.class));
+    return repository.listRows(rateQuery);
   }
 
 
   public Maybe<Rate> last(Currency fromCurrency, Currency toCurrency) {
-    return RxUtil.toMaybe(rateRepository.last(fromCurrency, toCurrency))
-        .flatMap(rows -> SqlUtil.parseOne(rows, Rate.class));
+    return RxUtil.toMaybe(repository.last(fromCurrency, toCurrency))
+        .map(RowSet::iterator)
+        .filter(RowIterator::hasNext)
+        .map(RowIterator::next)
+        .map(repository::from);
   }
 
   @CacheInvalidateAll(cacheName = RateCache.TOTAL_COUNT)
   @CacheInvalidateAll(cacheName = RateCache.SELECT)
   public Uni<Rate> save(Rate rate) {
 
-    return rateRepository.save(rate)
+    return repository.save(rate)
         .map(id -> {
           return rate.toBuilder()
               .id(id.orElse(null))
@@ -98,7 +101,7 @@ public class RateService {
   }
 
   public Single<Boolean> exists(Long hash) {
-    return RxUtil.single(rateRepository.exists(hash));
+    return RxUtil.single(repository.exists(hash));
   }
 
  /* private Single<HttpResponse<Buffer>> bcv(HttpMethod httpMethod) {

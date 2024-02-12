@@ -1,11 +1,13 @@
 package com.yaz.util;
 
 import java.util.Optional;
+import java.util.UUID;
 
 public class StringUtil {
 
   private StringUtil() {
   }
+
   public static String replaceNonNumeric(String str) {
     final var builder = new StringBuilder();
 
@@ -59,5 +61,17 @@ public class StringUtil {
     }
 
     return true;
+  }
+
+  public static UUID uuid(String str) {
+    try {
+      return Optional.ofNullable(str)
+          .map(String::trim)
+          .filter(s -> !s.isEmpty())
+          .map(UUID::fromString)
+          .orElse(null);
+    } catch (Exception e) {
+      return null;
+    }
   }
 }

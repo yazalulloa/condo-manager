@@ -23,8 +23,8 @@ public class SendDocument {
   @JsonProperty
   private final long chatId;
 
-  @JsonProperty
-  private final MultipartForm multipartForm;
+//  @JsonProperty
+//  private final MultipartForm multipartForm;
 
   @JsonProperty
   private final String caption;

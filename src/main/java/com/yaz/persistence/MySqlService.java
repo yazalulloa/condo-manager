@@ -1,5 +1,6 @@
 package com.yaz.persistence;
 
+import com.yaz.persistence.domain.MySqlQueryRequest;
 import io.micrometer.core.annotation.Timed;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
@@ -14,7 +15,6 @@ import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import com.yaz.persistence.domain.MySqlQueryRequest;
 
 @Slf4j
 @Singleton
@@ -26,7 +26,7 @@ public class MySqlService {
   private final MySQLPool pool;
 
   private Uni<RowSet<Row>> executeQuery(SqlClient sqlClient, MySqlQueryRequest request) {
-
+    //log.info("SQL_REQUEST {} PARAMS {}", request.query(), request.params());
     final var preparedQuery = sqlClient.preparedQuery(request.query());
 
     if (request.type() == MySqlQueryRequest.Type.NORMAL) {

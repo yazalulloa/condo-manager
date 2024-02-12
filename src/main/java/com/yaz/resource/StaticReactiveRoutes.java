@@ -40,7 +40,7 @@ public class StaticReactiveRoutes {
         .orElse(false);
 
     if (isNexPath) {
-      log.info("early_next {}", path);
+      //log.info("early_next {}", path);
       rc.next();
       return;
     }
@@ -49,7 +49,7 @@ public class StaticReactiveRoutes {
       rc.reroute(path + ".html");
       return;
     }
-log.info("next route");
+   // log.info("next route");
     /*if (indexOfDot == -1 && !path.startsWith(managementPath)
         && (count == 1 || !path.startsWith("/api"))) {
       rc.reroute(path + ".html");
