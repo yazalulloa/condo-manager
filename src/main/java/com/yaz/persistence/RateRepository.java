@@ -1,5 +1,11 @@
 package com.yaz.persistence;
 
+import com.yaz.persistence.domain.Currency;
+import com.yaz.persistence.domain.MySqlQueryRequest;
+import com.yaz.persistence.domain.query.RateQuery;
+import com.yaz.persistence.domain.query.SortOrder;
+import com.yaz.persistence.entities.Rate;
+import com.yaz.util.SqlUtil;
 import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.sqlclient.Row;
 import io.vertx.mutiny.sqlclient.RowIterator;
@@ -17,12 +23,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import com.yaz.persistence.domain.Currency;
-import com.yaz.persistence.domain.MySqlQueryRequest;
-import com.yaz.persistence.domain.query.RateQuery;
-import com.yaz.persistence.domain.query.SortOrder;
-import com.yaz.persistence.entities.Rate;
-import com.yaz.util.SqlUtil;
 
 @Slf4j
 @ApplicationScoped
@@ -41,8 +41,9 @@ public class RateRepository {
       """.formatted(COLLECTION);
 
   private static final String REPLACE = """
-      REPLACE INTO %s (id, from_currency, to_currency, rate, date_of_rate, source, created_at, hash, etag, last_modified) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      """.formatted(COLLECTION);
+      INSERT IGNORE INTO %s (id, from_currency, to_currency, rate, date_of_rate, source, created_at, hash, etag, last_modified) 
+      VALUES (%s)
+      """.formatted(COLLECTION, SqlUtil.params(10));
   private static final String LAST = "SELECT * FROM rates WHERE from_currency = ? AND to_currency = ? ORDER BY id DESC LIMIT 1";
   private static final String HASH_EXISTS = "SELECT * FROM rates WHERE hash = ? LIMIT 1";
 
@@ -187,14 +188,13 @@ public class RateRepository {
         .map(RowIterator::hasNext);
   }
 
-  public Uni<Integer> replace(Collection<Rate> rates) {
+  public Uni<RowSet<Row>> replace(Collection<Rate> rates) {
 
     final var tuples = rates.stream().map(this::fullTuple)
         .toList();
 
     final var batch = MySqlQueryRequest.batch(REPLACE, tuples);
-    return mySqlService.request(batch)
-        .map(SqlResult::rowCount);
+    return mySqlService.request(batch);
   }
 }
 

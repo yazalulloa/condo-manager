@@ -134,9 +134,9 @@
   display: flex;
   flex-wrap: wrap;
   flex-direction: row;
-  gap: 16px;
+  gap: 1rem;
   text-align: center;
-  padding: 6px;
+  padding: 1rem;
   align-items: center;
 }
 

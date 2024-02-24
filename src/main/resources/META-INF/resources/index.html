@@ -16,7 +16,7 @@
         <label tabindex="0" class="btn btn-ghost btn-circle">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" /></svg>
         </label>
-        <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+        <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-10 p-2 shadow bg-base-100 rounded-box w-52">
           <li><a
               id="nav-apartments"
               hx-get="/apartments"
@@ -61,6 +61,15 @@
               hx-swap="innerHTML"
               hx-on::after-request="saveNavState(this)"
           >Usuarios</a>
+          </li>
+          <li><a
+              id="nav-email-configs"
+              hx-get="/email_configs"
+              hx-target="#container"
+              hx-trigger="click, navigate"
+              hx-swap="innerHTML"
+              hx-on::after-request="saveNavState(this)"
+          >Configuraciones de Email</a>
           </li>
         </ul>
       </div>

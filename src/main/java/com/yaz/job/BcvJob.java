@@ -9,8 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import com.yaz.service.SaveNewBcvRate;
 import com.yaz.util.RxUtil;
 
-@ApplicationScoped
 @Slf4j
+@ApplicationScoped
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class BcvJob {
 

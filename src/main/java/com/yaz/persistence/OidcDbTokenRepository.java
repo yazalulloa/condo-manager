@@ -1,5 +1,11 @@
 package com.yaz.persistence;
 
+import com.yaz.persistence.domain.IdentityProvider;
+import com.yaz.persistence.domain.MySqlQueryRequest;
+import com.yaz.persistence.domain.OidcDbTokenQueryRequest;
+import com.yaz.persistence.entities.OidcDbToken;
+import com.yaz.persistence.entities.OidcDbToken.User;
+import com.yaz.util.SqlUtil;
 import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.sqlclient.Row;
 import io.vertx.mutiny.sqlclient.SqlResult;
@@ -10,10 +16,6 @@ import jakarta.inject.Inject;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import com.yaz.persistence.domain.MySqlQueryRequest;
-import com.yaz.persistence.domain.OidcDbTokenQueryRequest;
-import com.yaz.persistence.entities.OidcDbToken;
-import com.yaz.util.SqlUtil;
 
 @Slf4j
 @ApplicationScoped
@@ -21,8 +23,21 @@ import com.yaz.util.SqlUtil;
 public class OidcDbTokenRepository {
 
   private static final String COLLECTION = "oidc_db_token_state_manager";
-  private static final String SELECT = "SELECT * FROM %s %s ORDER BY id DESC LIMIT ?";
+  private static final String SELECT = """
+      SELECT oidc_db_token_state_manager.*,BIN_TO_UUID(oidc_db_token_state_manager.user_id) as uuid_id,
+      users.provider_id, users.provider, users.email, users.username, users.name, users.picture 
+      FROM %s %s
+      LEFT JOIN users ON oidc_db_token_state_manager.user_id = users.id 
+      ORDER BY id DESC LIMIT ?
+      """;
   private static final String DELETE = "DELETE FROM %s WHERE id = ?".formatted(COLLECTION);
+
+  // , created_at = NOW()
+  private static final String UPDATE_USER_ID = """
+      UPDATE %s SET user_id = UUID_TO_BIN(?) WHERE id = ?
+      """.formatted(COLLECTION);
+
+  private static final String DELETE_BY_USER = "DELETE FROM %s WHERE user_id = UUID_TO_BIN(?)".formatted(COLLECTION);
 
   private final MySqlService mySqlService;
 
@@ -37,6 +52,17 @@ public class OidcDbTokenRepository {
         .accessToken(row.getString("access_token"))
         .refreshToken(row.getString("refresh_token"))
         .expiresIn(row.getLong("expires_in"))
+        .createdAt(SqlUtil.getValue(row, "created_at", Row::getLocalDateTime))
+        .updatedAt(SqlUtil.getValue(row, "updated_at", Row::getLocalDateTime))
+        .user(User.builder()
+            .id(SqlUtil.getValue(row, "uuid_id", Row::getString))
+            .providerId(SqlUtil.getValue(row, "provider_id", Row::getString))
+            .provider(SqlUtil.getValue(row, "provider", Row::getString, IdentityProvider::valueOf))
+            .email(SqlUtil.getValue(row, "email", Row::getString))
+            .username(SqlUtil.getValue(row, "username", Row::getString))
+            .name(SqlUtil.getValue(row, "name", Row::getString))
+            .picture(SqlUtil.getValue(row, "picture", Row::getString))
+            .build())
         .build();
   }
 
@@ -59,6 +85,17 @@ public class OidcDbTokenRepository {
 
   public Uni<Integer> delete(String id) {
     return mySqlService.request(MySqlQueryRequest.normal(DELETE, Tuple.of(id)))
+        .map(SqlResult::rowCount);
+  }
+
+  public Uni<Integer> updateUserId(String id, String userId) {
+    return mySqlService.request(UPDATE_USER_ID, Tuple.of(userId, id))
+        .map(SqlResult::rowCount);
+
+  }
+
+  public Uni<Integer> deleteByUser(String id) {
+    return mySqlService.request(DELETE_BY_USER, Tuple.of(id))
         .map(SqlResult::rowCount);
   }
 }

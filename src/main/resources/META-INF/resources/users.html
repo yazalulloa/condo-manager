@@ -8,17 +8,15 @@
 </head>
 <body hx-boost="true">
 
-
 <div class="header bg-base-100" id="header-container" hx-swap-oob="true">
   <span id="users-total-counter"></span>
 
   <img class="htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">
 </div>
 
-<div>
+<div id="container" hx-swap-oob="true" class="p-2 gap-1 flex flex-col">
   <div hx-get="/api/users" hx-indicator=".htmx-indicator" hx-trigger="load" hx-swap="outerHTML"></div>
 </div>
-
 
 </body>
 </html>

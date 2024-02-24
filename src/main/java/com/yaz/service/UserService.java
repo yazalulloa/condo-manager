@@ -1,10 +1,16 @@
 package com.yaz.service;
 
 import com.yaz.persistence.UserRepository;
+import com.yaz.persistence.domain.IdentityProvider;
 import com.yaz.persistence.domain.query.UserQuery;
 import com.yaz.persistence.entities.User;
 import com.yaz.resource.UserResource;
 import com.yaz.resource.domain.response.UserTableResponse;
+import com.yaz.service.cache.RateCache;
+import com.yaz.service.cache.UserCache;
+import com.yaz.util.Constants;
+import io.quarkus.cache.CacheInvalidateAll;
+import io.quarkus.cache.CacheResult;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -25,18 +31,28 @@ public class UserService {
     return repository.count();
   }
 
-  public Uni<Void> saveIfExists(User user) {
+  @CacheResult(cacheName = UserCache.GET_ID_FROM_PROVIDER, lockTimeout = Constants.CACHE_TIMEOUT)
+  public Uni<String> getIdFromProvider(IdentityProvider provider, String providerId) {
+    return repository.getIdFromProvider(provider, providerId);
+  }
 
-    return repository.getIdFromProvider(user.provider(), user.providerId())
+  public Uni<String> saveIfExists(User user) {
+
+    return getIdFromProvider(user.provider(), user.providerId())
         .flatMap(userId -> {
           if (userId != null) {
-            // log.info("User already exists {} {}",userId, user.providerId());
+            log.info("User already exists {} {}", userId, user.providerId());
             return repository.updatelastLoginAt(userId)
-                .replaceWithVoid();
+                .replaceWith(userId);
           }
-          return repository.insert(user)
-              .replaceWithVoid();
+
+          return save(user);
         });
+  }
+  @CacheInvalidateAll(cacheName = UserCache.GET_ID_FROM_PROVIDER)
+  public Uni<String> save(User user) {
+    return repository.save(user)
+        .invoke(id -> log.info("User inserted {}", id));
   }
 
   public Uni<List<User>> list(UserQuery userQuery) {
@@ -82,6 +98,7 @@ public class UserService {
         });
   }
 
+  @CacheInvalidateAll(cacheName = UserCache.GET_ID_FROM_PROVIDER)
   public Uni<Integer> delete(String id) {
     return repository.delete(id);
   }

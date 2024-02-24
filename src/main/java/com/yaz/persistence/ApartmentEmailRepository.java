@@ -19,7 +19,7 @@ import com.yaz.persistence.entities.Apartment;
 public class ApartmentEmailRepository {
 
   public static final String COLLECTION = "apartment_emails";
-  private static final String REPLACE = "REPLACE INTO apartment_emails (building_id, apt_number, email) VALUES (?, ?, ?);";
+  private static final String REPLACE = "INSERT IGNORE INTO apartment_emails (building_id, apt_number, email) VALUES (?, ?, ?);";
   public static final String INSERT = """
       INSERT IGNORE INTO %s (building_id, apt_number, email)
       VALUES (?, ?, ?)

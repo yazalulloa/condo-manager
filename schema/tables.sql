@@ -172,7 +172,11 @@ CREATE TABLE IF NOT EXISTS oidc_db_token_state_manager
     access_token  VARCHAR(5000) NULL,
     refresh_token VARCHAR(5000) NULL,
     expires_in    BIGINT        NOT NULL,
-    PRIMARY KEY (id)
+    user_id       BINARY(16),
+    created_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at     DATETIME ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    INDEX (user_id)
 );
 
 CREATE TABLE IF NOT EXISTS users
@@ -188,4 +192,21 @@ CREATE TABLE IF NOT EXISTS users
     created_at    DATETIME                                                                NOT NULL,
     last_login_at DATETIME,
     PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS email_configs
+(
+    user_id           BINARY(16) NOT NULL,
+    file              BLOB       NOT NULL,
+    file_size         INT        NOT NULL,
+    hash              BIGINT     NOT NULL,
+    active            BOOL       NOT NULL,
+    is_available      BOOL       NOT NULL,
+    expires_in        BIGINT     NOT NULL,
+    created_at        DATETIME   NOT NULL,
+    has_refresh_token BOOL       NOT NULL,
+    updated_at        DATETIME,
+    last_check_at     DATETIME,
+    stacktrace        TEXT,
+    PRIMARY KEY (user_id)
 );

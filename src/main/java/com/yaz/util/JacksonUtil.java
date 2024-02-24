@@ -29,7 +29,6 @@ public class JacksonUtil {
 
   public static void loadModules(){
     DatabindCodec.mapper().findAndRegisterModules();
-    DatabindCodec.prettyMapper().findAndRegisterModules();
   }
 
   public static JavaType javaType(ObjectMapper mapper, Class<? extends Collection<?>> collectionClass, Class<?> clazz) {

@@ -1,5 +1,8 @@
 package com.yaz.resource;
 
+import com.yaz.persistence.domain.OidcDbTokenQueryRequest;
+import com.yaz.resource.domain.response.OidcDbTokenTableResponse;
+import com.yaz.service.OidcDbTokenService;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
@@ -12,9 +15,6 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import com.yaz.persistence.domain.OidcDbTokenQueryRequest;
-import com.yaz.resource.domain.response.OidcDbTokenTableResponse;
-import com.yaz.service.OidcDbTokenService;
 import org.jboss.resteasy.reactive.RestPath;
 import org.jboss.resteasy.reactive.RestQuery;
 
@@ -35,7 +35,21 @@ public class OidcDbTokenResource {
 
     public static native TemplateInstance grid(OidcDbTokenTableResponse res);
 
+    public static native TemplateInstance tokens(OidcDbTokenTableResponse res);
+
     public static native TemplateInstance counters(long totalCount);
+  }
+
+  @GET
+  @Produces(MediaType.TEXT_HTML)
+  public Uni<TemplateInstance> tokens(@RestQuery String lastId) {
+
+    final var query = OidcDbTokenQueryRequest.builder()
+        .lastId(lastId)
+        .build();
+
+    return service.tableResponse(query)
+        .map(Templates::tokens);
   }
 
   @GET
@@ -43,11 +57,11 @@ public class OidcDbTokenResource {
   @Produces(MediaType.TEXT_HTML)
   public Uni<TemplateInstance> grid(@RestQuery String lastId) {
 
-    final var apartmentQuery = OidcDbTokenQueryRequest.builder()
+    final var query = OidcDbTokenQueryRequest.builder()
         .lastId(lastId)
         .build();
 
-    return service.tableResponse(apartmentQuery)
+    return service.tableResponse(query)
         .map(Templates::grid);
   }
 

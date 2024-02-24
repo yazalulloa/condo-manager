@@ -14,7 +14,7 @@ import com.yaz.service.LoadBackupService;
 import com.yaz.util.MutinyUtil;
 
 @Slf4j
-@Path("/api/load_data")
+@Path("/rpc/load_data")
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class LoadDataResource {
 

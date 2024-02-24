@@ -3,11 +3,11 @@
 <span id="buildings-total-counter" hx-swap-oob="true">Edificios: {res.totalCount}</span>
 
 {#for item in res.results}
-    <div id="{item.cardId}" class="hover:bg-[#00000014] gap-2 rounded-lg p-4 bg-neutral">
-  <div script="on click call saveToLocalStorage('buildingId','{item.building.id}')
-         on click call redirectTo('{res.buildingEditUrl}')
-"
-       class="flex-wrap flex-row flex justify-between"
+    <div id="{item.cardId}" class="hover:bg-[#00000014] gap-4 rounded-lg bg-neutral flex flex-row justify-between">
+  <div script="on click call saveToLocalStorage('buildingId','{item.building.id}')"
+       hx-get="/buildings/edit.html"
+       hx-trigger="click"
+       class="flex-wrap flex-row flex justify-between gap-2 w-full items-center py-3 pl-3"
   >
     <span>ID: {item.building.id}</span>
     <span>Nombre: {item.building.name}</span>
@@ -25,7 +25,7 @@
     {/if}
   </div>
 
-  <div class="align-middle">
+  <div class="flex justify-center items-center min-h-10 min-w-10 py-3 pr-3">
     <button class="delete-btn"
             hx-headers='{"{inject:csrf.headerName}":"{inject:csrf.token}"}'
             hx-delete={item.deleteUrl}

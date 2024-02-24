@@ -1,5 +1,10 @@
 package com.yaz.service;
 
+import com.yaz.persistence.OidcDbTokenRepository;
+import com.yaz.persistence.domain.OidcDbTokenQueryRequest;
+import com.yaz.persistence.entities.OidcDbToken;
+import com.yaz.resource.OidcDbTokenResource;
+import com.yaz.resource.domain.response.OidcDbTokenTableResponse;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -8,11 +13,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import com.yaz.persistence.OidcDbTokenRepository;
-import com.yaz.persistence.domain.OidcDbTokenQueryRequest;
-import com.yaz.persistence.entities.OidcDbToken;
-import com.yaz.resource.OidcDbTokenResource;
-import com.yaz.resource.domain.response.OidcDbTokenTableResponse;
 
 @Slf4j
 @ApplicationScoped
@@ -34,6 +34,10 @@ public class OidcDbTokenService {
     return repository.select(queryRequest);
   }
 
+  public Uni<Integer> updateUserId(String id, String userId) {
+    return repository.updateUserId(id, userId);
+  }
+
   public Uni<OidcDbTokenTableResponse> tableResponse(OidcDbTokenQueryRequest request) {
 
     final var actualLimit = request.limit() + 1;
@@ -49,7 +53,7 @@ public class OidcDbTokenService {
       final var results = tokens.stream()
           .map(OidcDbTokenTableResponse.Item::new)
           .collect(Collectors.toCollection(() -> new ArrayList<>(tokens.size())));
-      
+
       String nextPageUrl = null;
       if (results.size() == actualLimit) {
         results.remove(results.size() - 1);
@@ -63,5 +67,9 @@ public class OidcDbTokenService {
 
       return new OidcDbTokenTableResponse(totalCount, nextPageUrl, results);
     });
+  }
+
+  public Uni<Integer> deleteByUser(String id) {
+    return repository.deleteByUser(id);
   }
 }

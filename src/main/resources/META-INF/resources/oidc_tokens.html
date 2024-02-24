@@ -10,19 +10,13 @@
 
 <div class="header p-1 bg-base-100" id="header-container" hx-swap-oob="true">
   <div id="oidc-token-counters"></div>
+
+  <img class="htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">
 </div>
 
-<div hx-indicator=".htmx-indicator">
-  <div class="oicd-token-grid p-2 font-bold">
-    <div>ID</div>
-    <div>IdToken</div>
-    <div>AccessToken</div>
-    <div>RefreshToken</div>
-    <div>ExpiresIn</div>
-    <div>Acciones</div>
-  </div>
+<div id="container" hx-swap-oob="true" class="p-2 gap-1 flex flex-col">
 
-  <div hx-get="/api/oidc_tokens/grid" hx-indicator=".htmx-indicator" hx-trigger="load" hx-swap="innerHTML"></div>
+  <div hx-get="/api/oidc_tokens" hx-indicator=".htmx-indicator" hx-trigger="load" hx-swap="outerHTML"></div>
 </div>
 </body>
 </html>

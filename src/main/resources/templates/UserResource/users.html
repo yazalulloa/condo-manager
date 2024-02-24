@@ -8,13 +8,19 @@
 
   <details>
   <summary>
-  <div class="hover:bg-[#00000014] gap-2 rounded-lg p-4 bg-neutral flex-wrap flex-row flex justify-between"
+  <div class="hover:bg-[#00000014] rounded-lg p-4 bg-neutral flex-wrap flex-row flex justify-between items-center gap-2"
        id={item.cardId}>
-    <img src="{item.user.picture}" alt="Avatar" class="w-10 h-10 rounded-full">
-    <span hidden="hidden">{item.user.id}</span>
-    <span>{item.user.provider}</span>
-    <span hidden="hidden">{item.user.providerId}</span>
-    <span>{item.user.email}</span>
+
+    <img src="{item.user.picture}" alt="Avatar" class="w-10 h-10 rounded-full" referrerpolicy="no-referrer">
+
+    <div class="tooltip tooltip-bottom"
+         data-tip="{item.user.providerId}">
+      <span>{item.user.provider}</span>
+    </div>
+    <div class="tooltip tooltip-bottom"
+         data-tip="{item.user.id}">
+      <span>{item.user.email}</span>
+    </div>
     <span>{item.user.username}</span>
     <span>{item.user.name}</span>
     <span>{item.user.createdAt.formatDate}</span>
@@ -23,11 +29,13 @@
     {#include fragments/delete-btn deleteUrl=item.deleteUrl cardIdRef=item.cardIdRef/}
     </div>
     </summary>
-   <span class="text-sm">{item.user.data.encodePrettily}</span>
+    <span class="text-sm">ID: {item.user.id}</span>
+    <span class="text-sm">{item.user.data.encodePrettily}</span>
   </details>
 
 </div>
 {/for}
+
 {#include fragments/next-page.html url = res.nextPageUrl /}
 
 

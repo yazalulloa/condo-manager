@@ -3,6 +3,8 @@ package com.yaz.resource;
 import com.yaz.persistence.domain.IdentityProvider;
 import com.yaz.persistence.domain.query.UserQuery;
 import com.yaz.resource.domain.response.UserTableResponse;
+import com.yaz.service.EmailConfigService;
+import com.yaz.service.OidcDbTokenService;
 import com.yaz.service.UserService;
 import com.yaz.util.ConvertUtil;
 import com.yaz.util.StringUtil;
@@ -29,6 +31,8 @@ public class UserResource {
   public static final String DELETE_PATH = PATH + "/";
 
   private final UserService service;
+  private final EmailConfigService emailConfigService;
+  private final OidcDbTokenService tokenService;
 
   @CheckedTemplate
   public static class Templates {
@@ -50,8 +54,11 @@ public class UserResource {
   @Path("{id}")
   @Produces
   public Uni<TemplateInstance> delete(@RestPath String id) {
+
     return service.delete(id)
-        .replaceWith(counters());
+        .replaceWith(counters())
+        .eventually(() -> tokenService.deleteByUser(id))
+        .eventually(() -> emailConfigService.delete(id));
   }
 
   @GET

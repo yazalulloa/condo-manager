@@ -71,6 +71,10 @@ window.onload = function () {
   addDisableEventToButtons();
 }
 
+document.body.addEventListener("htmx:afterProcessNode", function (configEvent) {
+  addDisableEventToButtons();
+})
+
 window.addDisableEventToButtons = function () {
   const buttons = document.getElementsByTagName('button');
 

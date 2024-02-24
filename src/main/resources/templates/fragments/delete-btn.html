@@ -3,6 +3,7 @@
             hx-headers='{"{inject:csrf.headerName}":"{inject:csrf.token}"}'
             hx-delete={deleteUrl}
             hx-target={cardIdRef}
+            hx-indicator=".htmx-indicator"
             hx-trigger="click"
             hx-swap="delete">
         <img src="/assets/trash.svg" alt="delete-row">

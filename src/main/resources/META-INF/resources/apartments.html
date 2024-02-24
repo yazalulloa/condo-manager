@@ -10,7 +10,7 @@
 
 <div class="bg-base-100" id="header-container" hx-swap-oob="true">
 
-  <div class="header p-1">
+  <div class="header">
 
     <div id="apartment-counters-container"
          hx-get="/api/apartments/counters"
@@ -18,7 +18,7 @@
          hx-target="#apartment-counters"
          hx-indicator=".htmx-indicator"
          hx-trigger="get_counters">
-      <div class="header" id="apartment-counters">
+      <div id="apartment-counters">
       </div>
     </div>
 

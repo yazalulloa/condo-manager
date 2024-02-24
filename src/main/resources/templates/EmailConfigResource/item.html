@@ -1,0 +1,85 @@
+{@com.yaz.resource.domain.response.EmailConfigTableItem res}
+<div id={res.cardId}
+{#if res.outOfBoundUpdate}
+    hx-swap-oob="true"
+{/if}
+>
+
+
+<div
+    class="hover:bg-[#00000014] rounded-lg py-2 px-4 bg-neutral flex-wrap flex-row flex justify-between items-center gap-2">
+  <div class="flex flex-row gap-4 items-center">
+    <img src="{res.item.user.picture}" alt="Avatar" class="w-10 h-10 rounded-full" referrerpolicy="no-referrer">
+    <div class="flex-col flex justify-between">
+      <span>{res.item.user.name}</span>
+      <span>{res.item.user.email}</span>
+    </div>
+  </div>
+
+  <div class="tooltip tooltip-bottom"
+       data-tip="{res.item.emailConfig.hash}">
+    <span class="text-sm">{res.item.emailConfig.fileSize.formatFileSize}</span>
+  </div>
+
+
+  <div>
+  <span
+      class="inline-block whitespace-nowrap rounded-full px-[0.65em] pb-[0.25em] pt-[0.35em] text-center align-baseline text-[0.75em] font-bold leading-none
+{res.item.emailConfig.active ? 'bg-success-100 text-success-700' : 'bg-danger-100 text-danger-700'}
+">
+    {res.item.emailConfig.active ? 'Activo' : 'Desactivado'}
+  </span>
+  </div>
+
+  <div hidden="hidden">{res.item.emailConfig.stacktrace}</div>
+
+  <div
+    {#if res.item.emailConfig.stacktrace}
+        class="tooltip tooltip-bottom"
+        data-tip="{res.item.emailConfig.stacktrace}"
+    {/if}
+  >
+
+    <span
+        class="inline-block whitespace-nowrap rounded-full px-[0.65em] pb-[0.25em] pt-[0.35em] text-center align-baseline text-[0.75em] font-bold leading-none
+         {res.item.emailConfig.isAvailable ? (res.item.hasExpired ? 'bg-warning-100 text-warning-700' : 'bg-success-100 text-success-700') : 'bg-danger-100 text-danger-700'}"
+    >
+      {res.item.emailConfig.isAvailable ? (res.item.hasExpired ? 'Expirado' : 'Disponible') : 'Error'}
+
+    </span>
+  </div>
+
+  <div>
+      <span
+          class="inline-block whitespace-nowrap rounded-full px-[0.65em] pb-[0.25em] pt-[0.35em] text-center align-baseline text-[0.75em] font-bold leading-none
+{res.item.emailConfig.hasRefreshToken ? 'bg-success-100 text-success-700' : 'bg-danger-100 text-danger-700'}
+"> Refresh
+      </span>
+  </div>
+
+  <div class="flex flex-col justify-between text-sm">
+    <span>Expira: {res.item.emailConfig.expiresIn.fromEpochMillis}</span>
+    <span>Creado: {res.item.emailConfig.createdAt.formatDate}</span>
+    {#if res.item.emailConfig.updatedAt}
+    <span>Actualizado: {res.item.emailConfig.updatedAt.formatDate}</span>
+    {/if}
+    {#if res.item.emailConfig.lastCheckAt}
+    <span>Ultima verificación: {res.item.emailConfig.lastCheckAt.formatDate}</span>
+    {/if}
+  </div>
+
+<div>
+  <button class="btn"
+          hx-put="/api/email_configs/check/{res.item.emailConfig.userId}"
+          hx-headers='{"{inject:csrf.headerName}":"{inject:csrf.token}"}'
+          hx-trigger="click"
+          hx-target={res.cardIdRef}
+  >
+    CHECK
+  </button>
+  {#include fragments/delete-btn deleteUrl=res.deleteUrl cardIdRef=res.cardIdRef/}
+  </div>
+  </div>
+
+
+  </div>

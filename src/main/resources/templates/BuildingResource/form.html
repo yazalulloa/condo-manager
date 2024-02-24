@@ -4,7 +4,7 @@
 <div hx-get="/buildings" hx-indicator=".htmx-indicator" hx-trigger="load" ></div>
 
 {#else}
-<form class="form-control"
+<form class="flex flex-col w-1/2 align-middle center"
       hx-swap="outerHTML"
       data-te-validation-init
 {#if dto.isEdit}

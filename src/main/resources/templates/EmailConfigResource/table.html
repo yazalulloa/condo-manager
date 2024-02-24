@@ -1,0 +1,13 @@
+{@com.yaz.resource.domain.response.EmailConfigTableResponse res}
+
+{#include EmailConfigResource/counters totalCount=res.totalCount /}
+
+{#for item in res.results}
+
+{#include EmailConfigResource/item res=item /}
+
+{/for}
+{#include fragments/next-page.html url = res.nextPageUrl /}
+
+
+

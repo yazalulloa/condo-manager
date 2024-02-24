@@ -40,8 +40,16 @@ nb-configuration.xml
 .env
 *.env
 
+tmp
+
+*.json.gz
+*.zip
+
 # Plugin directory
 /.quarkus/cli/plugins/
 
 node_modules/
 bun.lockb
+
+test.json
+err.txt

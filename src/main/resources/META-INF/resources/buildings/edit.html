@@ -8,14 +8,17 @@
 </head>
 <body hx-boost="true">
 
-<div class="p-8">
+<div class="bg-base-100 text-center" id="header-container" hx-swap-oob="true">
+  <h2>Editar Edificio</h2>
+</div>
+
+<div id="container" hx-swap-oob="true" class="p-12">
   <form
       hx-get="/api/buildings/edit_form"
       hx-indicator=".htmx-indicator"
       hx-trigger="load"
       hx-vals="js:{buildingId: getFromLocalStorage('buildingId')}"
       hx-swap="outerHTML">
-    <img class="htmx-indicator center img-small-size white-filter" src="/assets/bars.svg" alt="spinner">
   </form>
 </div>
 

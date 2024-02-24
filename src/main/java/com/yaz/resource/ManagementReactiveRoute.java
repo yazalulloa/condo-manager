@@ -2,6 +2,7 @@ package com.yaz.resource;
 
 import com.yaz.client.ManagementClient;
 import io.vertx.ext.web.Router;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -10,7 +11,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 @Slf4j
-@Singleton
+@ApplicationScoped
 public class ManagementReactiveRoute {
 
   private final String path;

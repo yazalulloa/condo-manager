@@ -12,10 +12,10 @@
 <div class="header bg-base-100" id="header-container" hx-swap-oob="true">
   <span id="rates-total-counter"></span>
   <button class="btn btn-primary" hx-get="/api/rates/bcv-lookup"
-          hx-indicator=".htmx-indicator"
-          script="init call addDisableEventToButtons()">
+          hx-indicator=".htmx-indicator">
     GET LAST RATE
   </button>
+
   <label for="date"></label>
   <input class="datepicker" id="date" type="date" name="date"
          placeholder="YYYY-MM-DD"

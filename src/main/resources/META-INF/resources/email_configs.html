@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Configuraciones de Email</title>
+  <link href="out/css/output.css" rel="stylesheet"/>
+  <script src="out/js/index.js" defer></script>
+</head>
+<body hx-boost="true">
+
+<div class="header bg-base-100" id="header-container" hx-swap-oob="true">
+  <span id="email-configs-total-counter"></span>
+
+  <button class="btn btn-primary" hx-get="/api/email_configs/add"
+          hx-indicator=".htmx-indicator"
+          hx-swap="none">
+    Añadir Configuración
+  </button>
+  <img class="htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">
+</div>
+
+<div id="container" hx-swap-oob="true" class="p-2 gap-1 flex flex-col">
+  <div hx-get="/api/email_configs" hx-indicator=".htmx-indicator" hx-trigger="load" hx-swap="outerHTML"></div>
+</div>
+
+</body>
+</html>

@@ -1,8 +1,8 @@
 package com.yaz.persistence;
 
 
-import com.yaz.persistence.domain.query.ApartmentQuery;
 import com.yaz.persistence.domain.MySqlQueryRequest;
+import com.yaz.persistence.domain.query.ApartmentQuery;
 import com.yaz.persistence.entities.Apartment;
 import com.yaz.util.SqlUtil;
 import com.yaz.util.StringUtil;
@@ -41,7 +41,10 @@ public class ApartmentRepository {
   private static final String DELETE_BY_ID = "DELETE FROM %s WHERE building_id = ? AND number = ?".formatted(
       COLLECTION);
   private static final String INSERT = "INSERT INTO apartments (building_id, number, name, aliquot, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?);";
-  private static final String REPLACE = "REPLACE INTO apartments (building_id, number, name, aliquot, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?);";
+  private static final String INSERT_ON_UPDATE = """
+      INSERT IGNORE INTO %s (building_id, number, name, aliquot, created_at, updated_at) 
+      VALUES (?, ?, ?, ?, ?, ?);
+      """.formatted(COLLECTION);
 
 
   private static final String SELECT_ONE = "SELECT * FROM %s WHERE building_id = ? AND number = ?".formatted(
@@ -50,7 +53,7 @@ public class ApartmentRepository {
   private static final String SELECT_FULL = """
       SELECT apartments.*, GROUP_CONCAT(apartment_emails.email) as emails
       from apartments
-               INNER JOIN apartment_emails ON apartments.building_id = apartment_emails.building_id AND
+               LEFT JOIN apartment_emails ON apartments.building_id = apartment_emails.building_id AND
                                               apartments.number = apartment_emails.apt_number
          %s
       GROUP BY apartments.building_id, apartments.number
@@ -377,13 +380,13 @@ public class ApartmentRepository {
         .with((updateRowCount, deleteCount, insertCount) -> updateRowCount + deleteCount + insertCount);
   }
 
-  public Uni<Integer> replace(Collection<Apartment> apartments) {
+  public Uni<Integer> insertOnUpdate(Collection<Apartment> apartments) {
 
     final var tuples = apartments.stream()
         .map(this::tuple)
         .toList();
 
-    final var apartmentBatch = MySqlQueryRequest.batch(REPLACE, tuples);
+    final var apartmentBatch = MySqlQueryRequest.batch(INSERT_ON_UPDATE, tuples);
     final var emailBatch = emailRepository.replace(apartments);
 
     return mySqlService.transaction(List.of(apartmentBatch, emailBatch))

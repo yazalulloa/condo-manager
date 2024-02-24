@@ -29,7 +29,7 @@ then send new_apt to #apt-search-input
 >
   <input type="hidden" name="{inject:csrf.parameterName}" value="{inject:csrf.token}"/>
   <div id="apt-form-inputs"
-       class="flex-col gap-2">
+       class="flex flex-col gap-2">
 
  <div class=""
  script="init call disableBtnInsideForm()">
@@ -40,8 +40,10 @@ then send new_apt to #apt-search-input
    {/if}
  </div>
 
-    <div>
-      <select data-te-select-init
+    <div class="py-2">
+      <select
+        id="apt-building-select"
+          data-te-select-init
               name="buildingId"
               {#if dto.readOnlyBuilding}disabled{/if}
       >
@@ -51,7 +53,7 @@ then send new_apt to #apt-search-input
                                               value={option}>{option}</option>
               {/for}
       </select>
-      <label data-te-select-label-ref>Edificio</label>
+      <label data-te-select-label-ref for="apt-building-select">Edificio</label>
       {#if dto.buildingIdFieldError}
       <span class='input-error error-message'>{dto.buildingIdFieldError}</span>
       {/if}
@@ -71,18 +73,6 @@ then send new_apt to #apt-search-input
 
     </cm-form-input>
 
-   <!-- <label class="label  ">
-      <span class="label-text">Nro. Apt</span>
-        <input class="input w-full input-bordered break-words" type="text" name="number"
-               placeholder="Nro. Apt" maxlength="20" value={dto.number}
-        {#if dto.readOnlyNumber}readonly{/if}>
-      {#if dto.numberFieldError}
-      <span class='input-error error-message'>
-      {dto.numberFieldError}
-    </span>
-      {/if}
-    </label> -->
-
       <cm-form-input
       id="nameField"
       name="name"
@@ -94,18 +84,6 @@ then send new_apt to #apt-search-input
     {/if}
       >
       </cm-form-input>
-
-    <!--   <label class="label  ">
-      <span class="label-text">Nombre</span>
-      <input class="input w-full input-bordered" type="text" name="name"
-             placeholder="Nombre" maxlength="200" value="{dto.name}">
-      {#if dto.nameFieldError}
-      <span class='input-error error-message'>
-      {dto.nameFieldError}
-    </span>
-      {/if}
-    </label>
--->
 
     <cm-form-input
         id="nameField"
@@ -122,18 +100,6 @@ then send new_apt to #apt-search-input
     >
 
     </cm-form-input>
-    <!--
-    <label class="label  ">
-      <span class="label-text">Alícuota</span>
-      <input id="apt-form-aliquot" class="input w-full input-bordered" type="number" name="aliquot"
-             placeholder="Alícuota" min="0" max="100" step=".01" value={dto.aliquot}>
-      {#if dto.aliquotFieldError}
-      <span class='input-error error-message'>
-      {dto.aliquotFieldError}
-    </span>
-      {/if}
-    </label>
--->
 
     <div class="w-full">
       <div class="email-form-label">

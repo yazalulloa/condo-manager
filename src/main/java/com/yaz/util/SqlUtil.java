@@ -7,6 +7,7 @@ import io.vertx.mutiny.sqlclient.Row;
 import io.vertx.mutiny.sqlclient.RowSet;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -71,5 +72,25 @@ public class SqlUtil {
     final var json = row.toJson().encode();
     final var obj = Json.decodeValue(json, clazz);
     return Maybe.just(obj);
+  }
+
+  public static <T> T getValue(Row row, String columnName, BiFunction<Row, String, T> function) {
+    if (row.getColumnIndex(columnName) != -1) {
+      return function.apply(row, columnName);
+    }
+
+    return null;
+  }
+
+  public static <T, S> T getValue(Row row, String columnName, BiFunction<Row, String, S> biFunction,
+      Function<S, T> function) {
+    if (row.getColumnIndex(columnName) != -1) {
+      final var apply = biFunction.apply(row, columnName);
+      if (apply != null) {
+        return function.apply(apply);
+      }
+    }
+
+    return null;
   }
 }

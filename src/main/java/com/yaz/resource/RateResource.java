@@ -1,8 +1,16 @@
 package com.yaz.resource;
 
-import com.yaz.resource.UserResource.Templates;
+import com.yaz.persistence.domain.Currency;
+import com.yaz.persistence.domain.query.RateQuery;
+import com.yaz.persistence.entities.Rate;
+import com.yaz.resource.domain.response.RateTableResponse;
+import com.yaz.service.RateService;
+import com.yaz.service.SaveNewBcvRate;
+import com.yaz.util.DateUtil;
+import com.yaz.util.MutinyUtil;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
+import io.quarkus.security.identity.SecurityIdentity;
 import io.smallrye.mutiny.Uni;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.DELETE;
@@ -13,14 +21,6 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import com.yaz.persistence.domain.Currency;
-import com.yaz.persistence.domain.query.RateQuery;
-import com.yaz.persistence.entities.Rate;
-import com.yaz.resource.domain.response.RateTableResponse;
-import com.yaz.service.RateService;
-import com.yaz.service.SaveNewBcvRate;
-import com.yaz.util.DateUtil;
-import com.yaz.util.MutinyUtil;
 import org.jboss.resteasy.reactive.RestPath;
 import org.jboss.resteasy.reactive.RestQuery;
 
@@ -36,6 +36,8 @@ public class RateResource {
 
   private final SaveNewBcvRate saveNewBcvRate;
   private final RateService service;
+  @Inject
+  SecurityIdentity identity;
 
   @CheckedTemplate
   public static class Templates {
@@ -57,7 +59,6 @@ public class RateResource {
   @GET
   @Produces(MediaType.TEXT_HTML)
   public Uni<TemplateInstance> rates(@RestQuery Long lastId, @RestQuery String date) {
-
     final var rateQuery = RateQuery.builder()
         .lastId(lastId == null ? 0 : lastId)
         .date(DateUtil.isValidLocalDate(date) ? date : null)
@@ -76,7 +77,7 @@ public class RateResource {
       @RestPath long id) {
 
     //log.info("headerCsrfToken {} formCsrfToken {} cookie {}", headerCsrfToken, formCsrfToken, csrfCookie);
-    
+
     return service.delete(id)
         .replaceWith(counters());
   }

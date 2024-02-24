@@ -8,7 +8,9 @@ import io.vertx.mutiny.mysqlclient.MySQLPool;
 import io.vertx.mutiny.sqlclient.Row;
 import io.vertx.mutiny.sqlclient.RowSet;
 import io.vertx.mutiny.sqlclient.SqlClient;
+import io.vertx.mutiny.sqlclient.Tuple;
 import io.vertx.sqlclient.impl.ArrayTuple;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import java.util.List;
@@ -17,7 +19,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@Singleton
+@ApplicationScoped
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class MySqlService {
 
@@ -48,7 +50,10 @@ public class MySqlService {
   @Timed(value = "mysql.request", description = "A measure of how long it takes to execute a query")
   public Uni<RowSet<Row>> request(MySqlQueryRequest request) {
 
+   // final var timestamp = System.currentTimeMillis();
+
     return executeQuery(pool, request)
+        //.onItem().invoke(rows -> log.info("SQL_REQUEST {} {}ms", request.query(), System.currentTimeMillis() - timestamp))
         //.onItem().invoke(rows -> log.info("SQL_REQUEST {} {}", request.query(), rows.rowCount()))
         .onFailure()
         .invoke(throwable -> log.error("SQL_REQUEST_ERROR {}", request.query(), throwable));
@@ -89,6 +94,10 @@ public class MySqlService {
   }
 
   public Uni<RowSet<Row>> request(String query, ArrayTuple tuple) {
+    return request(MySqlQueryRequest.normal(query, tuple));
+  }
+
+  public Uni<RowSet<Row>> request(String query, Tuple tuple) {
     return request(MySqlQueryRequest.normal(query, tuple));
   }
 }
