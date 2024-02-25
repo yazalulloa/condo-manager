@@ -147,7 +147,7 @@
     <dependency>
       <groupId>io.smallrye.reactive</groupId>
       <artifactId>smallrye-mutiny-vertx-web-client</artifactId>
-<!--      <version>3.9.0</version>-->
+      <!--      <version>3.9.0</version>-->
     </dependency>
     <dependency>
       <groupId>org.jboss.slf4j</groupId>
@@ -175,11 +175,11 @@
       <version>1.35.0</version>
     </dependency>
 
-    <dependency>
+    <!--<dependency>
       <groupId>com.google.oauth-client</groupId>
       <artifactId>google-oauth-client-servlet</artifactId>
       <version>1.35.0</version>
-    </dependency>
+    </dependency>-->
 
     <dependency>
       <groupId>com.google.apis</groupId>
@@ -187,20 +187,20 @@
       <version>v1-rev20231218-2.0.0</version>
     </dependency>
 
-    <dependency>
-      <groupId>com.sun.mail</groupId>
-      <artifactId>jakarta.mail</artifactId>
-      <version>2.0.1</version>
-    </dependency>
+    <!-- <dependency>
+       <groupId>com.sun.mail</groupId>
+       <artifactId>jakarta.mail</artifactId>
+       <version>2.0.1</version>
+     </dependency>-->
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-compress</artifactId>
-<!--      <version>1.25.0</version>-->
+      <!--      <version>1.25.0</version>-->
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
-<!--      <version>3.14.0</version>-->
+      <!--      <version>3.14.0</version>-->
     </dependency>
 
     <!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
@@ -212,13 +212,13 @@
 
 
     <!-- https://mvnrepository.com/artifact/javax.servlet/servlet-api  DELETE THIS-->
-    <dependency>
+    <!--<dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>servlet-api</artifactId>
       <version>2.5</version>
       <scope>provided</scope>
     </dependency>
-
+-->
   </dependencies>
   <build>
     <plugins>
@@ -297,6 +297,36 @@
         <!--        <quarkus.native.builder-image>quay.io/quarkus/ubi-quarkus-mandrel-builder-image:23.1-java21-->
         <!--        </quarkus.native.builder-image>-->
       </properties>
+
+<!--      <build>-->
+<!--        <plugins>-->
+<!--          <plugin>-->
+<!--            <groupId>org.graalvm.buildtools</groupId>-->
+<!--            <artifactId>native-maven-plugin</artifactId>-->
+<!--            <version>0.10.1</version>-->
+<!--            <extensions>true</extensions>-->
+<!--            <executions>-->
+<!--              <execution>-->
+<!--                <id>build-native</id>-->
+<!--                <goals>-->
+<!--                  <goal>compile-no-fork</goal>-->
+<!--                </goals>-->
+<!--                <phase>package</phase>-->
+<!--              </execution>-->
+<!--&lt;!&ndash;              <execution>&ndash;&gt;-->
+<!--&lt;!&ndash;                <id>test-native</id>&ndash;&gt;-->
+<!--&lt;!&ndash;                <goals>&ndash;&gt;-->
+<!--&lt;!&ndash;                  <goal>test</goal>&ndash;&gt;-->
+<!--&lt;!&ndash;                </goals>&ndash;&gt;-->
+<!--&lt;!&ndash;                <phase>test</phase>&ndash;&gt;-->
+<!--&lt;!&ndash;              </execution>&ndash;&gt;-->
+<!--            </executions>-->
+<!--            <configuration>-->
+<!--              &lt;!&ndash; ... &ndash;&gt;-->
+<!--            </configuration>-->
+<!--          </plugin>-->
+<!--        </plugins>-->
+<!--      </build>-->
     </profile>
   </profiles>
 </project>

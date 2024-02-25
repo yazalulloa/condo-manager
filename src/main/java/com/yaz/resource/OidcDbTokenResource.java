@@ -33,8 +33,6 @@ public class OidcDbTokenResource {
   @CheckedTemplate
   public static class Templates {
 
-    public static native TemplateInstance grid(OidcDbTokenTableResponse res);
-
     public static native TemplateInstance tokens(OidcDbTokenTableResponse res);
 
     public static native TemplateInstance counters(long totalCount);
@@ -52,18 +50,6 @@ public class OidcDbTokenResource {
         .map(Templates::tokens);
   }
 
-  @GET
-  @Path("grid")
-  @Produces(MediaType.TEXT_HTML)
-  public Uni<TemplateInstance> grid(@RestQuery String lastId) {
-
-    final var query = OidcDbTokenQueryRequest.builder()
-        .lastId(lastId)
-        .build();
-
-    return service.tableResponse(query)
-        .map(Templates::grid);
-  }
 
   @GET
   @Path("counters")

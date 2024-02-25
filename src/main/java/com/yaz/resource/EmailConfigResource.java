@@ -70,7 +70,7 @@ public class EmailConfigResource {
 
   private String getUserId() {
     final var userId = Objects.requireNonNull(identity.getAttribute("userId")).toString();
-    log.info("userId: {}", userId);
+    //log.info("userId: {}", userId);
     return userId;
   }
 
@@ -102,6 +102,8 @@ public class EmailConfigResource {
         //.queryParam("prompt", "")
         .build()
         .toString();
+
+    log.info("responseRedirect url: {}", url);
 
     return Response.noContent()
         .header("HX-Redirect", url)
