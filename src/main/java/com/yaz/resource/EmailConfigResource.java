@@ -84,6 +84,10 @@ public class EmailConfigResource {
     }
 
     final var url = new GenericUrl(uri);
+    if (!uri.startsWith("http://localhost")) {
+      url.setScheme("https");
+    }
+
     url.setRawPath(PATH + "/callback");
     return url.build();
   }
@@ -128,73 +132,9 @@ public class EmailConfigResource {
           }
 
         })
-        .switchIfEmpty(Single.fromCallable(() -> {
-          return responseRedirect(request);
-        }));
+        .switchIfEmpty(Single.fromCallable(() -> responseRedirect(request)));
 
     return MutinyUtil.toUni(single);
-
-//    RxUtil.single(service.readItem(userId))
-//        .flatMapMaybe(Maybe::fromOptional)
-//        .map(item -> {
-//
-//          final var flow = gmailHelper.flow(userId);
-//          final var credential = flow.loadCredential(userId);
-//          if (!item.getItem().emailConfig().hasRefreshToken() &&
-//              item.getItem().hasExpired()) {
-//            final var authorizationUrl = flow.newAuthorizationUrl();
-//            authorizationUrl.setState(RandomUtil.randomIntStr(10));
-//            authorizationUrl.setRedirectUri(getRedirectUri(request));
-//
-//            final var url = UriBuilder.fromUri(authorizationUrl.build())
-//                //.queryParam("access_type", "offline")
-//                .queryParam("prompt", "consent")
-//                //.queryParam("prompt", "")
-//                .build()
-//                .toString();
-//
-//            return Response.noContent()
-//                .header("HX-Redirect", url)
-//                .build();
-//          }
-//
-//
-//        })
-//
-//    RxUtil.single(service.readItem(userId))
-//        .map(optional -> {
-//
-//          if (optional.isEmpty()) {
-//            gmailHelper.clearFlow(userId);
-//          }
-//
-//          final var flow = gmailHelper.flow(userId);
-//          final var credential = flow.loadCredential(userId);
-//
-//          if (credential != null && credential.getAccessToken() != null) {
-//            checkItem(optional.get());
-//            gmailHelper.testNoError(credential);
-//            log.info("return null");
-//            return Response.noContent().build();
-//
-//          }
-//          // redirect to the authorization flow
-//          final var authorizationUrl = flow.newAuthorizationUrl();
-//          authorizationUrl.setState(RandomUtil.randomIntStr(10));
-//          authorizationUrl.setRedirectUri(getRedirectUri(request));
-//
-//          final var url = UriBuilder.fromUri(authorizationUrl.build())
-//              //.queryParam("access_type", "offline")
-//              .queryParam("prompt", "consent")
-//              //.queryParam("prompt", "")
-//              .build()
-//              .toString();
-//
-//          return Uni.createFrom()
-//              .item(Response.noContent()
-//                  .header("HX-Redirect", url)
-//                  .build());
-//        });
 
   }
 
