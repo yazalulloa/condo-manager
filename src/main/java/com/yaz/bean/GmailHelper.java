@@ -49,8 +49,6 @@ public class GmailHelper {
     this.googleClientId = googleClientId;
     this.googleClientSecret = googleClientSecret;
     this.appName = appName;
-    log.info("GmailHelper created with googleClientId: {} googleClientSecret: {} appName: {}", googleClientId,
-        googleClientSecret, appName);
   }
 
   private AuthorizationCodeFlow initFlow(String userId) throws IOException {

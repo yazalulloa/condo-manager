@@ -107,7 +107,7 @@ public class EmailConfigResource {
         .build()
         .toString();
 
-    log.info("responseRedirect url: {}", url);
+   // log.info("responseRedirect url: {}", url);
 
     return Response.noContent()
         .header("HX-Redirect", url)
@@ -144,7 +144,7 @@ public class EmailConfigResource {
 
     final var single = Single.defer(() -> {
       final var responseUrl = new AuthorizationCodeResponseUrl(request.absoluteURI() + "?" + request.query());
-      log.info("callback: {}", request.uri());
+     // log.info("callback: {}", request.uri());
 
       final var code = responseUrl.getCode();
       if (responseUrl.getError() != null) {
@@ -161,11 +161,11 @@ public class EmailConfigResource {
         final var flow = gmailHelper.flow(getUserId());
 
         final var redirectUri = getRedirectUri(request);
-        log.info("callback redirectUri: {}", redirectUri);
+        //log.info("callback redirectUri: {}", redirectUri);
 
         final var response = flow.newTokenRequest(code).setRedirectUri(redirectUri).execute();
         final var userId = getUserId();
-        log.info("token response: {}", response);
+        //log.info("token response: {}", response);
         final var credential = flow.createAndStoreCredential(response, userId);
         gmailHelper.testNoError(credential);
         final var fileName = GmailHelper.DIR + "/" + userId + "/StoredCredential";

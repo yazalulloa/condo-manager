@@ -8,6 +8,7 @@ import io.vertx.mutiny.core.Vertx;
 import io.vertx.mutiny.core.http.HttpClient;
 import io.vertx.mutiny.core.http.HttpClientRequest;
 import io.vertx.mutiny.core.streams.Pump;
+import io.vertx.mutiny.core.streams.ReadStream;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.io.File;
@@ -30,7 +31,7 @@ public class LoadDataClient {
         .setUseAlpn(true)
         .setHttp2ClearTextUpgrade(true)
         .setKeepAlive(true)
-        .setTryUseCompression(true)
+        .setDecompressionSupported(true)
         .setMetricsName("LOAD_DATA_CLIENT")
         .setShared(true)
         .setName("LOAD_DATA_CLIENT")

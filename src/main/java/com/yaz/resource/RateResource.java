@@ -87,9 +87,8 @@ public class RateResource {
   @Produces(MediaType.APPLICATION_JSON)
   public Uni<Response> bcvLookup() {
     return MutinyUtil.toUni(saveNewBcvRate.saveNewRate())
-        .onItem()
-        .ignore()
-        .andSwitchTo(() -> Uni.createFrom().item(Response.noContent().build()));
+        .onItem().invoke(res -> log.info("BCV LOOKUP {}", res))
+        .replaceWith(Response.noContent().build());
   }
 
 

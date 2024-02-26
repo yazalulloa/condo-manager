@@ -1,6 +1,6 @@
 package com.yaz.service;
 
-import com.yaz.client.BcvClient;
+import com.yaz.client.BcvClientService;
 import com.yaz.domain.BcvUsdRateResult;
 import com.yaz.persistence.RateRepository;
 import com.yaz.persistence.domain.Currency;
@@ -34,12 +34,12 @@ public class RateService {
 
 
   private final RateRepository repository;
-  private final BcvClient bcvClient;
+  private final BcvClientService bcvClientService;
 
   @Inject
-  public RateService(RateRepository repository, BcvClient bcvClient) {
+  public RateService(RateRepository repository, BcvClientService bcvClientService) {
     this.repository = repository;
-    this.bcvClient = bcvClient;
+    this.bcvClientService = bcvClientService;
   }
 
 
@@ -109,7 +109,7 @@ public class RateService {
   }*/
 
   private Single<BcvUsdRateResult> newRateResult() {
-    return bcvClient.get()
+    return bcvClientService.get()
         .map(ConvertUtil::parseRate)
         .map(newRate -> new BcvUsdRateResult(BcvUsdRateResult.State.NEW_RATE, newRate));
   }
@@ -119,7 +119,7 @@ public class RateService {
   }
 
   private Maybe<BcvUsdRateResult> bcvCheck(Rate rate) {
-    return bcvClient.head()
+    return bcvClientService.head()
         .map(response -> {
           final var etag = response.getHeaderString("etag");
           final var lastModified = response.getHeaderString("last-modified");

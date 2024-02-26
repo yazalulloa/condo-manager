@@ -1,5 +1,11 @@
 package com.yaz.persistence;
 
+import com.yaz.persistence.domain.Currency;
+import com.yaz.persistence.domain.MySqlQueryRequest;
+import com.yaz.persistence.domain.query.BuildingQuery;
+import com.yaz.persistence.domain.query.SortOrder;
+import com.yaz.persistence.entities.Building;
+import com.yaz.util.SqlUtil;
 import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.sqlclient.Row;
 import io.vertx.mutiny.sqlclient.RowIterator;
@@ -16,12 +22,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import com.yaz.persistence.domain.query.BuildingQuery;
-import com.yaz.persistence.domain.Currency;
-import com.yaz.persistence.domain.MySqlQueryRequest;
-import com.yaz.persistence.domain.query.SortOrder;
-import com.yaz.persistence.entities.Building;
-import com.yaz.util.SqlUtil;
 
 @Slf4j
 @ApplicationScoped
@@ -30,20 +30,31 @@ public class BuildingRepository {
 
 
   private static final String COLLECTION = "buildings";
-  private static final String SELECT = "SELECT * FROM %s".formatted(COLLECTION);
-  private static final String READ = "SELECT * FROM %s WHERE id = ?".formatted(COLLECTION);
+  private static final String SELECT = """
+      SELECT buildings.*, BIN_TO_UUID(email_config_id) as email_config, users.email as config_email, COUNT(apartments.building_id) as apt_count
+      FROM buildings
+      LEFT JOIN users ON buildings.email_config_id = users.id
+      LEFT JOIN apartments ON buildings.id = apartments.building_id 
+      GROUP BY buildings.id
+      """;
+  private static final String READ = """
+      SELECT *, BIN_TO_UUID(email_config_id) as email_config FROM %s WHERE id = ?
+      """.formatted(COLLECTION);
   private static final String DELETE_BY_ID = "DELETE FROM %s WHERE id = ?".formatted(COLLECTION);
   private static final String INSERT = """
-      INSERT INTO %s (id, name, rif, main_currency, debt_currency, currencies_to_show_amount_to_pay, fixed_pay, fixed_pay_amount, round_up_payments, amount_of_apts, created_at) VALUES (%s);
-      """.formatted(COLLECTION, SqlUtil.params(11));
+      INSERT INTO %s (id, name, rif, main_currency, debt_currency, currencies_to_show_amount_to_pay, fixed_pay, fixed_pay_amount, 
+      round_up_payments, email_config_id) VALUES (%s, UUID_TO_BIN(?));
+      """.formatted(COLLECTION, SqlUtil.params(9));
 
   private static final String UPDATE = """
-      UPDATE %s SET name = ?, rif = ?, main_currency = ?, debt_currency = ?, currencies_to_show_amount_to_pay = ?, fixed_pay = ?, fixed_pay_amount = ?, round_up_payments = ?, updated_at = ? WHERE id = ?;
+      UPDATE %s SET name = ?, rif = ?, main_currency = ?, debt_currency = ?, currencies_to_show_amount_to_pay = ?, fixed_pay = ?, 
+      fixed_pay_amount = ?, round_up_payments = ?, email_config_id = UUID_TO_BIN(?) WHERE id = ?;
       """.formatted(COLLECTION);
 
   private static final String REPLACE = """
-      REPLACE INTO %s (id, name, rif, main_currency, debt_currency, currencies_to_show_amount_to_pay, fixed_pay, fixed_pay_amount, round_up_payments, amount_of_apts, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-      """.formatted(COLLECTION);
+      REPLACE INTO %s (id, name, rif, main_currency, debt_currency, currencies_to_show_amount_to_pay, fixed_pay, fixed_pay_amount, 
+      round_up_payments) VALUES (%s);
+      """.formatted(COLLECTION, SqlUtil.params(9));
 
   private static final String EXISTS = "SELECT id FROM %s WHERE id = ? LIMIT 1".formatted(
       COLLECTION);
@@ -73,7 +84,7 @@ public class BuildingRepository {
       stringBuilder.append(" WHERE id ").append(direction).append(" ?");
     }
 
-    stringBuilder.append(" ORDER BY id ").append(query.sortOrder().name()).append(" LIMIT ?");
+    stringBuilder.append(" ORDER BY buildings.id ").append(query.sortOrder().name()).append(" LIMIT ?");
 
     var filterSize = 2;
     if (isLastIdFilter) {
@@ -108,37 +119,34 @@ public class BuildingRepository {
         .fixedPay(row.getBoolean("fixed_pay"))
         .fixedPayAmount(row.getBigDecimal("fixed_pay_amount"))
         .roundUpPayments(row.getBoolean("round_up_payments"))
-        .amountOfApts(row.getLong("amount_of_apts"))
-        .createdAt(row.getLocalDateTime("created_at"))
-        .updatedAt(row.getLocalDateTime("updated_at"))
+        .createdAt(SqlUtil.getValue(row, "created_at", Row::getLocalDateTime))
+        .updatedAt(SqlUtil.getValue(row, "updated_at", Row::getLocalDateTime))
+        .emailConfigId(SqlUtil.getValue(row, "email_config", Row::getString))
+        .configEmail(SqlUtil.getValue(row, "config_email", Row::getString))
+        .aptCount(SqlUtil.getValue(row, "apt_count", Row::getLong))
         .build();
-  }
-
-  private Tuple tuple(Building building) {
-    final var params = new ArrayTuple(10);
-    params.addValue(building.id());
-    params.addValue(building.name());
-    params.addValue(building.rif());
-    params.addValue(building.mainCurrency().name());
-    params.addValue(building.debtCurrency().name());
-    final var currenciesToShowAmountToPay = building.currenciesToShowAmountToPay().stream()
-        .map(Enum::name)
-        .collect(Collectors.joining(","));
-    params.addValue(currenciesToShowAmountToPay);
-    params.addValue(building.fixedPay());
-    params.addValue(building.fixedPayAmount());
-    params.addValue(building.roundUpPayments());
-    params.addValue(building.amountOfApts());
-    params.addValue(building.createdAt());
-    params.addValue(building.updatedAt());
-
-    return Tuple.newInstance(params);
   }
 
   public Uni<RowSet<Row>> replace(Collection<Building> buildings) {
 
     final var tuples = buildings.stream()
-        .map(this::tuple)
+        .map(building -> {
+          final var params = new ArrayTuple(9);
+          params.addValue(building.id());
+          params.addValue(building.name());
+          params.addValue(building.rif());
+          params.addValue(building.mainCurrency().name());
+          params.addValue(building.debtCurrency().name());
+          final var currenciesToShowAmountToPay = building.currenciesToShowAmountToPay().stream()
+              .map(Enum::name)
+              .collect(Collectors.joining(","));
+          params.addValue(currenciesToShowAmountToPay);
+          params.addValue(building.fixedPay());
+          params.addValue(building.fixedPayAmount());
+          params.addValue(building.roundUpPayments());
+
+          return Tuple.newInstance(params);
+        })
         .toList();
 
     final var mySqlBatch = MySqlQueryRequest.batch(REPLACE, tuples);
@@ -180,8 +188,7 @@ public class BuildingRepository {
     params.addValue(building.fixedPay());
     params.addValue(building.fixedPayAmount());
     params.addValue(building.roundUpPayments());
-    // params.addString(building.emailConfig());
-    params.addValue(building.updatedAt());
+    params.addString(building.emailConfigId());
     params.addValue(building.id());
 
     final var queryRequest = MySqlQueryRequest.normal(UPDATE, params);
@@ -205,8 +212,7 @@ public class BuildingRepository {
     params.addValue(building.fixedPay());
     params.addValue(building.fixedPayAmount());
     params.addValue(building.roundUpPayments());
-    params.addValue(building.amountOfApts());
-    params.addValue(building.createdAt());
+    params.addString(building.emailConfigId());
 
     final var queryRequest = MySqlQueryRequest.normal(INSERT, params);
 

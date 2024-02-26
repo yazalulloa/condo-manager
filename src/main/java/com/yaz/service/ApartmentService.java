@@ -124,7 +124,6 @@ public class ApartmentService {
         .name(request.getName())
         .aliquot(request.getAliquot())
         .emails(request.getEmails())
-        .createdAt(DateUtil.utcLocalDateTime())
         .build();
 
     return repository.insert(apartment)
@@ -156,7 +155,6 @@ public class ApartmentService {
         .name(request.getName())
         .aliquot(request.getAliquot())
         .emails(request.getEmails())
-        .updatedAt(DateUtil.utcLocalDateTime())
         .build();
 
     return repository.update(apartment)

@@ -5,6 +5,7 @@ import com.yaz.persistence.domain.IdentityProvider;
 import com.yaz.persistence.domain.MySqlQueryRequest;
 import com.yaz.persistence.domain.query.EmailConfigQuery;
 import com.yaz.persistence.entities.EmailConfig;
+import com.yaz.resource.domain.response.EmailConfigDto;
 import com.yaz.resource.domain.response.EmailConfigTableItem;
 import com.yaz.util.SqlUtil;
 import com.yaz.util.StringUtil;
@@ -52,6 +53,26 @@ public class EmailConfigRepository {
             %s
       ORDER BY email_configs.user_id DESC LIMIT ?;
       """;
+  private static final String SELECT_WITH_USER = """
+      SELECT BIN_TO_UUID(email_configs.user_id) as uuid_id,email_configs.*, users.provider_id, users.provider, users.email, users.username, users.name, users.picture
+         FROM email_configs
+         INNER JOIN users ON email_configs.user_id = users.id
+         WHERE email_configs.user_id = UUID_TO_BIN(?);
+      """;
+
+  private static final String UPDATE = """
+      UPDATE %s
+      SET file = ?, file_size = ?, hash = ?, is_available = ?, has_refresh_token = ?, expires_in = ?, updated_at = ?, last_check_at = ?, stacktrace = ?
+      WHERE user_id = UUID_TO_BIN(?);
+      """.formatted(COLLECTION);
+  private static final String SELECT_DISPLAY = """
+      SELECT BIN_TO_UUID(email_configs.user_id) as uuid_id, users.email, users.username, users.name, users.picture
+           FROM email_configs
+           LEFT JOIN users ON email_configs.user_id = users.id
+           WHERE email_configs.is_available = true AND email_configs.active = true
+      ORDER BY users.email DESC;
+      """;
+
 
   private final MySqlService mySqlService;
 
@@ -185,12 +206,6 @@ public class EmailConfigRepository {
 
   public Uni<Integer> update(EmailConfig emailConfig) {
 
-    final var update = """
-        UPDATE %s
-        SET file = ?, file_size = ?, hash = ?, is_available = ?, has_refresh_token = ?, expires_in = ?, updated_at = ?, last_check_at = ?, stacktrace = ?
-        WHERE user_id = UUID_TO_BIN(?);
-        """.formatted(COLLECTION);
-
     final var tuple = new ArrayTuple(8)
         .addBuffer(Buffer.buffer(emailConfig.file()))
         .addLong(emailConfig.fileSize())
@@ -203,21 +218,14 @@ public class EmailConfigRepository {
         .addString(emailConfig.stacktrace())
         .addValue(emailConfig.userId());
 
-    return mySqlService.request(MySqlQueryRequest.normal(update, Tuple.newInstance(tuple)))
+    return mySqlService.request(MySqlQueryRequest.normal(UPDATE, Tuple.newInstance(tuple)))
         .map(SqlResult::rowCount);
 
   }
 
   public Uni<Optional<EmailConfigTableItem>> readWithUser(String id) {
 
-    final var query = """
-        SELECT BIN_TO_UUID(email_configs.user_id) as uuid_id,email_configs.*, users.provider_id, users.provider, users.email, users.username, users.name, users.picture
-           FROM email_configs
-           INNER JOIN users ON email_configs.user_id = users.id
-           WHERE email_configs.user_id = UUID_TO_BIN(?);
-        """;
-
-    return mySqlService.request(MySqlQueryRequest.normal(query, Tuple.of(id)))
+    return mySqlService.request(MySqlQueryRequest.normal(SELECT_WITH_USER, Tuple.of(id)))
         .map(rows -> {
           if (rows.size() == 0) {
             return Optional.empty();
@@ -231,5 +239,20 @@ public class EmailConfigRepository {
 
           return Optional.of(EmailConfigTableItem.ofItem(new EmailConfigUser(user, emailConfig)));
         });
+  }
+
+  public Uni<List<EmailConfigDto>> displayList() {
+
+    return mySqlService.request(SELECT_DISPLAY)
+        .map(rows -> SqlUtil.toList(rows, row -> {
+
+          return EmailConfigDto.builder()
+              .id(row.getString("uuid_id"))
+              .email(row.getString("email"))
+              .username(row.getString("username"))
+              .name(row.getString("name"))
+              .picture(row.getString("picture"))
+              .build();
+        }));
   }
 }

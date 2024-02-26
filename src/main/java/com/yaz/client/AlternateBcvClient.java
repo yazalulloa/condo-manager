@@ -1,5 +1,7 @@
 package com.yaz.client;
 
+import com.yaz.util.RxUtil;
+import com.yaz.util.rx.RetryWithDelay;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.client.WebClientOptions;
@@ -9,13 +11,11 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
 import lombok.extern.slf4j.Slf4j;
-import com.yaz.util.RxUtil;
-import com.yaz.util.rx.RetryWithDelay;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 @Slf4j
 @ApplicationScoped
-public class AlternateBcvClient {
+public class AlternateBcvClient implements BcvClient {
 
   private final String url;
   private final WebClient client;
@@ -33,7 +33,7 @@ public class AlternateBcvClient {
         .setTrustAll(true)
         .setVerifyHost(false)
         .setKeepAlive(true)
-        .setTryUseCompression(true)
+        .setDecompressionSupported(true)
         .setMetricsName("HTTP_TRUST_ALL_CLIENT_BCV")
         .setShared(true)
         .setName("HTTP_TRUST_ALL_CLIENT_BCV");

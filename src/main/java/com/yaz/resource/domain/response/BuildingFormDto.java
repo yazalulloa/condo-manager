@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Set;
 import lombok.Builder;
 import lombok.Data;
@@ -36,6 +37,7 @@ public class BuildingFormDto {
   private final String fixedPayAmountFieldError;
   private final boolean roundUpPayments;
   private final String emailConfig;
+  private final List<EmailConfigDto> emailConfigs;
   private final String emailConfigFieldError;
   private final boolean shouldRedirect;
   private final boolean isNew;

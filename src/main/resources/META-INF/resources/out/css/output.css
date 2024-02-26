@@ -4689,6 +4689,10 @@ details.collapse summary::-webkit-details-marker {
   width: 100vw;
 }
 
+.w-4\/6 {
+  width: 66.666667%;
+}
+
 .min-w-0 {
   min-width: 0px;
 }
@@ -4711,6 +4715,10 @@ details.collapse summary::-webkit-details-marker {
 
 .min-w-\[64px\] {
   min-width: 64px;
+}
+
+.min-w-14 {
+  min-width: 3.5rem;
 }
 
 .max-w-1\/4 {

@@ -24,15 +24,15 @@ CREATE TABLE IF NOT EXISTS buildings
     fixed_pay                        BOOL                NOT NULL,
     fixed_pay_amount                 DECIMAL(16, 2),
     round_up_payments                BOOL                NOT NULL,
-    amount_of_apts                   SMALLINT UNSIGNED   NOT NULL,
-    created_at                       DATETIME            NOT NULL,
-    updated_at                       DATETIME
+    email_config_id                  BINARY(16),
+    created_at                       DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at                       DATETIME ON UPDATE CURRENT_TIMESTAMP
 );
 
 
 INSERT INTO buildings (id, name, rif, main_currency, debt_currency, currencies_to_show_amount_to_pay, fixed_pay,
-                       fixed_pay_amount, round_up_payments, amount_of_apts, created_at)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+                       fixed_pay_amount, round_up_payments, created_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 INSERT INTO rates (id, from_currency, to_currency, rate, date_of_rate, source, created_at, hash, etag, last_modified)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
@@ -44,8 +44,8 @@ CREATE TABLE IF NOT EXISTS apartments
     name        VARCHAR(100)  NOT NULL,
     id_doc      CHAR(20),
     aliquot     DECIMAL(3, 2) NOT NULL,
-    created_at  DATETIME      NOT NULL,
-    updated_at  DATETIME,
+    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at  DATETIME ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (building_id, number),
     INDEX (name)
 );
@@ -174,7 +174,7 @@ CREATE TABLE IF NOT EXISTS oidc_db_token_state_manager
     expires_in    BIGINT        NOT NULL,
     user_id       BINARY(16),
     created_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at     DATETIME ON UPDATE CURRENT_TIMESTAMP,
+    updated_at    DATETIME ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     INDEX (user_id)
 );

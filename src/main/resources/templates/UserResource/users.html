@@ -29,8 +29,10 @@
     {#include fragments/delete-btn deleteUrl=item.deleteUrl cardIdRef=item.cardIdRef/}
     </div>
     </summary>
+    <div class="flex flex-col gap-2 p-2">
     <span class="text-sm">ID: {item.user.id}</span>
     <span class="text-sm">{item.user.data.encodePrettily}</span>
+    </div>
   </details>
 
 </div>

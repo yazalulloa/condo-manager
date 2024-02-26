@@ -74,7 +74,7 @@ public class LoadBackupService {
           Consumer<Completable> addToList = (completable) -> {
             completables.add(completable.subscribeOn(Schedulers.io()));
           };
-          while ((entry = archiveInputStream.getNextTarEntry()) != null) {
+          while ((entry = archiveInputStream.getNextEntry()) != null) {
             final var name = entry.getName();
 
             final var fileName = temPath + name;
@@ -89,9 +89,6 @@ public class LoadBackupService {
                 final var completable = pagingJsonFile.pagingJsonFile(100, fileName, Building.class, list -> {
 
                       return Observable.fromIterable(list)
-                          .map(building -> building.toBuilder()
-                              .createdAt(Optional.ofNullable(building.createdAt()).orElseGet(DateUtil::utcLocalDateTime))
-                              .build())
                           .toList()
                           .map(buildingRepository::replace)
                           .flatMap(RxUtil::single)
@@ -116,7 +113,6 @@ public class LoadBackupService {
                               .name(apt.name())
                               .aliquot(apt.amountToPay())
                               .emails(apt.emails())
-                              .createdAt(DateUtil.utcLocalDateTime())
                               .build())
                           .toList()
                           .map(apartmentRepository::insertOnUpdate)

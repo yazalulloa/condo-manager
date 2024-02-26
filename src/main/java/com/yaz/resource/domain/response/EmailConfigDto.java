@@ -1,31 +1,22 @@
-package com.yaz.persistence.domain.query;
+package com.yaz.resource.domain.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Builder;
 import lombok.Data;
-import lombok.experimental.Accessors;
 import lombok.extern.jackson.Jacksonized;
 
 @Jacksonized
 @Builder(toBuilder = true)
-@Accessors(fluent = true)
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class BuildingQuery {
+public class EmailConfigDto {
 
-  private final String lastId;
-
-  @Builder.Default
-  private final SortOrder sortOrder = SortOrder.ASC;
-  @Builder.Default
-  private final int limit = 30;
-
-  public static BuildingQuery of(String lastId) {
-    return BuildingQuery.builder()
-        .lastId(lastId)
-        .build();
-  }
+  private final String id;
+  private final String email;
+  private final String username;
+  private final String name;
+  private final String picture;
 }

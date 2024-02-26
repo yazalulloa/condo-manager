@@ -1,10 +1,10 @@
 {@com.yaz.resource.domain.response.BuildingFormDto dto}
 
 {#if dto.shouldRedirect}
-<div hx-get="/buildings" hx-indicator=".htmx-indicator" hx-trigger="load" ></div>
+<div hx-get="/buildings" hx-indicator=".htmx-indicator" hx-trigger="load"></div>
 
 {#else}
-<form class="flex flex-col w-1/2 align-middle center"
+<form class="flex flex-col w-4/6 align-middle center gap-4"
       hx-swap="outerHTML"
       data-te-validation-init
 {#if dto.isEdit}
@@ -183,18 +183,28 @@
 </div>
 </div>
 
-    <cm-form-input
-    id="emailConfigField"
-    name="emailConfig"
-    value="{dto.emailConfig}"
-    maxlength="100"
-    placeholder="Configuracion email"
-{#if dto.emailConfigFieldError}
-    input-error="{dto.emailConfigFieldError}"
+<div>
+<label class="form-control w-full">
+  <div class="label">
+    <span class="label-text">Configuración email</span>
+  </div>
+<select class="select select-bordered w-full" name="emailConfig">
+{#for item in dto.emailConfigs}
+    <option
+{#if item.id == dto.emailConfig}
+    selected
 {/if}
->
+    value="{item.id}">
+  <span>{item.name}</span>
+  <span>{item.email}</span>
+</option>
 
-</cm-form-input>
+{/for}
+
+</select>
+</label>
+
+</div>
 
 <div class="header p-6">
 <button id="apt-form-btn-submit" class="btn btn-primary">

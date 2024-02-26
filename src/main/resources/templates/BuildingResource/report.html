@@ -19,9 +19,13 @@
     <span>Monto fijo: {item.building.fixedPayAmount}</span>
     {/if}
     <span>Redondear pagos: {item.building.roundUpPayments}</span>
-    <span>Apartmentos: {item.building.amountOfApts}</span>
-    {#if item.building.emailConfig}
-    <span>Configuracion de email: {item.building.emailConfig}</span>
+    <span>Apartmentos: {item.building.aptCount}</span>
+    {#if item.building.configEmail}
+    <span>Configuracion de email: {item.building.configEmail}</span>
+    {/if}
+    <span>Creado: {item.building.createdAt.formatDate}</span>
+    {#if item.building.updatedAt}
+    <span>Actualizado: {item.building.updatedAt.formatDate}</span>
     {/if}
   </div>
 

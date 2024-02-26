@@ -9,28 +9,27 @@
 <body hx-boost="true">
 
 
-<div class="header bg-base-100" id="header-container" hx-swap-oob="true">
-  <span id="rates-total-counter"></span>
-  <button class="btn btn-primary" hx-get="/api/rates/bcv-lookup"
-          hx-indicator=".htmx-indicator">
-    GET LAST RATE
-  </button>
+<div class="bg-base-100" id="header-container" hx-swap-oob="true">
+  <div class="header">
+    <span id="rates-total-counter"></span>
+    <button class="btn btn-primary" hx-get="/api/rates/bcv-lookup"
+            hx-indicator=".htmx-indicator">
+      GET LAST RATE
+    </button>
 
-  <label for="date"></label>
-  <input class="datepicker" id="date" type="date" name="date"
-         placeholder="YYYY-MM-DD"
-         hx-get="/api/rates"
-         hx-trigger="change"
-         hx-target="#rates"
-         hx-swap="innerHTML"
-         hx-indicator=".htmx-indicator">
+    <label for="date"></label>
+    <input class="datepicker" id="date" type="date" name="date"
+           placeholder="YYYY-MM-DD"
+           hx-get="/api/rates"
+           hx-trigger="change"
+           hx-target="#rates"
+           hx-swap="innerHTML"
+           hx-indicator=".htmx-indicator">
 
-  <img class="htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">
-</div>
+    <img class="htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">
+  </div>
 
-<div>
-
-  <div class="oicd-token-grid p-2 font-bold">
+  <div class="oicd-token-grid font-bold">
     <div>ID</div>
     <div>Monedas</div>
     <div>Tasa</div>
@@ -38,8 +37,12 @@
     <div>Creado</div>
     <div>Acciones</div>
   </div>
+</div>
 
-  <div hx-ext="sse" sse-connect="/api/sse/new_rate">
+<div>
+
+
+  <div id="container" hx-swap-oob="true" hx-ext="sse" sse-connect="/api/sse/new_rate">
     <div id="rates" hx-get="/api/rates" hx-trigger="load, sse:new_rate"
          hx-indicator=".htmx-indicator" hx-swap="innerHTML">
 
@@ -47,7 +50,6 @@
   </div>
 
 </div>
-
 
 
 </body>

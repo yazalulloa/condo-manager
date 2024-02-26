@@ -43,18 +43,20 @@ public class Building {
 
   @JsonProperty
   private final Boolean roundUpPayments;
-  @JsonProperty
-  private final Long amountOfApts;
 
     /*@JsonProperty
     private final List<ReserveFund> reserveFunds;*/
 
   @JsonProperty
-  private final String emailConfig;
+  private final String emailConfigId;
 
   @JsonProperty
   private final LocalDateTime createdAt;
 
   @JsonProperty
   private final LocalDateTime updatedAt;
+  @JsonProperty
+  private final String configEmail;
+  @JsonProperty
+  private final Long aptCount;
 }

@@ -2,6 +2,8 @@ package com.yaz.service;
 
 
 import com.yaz.resource.BuildingResource;
+import com.yaz.service.cache.ApartmentCache;
+import io.quarkus.cache.CacheInvalidateAll;
 import io.quarkus.cache.CacheResult;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -38,7 +40,6 @@ public class BuildingService {
 
 
   @CacheResult(cacheName = BuildingCache.SELECT, lockTimeout = Constants.CACHE_TIMEOUT)
-
   public Uni<List<Building>> list(BuildingQuery buildingQuery) {
     return repository.select(buildingQuery);
   }
@@ -92,14 +93,18 @@ public class BuildingService {
     return repository.read(buildingId);
   }
 
+  @CacheInvalidateAll(cacheName = BuildingCache.SELECT)
+  @CacheInvalidateAll(cacheName = BuildingCache.GET)
   public Uni<Building> update(Building building) {
     return repository.update(building)
         .replaceWith(building);
   }
-
+  @CacheInvalidateAll(cacheName = BuildingCache.TOTAL_COUNT)
+  @CacheInvalidateAll(cacheName = BuildingCache.QUERY_COUNT)
+  @CacheInvalidateAll(cacheName = BuildingCache.EXISTS)
+  @CacheInvalidateAll(cacheName = BuildingCache.IDS)
   public Uni<Building> create(Building building) {
     final var build = building.toBuilder()
-        .amountOfApts(0L)
         .build();
     return repository.insert(build)
         .replaceWith(building);

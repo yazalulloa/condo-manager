@@ -6,6 +6,7 @@ import com.yaz.persistence.domain.EmailConfigUser;
 import com.yaz.persistence.domain.query.EmailConfigQuery;
 import com.yaz.persistence.entities.EmailConfig;
 import com.yaz.resource.EmailConfigResource;
+import com.yaz.resource.domain.response.EmailConfigDto;
 import com.yaz.resource.domain.response.EmailConfigTableItem;
 import com.yaz.resource.domain.response.EmailConfigTableResponse;
 import com.yaz.util.PagingProcessor;
@@ -207,5 +208,10 @@ public class EmailConfigService {
       log.error("Error deleting", e);
     }
 
+  }
+
+
+  public Uni<List<EmailConfigDto>> displayList() {
+    return repository.displayList();
   }
 }

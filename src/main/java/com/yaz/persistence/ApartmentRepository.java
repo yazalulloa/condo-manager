@@ -40,11 +40,11 @@ public class ApartmentRepository {
   private static final String DELETE_BY_BUILDING = "DELETE FROM %s WHERE building_id = ?".formatted(COLLECTION);
   private static final String DELETE_BY_ID = "DELETE FROM %s WHERE building_id = ? AND number = ?".formatted(
       COLLECTION);
-  private static final String INSERT = "INSERT INTO apartments (building_id, number, name, aliquot, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?);";
+  private static final String INSERT = "INSERT  %s apartments (building_id, number, name, aliquot) VALUES (%s);".formatted(COLLECTION, SqlUtil.params(4));
   private static final String INSERT_ON_UPDATE = """
-      INSERT IGNORE INTO %s (building_id, number, name, aliquot, created_at, updated_at) 
-      VALUES (?, ?, ?, ?, ?, ?);
-      """.formatted(COLLECTION);
+      INSERT IGNORE INTO %s (building_id, number, name, aliquot) 
+      VALUES (%s);
+      """.formatted(COLLECTION, SqlUtil.params(4));
 
 
   private static final String SELECT_ONE = "SELECT * FROM %s WHERE building_id = ? AND number = ?".formatted(
@@ -83,9 +83,7 @@ public class ApartmentRepository {
             """;
 
   private static final String UPDATE = """
-      UPDATE %s
-      SET name = ?, aliquot = ?, updated_at = ?
-      WHERE building_id = ? AND number = ?;
+      UPDATE %s SET name = ?, aliquot = ?, WHERE building_id = ? AND number = ?;
       """.formatted(COLLECTION);
 
   private static final String QUERY_COUNT_WHERE = """
@@ -177,13 +175,11 @@ public class ApartmentRepository {
   }*/
 
   private Tuple tuple(Apartment apartment) {
-    final var params = new ArrayTuple(6);
+    final var params = new ArrayTuple(4);
     params.addValue(apartment.buildingId());
     params.addValue(apartment.number());
     params.addValue(apartment.name());
     params.addValue(apartment.aliquot());
-    params.addValue(apartment.createdAt());
-    params.addValue(apartment.updatedAt());
 
     return Tuple.newInstance(params);
   }
@@ -216,8 +212,8 @@ public class ApartmentRepository {
         .name(row.getString("name"))
         .aliquot(row.getBigDecimal("aliquot"))
         .emails(emails)
-        .createdAt(row.getLocalDateTime("created_at"))
-        .updatedAt(row.getLocalDateTime("updated_at"))
+        .createdAt(SqlUtil.getValue(row, "created_at", Row::getLocalDateTime))
+        .updatedAt(SqlUtil.getValue(row, "updated_at", Row::getLocalDateTime))
         .build();
   }
 
@@ -358,10 +354,9 @@ public class ApartmentRepository {
   }
 
   private Tuple updateTuple(Apartment apartment) {
-    final var params = new ArrayTuple(5);
+    final var params = new ArrayTuple(4);
     params.addValue(apartment.name());
     params.addValue(apartment.aliquot());
-    params.addValue(apartment.updatedAt());
     params.addValue(apartment.buildingId());
     params.addValue(apartment.number());
 

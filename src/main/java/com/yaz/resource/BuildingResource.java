@@ -1,14 +1,14 @@
 package com.yaz.resource;
 
-import com.yaz.persistence.domain.query.BuildingQuery;
 import com.yaz.persistence.domain.Currency;
+import com.yaz.persistence.domain.query.BuildingQuery;
 import com.yaz.persistence.entities.Building;
 import com.yaz.resource.domain.request.BuildingRequest;
 import com.yaz.resource.domain.response.BuildingCountersDto;
 import com.yaz.resource.domain.response.BuildingFormDto;
 import com.yaz.resource.domain.response.BuildingReportResponse;
 import com.yaz.service.BuildingService;
-import com.yaz.util.DateUtil;
+import com.yaz.service.EmailConfigService;
 import com.yaz.util.DecimalUtil;
 import com.yaz.util.StringUtil;
 import io.quarkus.qute.CheckedTemplate;
@@ -42,6 +42,7 @@ public class BuildingResource {
   public static final String DELETE_PATH = PATH + "/";
 
   private final BuildingService service;
+  private final EmailConfigService emailConfigService;
 
   @CheckedTemplate
   public static class Templates {
@@ -99,20 +100,25 @@ public class BuildingResource {
   @Path("new")
   @Produces(MediaType.TEXT_HTML)
   public Uni<TemplateInstance> newForm() {
-    return Uni.createFrom().item(Templates.form(BuildingFormDto.builder()
-        .isNew(true)
-        .mainCurrency(Currency.VED)
-        .debtCurrency(Currency.VED)
-        .currenciesToShowAmountToPay(Set.of(Currency.VED))
-        .build()));
+    return emailConfigService.displayList()
+        .map(emailConfigs -> BuildingFormDto.builder()
+            .isNew(true)
+            .mainCurrency(Currency.VED)
+            .debtCurrency(Currency.VED)
+            .currenciesToShowAmountToPay(Set.of(Currency.VED))
+            .emailConfigs(emailConfigs)
+            .build())
+        .map(Templates::form);
   }
 
   @GET
   @Path("edit_form")
   @Produces(MediaType.TEXT_HTML)
   public Uni<TemplateInstance> editForm(@RestQuery String buildingId) {
-    return service.get(buildingId)
-        .map(optional -> {
+
+    return Uni.combine().all()
+        .unis(service.get(buildingId), emailConfigService.displayList())
+        .with((optional, emailConfigs) -> {
           if (optional.isEmpty()) {
             return BuildingFormDto.builder()
                 .shouldRedirect(true)
@@ -132,7 +138,8 @@ public class BuildingResource {
               .fixedPay(building.fixedPay())
               .fixedPayAmount(building.fixedPayAmount())
               .roundUpPayments(building.roundUpPayments())
-              .emailConfig(building.emailConfig())
+              .emailConfig(building.emailConfigId())
+              .emailConfigs(emailConfigs)
               .build();
         })
         .map(Templates::form);
@@ -176,7 +183,7 @@ public class BuildingResource {
   @Produces(MediaType.TEXT_HTML)
   public Uni<TemplateInstance> create(@BeanParam BuildingRequest request) {
 
-    log.info("request: {}", request);
+    //log.info("request: {}", request);
     final var buildingFormDto = formDto(request).toBuilder()
         .build();
 
@@ -193,7 +200,10 @@ public class BuildingResource {
           })
           .flatMap(dto -> {
             if (!dto.isSuccess()) {
-              return Uni.createFrom().item(dto);
+              return emailConfigService.displayList()
+                  .map(emailConfigs -> dto.toBuilder()
+                      .emailConfigs(emailConfigs)
+                      .build());
             }
 
             final var building = Building.builder()
@@ -206,8 +216,7 @@ public class BuildingResource {
                 .fixedPay(request.isFixedPay())
                 .fixedPayAmount(dto.getFixedPayAmount())
                 .roundUpPayments(request.isRoundUpPayments())
-                .emailConfig(request.getEmailConfig())
-                .createdAt(DateUtil.utcLocalDateTime())
+                .emailConfigId(request.getEmailConfig())
                 .build();
 
             return service.create(building)
@@ -218,7 +227,11 @@ public class BuildingResource {
           .map(Templates::form);
     }
 
-    return Uni.createFrom().item(Templates.form(buildingFormDto));
+    return emailConfigService.displayList()
+        .map(emailConfigs -> buildingFormDto.toBuilder()
+            .emailConfigs(emailConfigs)
+            .build())
+        .map(Templates::form);
 
   }
 
@@ -233,12 +246,12 @@ public class BuildingResource {
         .build();
 
     if (!buildingFormDto.isSuccess()) {
-      return Uni.createFrom().item(Templates.form(buildingFormDto));
+      return emailConfigService.displayList()
+          .map(emailConfigs -> buildingFormDto.toBuilder()
+              .emailConfigs(emailConfigs)
+              .build())
+          .map(Templates::form);
     }
-
-    final var dto = buildingFormDto.toBuilder()
-        .shouldRedirect(true)
-        .build();
 
     final var building = Building.builder()
         .id(buildingFormDto.getId())
@@ -250,12 +263,13 @@ public class BuildingResource {
         .fixedPay(request.isFixedPay())
         .fixedPayAmount(buildingFormDto.getFixedPayAmount())
         .roundUpPayments(request.isRoundUpPayments())
-        .emailConfig(request.getEmailConfig())
-        .updatedAt(DateUtil.utcLocalDateTime())
+        .emailConfigId(request.getEmailConfig())
         .build();
 
     return service.update(building)
-        .replaceWith(dto)
+        .replaceWith(BuildingFormDto.builder()
+            .shouldRedirect(true)
+            .build())
         .map(Templates::form);
   }
 
