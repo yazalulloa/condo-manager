@@ -19,18 +19,22 @@ import java.io.ObjectOutputStream;
         AuthorizationCodeFlow.class, GoogleAuthorizationCodeFlow.class,
         NetHttpTransport.class, GsonFactory.class,
 
-        byte[].class,
         com.google.api.client.auth.oauth2.AuthorizationCodeRequestUrl.class,
         com.google.api.client.auth.oauth2.AuthorizationCodeResponseUrl.class,
         com.google.api.client.auth.oauth2.AuthorizationCodeTokenRequest.class,
         com.google.api.client.auth.oauth2.AuthorizationRequestUrl.class,
-        com.google.api.client.auth.oauth2.RefreshTokenRequest.class,
-        com.google.api.client.auth.oauth2.StoredCredential.class,
-        com.google.api.client.auth.oauth2.TokenRequest.class,
-        com.google.api.client.auth.oauth2.TokenResponse.class,
+
         com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeRequestUrl.class,
         com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeTokenRequest.class,
         com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse.class,
+
+
+        byte[].class,
+        com.google.api.client.auth.oauth2.RefreshTokenRequest.class,
+        com.google.api.client.auth.oauth2.StoredCredential.class,
+        com.google.api.client.auth.oauth2.TokenErrorResponse.class,
+        com.google.api.client.auth.oauth2.TokenRequest.class,
+        com.google.api.client.auth.oauth2.TokenResponse.class,
         com.google.api.client.googleapis.services.AbstractGoogleClientRequest.class,
         com.google.api.client.googleapis.services.json.AbstractGoogleJsonClientRequest.class,
         com.google.api.client.http.GenericUrl.class,
