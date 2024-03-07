@@ -4,11 +4,11 @@
 <div hx-get="/buildings" hx-indicator=".htmx-indicator" hx-trigger="load"></div>
 
 {#else}
-<form class="flex flex-col w-4/6 align-middle center gap-4"
+<form class="flex flex-col w-4/6 align-middle center gap-4 p-12"
       hx-swap="outerHTML"
       data-te-validation-init
 {#if dto.isEdit}
-      hx-patch="/api/buildings/edit"
+      hx-patch="/api/buildings/{dto.id}"
 {#else}
       hx-post="/api/buildings/new"
 {/if}
@@ -16,8 +16,6 @@
 
 
       script="
-      init call initComponents()
-      init call disableBtnInsideForm()
           {#if !dto.isNew && !dto.isSuccess}
         init set @data-te-validated to 'true'
   {/if}
@@ -34,33 +32,37 @@
 </div>
 {/if}
 
-  <cm-form-input
-      class=""
-      id="idField"
-      name="id"
-      value="{dto.id}"
-      maxlength="20"
-      placeholder="ID"
-    {#if dto.idFieldError}
-        input-error="{dto.idFieldError}"
-    {/if}
-  >
+    <cm-form-input
+    class=""
+    id="idField"
+    name="id"
+    value="{dto.id}"
+    maxlength="20"
+    placeholder="ID"
+{#if dto.idFieldError}
+    input-error="{dto.idFieldError}"
+{/if}
+{#if dto.isEdit}
+    disabled="disabled"
+{/if}
 
-  </cm-form-input>
+>
+
+</cm-form-input>
 
 
-  <cm-form-input
-      id="nameField"
-      name="name"
-      value="{dto.name}"
-      maxlength="100"
-      placeholder="Nombre"
-    {#if dto.nameFieldError}
-        input-error="{dto.nameFieldError}"
-    {/if}
-  >
+    <cm-form-input
+    id="nameField"
+    name="name"
+    value="{dto.name}"
+    maxlength="100"
+    placeholder="Nombre"
+{#if dto.nameFieldError}
+    input-error="{dto.nameFieldError}"
+{/if}
+>
 
-  </cm-form-input>
+</cm-form-input>
 
   <cm-form-input
       id="rifField"
@@ -206,6 +208,7 @@
 
 </div>
 
+
 <div class="header p-6">
 <button id="apt-form-btn-submit" class="btn btn-primary">
 {#if dto.isEdit}
@@ -214,8 +217,9 @@
   Crear
 {/if}
 </button>
-  <img class="htmx-indicator" src="/assets/bars.svg" alt="spinner">
+  <img class="htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">
 </div>
 </form>
+
 {/if}
 

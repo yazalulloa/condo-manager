@@ -1,0 +1,15 @@
+{@java.util.List<com.yaz.resource.domain.response.ExtraChargeTableItem> extraCharges}
+
+<div class="min-w-3/5">
+  <div class="extra-charges-grid p-2 font-bold">
+    <span>Descripción</span>
+    <span>Monto</span>
+    <span>Apartamentos</span>
+    <span>Acciones</span>
+  </div>
+
+  {#for item in extraCharges}
+
+  {#include ExtraChargeResource/item item=item /}
+  {/for}
+  </div>

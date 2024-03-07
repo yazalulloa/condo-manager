@@ -2070,6 +2070,10 @@ input.tab:checked + .tab-content,
     --btn-color: var(--fallback-s);
   }
 
+  .btn-neutral {
+    --btn-color: var(--fallback-n);
+  }
+
   .btn-error {
     --btn-color: var(--fallback-er);
   }
@@ -2133,6 +2137,10 @@ input.tab:checked + .tab-content,
     --btn-color: var(--s);
   }
 
+  .btn-neutral {
+    --btn-color: var(--n);
+  }
+
   .btn-error {
     --btn-color: var(--er);
   }
@@ -2142,6 +2150,12 @@ input.tab:checked + .tab-content,
   --tw-text-opacity: 1;
   color: var(--fallback-sc,oklch(var(--sc)/var(--tw-text-opacity)));
   outline-color: var(--fallback-s,oklch(var(--s)/1));
+}
+
+.btn-neutral {
+  --tw-text-opacity: 1;
+  color: var(--fallback-nc,oklch(var(--nc)/var(--tw-text-opacity)));
+  outline-color: var(--fallback-n,oklch(var(--n)/1));
 }
 
 .btn-error {
@@ -4565,6 +4579,10 @@ details.collapse summary::-webkit-details-marker {
   width: 1rem;
 }
 
+.w-4\/6 {
+  width: 66.666667%;
+}
+
 .w-5 {
   width: 1.25rem;
 }
@@ -4689,16 +4707,20 @@ details.collapse summary::-webkit-details-marker {
   width: 100vw;
 }
 
-.w-4\/6 {
-  width: 66.666667%;
-}
-
 .min-w-0 {
   min-width: 0px;
 }
 
+.min-w-1\/4 {
+  min-width: 25%;
+}
+
 .min-w-10 {
   min-width: 2.5rem;
+}
+
+.min-w-3\/5 {
+  min-width: 60%;
 }
 
 .min-w-\[100px\] {
@@ -4715,10 +4737,6 @@ details.collapse summary::-webkit-details-marker {
 
 .min-w-\[64px\] {
   min-width: 64px;
-}
-
-.min-w-14 {
-  min-width: 3.5rem;
 }
 
 .max-w-1\/4 {
@@ -5194,6 +5212,10 @@ details.collapse summary::-webkit-details-marker {
 
 .gap-4 {
   gap: 1rem;
+}
+
+.gap-6 {
+  gap: 1.5rem;
 }
 
 .space-x-2 > :not([hidden]) ~ :not([hidden]) {
@@ -6805,6 +6827,25 @@ details.collapse summary::-webkit-details-marker {
   background-color: lightyellow;
 }
 
+.edit-btn {
+  background: none;
+  color: inherit;
+  border: none;
+  padding: 2px;
+  font: inherit;
+  cursor: pointer;
+  outline: inherit;
+  border-radius: 50%;
+}
+
+.edit-btn:hover {
+  background-color: lightslategrey;
+}
+
+.edit-btn:active {
+  background-color: whitesmoke;
+}
+
 .apt-emails {
   height: 100%;
   display: flex;
@@ -6982,6 +7023,22 @@ details.collapse summary::-webkit-details-marker {
 }
 
 .oicd-token-grid > * {
+  text-align: center;
+  margin: auto;
+  width: 100%;
+}
+
+.extra-charges-grid {
+  display: grid;
+  border-bottom: 1px solid black;
+  grid-template-columns: 2fr 2fr 4fr 2fr;
+  grid-template-rows: auto;
+  grid-gap: 4px;
+  width: 100%;
+  text-align: center;
+}
+
+.extra-charges-grid > * {
   text-align: center;
   margin: auto;
   width: 100%;

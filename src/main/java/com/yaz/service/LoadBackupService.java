@@ -7,7 +7,6 @@ import com.yaz.persistence.RateRepository;
 import com.yaz.persistence.entities.Apartment;
 import com.yaz.persistence.entities.Building;
 import com.yaz.persistence.entities.Rate;
-import com.yaz.util.DateUtil;
 import com.yaz.util.PagingJsonFile;
 import com.yaz.util.RxUtil;
 import io.reactivex.rxjava3.core.Completable;
@@ -26,7 +25,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Optional;
 import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -90,7 +88,7 @@ public class LoadBackupService {
 
                       return Observable.fromIterable(list)
                           .toList()
-                          .map(buildingRepository::replace)
+                          .map(buildingRepository::insertIgnore)
                           .flatMap(RxUtil::single)
                           .map(SqlResult::rowCount)
                           .doOnSuccess(i -> log.info("BUILDINGS INSERTED: {}", i))

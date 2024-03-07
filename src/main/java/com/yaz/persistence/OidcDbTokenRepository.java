@@ -1,7 +1,6 @@
 package com.yaz.persistence;
 
 import com.yaz.persistence.domain.IdentityProvider;
-import com.yaz.persistence.domain.MySqlQueryRequest;
 import com.yaz.persistence.domain.OidcDbTokenQueryRequest;
 import com.yaz.persistence.entities.OidcDbToken;
 import com.yaz.persistence.entities.OidcDbToken.User;
@@ -84,7 +83,7 @@ public class OidcDbTokenRepository {
   }
 
   public Uni<Integer> delete(String id) {
-    return mySqlService.request(MySqlQueryRequest.normal(DELETE, Tuple.of(id)))
+    return mySqlService.request(DELETE, Tuple.of(id))
         .map(SqlResult::rowCount);
   }
 

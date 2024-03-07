@@ -19,12 +19,12 @@ import io.quarkus.cache.CacheResult;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import io.smallrye.mutiny.Uni;
-import io.vertx.mutiny.sqlclient.RowIterator;
 import io.vertx.mutiny.sqlclient.RowSet;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
@@ -48,13 +48,29 @@ public class RateService {
     return repository.count();
   }
 
+  public Uni<Integer> delete(long id) {
+    return repository.delete(id)
+        .flatMap(i -> {
+          if (i > 0) {
+            return invalidateOne(id)
+                .replaceWith(i);
+          }
+
+          return Uni.createFrom().item(i);
+        });
+  }
 
   @CacheInvalidateAll(cacheName = RateCache.TOTAL_COUNT)
-  @CacheInvalidateAll(cacheName = RateCache.SELECT)
   @CacheInvalidate(cacheName = RateCache.EXISTS)
+  public Uni<Void> invalidateOne(long id) {
+    return invalidateGet(id);
+  }
+
+  @CacheInvalidateAll(cacheName = RateCache.LAST)
+  @CacheInvalidateAll(cacheName = RateCache.SELECT)
   @CacheInvalidate(cacheName = RateCache.GET)
-  public Uni<Integer> delete(long id) {
-    return repository.delete(id);
+  public Uni<Void> invalidateGet(long id) {
+    return Uni.createFrom().voidItem();
   }
 
   /* public Single<Paging<Rate>> paging(RateQuery rateQuery) {
@@ -79,17 +95,24 @@ public class RateService {
     return repository.listRows(rateQuery);
   }
 
-
-  public Maybe<Rate> last(Currency fromCurrency, Currency toCurrency) {
-    return RxUtil.toMaybe(repository.last(fromCurrency, toCurrency))
+  @CacheResult(cacheName = RateCache.LAST, lockTimeout = Constants.CACHE_TIMEOUT)
+  public Uni<Optional<Rate>> lastUni(Currency fromCurrency, Currency toCurrency) {
+    return repository.last(fromCurrency, toCurrency)
         .map(RowSet::iterator)
-        .filter(RowIterator::hasNext)
-        .map(RowIterator::next)
-        .map(repository::from);
+        .map(iterator -> {
+          if (iterator.hasNext()) {
+            return Optional.of(repository.from(iterator.next()));
+          }
+          return Optional.empty();
+        });
   }
 
-  @CacheInvalidateAll(cacheName = RateCache.TOTAL_COUNT)
-  @CacheInvalidateAll(cacheName = RateCache.SELECT)
+  public Maybe<Rate> last(Currency fromCurrency, Currency toCurrency) {
+    return RxUtil.toMaybe(lastUni(fromCurrency, toCurrency))
+        .flatMap(Maybe::fromOptional);
+  }
+
+
   public Uni<Rate> save(Rate rate) {
 
     return repository.save(rate)
@@ -97,11 +120,24 @@ public class RateService {
           return rate.toBuilder()
               .id(id.orElse(null))
               .build();
+        })
+        .flatMap(newRate -> {
+          if (newRate.id() == null) {
+            return Uni.createFrom().item(newRate);
+          }
+
+          return invalidateOne(newRate.id())
+              .replaceWith(newRate);
         });
   }
 
-  public Single<Boolean> exists(Long hash) {
-    return RxUtil.single(repository.exists(hash));
+  @CacheResult(cacheName = RateCache.EXISTS, lockTimeout = Constants.CACHE_TIMEOUT)
+  public Uni<Boolean> existsUni(long hash) {
+    return repository.exists(hash);
+  }
+
+  public Single<Boolean> exists(long hash) {
+    return RxUtil.single(existsUni(hash));
   }
 
  /* private Single<HttpResponse<Buffer>> bcv(HttpMethod httpMethod) {

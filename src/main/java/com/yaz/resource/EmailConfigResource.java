@@ -122,7 +122,7 @@ public class EmailConfigResource {
     final var single = service.loadItem(userId)
         .map(item -> {
 
-          if (item.getItem().shouldGetNewOne()) {
+          if (item.getItem().shouldGetNewOne() || item.getItem().emailConfig().stacktrace() != null) {
             return responseRedirect(request);
           } else {
             final var tableItem = item.toBuilder()

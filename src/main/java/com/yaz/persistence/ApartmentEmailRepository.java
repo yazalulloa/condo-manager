@@ -1,5 +1,8 @@
 package com.yaz.persistence;
 
+import com.yaz.persistence.domain.MySqlQueryRequest;
+import com.yaz.persistence.entities.Apartment;
+import com.yaz.util.SqlUtil;
 import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.sqlclient.SqlResult;
 import io.vertx.mutiny.sqlclient.Tuple;
@@ -11,8 +14,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
-import com.yaz.persistence.domain.MySqlQueryRequest;
-import com.yaz.persistence.entities.Apartment;
 
 @ApplicationScoped
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
@@ -51,7 +52,7 @@ public class ApartmentEmailRepository {
 
     if (emails.size() == 1) {
       final var email = emails.iterator().next();
-      return mySqlService.request(MySqlQueryRequest.normal(INSERT, tuple(buildingId, aptNumber, email)))
+      return mySqlService.request(INSERT, tuple(buildingId, aptNumber, email))
           .map(SqlResult::rowCount);
     }
 
@@ -77,14 +78,9 @@ public class ApartmentEmailRepository {
 
     emails.forEach(tuple::addString);
 
-    final var emailParams = Stream.generate(() -> "?")
-        .limit(emails.size())
-        .collect(Collectors.joining(","));
+    final var query = DELETE_WHERE + SqlUtil.params(emails.size()) + ")";
 
-    final var query = DELETE_WHERE + emailParams + ")";
-    final var request = MySqlQueryRequest.normal(query, tuple);
-
-    return mySqlService.request(request)
+    return mySqlService.request(query, tuple)
         .map(SqlResult::rowCount);
   }
 

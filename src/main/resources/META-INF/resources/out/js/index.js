@@ -17781,6 +17781,8 @@ class FormInput extends HTMLElement {
     input.max = this.getAttribute("max");
     input.min = this.getAttribute("min");
     input.step = this.getAttribute("step");
+    input.disabled = this.getAttribute("disabled") != null;
+    input.readOnly = this.getAttribute("readOnly") != null;
     if (input.maxLength) {
       input.oninput = limitInputToMaxLength(input);
     }
@@ -17804,23 +17806,18 @@ class FormInput extends HTMLElement {
     this.formDiv = div;
   }
   connectedCallback() {
-    console.log("Custom element added to page.");
     this.addEventListener("clear", (evt) => {
-      console.log("Clearing input");
-      this.input.value = this.input.type === "number" ? "0" : "";
-      console.log("Input value is now {}", this.input.value);
+      this.input.value = this.input.type === "number" ? this.input.min ? this.input.min : "0" : "";
+      this.input.value = "";
       this.formDiv.removeAttribute("data-te-invalid-feedback");
       this.formDiv.removeAttribute("data-te-validation-state");
     });
   }
   disconnectedCallback() {
-    console.log("Custom element removed from page.");
   }
   adoptedCallback() {
-    console.log("Custom element moved to new page.");
   }
   attributeChangedCallback(name, oldValue, newValue) {
-    console.log(`Attribute ${name} has changed.`);
   }
 }
 customElements.define("cm-form-input", FormInput);
@@ -17849,7 +17846,6 @@ var getLastUrlSegment = function(url) {
 };
 import_hyperscript.default.browserInit();
 window.initComponents = function() {
-  console.log("INIT TW-ELEMENTS");
   qA({
     Carousel: Xt2,
     Datepicker: og,
@@ -17861,13 +17857,11 @@ window.initComponents = function() {
     Validation: jh
   }, { allowReinits: true }, true);
   let forms = document.getElementsByTagName("form");
-  console.log("forms: {}", forms.length);
   for (let i2 = 0;i2 < forms.length; i2++) {
     let form = forms[i2];
     let validation = new jh(form);
     form.addEventListener("dispose-validation", (evt) => {
       evt.preventDefault();
-      console.log("disposing validation");
       validation.dispose();
       validation.init();
     });
@@ -17889,7 +17883,20 @@ window.onload = function() {
   addDisableEventToButtons();
 };
 document.body.addEventListener("htmx:afterProcessNode", function(configEvent) {
+  initComponents();
   addDisableEventToButtons();
+  disableBtnInsideForm();
+  let selectElem = document.getElementsByTagName("select");
+  for (let i2 = 0;i2 < selectElem.length; i2++) {
+    let select = selectElem[i2];
+    if (select.hasAttribute("data-te-select-init")) {
+      const instance = kr2.getInstance(select);
+      select.addEventListener("clear-value-cm", function(evt) {
+        evt.preventDefault();
+        instance.setValue([]);
+      });
+    }
+  }
 });
 window.addDisableEventToButtons = function() {
   const buttons = document.getElementsByTagName("button");
@@ -17928,7 +17935,6 @@ window.initNav = function() {
   let lastUrlSegmentCurrent = getLastUrlSegmentCurrent();
   if (!lastUrlSegmentCurrent || lastUrlSegmentCurrent === "" || lastUrlSegmentCurrent === "index.html" || lastUrlSegmentCurrent === "index" || lastUrlSegmentCurrent === "/") {
     let item = localStorage.getItem("current-nav");
-    console.log("current-nav: {}", item);
     if (item) {
       let elem = document.getElementById(item);
       elem?.dispatchEvent(new Event("navigate"));
@@ -17947,7 +17953,6 @@ window.initNav = function() {
   }
 };
 window.saveNavState = function(anchor) {
-  console.log("saving nav state {}", anchor.id);
   localStorage.setItem("current-nav", anchor.id);
 };
 window.saveToLocalStorage = function(key, value) {

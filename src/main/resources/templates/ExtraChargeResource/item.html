@@ -1,0 +1,42 @@
+{@com.yaz.resource.domain.response.ExtraChargeTableItem item}
+
+<div class="extra-charges-grid hover:bg-[#00000014] p-1"
+     id={item.cardId}
+         {#if item.outOfBoundsUpdate}
+             hx-swap-oob="true"
+         {/if}
+>
+  <div>
+    <span>{item.item.description}</span>
+
+    <div>
+  <span
+      class="inline-block whitespace-nowrap rounded-full px-[0.65em] pb-[0.25em] pt-[0.35em] text-center align-baseline text-[0.75em] font-bold leading-none
+{item.item.active ? 'bg-success-100 text-success-700' : 'bg-danger-100 text-danger-700'}
+">
+    {item.item.active ? 'Activo' : 'Desactivado'}
+  </span>
+    </div>
+  </div>
+  <div>{item.item.formatAmount}</div>
+  <div class="flex flex-col text-sm">
+    {#for apt in item.item.apartments}
+    <span>{apt.number} {apt.name}</span>
+    {/for}
+  </div>
+
+<div class="flex flex-row gap-2 justify-center">
+  <div class="block">
+    <button class="edit-btn"
+            hx-get="{item.editUrl}"
+            hx-indicator=".htmx-indicator"
+            hx-trigger="click"
+            hx-swap="none">
+
+      <img src="/assets/edit_icon.svg" alt="edit-extra-charge">
+    </button>
+  </div>
+  {#include fragments/delete-btn deleteUrl=item.deleteUrl cardIdRef=item.cardIdRef/}
+  </div>
+
+  </div>

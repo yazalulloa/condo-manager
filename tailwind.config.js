@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  // darkMode: 'class',
   darkMode: 'media',
   content: [
     "./src/main/resources/**/*.{html,js}",
@@ -29,7 +30,14 @@ module.exports = {
         '1/2': '300px',
         '3/4': '75%',
         '90per': '90%',
-      }
+      },
+      minWidth: {
+        '1/5': '20%',
+        '1/4': '25%',
+        '1/2': '50%',
+        '3/4': '75%',
+        '3/5': '60%',
+      },
     },
   },
   daisyui: {
@@ -43,5 +51,6 @@ module.exports = {
     prefix: "", // prefix for daisyUI classnames (components, modifiers and responsive class names. Not colors)
     logs: true, // Shows info about daisyUI version and used config in the console when building your CSS
   },
+
 }
 

@@ -4,9 +4,11 @@ import io.reactivex.rxjava3.core.Maybe;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.mutiny.sqlclient.Row;
+import io.vertx.mutiny.sqlclient.RowIterator;
 import io.vertx.mutiny.sqlclient.RowSet;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -92,5 +94,12 @@ public class SqlUtil {
     }
 
     return null;
+  }
+
+  public static <T> Optional<T> toOptional(RowSet<Row> rowSet, Function<Row, T> from) {
+    return Optional.of(rowSet.iterator())
+        .filter(RowIterator::hasNext)
+        .map(RowIterator::next)
+        .map(from);
   }
 }

@@ -3,13 +3,14 @@ package com.yaz.resource.domain.response;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import com.yaz.persistence.domain.Currency;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.extern.jackson.Jacksonized;
-import com.yaz.persistence.domain.Currency;
 
 @Jacksonized
 @Builder(toBuilder = true)
@@ -42,6 +43,35 @@ public class BuildingFormDto {
   private final boolean shouldRedirect;
   private final boolean isNew;
 
+
+//  private final List<ExtraChargeRequest> extraCharges = List.of(
+//      ExtraChargeRequest.builder()
+//          .id("1")
+//          .description("Extra Charge 1")
+//          .amount(100.32)
+//          .currency(Currency.USD)
+//          .active(true)
+//          .apartments(List.of(
+//              new ExtraChargeRequest.Apt("101", "Test 101"),
+//              new ExtraChargeRequest.Apt("102", "Test 102"),
+//              new ExtraChargeRequest.Apt("103", "Test 103")
+//          ))
+//          .build(),
+//
+//      ExtraChargeRequest.builder()
+//          .id("2")
+//          .description("Extra Charge 2")
+//          .amount(200.32)
+//          .currency(Currency.VED)
+//          .active(false)
+//          .apartments(List.of(
+//              new ExtraChargeRequest.Apt("201", "Test 201"),
+//              new ExtraChargeRequest.Apt("202", "Test 202"),
+//              new ExtraChargeRequest.Apt("203", "Test 203")
+//          ))
+//          .build()
+//  );
+
   public boolean isSuccess() {
     return generalFieldError == null
         && idFieldError == null
@@ -52,4 +82,5 @@ public class BuildingFormDto {
         && fixedPayAmountFieldError == null
         && emailConfigFieldError == null;
   }
+
 }

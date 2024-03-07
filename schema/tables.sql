@@ -43,8 +43,8 @@ CREATE TABLE IF NOT EXISTS apartments
     number      CHAR(20)      NOT NULL,
     name        VARCHAR(100)  NOT NULL,
     id_doc      CHAR(20),
-    aliquot     DECIMAL(3, 2) NOT NULL,
-    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+    aliquot     DECIMAL(5, 2) NOT NULL DEFAULT 0.00,
+    created_at  DATETIME               DEFAULT CURRENT_TIMESTAMP,
     updated_at  DATETIME ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (building_id, number),
     INDEX (name)
@@ -210,3 +210,64 @@ CREATE TABLE IF NOT EXISTS email_configs
     stacktrace        TEXT,
     PRIMARY KEY (user_id)
 );
+
+CREATE TABLE IF NOT EXISTS extra_charges
+(
+    building_id  CHAR(20)                     NOT NULL,
+    secondary_id CHAR(40)                     NOT NULL,
+    id           BINARY(16)                   NOT NULL,
+    type         ENUM ('BUILDING', 'RECEIPT') NOT NULL,
+    description  VARCHAR(100)                 NOT NULL,
+    amount       DECIMAL(16, 2)               NOT NULL,
+    currency     ENUM ('USD', 'VED')          NOT NULL,
+    active       BOOL                         NOT NULL DEFAULT true,
+    created_at   DATETIME                              DEFAULT CURRENT_TIMESTAMP,
+    updated_at   DATETIME ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (building_id, secondary_id, id)
+);
+
+CREATE TABLE IF NOT EXISTS extra_charges_apartments
+(
+    building_id  CHAR(20)   NOT NULL,
+    secondary_id CHAR(40)   NOT NULL,
+    id           BINARY(16) NOT NULL,
+    apt_number   CHAR(20)   NOT NULL,
+    created_at   DATETIME   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (building_id, secondary_id, id, apt_number)
+);
+
+INSERT INTO extra_charges (building_id, secondary_id, id, type, description, amount, currency, active)
+VALUES ('ANTONIETA', 'ANTONIETA', UUID_TO_BIN(UUID()), 'BUILDING', 'TEST', 12.23, 'USD', true);
+
+INSERT INTO extra_charges_apartments (building_id, secondary_id, id, apt_number)
+VALUES ('ANTONIETA', 'ANTONIETA', UUID_TO_BIN('d735ef95-d83b-11ee-8b80-62ee39fccc7b'), '01-A'),
+       ('ANTONIETA', 'ANTONIETA', UUID_TO_BIN('d735ef95-d83b-11ee-8b80-62ee39fccc7b'), '01-B'),
+       ('ANTONIETA', 'ANTONIETA', UUID_TO_BIN('d735ef95-d83b-11ee-8b80-62ee39fccc7b'), '02-A');
+
+SELECT extra_charges.*,
+       BIN_TO_UUID(extra_charges.id)                                                            as uuid_id,
+       GROUP_CONCAT(extra_charges_apartments.apt_number, ', ', apartments.name SEPARATOR ' ; ') as apt_numbers
+
+FROM extra_charges
+         LEFT JOIN extra_charges_apartments ON extra_charges.building_id = extra_charges_apartments.building_id AND
+                                               extra_charges.secondary_id = extra_charges_apartments.secondary_id AND
+                                               extra_charges.id = extra_charges_apartments.id
+         LEFT JOIN apartments ON extra_charges_apartments.building_id = apartments.building_id AND
+                                 extra_charges_apartments.apt_number = apartments.number
+
+GROUP BY extra_charges.building_id, extra_charges.secondary_id, extra_charges.id
+ORDER BY extra_charges.building_id, extra_charges.secondary_id, extra_charges.id;
+
+SELECT extra_charges.*,
+       BIN_TO_UUID(extra_charges.id)                                                            as uuid_id,
+       GROUP_CONCAT(extra_charges_apartments.apt_number, ', ', apartments.name SEPARATOR ' ; ') as apt_numbers
+
+FROM extra_charges
+         LEFT JOIN extra_charges_apartments ON extra_charges.building_id = extra_charges_apartments.building_id AND
+                                               extra_charges.secondary_id = extra_charges_apartments.secondary_id AND
+                                               extra_charges.id = extra_charges_apartments.id
+         LEFT JOIN apartments ON extra_charges_apartments.building_id = apartments.building_id AND
+                                 extra_charges_apartments.apt_number = apartments.number
+WHERE extra_charges.id = UUID_TO_BIN('11eedbe8-97b8-0690-8fee-d229547576d5')
+GROUP BY extra_charges.building_id, extra_charges.secondary_id, extra_charges.id
+ORDER BY extra_charges.building_id, extra_charges.secondary_id, extra_charges.id;

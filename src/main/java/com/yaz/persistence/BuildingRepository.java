@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,14 +48,18 @@ public class BuildingRepository {
       """.formatted(COLLECTION, SqlUtil.params(9));
 
   private static final String UPDATE = """
-      UPDATE %s SET name = ?, rif = ?, main_currency = ?, debt_currency = ?, currencies_to_show_amount_to_pay = ?, fixed_pay = ?, 
-      fixed_pay_amount = ?, round_up_payments = ?, email_config_id = UUID_TO_BIN(?) WHERE id = ?;
+      UPDATE %s SET name = ?, rif = ?, main_currency = ?, debt_currency = ?, currencies_to_show_amount_to_pay = ?, fixed_pay = ?,
+            fixed_pay_amount = ?, round_up_payments = ?, email_config_id = UUID_TO_BIN(?) WHERE id = ?;
       """.formatted(COLLECTION);
 
-  private static final String REPLACE = """
-      REPLACE INTO %s (id, name, rif, main_currency, debt_currency, currencies_to_show_amount_to_pay, fixed_pay, fixed_pay_amount, 
+  private static final String INSERT_IGNORE = """
+      INSERT IGNORE INTO %s (id, name, rif, main_currency, debt_currency, currencies_to_show_amount_to_pay, fixed_pay, fixed_pay_amount, 
       round_up_payments) VALUES (%s);
       """.formatted(COLLECTION, SqlUtil.params(9));
+
+
+  private static final String EMAIL_CONFIG_DELETED = "UPDATE %s SET email_config_id = NULL WHERE id = ?".formatted(
+      COLLECTION);
 
   private static final String EXISTS = "SELECT id FROM %s WHERE id = ? LIMIT 1".formatted(
       COLLECTION);
@@ -69,7 +74,7 @@ public class BuildingRepository {
 
   public Uni<Integer> delete(String id) {
 
-    return mySqlService.request(MySqlQueryRequest.normal(DELETE_BY_ID, Tuple.of(id)))
+    return mySqlService.request(DELETE_BY_ID, Tuple.of(id))
         .map(SqlResult::rowCount);
   }
 
@@ -98,9 +103,7 @@ public class BuildingRepository {
 
     params.addValue(query.limit());
 
-    final var queryRequest = MySqlQueryRequest.normal(stringBuilder.toString(), params);
-
-    return mySqlService.request(queryRequest)
+    return mySqlService.request(stringBuilder.toString(), params)
         .map(rows -> SqlUtil.toList(rows, this::from));
   }
 
@@ -127,7 +130,7 @@ public class BuildingRepository {
         .build();
   }
 
-  public Uni<RowSet<Row>> replace(Collection<Building> buildings) {
+  public Uni<RowSet<Row>> insertIgnore(Collection<Building> buildings) {
 
     final var tuples = buildings.stream()
         .map(building -> {
@@ -149,32 +152,32 @@ public class BuildingRepository {
         })
         .toList();
 
-    final var mySqlBatch = MySqlQueryRequest.batch(REPLACE, tuples);
+    final var mySqlBatch = MySqlQueryRequest.batch(INSERT_IGNORE, tuples);
 
     return mySqlService.request(mySqlBatch);
   }
 
   public Uni<RowSet<Row>> selectAllIds() {
-    return mySqlService.request(MySqlQueryRequest.normal(SELECT_ALL_IDS));
+    return mySqlService.request(SELECT_ALL_IDS);
   }
 
   public Uni<Boolean> exists(String buildingId) {
-    final var queryRequest = MySqlQueryRequest.normal(EXISTS, Tuple.of(buildingId));
-    return mySqlService.request(queryRequest)
+
+    return mySqlService.request(EXISTS, Tuple.of(buildingId))
         .map(RowSet::iterator)
         .map(RowIterator::hasNext);
   }
 
   public Uni<Optional<Building>> read(String buildingId) {
-    final var queryRequest = MySqlQueryRequest.normal(READ, Tuple.of(buildingId));
-    return mySqlService.request(queryRequest)
+
+    return mySqlService.request(READ, Tuple.of(buildingId))
         .map(rows -> Optional.of(rows.iterator())
             .filter(RowIterator::hasNext)
             .map(RowIterator::next)
             .map(this::from));
   }
 
-  public Uni<Integer> update(Building building) {
+  public Uni<RowSet<Row>> update(Building building) {
 
     final var params = new ArrayTuple(10);
     params.addValue(building.name());
@@ -191,15 +194,13 @@ public class BuildingRepository {
     params.addString(building.emailConfigId());
     params.addValue(building.id());
 
-    final var queryRequest = MySqlQueryRequest.normal(UPDATE, params);
-
-    return mySqlService.request(queryRequest)
-        .map(SqlResult::rowCount);
+    return mySqlService.request(UPDATE, params);
   }
 
   public Uni<Integer> insert(Building building) {
 
     final var params = new ArrayTuple(11);
+
     params.addValue(building.id());
     params.addValue(building.name());
     params.addValue(building.rif());
@@ -214,9 +215,19 @@ public class BuildingRepository {
     params.addValue(building.roundUpPayments());
     params.addString(building.emailConfigId());
 
-    final var queryRequest = MySqlQueryRequest.normal(INSERT, params);
-
-    return mySqlService.request(queryRequest)
+    return mySqlService.request(INSERT, params)
         .map(SqlResult::rowCount);
+  }
+
+  public Uni<Integer> updateEmailConfig(Set<String> ids) {
+    return mySqlService.request(MySqlQueryRequest.batch(EMAIL_CONFIG_DELETED, ids.stream().map(Tuple::of).toList()))
+        .map(SqlResult::rowCount);
+  }
+
+  public Uni<Set<String>> selectByEmailConfig(String id) {
+    final var query = "SELECT id FROM %s WHERE email_config_id = UUID_TO_BIN(?)".formatted(COLLECTION);
+    return mySqlService.request(query, Tuple.of(id))
+        .map(rows -> SqlUtil.toList(rows, row -> row.getString("id")))
+        .map(Set::copyOf);
   }
 }

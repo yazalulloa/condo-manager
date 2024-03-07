@@ -1,0 +1,128 @@
+{@com.yaz.resource.domain.response.ExtraChargeFormDto dto}
+
+<form id="buildings-extra-charge-form"
+      class="min-w-1/4 flex flex-col gap-2"
+      hx-swap="outerHTML"
+      hx-indicator=".htmx-indicator"
+  {#if dto.isEdit}
+      hx-swap-oob="true"
+      hx-patch="/api/extra_charges/{dto.id}"
+  {#else}
+      hx-post="/api/extra_charges/buildings/{dto.buildingId}"
+  {/if}
+      data-te-validation-init
+    script="
+  {#if dto.isRefreshGrid}
+        init send 'update_extra_charges' to #extra_charges_buildings_grid
+  {#else}
+        init set @data-te-validated to 'true'
+  {/if}
+"
+>
+  <input type="hidden" name="{inject:csrf.parameterName}" value="{inject:csrf.token}"
+         script="init set @data-te-validation-state to invalid"/>
+
+  <cm-form-input
+      class=""
+      id="extraChargeDescriptionField"
+      name="extraChargeDescription"
+      maxlength="100"
+      placeholder="Descripción"
+      value="{dto.description}"
+      input-error="{dto.descriptionFieldError}"
+  >
+
+  </cm-form-input>
+
+  <cm-form-input
+      class=""
+      id="extraChargeAmountField"
+      name="extraChargeAmount"
+      type="number"
+      min="1"
+      maxlength="10"
+      step=".01"
+      maxlength="100"
+      placeholder="Monto"
+      value="{dto.amount}"
+      input-error="{dto.amountFieldError}"
+  >
+
+  </cm-form-input>
+
+  <div class="flex flex-row justify-between">
+    <label class="label gap-2 w-full">
+      <select class="select select-bordered w-full" name="extraChargeCurrency">
+        <option value="USD"
+  {#if dto.currency == 'USD'}
+                selected
+  {/if}
+        >USD</option>
+        <option value="VED"
+          {#if dto.currency == 'VED'}
+                selected
+          {/if}
+        >VED</option>
+      </select>
+    </label>
+
+    <label class="cursor-pointer label gap-4 w-full justify-center">
+      <span class="label-text">Activo</span>
+      <input name="extraChargeActive"
+             type="checkbox"
+            {#if dto.active}
+              checked="checked"
+            {/if}
+             value="true"
+             class="checkbox checkbox-primary"/>
+    </label>
+  </div>
+
+
+  {#if dto.apartments && !dto.apartments.isEmpty}
+  <div>
+  <select name="apartments"
+          data-te-select-init data-te-select-filter="true" multiple>
+
+  {#for apt in dto.apartments}
+      <option value="{apt.number}"
+  {#if dto.aptChecked && dto.aptChecked.contains(apt.number)}
+      selected
+  {/if}
+>
+  {apt.number} {apt.name}</option>
+  {/for}
+</select>
+  <label data-te-select-label-ref>Apartamentos </label>
+</div>
+  {/if}
+
+  <div class="p-2 flex flex-row gap-4">
+    <button class="btn btn-primary">
+     {#if dto.isEdit}
+       Editar
+     {#else}
+       Agregar
+     {/if}
+    </button>
+
+    <button class="btn btn-neutral" type="button"
+            script="
+    on click send clear to <cm-form-input/> in #buildings-extra-charge-form
+    on click send 'clear-value-cm' to <select/> in #buildings-extra-charge-form
+    on click send 'dispose-validation' to #buildings-extra-charge-form
+    on click set #buildings-extra-charge-form@hx-post to '/api/extra_charges/buildings/{dto.buildingId}'
+    on click remove @hx-patch from #buildings-extra-charge-form
+">
+      Limpiar
+    </button>
+    <img class="htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">
+  </div>
+
+</form>
+
+{#if dto.tableItem}
+
+  {#include ExtraChargeResource/item item=dto.tableItem /}
+
+{/if}

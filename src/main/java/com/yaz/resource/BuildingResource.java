@@ -5,16 +5,23 @@ import com.yaz.persistence.domain.query.BuildingQuery;
 import com.yaz.persistence.entities.Building;
 import com.yaz.resource.domain.request.BuildingRequest;
 import com.yaz.resource.domain.response.BuildingCountersDto;
+import com.yaz.resource.domain.response.BuildingEditFormInit;
 import com.yaz.resource.domain.response.BuildingFormDto;
 import com.yaz.resource.domain.response.BuildingReportResponse;
+import com.yaz.resource.domain.response.ExtraChargeFormDto;
+import com.yaz.resource.domain.response.ExtraChargeTableItem;
+import com.yaz.service.ApartmentService;
 import com.yaz.service.BuildingService;
 import com.yaz.service.EmailConfigService;
+import com.yaz.service.EncryptionService;
+import com.yaz.service.ExtraChargeService;
 import com.yaz.util.DecimalUtil;
 import com.yaz.util.StringUtil;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
 import io.smallrye.mutiny.Uni;
+import io.vertx.core.json.Json;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.DELETE;
@@ -24,13 +31,16 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jboss.resteasy.reactive.RestPath;
 import org.jboss.resteasy.reactive.RestQuery;
+import org.jboss.resteasy.reactive.server.multipart.MultipartFormDataInput;
 
 @Slf4j
 @Authenticated
@@ -43,6 +53,9 @@ public class BuildingResource {
 
   private final BuildingService service;
   private final EmailConfigService emailConfigService;
+  private final ApartmentService apartmentService;
+  private final ExtraChargeService extraChargeService;
+  private final EncryptionService encryptionService;
 
   @CheckedTemplate
   public static class Templates {
@@ -54,6 +67,8 @@ public class BuildingResource {
     public static native TemplateInstance form(BuildingFormDto dto);
 
     public static native TemplateInstance counters(BuildingCountersDto dto);
+
+    public static native TemplateInstance edit_init(BuildingEditFormInit res);
   }
 
   @GET
@@ -78,10 +93,7 @@ public class BuildingResource {
   @Produces(MediaType.TEXT_HTML)
   public Uni<TemplateInstance> delete(@RestPath String buildingId) {
 
-    log.info("Deleting building {}", buildingId);
-
     return service.delete(buildingId)
-        .invoke(l -> log.info("Building delete {} deleted {}", l, buildingId))
         .replaceWith(counters());
   }
 
@@ -117,32 +129,50 @@ public class BuildingResource {
   public Uni<TemplateInstance> editForm(@RestQuery String buildingId) {
 
     return Uni.combine().all()
-        .unis(service.get(buildingId), emailConfigService.displayList())
-        .with((optional, emailConfigs) -> {
-          if (optional.isEmpty()) {
-            return BuildingFormDto.builder()
-                .shouldRedirect(true)
-                .build();
-          }
+        .unis(service.get(buildingId), emailConfigService.displayList(), apartmentService.aptByBuildings(buildingId),
+            extraChargeService.byBuilding(buildingId))
+        .with((optional, emailConfigs, apartments, extraCharges) -> {
 
-          final var building = optional.get();
-          return BuildingFormDto.builder()
-              .isEdit(true)
-              .id(building.id())
-              .readOnlyId(true)
-              .name(building.name())
-              .rif(building.rif())
-              .mainCurrency(building.mainCurrency())
-              .debtCurrency(building.debtCurrency())
-              .currenciesToShowAmountToPay(building.currenciesToShowAmountToPay())
-              .fixedPay(building.fixedPay())
-              .fixedPayAmount(building.fixedPayAmount())
-              .roundUpPayments(building.roundUpPayments())
-              .emailConfig(building.emailConfigId())
-              .emailConfigs(emailConfigs)
+          Supplier<BuildingFormDto> supplier = () -> {
+            if (optional.isEmpty()) {
+              return BuildingFormDto.builder()
+                  .shouldRedirect(true)
+                  .build();
+            }
+
+            final var building = optional.get();
+            return BuildingFormDto.builder()
+                .isEdit(true)
+                .id(building.id())
+                .readOnlyId(true)
+                .name(building.name())
+                .rif(building.rif())
+                .mainCurrency(building.mainCurrency())
+                .debtCurrency(building.debtCurrency())
+                .currenciesToShowAmountToPay(building.currenciesToShowAmountToPay())
+                .fixedPay(building.fixedPay())
+                .fixedPayAmount(building.fixedPayAmount())
+                .roundUpPayments(building.roundUpPayments())
+                .emailConfig(building.emailConfigId())
+                .emailConfigs(emailConfigs)
+                .build();
+          };
+
+          final var list = extraCharges.stream().map(extraCharge -> new ExtraChargeTableItem(extraCharge,
+                  encryptionService.encrypt(Json.encode(extraCharge.keys()))))
+              .toList();
+
+          return BuildingEditFormInit.builder()
+              .buildingFormDto(supplier.get())
+              .extraCharges(list)
+              .extraChargeFormDto(ExtraChargeFormDto.builder()
+                  .isEdit(false)
+                  .buildingId(buildingId)
+                  .apartments(apartments)
+                  .build())
               .build();
         })
-        .map(Templates::form);
+        .map(Templates::edit_init);
   }
 
   private BuildingFormDto formDto(BuildingRequest request) {
@@ -236,9 +266,15 @@ public class BuildingResource {
   }
 
   @PATCH
-  @Path("edit")
+  @Path("/{id}")
   @Produces(MediaType.TEXT_HTML)
-  public Uni<TemplateInstance> edit(@BeanParam BuildingRequest request) {
+  public Uni<Response> edit(
+      @RestPath String id, @BeanParam BuildingRequest request, MultipartFormDataInput input) {
+    request.setId(id);
+
+  /*  input.getValues().forEach((k, v) -> {
+      log.info("key: {} value: {}", k, v);
+    });*/
 
     final var buildingFormDto = formDto(request).toBuilder()
         .isEdit(true)
@@ -246,11 +282,13 @@ public class BuildingResource {
         .build();
 
     if (!buildingFormDto.isSuccess()) {
+
       return emailConfigService.displayList()
           .map(emailConfigs -> buildingFormDto.toBuilder()
               .emailConfigs(emailConfigs)
               .build())
-          .map(Templates::form);
+          .map(Templates::form)
+          .map(t -> Response.ok(t).build());
     }
 
     final var building = Building.builder()
@@ -267,10 +305,14 @@ public class BuildingResource {
         .build();
 
     return service.update(building)
+//        .replaceWith(Response.noContent()
+//            .header("HX-Redirect", "/buildings")
+//            .build());
         .replaceWith(BuildingFormDto.builder()
             .shouldRedirect(true)
             .build())
-        .map(Templates::form);
+        .map(Templates::form)
+        .map(t -> Response.ok(t).build());
   }
 
 }

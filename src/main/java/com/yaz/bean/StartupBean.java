@@ -3,11 +3,8 @@ package com.yaz.bean;
 import com.yaz.service.NotificationService;
 import com.yaz.util.EnvParams;
 import com.yaz.util.FileUtil;
-import com.yaz.util.JacksonUtil;
 import io.quarkus.runtime.Startup;
 import io.quarkus.runtime.StartupEvent;
-import io.quarkus.vertx.web.RouteFilter;
-import io.vertx.ext.web.RoutingContext;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
@@ -28,7 +25,6 @@ public class StartupBean {
     if (envParams.isShowDir()) {
       FileUtil.showDir();
     }
-    JacksonUtil.loadModules();
   }
 
   void onStart(@Observes StartupEvent ev) {

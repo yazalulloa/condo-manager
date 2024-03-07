@@ -1,8 +1,9 @@
 package com.yaz.resource.domain.request;
 
+import com.yaz.persistence.domain.Currency;
+import java.util.List;
 import java.util.Set;
 import lombok.Data;
-import com.yaz.persistence.domain.Currency;
 import org.jboss.resteasy.reactive.RestForm;
 
 @Data
@@ -28,4 +29,10 @@ public class BuildingRequest {
   private boolean roundUpPayments;
   @RestForm
   private String emailConfig;
+  @RestForm
+  private Set<String> extraCharges;
+
+//  @RestForm
+//  private List<ExtraChargeRequest> extraCharges;
+
 }

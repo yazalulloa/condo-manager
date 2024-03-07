@@ -3,14 +3,15 @@ package com.yaz.service;
 import com.yaz.persistence.ApartmentRepository;
 import com.yaz.persistence.domain.query.ApartmentQuery;
 import com.yaz.persistence.entities.Apartment;
+import com.yaz.persistence.entities.ExtraCharge;
 import com.yaz.resource.ApartmentsResource;
-import com.yaz.resource.domain.response.ApartmentTableResponse;
 import com.yaz.resource.domain.AptItem;
 import com.yaz.resource.domain.request.ApartmentRequest;
+import com.yaz.resource.domain.response.ApartmentTableResponse;
 import com.yaz.resource.domain.response.AptCountersDto;
+import com.yaz.resource.domain.response.BuildingFormDto;
 import com.yaz.service.cache.ApartmentCache;
 import com.yaz.util.Constants;
-import com.yaz.util.DateUtil;
 import io.quarkus.cache.CacheInvalidate;
 import io.quarkus.cache.CacheInvalidateAll;
 import io.quarkus.cache.CacheResult;
@@ -18,6 +19,7 @@ import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -31,13 +33,16 @@ public class ApartmentService {
 
   private final ApartmentRepository repository;
 
-  @CacheInvalidateAll(cacheName = ApartmentCache.TOTAL_COUNT)
-  @CacheInvalidateAll(cacheName = ApartmentCache.QUERY_COUNT)
-  @CacheInvalidateAll(cacheName = ApartmentCache.SELECT)
-  @CacheInvalidate(cacheName = ApartmentCache.EXISTS)
-  @CacheInvalidate(cacheName = ApartmentCache.GET)
   public Uni<Integer> delete(String buildingId, String number) {
-    return repository.delete(buildingId, number);
+    return repository.delete(buildingId, number)
+        .flatMap(i -> {
+          if (i > 0) {
+            return invalidateOne(buildingId, number)
+                .replaceWith(i);
+          }
+
+          return Uni.createFrom().item(i);
+        });
   }
 
   @CacheResult(cacheName = ApartmentCache.TOTAL_COUNT, lockTimeout = Constants.CACHE_TIMEOUT)
@@ -104,19 +109,22 @@ public class ApartmentService {
     return repository.exists(buildingId, number);
   }
 
+
+  @CacheInvalidateAll(cacheName = ApartmentCache.TOTAL_COUNT)
+  @CacheInvalidateAll(cacheName = ApartmentCache.QUERY_COUNT)
+  @CacheInvalidateAll(cacheName = ApartmentCache.SELECT_MINIMAL_BY_BUILDINGS)
   @CacheInvalidate(cacheName = ApartmentCache.EXISTS)
-  public Uni<Void> invalidateExists(String buildingId, String number) {
+  public Uni<Void> invalidateOne(String buildingId, String number) {
     return invalidateGet(buildingId, number);
   }
 
+  @CacheInvalidateAll(cacheName = ApartmentCache.SELECT)
   @CacheInvalidate(cacheName = ApartmentCache.GET)
   public Uni<Void> invalidateGet(String buildingId, String number) {
     return Uni.createFrom().voidItem();
   }
 
-  @CacheInvalidateAll(cacheName = ApartmentCache.SELECT)
-  @CacheInvalidateAll(cacheName = ApartmentCache.TOTAL_COUNT)
-  @CacheInvalidateAll(cacheName = ApartmentCache.QUERY_COUNT)
+
   public Uni<Apartment> create(ApartmentRequest request) {
     final var apartment = Apartment.builder()
         .buildingId(request.getBuildingId())
@@ -127,11 +135,14 @@ public class ApartmentService {
         .build();
 
     return repository.insert(apartment)
-        .flatMap(list -> {
-          //list.forEach(SqlUtil::print);
-          return invalidateExists(apartment.buildingId(), apartment.number());
-        })
-        .replaceWith(apartment);
+        .flatMap(i -> {
+          if (i > 0) {
+            return invalidateOne(apartment.buildingId(), apartment.number())
+                .replaceWith(apartment);
+          }
+
+          return Uni.createFrom().item(apartment);
+        });
   }
 
   public Uni<AptCountersDto> counters(ApartmentQuery apartmentQuery) {
@@ -147,7 +158,7 @@ public class ApartmentService {
     return repository.read(buildingId, number);
   }
 
-  @CacheInvalidateAll(cacheName = ApartmentCache.SELECT)
+
   public Uni<Apartment> update(ApartmentRequest request) {
     final var apartment = Apartment.builder()
         .buildingId(request.getBuildingId())
@@ -158,8 +169,18 @@ public class ApartmentService {
         .build();
 
     return repository.update(apartment)
-        .invoke(rowCount -> log.info("update rowCount {}", rowCount))
-        .flatMap(i -> invalidateGet(apartment.buildingId(), apartment.number()))
-        .map(rows -> apartment);
+        .flatMap(i -> {
+          if (i > 0) {
+            return invalidateGet(apartment.buildingId(), apartment.number())
+                .replaceWith(apartment);
+          }
+
+          return Uni.createFrom().item(apartment);
+        });
+  }
+
+  @CacheResult(cacheName = ApartmentCache.SELECT_MINIMAL_BY_BUILDINGS, lockTimeout = Constants.CACHE_TIMEOUT)
+  public Uni<List<ExtraCharge.Apt>> aptByBuildings(String buildingId) {
+    return repository.aptByBuildings(buildingId);
   }
 }

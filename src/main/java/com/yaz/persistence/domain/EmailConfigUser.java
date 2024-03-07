@@ -13,6 +13,7 @@ public record EmailConfigUser(
     return emailConfig.expiresIn() < System.currentTimeMillis();
   }
   public boolean shouldGetNewOne() {
+
     return hasExpired() && !emailConfig.hasRefreshToken();
   }
 

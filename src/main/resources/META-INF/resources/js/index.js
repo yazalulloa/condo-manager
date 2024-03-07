@@ -19,7 +19,7 @@ import './elements.js';
 _hyperscript.browserInit();
 
 window.initComponents = function () {
-  console.log("INIT TW-ELEMENTS")
+  // console.log("INIT TW-ELEMENTS")
   initTE({
         Carousel,
         Datepicker,
@@ -33,13 +33,13 @@ window.initComponents = function () {
       {allowReinits: true}, true); // set second parameter to true if you want to use a debugger
 
   let forms = document.getElementsByTagName('form');
-  console.log("forms: {}", forms.length);
+  // console.log("forms: {}", forms.length);
   for (let i = 0; i < forms.length; i++) {
     let form = forms[i];
     let validation = new Validation(form);
     form.addEventListener("dispose-validation", evt => {
       evt.preventDefault();
-      console.log("disposing validation");
+      // console.log("disposing validation");
       validation.dispose();
       validation.init();
     });
@@ -72,7 +72,23 @@ window.onload = function () {
 }
 
 document.body.addEventListener("htmx:afterProcessNode", function (configEvent) {
+  initComponents();
   addDisableEventToButtons();
+  disableBtnInsideForm();
+
+  let selectElem = document.getElementsByTagName("select");
+  for (let i = 0; i < selectElem.length; i++) {
+    let select = selectElem[i];
+    if (select.hasAttribute("data-te-select-init")) {
+      const instance = Select.getInstance(select);
+      select.addEventListener("clear-value-cm", function (evt) {
+        evt.preventDefault();
+        instance.setValue([]);
+      });
+    }
+
+  }
+
 })
 
 window.addDisableEventToButtons = function () {
@@ -152,7 +168,7 @@ window.initNav = function () {
       || lastUrlSegmentCurrent === 'index'
       || lastUrlSegmentCurrent === '/') {
     let item = localStorage.getItem("current-nav");
-    console.log("current-nav: {}", item);
+    //console.log("current-nav: {}", item);
     if (item) {
       let elem = document.getElementById(item);
       elem?.dispatchEvent(new Event('navigate'));
@@ -173,7 +189,7 @@ window.initNav = function () {
 }
 
 window.saveNavState = function (anchor) {
-  console.log("saving nav state {}", anchor.id);
+  //console.log("saving nav state {}", anchor.id);
   localStorage.setItem("current-nav", anchor.id);
 }
 

@@ -2,6 +2,7 @@ package com.yaz.resource.domain.request;
 
 import java.math.BigDecimal;
 import java.util.Set;
+import lombok.Builder;
 import lombok.Data;
 import org.jboss.resteasy.reactive.RestForm;
 

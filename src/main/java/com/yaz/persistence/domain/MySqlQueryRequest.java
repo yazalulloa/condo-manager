@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -14,10 +15,8 @@ import lombok.experimental.Accessors;
 
 @Builder(toBuilder = true)
 @Accessors(fluent = true)
-@ToString
-@Getter
+@Data
 @AllArgsConstructor
-@EqualsAndHashCode
 public class MySqlQueryRequest {
 
   private final Type type;

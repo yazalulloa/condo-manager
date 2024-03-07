@@ -2,6 +2,7 @@ package com.yaz.bean;
 
 import com.google.api.client.auth.oauth2.AuthorizationCodeFlow;
 import com.google.api.client.auth.oauth2.Credential;
+import com.google.api.client.auth.oauth2.TokenResponseException;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
@@ -161,7 +162,11 @@ public class GmailHelper {
           .build();
 
     } catch (Exception e) {
-      log.info("Error gmail check: ", e);
+      if (e instanceof TokenResponseException) {
+        log.debug("Error gmail check: {}", e.getMessage());
+      } else {
+        log.error("Error gmail check: ", e);
+      }
       final var stacktrace = ExceptionUtils.getStackTrace(e);
 
       return emailConfig.toBuilder()

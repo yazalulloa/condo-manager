@@ -1,5 +1,6 @@
 package com.yaz.persistence;
 
+import com.yaz.persistence.MySqlService.TrxMode;
 import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.domain.MySqlQueryRequest;
 import com.yaz.persistence.domain.query.RateQuery;
@@ -55,7 +56,7 @@ public class RateRepository {
 
   public Uni<Integer> delete(long id) {
 
-    return mySqlService.request(MySqlQueryRequest.normal(DELETE_BY_ID, Tuple.of(id)))
+    return mySqlService.request(DELETE_BY_ID, Tuple.of(id))
         .map(SqlResult::rowCount);
   }
 
@@ -150,13 +151,11 @@ public class RateRepository {
     final var params = new ArrayTuple(9);
     rateTuple(rate, params);
 
-    final var queryRequest = MySqlQueryRequest.normal(INSERT, params);
-
     final var list = new ArrayList<MySqlQueryRequest>();
-    list.add(queryRequest);
+    list.add(MySqlQueryRequest.normal(INSERT, params));
     list.add(MySqlQueryRequest.normal("SELECT LAST_INSERT_ID()"));
 
-    return mySqlService.transaction(list)
+    return mySqlService.transaction(TrxMode.SEQUENTIALLY,list)
 //        .onItem()
 //        .invoke(rows -> {
 //          for (RowSet<Row> rowRowSet : rows) {
@@ -176,14 +175,12 @@ public class RateRepository {
   }
 
   public Uni<RowSet<Row>> last(Currency fromCurrency, Currency toCurrency) {
-    final var queryRequest = MySqlQueryRequest.normal(LAST, Tuple.of(fromCurrency.name(), toCurrency.name()));
-    return mySqlService.request(queryRequest);
+    return mySqlService.request(LAST, Tuple.of(fromCurrency.name(), toCurrency.name()));
   }
 
-  public Uni<Boolean> exists(Long hash) {
-    final var queryRequest = MySqlQueryRequest.normal(HASH_EXISTS, Tuple.of(hash));
+  public Uni<Boolean> exists(long hash) {
 
-    return mySqlService.request(queryRequest)
+    return mySqlService.request(HASH_EXISTS, Tuple.of(hash))
         .map(RowSet::iterator)
         .map(RowIterator::hasNext);
   }

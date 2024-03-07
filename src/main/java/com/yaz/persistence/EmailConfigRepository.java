@@ -41,8 +41,8 @@ public class EmailConfigRepository {
   private static final String EXISTS = "SELECT BIN_TO_UUID(user_id) as uuid_id FROM %s WHERE user_id = ?".formatted(
       COLLECTION);
   private static final String DELETE_BY_ID = "DELETE FROM %s WHERE user_id = UUID_TO_BIN(?)".formatted(COLLECTION);
-  private static final String CREATE = """
-      INSERT INTO %s (user_id, file, file_size, hash, active, is_available, has_refresh_token, expires_in, created_at) 
+  private static final String REPLACE = """
+      REPLACE INTO %s (user_id, file, file_size, hash, active, is_available, has_refresh_token, expires_in, created_at) 
       VALUES (UUID_TO_BIN(?), %s);
       """.formatted(COLLECTION, SqlUtil.params(8));
 
@@ -81,18 +81,18 @@ public class EmailConfigRepository {
   }
 
   public Uni<Integer> delete(String id) {
-    return mySqlService.request(MySqlQueryRequest.normal(DELETE_BY_ID, Tuple.of(id)))
+    return mySqlService.request(DELETE_BY_ID, Tuple.of(id))
         .map(SqlResult::rowCount);
   }
 
   public Uni<Boolean> exists(String id) {
-    return mySqlService.request(MySqlQueryRequest.normal(EXISTS, Tuple.of(id)))
+    return mySqlService.request(EXISTS, Tuple.of(id))
         .map(RowSet::iterator)
         .map(i -> i.hasNext() && i.next().getString("uuid_id") != null);
   }
 
   public Uni<Optional<EmailConfig>> read(String id) {
-    return mySqlService.request(MySqlQueryRequest.normal(READ, Tuple.of(id)))
+    return mySqlService.request(READ, Tuple.of(id))
         .map(rows -> {
           if (rows.size() == 0) {
             return Optional.empty();
@@ -121,7 +121,7 @@ public class EmailConfigRepository {
   }
 
   public Uni<Integer> create(EmailConfig emailConfig) {
-    return mySqlService.request(MySqlQueryRequest.normal(CREATE, createTuple(emailConfig)))
+    return mySqlService.request(REPLACE, createTuple(emailConfig))
         .map(SqlResult::rowCount);
   }
 
@@ -141,7 +141,7 @@ public class EmailConfigRepository {
   }
 
   public Uni<List<EmailConfig>> all() {
-    return mySqlService.request(MySqlQueryRequest.normal(ALL))
+    return mySqlService.request(ALL)
         .map(rows -> SqlUtil.toList(rows, this::from));
   }
 
@@ -180,9 +180,7 @@ public class EmailConfigRepository {
 
   public Uni<List<EmailConfigUser>> select(EmailConfigQuery query) {
 
-    final var queryRequest = where(query);
-
-    return mySqlService.request(queryRequest)
+    return mySqlService.request(where(query))
         .map(rows -> SqlUtil.toList(rows, row -> {
 
           final var user = userFrom(row);
@@ -218,14 +216,14 @@ public class EmailConfigRepository {
         .addString(emailConfig.stacktrace())
         .addValue(emailConfig.userId());
 
-    return mySqlService.request(MySqlQueryRequest.normal(UPDATE, Tuple.newInstance(tuple)))
+    return mySqlService.request(UPDATE, Tuple.newInstance(tuple))
         .map(SqlResult::rowCount);
 
   }
 
   public Uni<Optional<EmailConfigTableItem>> readWithUser(String id) {
 
-    return mySqlService.request(MySqlQueryRequest.normal(SELECT_WITH_USER, Tuple.of(id)))
+    return mySqlService.request(SELECT_WITH_USER, Tuple.of(id))
         .map(rows -> {
           if (rows.size() == 0) {
             return Optional.empty();

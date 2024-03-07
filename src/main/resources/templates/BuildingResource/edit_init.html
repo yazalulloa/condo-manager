@@ -1,0 +1,18 @@
+{@com.yaz.resource.domain.response.BuildingEditFormInit res}
+
+{#include BuildingResource/form dto=res.buildingFormDto /}
+
+<div class="flex flex-row flex-wrap gap-6 justify-center p-2">
+
+
+  <div id="extra_charges_buildings_grid"
+       hx-get="/api/extra_charges/buildings/{res.buildingFormDto.id}"
+       hx-trigger="update_extra_charges"
+       hx-indicator=".htmx-indicator"
+       hx-swap="innerHTML">
+
+    {#include ExtraChargeResource/grid extraCharges=res.extraCharges /}
+  </div>
+  {#include ExtraChargeResource/form dto=res.extraChargeFormDto /}
+
+</div>

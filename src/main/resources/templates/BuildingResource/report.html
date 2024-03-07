@@ -18,7 +18,16 @@
     {#if item.building.fixedPay}
     <span>Monto fijo: {item.building.fixedPayAmount}</span>
     {/if}
-    <span>Redondear pagos: {item.building.roundUpPayments}</span>
+
+    <div>
+  <span
+      class="inline-block whitespace-nowrap rounded-full px-[0.65em] pb-[0.25em] pt-[0.35em] text-center align-baseline text-[0.75em] font-bold leading-none
+{item.building.roundUpPayments ? 'bg-success-100 text-success-700' : 'bg-danger-100 text-danger-700'}
+">
+    Redondear pagos
+  </span>
+    </div>
+
     <span>Apartmentos: {item.building.aptCount}</span>
     {#if item.building.configEmail}
     <span>Configuracion de email: {item.building.configEmail}</span>

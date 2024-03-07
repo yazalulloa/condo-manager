@@ -95,6 +95,25 @@
   background-color: lightyellow;
 }
 
+.edit-btn {
+  background: none;
+  color: inherit;
+  border: none;
+  padding: 2px;
+  font: inherit;
+  cursor: pointer;
+  outline: inherit;
+  border-radius: 50%;
+}
+
+.edit-btn:hover {
+  background-color: lightslategrey;
+}
+
+.edit-btn:active {
+  background-color: whitesmoke;
+}
+
 .apt-emails {
   height: 100%;
   display: flex;
@@ -262,6 +281,22 @@
 }
 
 .oicd-token-grid > * {
+  text-align: center;
+  margin: auto;
+  width: 100%;
+}
+
+.extra-charges-grid {
+  display: grid;
+  border-bottom: 1px solid black;
+  grid-template-columns: 2fr 2fr 4fr 2fr;
+  grid-template-rows: auto;
+  grid-gap: 4px;
+  width: 100%;
+  text-align: center;
+}
+
+.extra-charges-grid > * {
   text-align: center;
   margin: auto;
   width: 100%;

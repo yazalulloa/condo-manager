@@ -45,6 +45,8 @@ class FormInput extends HTMLElement {
     input.max = this.getAttribute("max");
     input.min = this.getAttribute("min");
     input.step = this.getAttribute("step");
+    input.disabled = this.getAttribute("disabled") != null;
+    input.readOnly = this.getAttribute("readOnly") != null;
 
     if (input.maxLength) {
       input.oninput = limitInputToMaxLength(input);
@@ -52,7 +54,7 @@ class FormInput extends HTMLElement {
 
     inputClasses.split(" ").forEach((element) => input.classList.add(element));
 
-    const label = document.createElement('label');
+    const label = document.createElement( 'label');
     label.htmlFor = input.id;
     label.innerText = placeholder;
     labelClasses.split(" ").forEach((element) => label.classList.add(element));
@@ -76,12 +78,14 @@ class FormInput extends HTMLElement {
   }
 
   connectedCallback() {
-    console.log("Custom element added to page.");
+    //console.log("Custom element added to page.");
 
     this.addEventListener("clear", evt => {
-      console.log("Clearing input");
-      this.input.value = this.input.type === "number" ? "0" : "";
-      console.log("Input value is now {}", this.input.value);
+      //console.log("Clearing input");
+
+      this.input.value = this.input.type === "number" ? this.input.min ? this.input.min : "0" : "";
+      this.input.value = "";
+      //console.log("Input value is now {}", this.input.value);
       this.formDiv.removeAttribute("data-te-invalid-feedback");
       this.formDiv.removeAttribute("data-te-validation-state");
 
@@ -89,15 +93,15 @@ class FormInput extends HTMLElement {
   }
 
   disconnectedCallback() {
-    console.log("Custom element removed from page.");
+    //console.log("Custom element removed from page.");
   }
 
   adoptedCallback() {
-    console.log("Custom element moved to new page.");
+    //console.log("Custom element moved to new page.");
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
-    console.log(`Attribute ${name} has changed.`);
+    //console.log(`Attribute ${name} has changed.`);
   }
 }
 

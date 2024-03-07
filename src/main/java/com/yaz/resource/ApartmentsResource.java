@@ -4,9 +4,9 @@ import com.yaz.persistence.domain.query.ApartmentQuery;
 import com.yaz.resource.domain.ApartmentFormDto;
 import com.yaz.resource.domain.ApartmentFormDto.EmailForm;
 import com.yaz.resource.domain.ApartmentInitDto;
-import com.yaz.resource.domain.response.ApartmentTableResponse;
 import com.yaz.resource.domain.AptItem;
 import com.yaz.resource.domain.request.ApartmentRequest;
+import com.yaz.resource.domain.response.ApartmentTableResponse;
 import com.yaz.resource.domain.response.AptCountersDto;
 import com.yaz.resource.msg.ApartmentMessages;
 import com.yaz.service.ApartmentService;
@@ -281,10 +281,13 @@ public class ApartmentsResource {
   }
 
   @PATCH
+  @Path("/{buildingId}/{number}")
   @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
   @Produces(MediaType.TEXT_HTML)
-  public Uni<TemplateInstance> patch(@BeanParam ApartmentRequest request) {
+  public Uni<TemplateInstance> patch(@RestPath String buildingId, @RestPath String number, @BeanParam ApartmentRequest request) {
 
+    request.setBuildingId(buildingId);
+    request.setNumber(number);
     return fromRequest(request, true)
         .flatMap(dto -> {
           if (dto.isSuccess()) {
