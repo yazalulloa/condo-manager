@@ -1,6 +1,7 @@
 package com.yaz.util;
 
 import io.smallrye.config.common.utils.StringUtil;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.MonthDay;
 import java.time.ZoneId;
@@ -70,4 +71,7 @@ public class DateUtil {
     return isValidYear && isValidMonth && isValidDay && isValidDayMonth;
   }
 
+  public static long epochSecond() {
+    return Instant.now().getEpochSecond();
+  }
 }

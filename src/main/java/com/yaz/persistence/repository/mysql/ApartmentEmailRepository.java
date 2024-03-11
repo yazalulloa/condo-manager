@@ -1,4 +1,4 @@
-package com.yaz.persistence;
+package com.yaz.persistence.repository.mysql;
 
 import com.yaz.persistence.domain.MySqlQueryRequest;
 import com.yaz.persistence.entities.Apartment;
@@ -11,8 +11,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.util.Collection;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 
 @ApplicationScoped
@@ -21,22 +19,12 @@ public class ApartmentEmailRepository {
 
   public static final String COLLECTION = "apartment_emails";
   private static final String REPLACE = "INSERT IGNORE INTO apartment_emails (building_id, apt_number, email) VALUES (?, ?, ?);";
-  public static final String INSERT = """
+  private static final String INSERT = """
       INSERT IGNORE INTO %s (building_id, apt_number, email)
       VALUES (?, ?, ?)
       """.formatted(COLLECTION);
 
-  public static final String DELETE = """
-      DELETE FROM %s WHERE building_id = ? AND apt_number = ? AND email = ?
-      """.formatted(COLLECTION);
-
-  public static final String DELETE_WHERE = "DELETE FROM %s WHERE building_id = ? AND apt_number = ? AND email NOT IN (".formatted(
-      COLLECTION);
-
-  public static final String READ = "SELECT * FROM %s WHERE building_id = ? AND apt_number = ? AND email = ? LIMIT 1".formatted(
-      COLLECTION);
-
-  public static final String DELETE_BY_APT = "DELETE FROM %s WHERE building_id = ? AND apt_number = ?".formatted(
+  private static final String DELETE_WHERE = "DELETE FROM %s WHERE building_id = ? AND apt_number = ? AND email NOT IN (".formatted(
       COLLECTION);
 
   private final MySqlService mySqlService;

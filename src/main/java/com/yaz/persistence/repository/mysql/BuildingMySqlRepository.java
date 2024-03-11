@@ -1,11 +1,13 @@
-package com.yaz.persistence;
+package com.yaz.persistence.repository.mysql;
 
 import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.domain.MySqlQueryRequest;
 import com.yaz.persistence.domain.query.BuildingQuery;
 import com.yaz.persistence.domain.query.SortOrder;
 import com.yaz.persistence.entities.Building;
+import com.yaz.persistence.repository.BuildingRepository;
 import com.yaz.util.SqlUtil;
+import io.quarkus.arc.lookup.LookupIfProperty;
 import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.sqlclient.Row;
 import io.vertx.mutiny.sqlclient.RowIterator;
@@ -25,10 +27,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@LookupIfProperty(name = "app.repository.impl", stringValue = "mysql")
+//@Named("mysql")
 @ApplicationScoped
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
-public class BuildingRepository {
-
+public class BuildingMySqlRepository implements BuildingRepository {
 
   private static final String COLLECTION = "buildings";
   private static final String SELECT = """
@@ -65,19 +68,23 @@ public class BuildingRepository {
       COLLECTION);
 
   private static final String SELECT_ALL_IDS = "SELECT id FROM %s ORDER BY id".formatted(COLLECTION);
+  private static final String SELECT_BY_EMAIL_CONFIG = "SELECT id FROM %s WHERE email_config_id = UUID_TO_BIN(?)".formatted(COLLECTION);
 
   private final MySqlService mySqlService;
 
+  @Override
   public Uni<Long> count() {
     return mySqlService.totalCount(COLLECTION);
   }
 
+  @Override
   public Uni<Integer> delete(String id) {
 
     return mySqlService.request(DELETE_BY_ID, Tuple.of(id))
         .map(SqlResult::rowCount);
   }
 
+  @Override
   public Uni<List<Building>> select(BuildingQuery query) {
     final var stringBuilder = new StringBuilder(SELECT);
 
@@ -107,7 +114,7 @@ public class BuildingRepository {
         .map(rows -> SqlUtil.toList(rows, this::from));
   }
 
-  public Building from(Row row) {
+  private Building from(Row row) {
     final var currenciesToShowAmountToPay = Arrays.stream(row.getString("currencies_to_show_amount_to_pay").split(","))
         .map(Currency::valueOf)
         .collect(Collectors.toSet());
@@ -130,7 +137,8 @@ public class BuildingRepository {
         .build();
   }
 
-  public Uni<RowSet<Row>> insertIgnore(Collection<Building> buildings) {
+  @Override
+  public Uni<Integer> insertIgnore(Collection<Building> buildings) {
 
     final var tuples = buildings.stream()
         .map(building -> {
@@ -154,13 +162,17 @@ public class BuildingRepository {
 
     final var mySqlBatch = MySqlQueryRequest.batch(INSERT_IGNORE, tuples);
 
-    return mySqlService.request(mySqlBatch);
+    return mySqlService.request(mySqlBatch)
+        .map(SqlResult::rowCount);
   }
 
-  public Uni<RowSet<Row>> selectAllIds() {
-    return mySqlService.request(SELECT_ALL_IDS);
+  @Override
+  public Uni<List<String>> selectAllIds() {
+    return mySqlService.request(SELECT_ALL_IDS)
+        .map(rows -> SqlUtil.toList(rows, row -> row.getString("id")));
   }
 
+  @Override
   public Uni<Boolean> exists(String buildingId) {
 
     return mySqlService.request(EXISTS, Tuple.of(buildingId))
@@ -168,6 +180,7 @@ public class BuildingRepository {
         .map(RowIterator::hasNext);
   }
 
+  @Override
   public Uni<Optional<Building>> read(String buildingId) {
 
     return mySqlService.request(READ, Tuple.of(buildingId))
@@ -177,7 +190,8 @@ public class BuildingRepository {
             .map(this::from));
   }
 
-  public Uni<RowSet<Row>> update(Building building) {
+  @Override
+  public Uni<Integer> update(Building building) {
 
     final var params = new ArrayTuple(10);
     params.addValue(building.name());
@@ -194,9 +208,11 @@ public class BuildingRepository {
     params.addString(building.emailConfigId());
     params.addValue(building.id());
 
-    return mySqlService.request(UPDATE, params);
+    return mySqlService.request(UPDATE, params)
+        .map(SqlResult::rowCount);
   }
 
+  @Override
   public Uni<Integer> insert(Building building) {
 
     final var params = new ArrayTuple(11);
@@ -219,14 +235,16 @@ public class BuildingRepository {
         .map(SqlResult::rowCount);
   }
 
+  @Override
   public Uni<Integer> updateEmailConfig(Set<String> ids) {
     return mySqlService.request(MySqlQueryRequest.batch(EMAIL_CONFIG_DELETED, ids.stream().map(Tuple::of).toList()))
         .map(SqlResult::rowCount);
   }
 
+  @Override
   public Uni<Set<String>> selectByEmailConfig(String id) {
-    final var query = "SELECT id FROM %s WHERE email_config_id = UUID_TO_BIN(?)".formatted(COLLECTION);
-    return mySqlService.request(query, Tuple.of(id))
+
+    return mySqlService.request(SELECT_BY_EMAIL_CONFIG, Tuple.of(id))
         .map(rows -> SqlUtil.toList(rows, row -> row.getString("id")))
         .map(Set::copyOf);
   }

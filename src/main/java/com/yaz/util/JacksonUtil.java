@@ -24,7 +24,8 @@ import java.util.Map;
 public class JacksonUtil {
 
   public static ObjectMapper getObjectMapper() {
-    return DatabindCodec.mapper();
+
+    return defaultConfig(DatabindCodec.mapper());
   }
 
   public static void loadModules(){
@@ -69,6 +70,7 @@ public class JacksonUtil {
     return mapper.readerFor(javaType);
   }
 
+
   public static <T extends ObjectMapper> T defaultConfig(T mapper) {
 
     mapper
@@ -77,7 +79,7 @@ public class JacksonUtil {
         .registerModule(new Jdk8Module())
         .registerModule(new BlackbirdModule())
         .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-        .setSerializationInclusion(JsonInclude.Include.NON_NULL)
+        //.setSerializationInclusion(JsonInclude.Include.NON_NULL)
         .configure(JsonGenerator.Feature.WRITE_BIGDECIMAL_AS_PLAIN, true)
         //.setSerializationInclusion(JsonInclude.Include.NON_DEFAULT)
         .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)

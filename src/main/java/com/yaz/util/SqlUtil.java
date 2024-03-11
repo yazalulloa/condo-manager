@@ -1,11 +1,14 @@
 package com.yaz.util;
 
+import com.yaz.client.turso.response.TursoResponse;
 import io.reactivex.rxjava3.core.Maybe;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.mutiny.sqlclient.Row;
 import io.vertx.mutiny.sqlclient.RowIterator;
 import io.vertx.mutiny.sqlclient.RowSet;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -17,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class SqlUtil {
+  public static final DateTimeFormatter SQLITE_DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
   public static final String AND = " AND ";
 
@@ -101,5 +105,29 @@ public class SqlUtil {
         .filter(RowIterator::hasNext)
         .map(RowIterator::next)
         .map(from);
+  }
+
+  public static <T> List<T> toList(List<TursoResponse.Row> rows, Function<TursoResponse.Row, T> function) {
+    final var list = new ArrayList<T>(rows.size());
+
+    for (TursoResponse.Row row : rows) {
+      list.add(function.apply(row));
+    }
+
+    return list;
+  }
+
+  public static String escape(Object object) {
+    return Optional.ofNullable(object)
+        .map(Object::toString)
+        .map(s -> "'" + s + "'")
+        .orElse("null");
+  }
+
+  public static String formatDateSqlite(TemporalAccessor temporalAccessor) {
+    if (temporalAccessor == null) {
+      return null;
+    }
+    return SQLITE_DATE_TIME_FORMATTER.format(temporalAccessor);
   }
 }

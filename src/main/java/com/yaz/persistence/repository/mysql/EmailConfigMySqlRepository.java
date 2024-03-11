@@ -1,14 +1,16 @@
-package com.yaz.persistence;
+package com.yaz.persistence.repository.mysql;
 
 import com.yaz.persistence.domain.EmailConfigUser;
 import com.yaz.persistence.domain.IdentityProvider;
 import com.yaz.persistence.domain.MySqlQueryRequest;
 import com.yaz.persistence.domain.query.EmailConfigQuery;
 import com.yaz.persistence.entities.EmailConfig;
+import com.yaz.persistence.repository.EmailConfigRepository;
 import com.yaz.resource.domain.response.EmailConfigDto;
 import com.yaz.resource.domain.response.EmailConfigTableItem;
 import com.yaz.util.SqlUtil;
 import com.yaz.util.StringUtil;
+import io.quarkus.arc.lookup.LookupIfProperty;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.mutiny.sqlclient.Row;
@@ -27,9 +29,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@LookupIfProperty(name = "app.repository.impl", stringValue = "mysql")
+//@Named("mysql")
 @ApplicationScoped
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
-public class EmailConfigRepository {
+public class EmailConfigMySqlRepository implements EmailConfigRepository {
 
 
   private static final String COLLECTION = "email_configs";
@@ -53,7 +57,7 @@ public class EmailConfigRepository {
             %s
       ORDER BY email_configs.user_id DESC LIMIT ?;
       """;
-  private static final String SELECT_WITH_USER = """
+  private static final String READ_WITH_USER = """
       SELECT BIN_TO_UUID(email_configs.user_id) as uuid_id,email_configs.*, users.provider_id, users.provider, users.email, users.username, users.name, users.picture
          FROM email_configs
          INNER JOIN users ON email_configs.user_id = users.id
@@ -76,20 +80,24 @@ public class EmailConfigRepository {
 
   private final MySqlService mySqlService;
 
+  @Override
   public Uni<Long> count() {
     return mySqlService.totalCount(COLLECTION);
   }
 
+  @Override
   public Uni<Integer> delete(String id) {
     return mySqlService.request(DELETE_BY_ID, Tuple.of(id))
         .map(SqlResult::rowCount);
   }
 
+  @Override
   public Uni<Boolean> exists(String id) {
     return mySqlService.request(EXISTS, Tuple.of(id))
         .map(RowSet::iterator)
         .map(i -> i.hasNext() && i.next().getString("uuid_id") != null);
   }
+
 
   public Uni<Optional<EmailConfig>> read(String id) {
     return mySqlService.request(READ, Tuple.of(id))
@@ -120,6 +128,7 @@ public class EmailConfigRepository {
         .build();
   }
 
+  @Override
   public Uni<Integer> create(EmailConfig emailConfig) {
     return mySqlService.request(REPLACE, createTuple(emailConfig))
         .map(SqlResult::rowCount);
@@ -139,6 +148,7 @@ public class EmailConfigRepository {
 
     return Tuple.newInstance(tuple);
   }
+
 
   public Uni<List<EmailConfig>> all() {
     return mySqlService.request(ALL)
@@ -178,6 +188,7 @@ public class EmailConfigRepository {
     return MySqlQueryRequest.normal(SELECT_FULL.formatted(queryParams), tuple);
   }
 
+  @Override
   public Uni<List<EmailConfigUser>> select(EmailConfigQuery query) {
 
     return mySqlService.request(where(query))
@@ -202,6 +213,7 @@ public class EmailConfigRepository {
         .build();
   }
 
+  @Override
   public Uni<Integer> update(EmailConfig emailConfig) {
 
     final var tuple = new ArrayTuple(8)
@@ -221,9 +233,10 @@ public class EmailConfigRepository {
 
   }
 
+  @Override
   public Uni<Optional<EmailConfigTableItem>> readWithUser(String id) {
 
-    return mySqlService.request(SELECT_WITH_USER, Tuple.of(id))
+    return mySqlService.request(READ_WITH_USER, Tuple.of(id))
         .map(rows -> {
           if (rows.size() == 0) {
             return Optional.empty();
@@ -239,6 +252,7 @@ public class EmailConfigRepository {
         });
   }
 
+  @Override
   public Uni<List<EmailConfigDto>> displayList() {
 
     return mySqlService.request(SELECT_DISPLAY)

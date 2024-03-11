@@ -1,5 +1,6 @@
 package com.yaz.util;
 
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import io.smallrye.mutiny.Uni;
@@ -31,5 +32,9 @@ public class MutinyUtil {
 
   public static <T> Single<T> single(Uni<T> uni) {
     return toMaybe(uni).toSingle();
+  }
+
+  public static Uni<Void> toUni(Completable completable) {
+    return UniRx3Converters.fromCompletable().from(completable);
   }
 }

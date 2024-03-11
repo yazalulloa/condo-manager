@@ -1,21 +1,22 @@
 package com.yaz.service;
 
-import com.yaz.persistence.UserRepository;
 import com.yaz.persistence.domain.IdentityProvider;
 import com.yaz.persistence.domain.query.UserQuery;
 import com.yaz.persistence.entities.User;
+import com.yaz.persistence.repository.UserRepository;
 import com.yaz.resource.UserResource;
 import com.yaz.resource.domain.response.UserTableResponse;
-import com.yaz.service.cache.RateCache;
 import com.yaz.service.cache.UserCache;
 import com.yaz.util.Constants;
 import io.quarkus.cache.CacheInvalidateAll;
 import io.quarkus.cache.CacheResult;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,38 +26,46 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class UserService {
 
-  private final UserRepository repository;
+  private final Instance<UserRepository> repository;
+
+
+  private UserRepository repository() {
+    return repository.get();
+  }
 
   public Uni<Long> count() {
-    return repository.count();
+    return repository().count();
   }
 
   @CacheResult(cacheName = UserCache.GET_ID_FROM_PROVIDER, lockTimeout = Constants.CACHE_TIMEOUT)
-  public Uni<String> getIdFromProvider(IdentityProvider provider, String providerId) {
-    return repository.getIdFromProvider(provider, providerId);
+  public Uni<Optional<String>> getIdFromProvider(IdentityProvider provider, String providerId) {
+    return repository().getIdFromProvider(provider, providerId);
   }
 
   public Uni<String> saveIfExists(User user) {
 
     return getIdFromProvider(user.provider(), user.providerId())
-        .flatMap(userId -> {
-          if (userId != null) {
+        .flatMap(optional -> {
+
+          if (optional.isPresent()) {
+            final var userId = optional.get();
             log.info("User already exists {} {}", userId, user.providerId());
-            return repository.updatelastLoginAt(userId)
+            return repository().updateLastLoginAt(userId)
                 .replaceWith(userId);
           }
 
           return save(user);
         });
   }
+
   @CacheInvalidateAll(cacheName = UserCache.GET_ID_FROM_PROVIDER)
   public Uni<String> save(User user) {
-    return repository.save(user)
+    return repository().save(user)
         .invoke(id -> log.info("User inserted {}", id));
   }
 
   public Uni<List<User>> list(UserQuery userQuery) {
-    return repository.select(userQuery);
+    return repository().select(userQuery);
   }
 
   public Uni<UserTableResponse> table(UserQuery userQuery) {
@@ -100,6 +109,6 @@ public class UserService {
 
   @CacheInvalidateAll(cacheName = UserCache.GET_ID_FROM_PROVIDER)
   public Uni<Integer> delete(String id) {
-    return repository.delete(id);
+    return repository().delete(id);
   }
 }

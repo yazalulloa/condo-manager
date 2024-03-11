@@ -27,6 +27,12 @@
            hx-indicator=".htmx-indicator">
 
     <img class="htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">
+    <button class="btn btn-primary"
+            hx-get="/api/rates/download"
+            hx-indicator=".htmx-indicator"
+            hx-swap="none">
+      DOWNLOAD BACKUP
+    </button>
   </div>
 
   <div class="oicd-token-grid font-bold">

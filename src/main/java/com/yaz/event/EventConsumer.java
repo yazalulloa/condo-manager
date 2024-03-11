@@ -26,7 +26,7 @@ public class EventConsumer {
               log.info("EmailConfigDeleted: {} updated: {}", task.id(), i);
             },
             e -> {
-              log.error("EmailConfigDeleted: {}", task.id(), e);
+              log.error("ERROR updating building EmailConfigDeleted: {}", task.id(), e);
             });
 
   }

@@ -1,6 +1,6 @@
-package com.yaz.persistence;
+package com.yaz.persistence.repository.mysql;
 
-import com.yaz.persistence.MySqlService.TrxMode;
+import com.yaz.persistence.repository.mysql.MySqlService.TrxMode;
 import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.domain.MySqlQueryRequest;
 import com.yaz.persistence.domain.request.ExtraChargeCreateRequest;

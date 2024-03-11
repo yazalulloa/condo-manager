@@ -1,15 +1,18 @@
 package com.yaz.service;
 
-import com.yaz.persistence.OidcDbTokenRepository;
+
 import com.yaz.persistence.domain.OidcDbTokenQueryRequest;
 import com.yaz.persistence.entities.OidcDbToken;
+import com.yaz.persistence.repository.OidcDbTokenRepository;
 import com.yaz.resource.OidcDbTokenResource;
 import com.yaz.resource.domain.response.OidcDbTokenTableResponse;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,23 +22,27 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class OidcDbTokenService {
 
-  private final OidcDbTokenRepository repository;
+  private final Instance<OidcDbTokenRepository> repository;
+
+  private OidcDbTokenRepository repository() {
+    return repository.get();
+  }
 
 
   public Uni<Long> count() {
-    return repository.count();
+    return repository().count();
   }
 
   public Uni<Integer> delete(String id) {
-    return repository.delete(id);
+    return repository().delete(id);
   }
 
   public Uni<List<OidcDbToken>> list(OidcDbTokenQueryRequest queryRequest) {
-    return repository.select(queryRequest);
+    return repository().select(queryRequest);
   }
 
   public Uni<Integer> updateUserId(String id, String userId) {
-    return repository.updateUserId(id, userId);
+    return repository().updateUserId(id, userId);
   }
 
   public Uni<OidcDbTokenTableResponse> tableResponse(OidcDbTokenQueryRequest request) {
@@ -46,8 +53,8 @@ public class OidcDbTokenService {
         .limit(actualLimit)
         .build();
     return Uni.combine().all().unis(
-        repository.count(),
-        repository.select(queryRequest)
+        count(),
+        list(queryRequest)
     ).with((totalCount, tokens) -> {
 
       final var results = tokens.stream()
@@ -56,7 +63,7 @@ public class OidcDbTokenService {
 
       String nextPageUrl = null;
       if (results.size() == actualLimit) {
-        results.remove(results.size() - 1);
+        results.removeLast();
         results.trimToSize();
 
         final var last = results.getLast();
@@ -70,6 +77,18 @@ public class OidcDbTokenService {
   }
 
   public Uni<Integer> deleteByUser(String id) {
-    return repository.deleteByUser(id);
+    return repository().deleteByUser(id);
+  }
+
+  public Uni<Integer> insert(String idToken, String accessToken, String refreshToken, long expiresIn, String id) {
+    return repository().insert(idToken, accessToken, refreshToken, expiresIn, id);
+  }
+
+  public Uni<Optional<OidcDbToken>> read(String id) {
+    return repository().read(id);
+  }
+
+  public Uni<Integer> deleteIfExpired(long expiresIn) {
+    return repository().deleteIfExpired(expiresIn);
   }
 }

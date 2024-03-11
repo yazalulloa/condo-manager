@@ -1,10 +1,17 @@
 package com.yaz.client;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.yaz.persistence.domain.query.SortOrder;
+import com.yaz.service.RateService;
+import com.yaz.util.RxUtil;
 import io.quarkus.test.junit.QuarkusTest;
+import io.reactivex.rxjava3.core.Completable;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.core.Response;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
@@ -12,6 +19,7 @@ class BcvClientServiceTest {
 
   @Inject
   BcvClientService service;
+
   @Test
   void head() {
 

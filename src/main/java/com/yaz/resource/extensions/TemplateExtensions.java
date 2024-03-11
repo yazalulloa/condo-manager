@@ -5,12 +5,16 @@ import com.yaz.persistence.entities.Rate;
 import com.yaz.util.DateUtil;
 import io.quarkus.qute.TemplateExtension;
 import java.time.ZoneOffset;
+import java.util.Optional;
 
 @TemplateExtension
 public class TemplateExtensions {
 
   static String formatCreatedAt(Rate rate) {
-    return DateUtil.formatVe(rate.createdAt().atZone(ZoneOffset.UTC));
+    return Optional.ofNullable(rate.createdAt())
+        .map(dateTime -> dateTime.atZone(ZoneOffset.UTC))
+        .map(DateUtil::formatVe)
+        .orElse("");
   }
 
 

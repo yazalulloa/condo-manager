@@ -1,9 +1,11 @@
 package com.yaz.service;
 
 import com.yaz.mongo.MongoApartment;
-import com.yaz.persistence.ApartmentRepository;
-import com.yaz.persistence.BuildingRepository;
-import com.yaz.persistence.RateRepository;
+import com.yaz.persistence.repository.ApartmentRepository;
+import com.yaz.persistence.repository.BuildingRepository;
+import com.yaz.persistence.repository.mysql.ApartmentMySqlRepository;
+import com.yaz.persistence.repository.mysql.BuildingMySqlRepository;
+import com.yaz.persistence.repository.mysql.RateMySqlRepository;
 import com.yaz.persistence.entities.Apartment;
 import com.yaz.persistence.entities.Building;
 import com.yaz.persistence.entities.Rate;
@@ -13,8 +15,8 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.vertx.mutiny.core.Vertx;
-import io.vertx.mutiny.sqlclient.SqlResult;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -39,16 +41,16 @@ import org.apache.commons.compress.utils.IOUtils;
 public class LoadBackupService {
 
   private final Vertx vertx;
-  private final BuildingRepository buildingRepository;
-  private final ApartmentRepository apartmentRepository;
-  private final RateRepository rateRepository;
+  private final Instance<BuildingRepository> buildingRepository;
+  private final Instance<ApartmentRepository> apartmentRepository;
+  private final RateMySqlRepository rateMySqlRepository;
   private final PagingJsonFile pagingJsonFile = new PagingJsonFile();
 
   public Completable load() {
 
     return Completable.defer(() -> {
           final var path = "/home/yaz/Downloads/cm-backup.tar.gz";
-          final var temPath = "tmp/";
+          final var temPath = "tmp/spring/";
           final var tempPaths = Paths.get(temPath);
 
           Files.createDirectories(tempPaths);
@@ -88,9 +90,8 @@ public class LoadBackupService {
 
                       return Observable.fromIterable(list)
                           .toList()
-                          .map(buildingRepository::insertIgnore)
+                          .map(buildingRepository.get()::insertIgnore)
                           .flatMap(RxUtil::single)
-                          .map(SqlResult::rowCount)
                           .doOnSuccess(i -> log.info("BUILDINGS INSERTED: {}", i))
                           .ignoreElement();
 
@@ -113,7 +114,7 @@ public class LoadBackupService {
                               .emails(apt.emails())
                               .build())
                           .toList()
-                          .map(apartmentRepository::insertOnUpdate)
+                          .map(apartmentRepository.get()::insert)
                           .retry(3)
                           .flatMap(RxUtil::single)
                           .doOnSuccess(i -> log.info("APARTMENTS INSERTED: {}", i))
@@ -126,21 +127,20 @@ public class LoadBackupService {
                 addToList.accept(completable);
               }
               break;
-              case "rates.json.gz": {
-                final var completable = pagingJsonFile.pagingJsonFile(100, fileName, Rate.class, list -> {
-
-                      return RxUtil.single(rateRepository.replace(list))
-                          .map(SqlResult::rowCount)
-                          .doOnSuccess(i -> log.info("RATES INSERTED: {}", i))
-                          .ignoreElement();
-
-                    })
-                    .doOnComplete(() -> log.info("RATES COMPLETED"))
-                    .doOnError(throwable -> log.error("ERROR RATES", throwable));
-
-                addToList.accept(completable);
-              }
-              break;
+//              case "rates.json.gz": {
+//                final var completable = pagingJsonFile.pagingJsonFile(100, fileName, Rate.class, list -> {
+//
+//                      return RxUtil.single(rateMySqlRepository.replace(list))
+//                          .doOnSuccess(i -> log.info("RATES INSERTED: {}", i))
+//                          .ignoreElement();
+//
+//                    })
+//                    .doOnComplete(() -> log.info("RATES COMPLETED"))
+//                    .doOnError(throwable -> log.error("ERROR RATES", throwable));
+//
+//                addToList.accept(completable);
+//              }
+//              break;
             }
           }
 

@@ -1,15 +1,14 @@
 package com.yaz.service;
 
-import com.yaz.persistence.ApartmentRepository;
 import com.yaz.persistence.domain.query.ApartmentQuery;
 import com.yaz.persistence.entities.Apartment;
 import com.yaz.persistence.entities.ExtraCharge;
+import com.yaz.persistence.repository.ApartmentRepository;
 import com.yaz.resource.ApartmentsResource;
 import com.yaz.resource.domain.AptItem;
 import com.yaz.resource.domain.request.ApartmentRequest;
 import com.yaz.resource.domain.response.ApartmentTableResponse;
 import com.yaz.resource.domain.response.AptCountersDto;
-import com.yaz.resource.domain.response.BuildingFormDto;
 import com.yaz.service.cache.ApartmentCache;
 import com.yaz.util.Constants;
 import io.quarkus.cache.CacheInvalidate;
@@ -17,6 +16,7 @@ import io.quarkus.cache.CacheInvalidateAll;
 import io.quarkus.cache.CacheResult;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,10 +31,14 @@ import lombok.extern.slf4j.Slf4j;
 public class ApartmentService {
 
 
-  private final ApartmentRepository repository;
+  private final Instance<ApartmentRepository> repository;
+
+  private ApartmentRepository repository() {
+    return repository.get();
+  }
 
   public Uni<Integer> delete(String buildingId, String number) {
-    return repository.delete(buildingId, number)
+    return repository().delete(buildingId, number)
         .flatMap(i -> {
           if (i > 0) {
             return invalidateOne(buildingId, number)
@@ -47,12 +51,12 @@ public class ApartmentService {
 
   @CacheResult(cacheName = ApartmentCache.TOTAL_COUNT, lockTimeout = Constants.CACHE_TIMEOUT)
   public Uni<Long> totalCount() {
-    return repository.count();
+    return repository().count();
   }
 
   @CacheResult(cacheName = ApartmentCache.QUERY_COUNT, lockTimeout = Constants.CACHE_TIMEOUT)
   public Uni<Optional<Long>> queryCount(ApartmentQuery query) {
-    return repository.queryCount(query);
+    return repository().queryCount(query);
   }
 
   public Uni<ApartmentTableResponse> tableResponse() {
@@ -70,7 +74,7 @@ public class ApartmentService {
 
     return Uni.combine()
         .all()
-        .unis(counters(apartmentQuery), repository.select(apartmentQuery))
+        .unis(counters(apartmentQuery), repository().select(apartmentQuery))
         .with((counters, apartments) -> {
 
           final var results = apartments.stream()
@@ -106,7 +110,7 @@ public class ApartmentService {
 
   @CacheResult(cacheName = ApartmentCache.EXISTS, lockTimeout = Constants.CACHE_TIMEOUT)
   public Uni<Boolean> exists(String buildingId, String number) {
-    return repository.exists(buildingId, number);
+    return repository().exists(buildingId, number);
   }
 
 
@@ -134,7 +138,7 @@ public class ApartmentService {
         .emails(request.getEmails())
         .build();
 
-    return repository.insert(apartment)
+    return repository().insert(apartment)
         .flatMap(i -> {
           if (i > 0) {
             return invalidateOne(apartment.buildingId(), apartment.number())
@@ -154,8 +158,8 @@ public class ApartmentService {
   }
 
   @CacheResult(cacheName = ApartmentCache.GET, lockTimeout = Constants.CACHE_TIMEOUT)
-  public Uni<Apartment> get(String buildingId, String number) {
-    return repository.read(buildingId, number);
+  public Uni<Optional<Apartment>> get(String buildingId, String number) {
+    return repository().read(buildingId, number);
   }
 
 
@@ -168,7 +172,7 @@ public class ApartmentService {
         .emails(request.getEmails())
         .build();
 
-    return repository.update(apartment)
+    return repository().update(apartment)
         .flatMap(i -> {
           if (i > 0) {
             return invalidateGet(apartment.buildingId(), apartment.number())
@@ -181,6 +185,6 @@ public class ApartmentService {
 
   @CacheResult(cacheName = ApartmentCache.SELECT_MINIMAL_BY_BUILDINGS, lockTimeout = Constants.CACHE_TIMEOUT)
   public Uni<List<ExtraCharge.Apt>> aptByBuildings(String buildingId) {
-    return repository.aptByBuildings(buildingId);
+    return repository().aptByBuildings(buildingId);
   }
 }

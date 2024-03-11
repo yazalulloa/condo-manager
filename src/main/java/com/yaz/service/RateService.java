@@ -2,54 +2,60 @@ package com.yaz.service;
 
 import com.yaz.client.BcvClientService;
 import com.yaz.domain.BcvUsdRateResult;
-import com.yaz.persistence.RateRepository;
 import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.domain.query.RateQuery;
+import com.yaz.persistence.domain.query.SortOrder;
 import com.yaz.persistence.entities.Rate;
+import com.yaz.persistence.repository.RateRepository;
 import com.yaz.resource.RateResource;
 import com.yaz.resource.domain.response.RateTableResponse;
 import com.yaz.resource.domain.response.RateTableResponse.Item;
 import com.yaz.service.cache.RateCache;
+import com.yaz.service.domain.FileResponse;
 import com.yaz.util.Constants;
 import com.yaz.util.ConvertUtil;
+import com.yaz.util.MutinyUtil;
+import com.yaz.util.PagingProcessor;
 import com.yaz.util.RxUtil;
+import com.yaz.util.WriteEntityToFile;
 import io.quarkus.cache.CacheInvalidate;
 import io.quarkus.cache.CacheInvalidateAll;
 import io.quarkus.cache.CacheResult;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import io.smallrye.mutiny.Uni;
-import io.vertx.mutiny.sqlclient.RowSet;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @ApplicationScoped
+@RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class RateService {
 
 
-  private final RateRepository repository;
+  private final Instance<RateRepository> repository;
   private final BcvClientService bcvClientService;
+  private final WriteEntityToFile writeEntityToFile;
 
-  @Inject
-  public RateService(RateRepository repository, BcvClientService bcvClientService) {
-    this.repository = repository;
-    this.bcvClientService = bcvClientService;
+  private RateRepository repository() {
+    return repository.get();
   }
 
 
   @CacheResult(cacheName = RateCache.TOTAL_COUNT, lockTimeout = Constants.CACHE_TIMEOUT)
   public Uni<Long> count() {
-    return repository.count();
+    return repository().count();
   }
 
   public Uni<Integer> delete(long id) {
-    return repository.delete(id)
+    return repository().delete(id)
         .flatMap(i -> {
           if (i > 0) {
             return invalidateOne(id)
@@ -87,24 +93,17 @@ public class RateService {
 
    public Uni<List<JsonObject>> listJson(RateQuery rateQuery) {
 
-     return rateRepository.listRows(rateQuery)
+     return raterepository().listRows(rateQuery)
          .map(SqlUtil::toJsonObject);
    }*/
   @CacheResult(cacheName = RateCache.SELECT, lockTimeout = Constants.CACHE_TIMEOUT)
   public Uni<List<Rate>> list(RateQuery rateQuery) {
-    return repository.listRows(rateQuery);
+    return repository().listRows(rateQuery);
   }
 
   @CacheResult(cacheName = RateCache.LAST, lockTimeout = Constants.CACHE_TIMEOUT)
   public Uni<Optional<Rate>> lastUni(Currency fromCurrency, Currency toCurrency) {
-    return repository.last(fromCurrency, toCurrency)
-        .map(RowSet::iterator)
-        .map(iterator -> {
-          if (iterator.hasNext()) {
-            return Optional.of(repository.from(iterator.next()));
-          }
-          return Optional.empty();
-        });
+    return repository().last(fromCurrency, toCurrency);
   }
 
   public Maybe<Rate> last(Currency fromCurrency, Currency toCurrency) {
@@ -115,7 +114,7 @@ public class RateService {
 
   public Uni<Rate> save(Rate rate) {
 
-    return repository.save(rate)
+    return repository().save(rate)
         .map(id -> {
           return rate.toBuilder()
               .id(id.orElse(null))
@@ -133,7 +132,7 @@ public class RateService {
 
   @CacheResult(cacheName = RateCache.EXISTS, lockTimeout = Constants.CACHE_TIMEOUT)
   public Uni<Boolean> existsUni(long hash) {
-    return repository.exists(hash);
+    return repository().exists(hash);
   }
 
   public Single<Boolean> exists(long hash) {
@@ -206,5 +205,30 @@ public class RateService {
               .results(results)
               .build();
         });
+  }
+
+  public PagingProcessor<List<Rate>> pagingProcessor(int pageSize, SortOrder sortOrder) {
+    return new ListServicePagingProcessorImpl<>(new ListService<>() {
+      @Override
+      public Single<List<Rate>> listByQuery(RateQuery query) {
+        return MutinyUtil.single(RateService.this.list(query));
+      }
+
+      @Override
+      public RateQuery nextQuery(List<Rate> list, RateQuery query) {
+
+        if (list.isEmpty()) {
+          return query;
+        }
+
+        return query.toBuilder()
+            .lastId(list.getLast().id())
+            .build();
+      }
+    }, RateQuery.builder().limit(pageSize).sortOrder(sortOrder).build());
+  }
+
+  public Single<FileResponse> downloadFile() {
+    return writeEntityToFile.downloadFile("rates.json.gz", pagingProcessor(100, SortOrder.ASC));
   }
 }

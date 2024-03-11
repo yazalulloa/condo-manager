@@ -60,6 +60,6 @@ public class Rate {
   public enum Source {
     BCV, PLATFORM;
 
-    public static final Source[] values = values();
+    public static final Source[] VALUES = values();
   }
 }

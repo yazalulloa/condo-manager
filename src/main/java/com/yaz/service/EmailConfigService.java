@@ -2,10 +2,10 @@ package com.yaz.service;
 
 import com.yaz.bean.GmailHelper;
 import com.yaz.event.domain.EmailConfigDeleted;
-import com.yaz.persistence.EmailConfigRepository;
 import com.yaz.persistence.domain.EmailConfigUser;
 import com.yaz.persistence.domain.query.EmailConfigQuery;
 import com.yaz.persistence.entities.EmailConfig;
+import com.yaz.persistence.repository.EmailConfigRepository;
 import com.yaz.resource.EmailConfigResource;
 import com.yaz.resource.domain.response.EmailConfigDto;
 import com.yaz.resource.domain.response.EmailConfigTableItem;
@@ -24,6 +24,7 @@ import io.reactivex.rxjava3.core.Single;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Event;
+import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
@@ -40,12 +41,18 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class EmailConfigService {
 
-  private final EmailConfigRepository repository;
+  private final Instance<EmailConfigRepository> repository;
   private final GmailHelper gmailHelper;
   private final Event<EmailConfigDeleted> emailConfigDeletedEvent;
 
+  private EmailConfigRepository repository() {
+    return repository.get();
+  }
+
   public Uni<EmailConfig> create(EmailConfig emailConfig) {
-    return repository.create(emailConfig)
+
+    return repository().delete(emailConfig.userId())
+        .replaceWith(repository().create(emailConfig))
         .flatMap(i -> {
           if (i > 0) {
             return invalidateOne(emailConfig.userId())
@@ -53,26 +60,11 @@ public class EmailConfigService {
           }
           return Uni.createFrom().item(emailConfig);
         });
-//    return exists(emailConfig.userId())
-//        .flatMap(bool -> {
-//          if (bool) {
-//            log.info("Config already exists: {}", emailConfig.userId());
-//            return Uni.createFrom().item(emailConfig);
-//          }
-//          return repository.create(emailConfig)
-//              .flatMap(i -> {
-//                if (i > 0) {
-//                  return invalidateOne(emailConfig.userId())
-//                      .replaceWith(emailConfig);
-//                }
-//                return Uni.createFrom().item(emailConfig);
-//              });
-//        });
   }
 
   @CacheInvalidate(cacheName = EmailConfigCache.EXISTS)
   public Uni<Boolean> exists(String userId) {
-    return repository.exists(userId);
+    return repository().exists(userId);
   }
 
   @CacheInvalidateAll(cacheName = EmailConfigCache.TOTAL_COUNT)
@@ -92,12 +84,12 @@ public class EmailConfigService {
 
   @CacheResult(cacheName = EmailConfigCache.TOTAL_COUNT, lockTimeout = Constants.CACHE_TIMEOUT)
   public Uni<Long> count() {
-    return repository.count();
+    return repository().count();
   }
 
   @CacheResult(cacheName = EmailConfigCache.SELECT, lockTimeout = Constants.CACHE_TIMEOUT)
   public Uni<List<EmailConfigUser>> list(EmailConfigQuery query) {
-    return repository.select(query);
+    return repository().select(query);
   }
 
   public Uni<EmailConfigTableResponse> table(EmailConfigQuery query) {
@@ -138,7 +130,7 @@ public class EmailConfigService {
 
   public Uni<Integer> delete(String id) {
     gmailHelper.clearFlow(id);
-    return repository.delete(id)
+    return repository().delete(id)
         .flatMap(i -> {
 
           if (i > 0) {
@@ -153,12 +145,12 @@ public class EmailConfigService {
 
   @CacheResult(cacheName = EmailConfigCache.GET_ITEM, lockTimeout = Constants.CACHE_TIMEOUT)
   public Uni<Optional<EmailConfigTableItem>> readItem(String id) {
-    return repository.readWithUser(id);
+    return repository().readWithUser(id);
   }
 
   public Uni<EmailConfig> update(EmailConfig emailConfig) {
 
-    return repository.update(emailConfig)
+    return repository().update(emailConfig)
         .flatMap(i -> {
           if (i > 0) {
             return invalidateGet(emailConfig.userId())
@@ -264,6 +256,6 @@ public class EmailConfigService {
 
   @CacheResult(cacheName = EmailConfigCache.DIPLAY, lockTimeout = Constants.CACHE_TIMEOUT)
   public Uni<List<EmailConfigDto>> displayList() {
-    return repository.displayList();
+    return repository().displayList();
   }
 }

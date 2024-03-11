@@ -28,7 +28,7 @@ public class CustomSecurityIdentityAugmentor implements SecurityIdentityAugmento
 
   @Override
   public Uni<SecurityIdentity> augment(SecurityIdentity identity, AuthenticationRequestContext context) {
-   // log.info("CustomSecurityIdentityAugmentor.augment SecurityIdentity {} {} {}", identity, identity.isAnonymous(), identity.getAttributes());
+    // log.info("CustomSecurityIdentityAugmentor.augment SecurityIdentity {} {} {}", identity, identity.isAnonymous(), identity.getAttributes());
     RoutingContext routingContext = identity.getAttribute(RoutingContext.class.getName());
     final var userIdAttr = identity.getAttribute("userId");
     if (identity.getPrincipal() instanceof OidcJwtCallerPrincipal principal && userIdAttr == null) {
@@ -37,12 +37,12 @@ public class CustomSecurityIdentityAugmentor implements SecurityIdentityAugmento
         QuarkusSecurityIdentity.Builder builder = QuarkusSecurityIdentity.builder(identity);
         final var identityProvider = IdentityProvider.GOOGLE;
         return userService.getIdFromProvider(identityProvider, subject)
-            .map(userId -> {
-              if (userId == null) {
+            .map(optional -> {
+              if (optional.isEmpty()) {
                 log.info("userId is null for {} {}", identityProvider, subject);
 
               }
-              builder.addAttribute("userId", userId);
+              builder.addAttribute("userId", optional.orElse(null));
               //log.info("CustomSecurityIdentityAugmentor.augment userId {}", userId);
               return builder.build();
             });

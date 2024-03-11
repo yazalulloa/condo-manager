@@ -1,12 +1,14 @@
-package com.yaz.persistence;
+package com.yaz.persistence.repository.mysql;
 
-import com.yaz.persistence.MySqlService.TrxMode;
 import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.domain.MySqlQueryRequest;
 import com.yaz.persistence.domain.query.RateQuery;
 import com.yaz.persistence.domain.query.SortOrder;
 import com.yaz.persistence.entities.Rate;
+import com.yaz.persistence.repository.RateRepository;
+import com.yaz.persistence.repository.mysql.MySqlService.TrxMode;
 import com.yaz.util.SqlUtil;
+import io.quarkus.arc.lookup.LookupIfProperty;
 import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.sqlclient.Row;
 import io.vertx.mutiny.sqlclient.RowIterator;
@@ -15,7 +17,9 @@ import io.vertx.mutiny.sqlclient.SqlResult;
 import io.vertx.mutiny.sqlclient.Tuple;
 import io.vertx.sqlclient.impl.ArrayTuple;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Default;
 import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -26,12 +30,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@LookupIfProperty(name = "app.repository.impl", stringValue = "mysql")
+//@Named("mysql")
 @ApplicationScoped
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
-public class RateRepository {
+public class RateMySqlRepository implements RateRepository {
 
   private static final String COLLECTION = "rates";
-  private static final String SELECT = "SELECT * FROM %s %s ORDER BY id DESC LIMIT ?";
+  private static final String SELECT = "SELECT * FROM %s %s ORDER BY id %s LIMIT ?";
   private static final String DELETE_BY_ID = "DELETE FROM %s WHERE id = ?".formatted(COLLECTION);
   private static final String INSERT = """
       INSERT INTO %s (from_currency, to_currency, rate, date_of_rate, source, created_at, hash, etag, last_modified) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -50,17 +56,19 @@ public class RateRepository {
 
   private final MySqlService mySqlService;
 
+  @Override
   public Uni<Long> count() {
     return mySqlService.totalCount(COLLECTION);
   }
 
+  @Override
   public Uni<Integer> delete(long id) {
 
     return mySqlService.request(DELETE_BY_ID, Tuple.of(id))
         .map(SqlResult::rowCount);
   }
 
-  public Rate from(Row row) {
+  private Rate from(Row row) {
     return Rate.builder()
         .id(row.getLong("id"))
         .fromCurrency(Currency.valueOf(row.getString("from_currency")))
@@ -75,6 +83,7 @@ public class RateRepository {
         .build();
   }
 
+  @Override
   public Uni<List<Rate>> listRows(RateQuery query) {
     final var stringBuilder = new StringBuilder();
 
@@ -111,7 +120,8 @@ public class RateRepository {
     params.addValue(query.limit());
 
     final var queryRequest = MySqlQueryRequest.normal(
-        SELECT.formatted(COLLECTION, stringBuilder.isEmpty() ? "" : "WHERE " + stringBuilder), params);
+        SELECT.formatted(COLLECTION, stringBuilder.isEmpty() ? "" : "WHERE " + stringBuilder, query.sortOrder()),
+        params);
 
     return mySqlService.request(queryRequest)
         .map(rows -> SqlUtil.toList(rows, this::from));
@@ -146,6 +156,7 @@ public class RateRepository {
     params.addValue(rate.lastModified());
   }
 
+  @Override
   public Uni<Optional<Long>> save(Rate rate) {
 
     final var params = new ArrayTuple(9);
@@ -155,7 +166,7 @@ public class RateRepository {
     list.add(MySqlQueryRequest.normal(INSERT, params));
     list.add(MySqlQueryRequest.normal("SELECT LAST_INSERT_ID()"));
 
-    return mySqlService.transaction(TrxMode.SEQUENTIALLY,list)
+    return mySqlService.transaction(TrxMode.SEQUENTIALLY, list)
 //        .onItem()
 //        .invoke(rows -> {
 //          for (RowSet<Row> rowRowSet : rows) {
@@ -174,10 +185,13 @@ public class RateRepository {
         });
   }
 
-  public Uni<RowSet<Row>> last(Currency fromCurrency, Currency toCurrency) {
-    return mySqlService.request(LAST, Tuple.of(fromCurrency.name(), toCurrency.name()));
+  @Override
+  public Uni<Optional<Rate>> last(Currency fromCurrency, Currency toCurrency) {
+    return mySqlService.request(LAST, Tuple.of(fromCurrency.name(), toCurrency.name()))
+        .map(rowSet -> SqlUtil.toOptional(rowSet, this::from));
   }
 
+  @Override
   public Uni<Boolean> exists(long hash) {
 
     return mySqlService.request(HASH_EXISTS, Tuple.of(hash))
@@ -185,13 +199,14 @@ public class RateRepository {
         .map(RowIterator::hasNext);
   }
 
-  public Uni<RowSet<Row>> replace(Collection<Rate> rates) {
+  public Uni<Integer> replace(Collection<Rate> rates) {
 
     final var tuples = rates.stream().map(this::fullTuple)
         .toList();
 
     final var batch = MySqlQueryRequest.batch(REPLACE, tuples);
-    return mySqlService.request(batch);
+    return mySqlService.request(batch)
+        .map(SqlResult::rowCount);
   }
 }
 

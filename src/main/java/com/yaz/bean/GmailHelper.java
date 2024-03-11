@@ -124,6 +124,7 @@ public class GmailHelper {
       } else {
         final var hash = FileUtil.checksumInputStream(file);
         if (emailConfig.hash() != hash) {
+          log.info("File changed, writing new file");
           Files.write(file.toPath(), emailConfig.file());
         }
 

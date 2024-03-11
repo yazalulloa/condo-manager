@@ -1,6 +1,7 @@
 package com.yaz.resource;
 
 import com.yaz.persistence.domain.query.ApartmentQuery;
+import com.yaz.persistence.entities.Apartment;
 import com.yaz.resource.domain.ApartmentFormDto;
 import com.yaz.resource.domain.ApartmentFormDto.EmailForm;
 import com.yaz.resource.domain.ApartmentInitDto;
@@ -203,10 +204,12 @@ public class ApartmentsResource {
         .deferred(() -> {
           if (isUpdate) {
             return apartmentService.get(buildingId, number)
-                .map(apartment -> {
-                  if (apartment == null) {
+                .map(optional -> {
+                  if (optional.isEmpty()) {
                     return null;
                   }
+
+                  final var apartment = optional.get();
 
                   final var noChange = Objects.equals(apartment.name(), request.getName())
                       && Objects.equals(apartment.number(), request.getNumber())
@@ -312,7 +315,7 @@ public class ApartmentsResource {
 
     return Uni.combine()
         .all()
-        .unis(apartmentService.get(buildingId, number), buildingService.ids())
+        .unis(apartmentService.get(buildingId, number).map(Optional::get), buildingService.ids())
         .with((apartment, buildings) -> ApartmentFormDto.builder()
             .buildings(buildings)
             .buildingId(apartment.buildingId())
@@ -336,6 +339,7 @@ public class ApartmentsResource {
 
     log.info("Deleting apartment {} {}", buildingId, number);
     return apartmentService.get(buildingId, number)
+        .map(Optional::get)
         .map(AptItem::new)
         .map(Templates::grid_item);
   }

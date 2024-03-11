@@ -1,16 +1,16 @@
-package com.yaz.persistence;
+package com.yaz.persistence.repository.mysql;
 
 
-import com.yaz.persistence.MySqlService.TrxMode;
 import com.yaz.persistence.domain.MySqlQueryRequest;
 import com.yaz.persistence.domain.query.ApartmentQuery;
 import com.yaz.persistence.entities.Apartment;
 import com.yaz.persistence.entities.ExtraCharge;
+import com.yaz.persistence.repository.ApartmentRepository;
+import com.yaz.persistence.repository.mysql.MySqlService.TrxMode;
 import com.yaz.util.SqlUtil;
 import com.yaz.util.StringUtil;
-import io.smallrye.mutiny.Multi;
+import io.quarkus.arc.lookup.LookupIfProperty;
 import io.smallrye.mutiny.Uni;
-import io.vertx.core.json.JsonObject;
 import io.vertx.mutiny.sqlclient.Row;
 import io.vertx.mutiny.sqlclient.RowIterator;
 import io.vertx.mutiny.sqlclient.RowSet;
@@ -31,28 +31,25 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
+@LookupIfProperty(name = "app.repository.impl", stringValue = "mysql")
+//@Named("mysql")
 @ApplicationScoped
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
-public class ApartmentRepository {
+public class ApartmentMySqlRepository implements ApartmentRepository {
 
   private static final String COLLECTION = "apartments";
-  private static final String SELECT = "SELECT * FROM %s".formatted(COLLECTION);
-  private static final String QUERY_COUNT = "SELECT count(*) as query_count FROM %s".formatted(COLLECTION);
   private static final String DELETE_BY_BUILDING = "DELETE FROM %s WHERE building_id = ?".formatted(COLLECTION);
   private static final String DELETE_BY_ID = "DELETE FROM %s WHERE building_id = ? AND number = ?".formatted(
       COLLECTION);
   private static final String INSERT = "INSERT INTO %s (building_id, number, name, aliquot) VALUES (%s);".formatted(
       COLLECTION, SqlUtil.params(4));
-  private static final String INSERT_ON_UPDATE = """
+  private static final String INSERT_IGNORE = """
       INSERT IGNORE INTO %s (building_id, number, name, aliquot) 
       VALUES (%s);
       """.formatted(COLLECTION, SqlUtil.params(4));
-
-
-  private static final String SELECT_ONE = "SELECT * FROM %s WHERE building_id = ? AND number = ?".formatted(
-      COLLECTION);
-
   private static final String SELECT_FULL = """
       SELECT apartments.*, GROUP_CONCAT(apartment_emails.email) as emails
       from apartments
@@ -112,27 +109,26 @@ public class ApartmentRepository {
   private final MySqlService mySqlService;
   private final ApartmentEmailRepository emailRepository;
 
-
-  private Uni<RowSet<Row>> request(MySqlQueryRequest request) {
-    return mySqlService.request(request);
-  }
-
+  @Override
   public Uni<Long> count() {
     return mySqlService.totalCount(COLLECTION);
   }
 
+  @Override
   public Uni<Integer> delete(String buildingId, String number) {
 
     return mySqlService.request(DELETE_BY_ID, Tuple.of(buildingId, number))
         .map(SqlResult::rowCount);
   }
 
+  @Override
   public Uni<Integer> deleteByBuildingId(String buildingId) {
 
     return mySqlService.request(DELETE_BY_BUILDING, Tuple.of(buildingId))
         .map(SqlResult::rowCount);
   }
 
+  @Override
   public Uni<Integer> insert(Apartment apartment) {
     final var aptTuple = tuple(apartment);
     final var requests = new ArrayList<MySqlQueryRequest>();
@@ -151,7 +147,8 @@ public class ApartmentRepository {
         });
   }
 
-  public Uni<RowSet<Row>> save(Collection<Apartment> apartments) {
+
+  public Uni<Integer> save(Collection<Apartment> apartments) {
 
     final var tuples = apartments.stream()
         .map(this::tuple)
@@ -159,7 +156,8 @@ public class ApartmentRepository {
 
     final var mySqlBatch = MySqlQueryRequest.batch(INSERT, tuples);
 
-    return mySqlService.request(mySqlBatch);
+    return mySqlService.request(mySqlBatch)
+        .map(SqlResult::rowCount);
   }
 
   /*public Uni<RowSet<Row>> replace(Collection<Apartment> apartments) {
@@ -197,6 +195,7 @@ public class ApartmentRepository {
     return Tuple.newInstance(params);
   }
 
+
   public Stream<Tuple> emailsTuple(Apartment apartment) {
     if (apartment.emails() == null || apartment.emails().isEmpty()) {
       return Stream.empty();
@@ -230,14 +229,8 @@ public class ApartmentRepository {
         .build();
   }
 
-  public Multi<JsonObject> select() {
 
-    return mySqlService.request(SELECT + " LIMIT 10")
-        .onItem()
-        .transformToMulti(set -> Multi.createFrom().iterable(set))
-        .map(Row::toJson);
-  }
-
+  @Override
   public Uni<List<Apartment>> select(ApartmentQuery query) {
 
     final var sqlQueryRequest = where(query);
@@ -252,6 +245,7 @@ public class ApartmentRepository {
         .map(rows -> SqlUtil.toList(rows, this::from));
   }
 
+  @Override
   public Uni<Optional<Long>> queryCount(ApartmentQuery query) {
 
     final var buildings = query.buildings().stream()
@@ -314,16 +308,6 @@ public class ApartmentRepository {
       tupleSize.addAndGet(buildings.size());
     }
 
-  /*  final var buildingOptional = Optional.ofNullable(query.building());
-    buildingOptional.ifPresent(str -> {
-      if (ifCursorQuery.get()) {
-        stringBuilder.append(SqlUtil.AND);
-      }
-      ifCursorQuery.set(true);
-      stringBuilder.append(" apartments.building_id = ? ");
-      tupleSize.addAndGet(1);
-    });*/
-
     final var qOptional = Optional.ofNullable(query.q())
         .map(String::trim)
         .filter(s -> !s.isEmpty());
@@ -349,6 +333,7 @@ public class ApartmentRepository {
     return MySqlQueryRequest.normal(stringBuilder.toString(), new Tuple(tuple));
   }
 
+  @Override
   public Uni<Boolean> exists(String buildingId, String number) {
 
     return mySqlService.request(EXISTS, Tuple.of(buildingId, number))
@@ -356,11 +341,11 @@ public class ApartmentRepository {
         .map(RowIterator::hasNext);
   }
 
-  public Uni<Apartment> read(String buildingId, String number) {
+  @Override
+  public Uni<Optional<Apartment>> read(String buildingId, String number) {
 
     return mySqlService.request(SELECT_FULL_ONE, Tuple.of(buildingId, number, 1))
-        .map(RowSet::iterator)
-        .map(iterator -> iterator.hasNext() ? from(iterator.next()) : null);
+        .map(rowSet -> SqlUtil.toOptional(rowSet, this::from));
   }
 
   private Tuple updateTuple(Apartment apartment) {
@@ -373,6 +358,7 @@ public class ApartmentRepository {
     return Tuple.newInstance(params);
   }
 
+  @Override
   public Uni<Integer> update(Apartment apartment) {
 
     final var updateQuery = MySqlQueryRequest.normal(UPDATE, updateTuple(apartment));
@@ -385,19 +371,21 @@ public class ApartmentRepository {
         .with((updateRowCount, deleteCount, insertCount) -> updateRowCount + deleteCount + insertCount);
   }
 
-  public Uni<Integer> insertOnUpdate(Collection<Apartment> apartments) {
+  @Override
+  public Uni<Integer> insert(Collection<Apartment> apartments) {
 
     final var tuples = apartments.stream()
         .map(this::tuple)
         .toList();
 
-    final var apartmentBatch = MySqlQueryRequest.batch(INSERT_ON_UPDATE, tuples);
+    final var apartmentBatch = MySqlQueryRequest.batch(INSERT_IGNORE, tuples);
     final var emailBatch = emailRepository.replace(apartments);
 
     return mySqlService.transaction(TrxMode.PARALLEL, List.of(apartmentBatch, emailBatch))
         .map(list -> list.stream().mapToInt(SqlResult::rowCount).sum());
   }
 
+  @Override
   public Uni<List<ExtraCharge.Apt>> aptByBuildings(String buildingId) {
     return mySqlService.request(SELECT_MINIMAL_BY_BUILDING, Tuple.of(buildingId))
         .map(rowSet -> SqlUtil.toList(rowSet, row -> ExtraCharge.Apt.builder()

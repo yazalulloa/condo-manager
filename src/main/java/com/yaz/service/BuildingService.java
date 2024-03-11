@@ -1,20 +1,20 @@
 package com.yaz.service;
 
 
-import com.yaz.persistence.BuildingRepository;
 import com.yaz.persistence.domain.query.BuildingQuery;
 import com.yaz.persistence.entities.Building;
+import com.yaz.persistence.repository.BuildingRepository;
 import com.yaz.resource.BuildingResource;
 import com.yaz.resource.domain.response.BuildingReportResponse;
 import com.yaz.service.cache.BuildingCache;
 import com.yaz.util.Constants;
-import com.yaz.util.SqlUtil;
 import io.quarkus.cache.CacheInvalidate;
 import io.quarkus.cache.CacheInvalidateAll;
 import io.quarkus.cache.CacheResult;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,16 +28,20 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class BuildingService {
 
-  private final BuildingRepository repository;
+  private final Instance<BuildingRepository> repository;
+
+  private BuildingRepository repository() {
+    return repository.get();
+  }
 
   @CacheResult(cacheName = BuildingCache.TOTAL_COUNT, lockTimeout = Constants.CACHE_TIMEOUT)
   public Uni<Long> count() {
-    return repository.count();
+    return repository().count();
   }
 
 
   public Uni<Integer> delete(String id) {
-    return repository.delete(id)
+    return repository().delete(id)
         .flatMap(i -> {
           if (i > 0) {
             return invalidateOne(id)
@@ -65,19 +69,17 @@ public class BuildingService {
 
   @CacheResult(cacheName = BuildingCache.SELECT, lockTimeout = Constants.CACHE_TIMEOUT)
   public Uni<List<Building>> list(BuildingQuery buildingQuery) {
-    return repository.select(buildingQuery);
+    return repository().select(buildingQuery);
   }
 
   @CacheResult(cacheName = BuildingCache.IDS, lockTimeout = Constants.CACHE_TIMEOUT)
   public Uni<List<String>> ids() {
-
-    return repository.selectAllIds()
-        .map(rows -> SqlUtil.toList(rows, row -> row.getString("id")));
+    return repository().selectAllIds();
   }
 
   @CacheResult(cacheName = BuildingCache.EXISTS, lockTimeout = Constants.CACHE_TIMEOUT)
   public Uni<Boolean> exists(String buildingId) {
-    return repository.exists(buildingId);
+    return repository().exists(buildingId);
   }
 
   public Uni<BuildingReportResponse> report(BuildingQuery buildingQuery) {
@@ -115,14 +117,13 @@ public class BuildingService {
 
   @CacheResult(cacheName = BuildingCache.GET, lockTimeout = Constants.CACHE_TIMEOUT)
   public Uni<Optional<Building>> get(String buildingId) {
-    return repository.read(buildingId);
+    return repository().read(buildingId);
   }
 
 
   public Uni<Building> update(Building building) {
-    return repository.update(building)
-        .flatMap(rowSet -> {
-          final var i = rowSet.rowCount();
+    return repository().update(building)
+        .flatMap(i -> {
           if (i > 0) {
             return invalidateGet(building.id())
                 .replaceWith(building);
@@ -134,7 +135,7 @@ public class BuildingService {
 
   public Uni<Building> create(Building building) {
 
-    return repository.insert(building)
+    return repository().insert(building)
         .flatMap(i -> {
           if (i > 0) {
             return invalidateOne(building.id())
@@ -146,13 +147,13 @@ public class BuildingService {
   }
 
   public Uni<Integer> updateEmailConfig(String id) {
-    return repository.selectByEmailConfig(id)
+    return repository().selectByEmailConfig(id)
         .flatMap(set -> {
           if (set.isEmpty()) {
             return Uni.createFrom().item(0);
           }
 
-          return repository.updateEmailConfig(set)
+          return repository().updateEmailConfig(set)
               .flatMap(i -> {
                 return Multi.createFrom().iterable(set)
                     .toUni()

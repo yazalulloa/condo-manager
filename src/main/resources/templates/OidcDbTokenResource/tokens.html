@@ -5,7 +5,7 @@
 {#for item in res.results}
 
     <div id="{item.cardId}"
-    class="hover:bg-[#00000014] rounded-lg p-4 bg-neutral flex-wrap flex-row flex justify-between items-center gap-2">
+    class="hover:bg-[#00000014] rounded-lg p-4 bg-neutral flex-wrap flex-item flex justify-between items-center gap-2">
 
   {#if item.token.user.picture}
       <img src="{item.token.user.picture}" alt="Avatar" class="w-10 h-10 rounded-full" referrerpolicy="no-referrer">
@@ -26,7 +26,9 @@
 
   <span>Expira: {item.token.expiresIn.fromEpoch}</span>
   <span>Creado: {item.token.createdAt.formatDate}</span>
+  {#if item.token.updatedAt}
   <span>Actualizado: {item.token.updatedAt.formatDate}</span>
+  {/if}
 
 {#include fragments/delete-btn deleteUrl=item.deleteUrl cardIdRef=item.cardIdRef/}
 </div>

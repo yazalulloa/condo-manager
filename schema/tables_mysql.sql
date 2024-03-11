@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS apartments
     number      CHAR(20)      NOT NULL,
     name        VARCHAR(100)  NOT NULL,
     id_doc      CHAR(20),
-    aliquot     DECIMAL(5, 2) NOT NULL DEFAULT 0.00,
+    aliquot     DECIMAL(3, 2) NOT NULL DEFAULT 0.00,
     created_at  DATETIME               DEFAULT CURRENT_TIMESTAMP,
     updated_at  DATETIME ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (building_id, number),

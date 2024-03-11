@@ -1,4 +1,4 @@
-package com.yaz.persistence;
+package com.yaz.persistence.repository.mysql;
 
 import com.yaz.persistence.domain.MySqlQueryRequest;
 import com.yaz.util.ConvertUtil;
@@ -93,7 +93,7 @@ public class MySqlService {
     return request(MySqlQueryRequest.normal(sql));
   }
 
-  @Timed(value = "mysql.request", description = "A measure of how long it takes to execute a query")
+  @Timed(value = "mysql.request", description = "[MySql] A measure of how long it takes to execute a query")
   public Uni<RowSet<Row>> request(MySqlQueryRequest request) {
 
     //final var timestamp = System.currentTimeMillis();
@@ -127,7 +127,7 @@ public class MySqlService {
     return transaction(mode, List.of(requests));
   }
 
-  @Timed(value = "mysql.transaction", description = "A measure of how long it takes to execute a transaction")
+  @Timed(value = "mysql.transaction", description = "[MySql] A measure of how long it takes to execute a transaction")
   public Uni<List<RowSet<Row>>> transaction(TrxMode mode, List<MySqlQueryRequest> requests) {
     return pool.withTransaction(sqlConnection -> {
 

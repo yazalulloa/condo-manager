@@ -1,6 +1,6 @@
 package com.yaz.service;
 
-import com.yaz.persistence.ExtraChargeRepository;
+import com.yaz.persistence.repository.mysql.ExtraChargeRepository;
 import com.yaz.persistence.domain.request.ExtraChargeCreateRequest;
 import com.yaz.persistence.domain.request.ExtraChargeUpdateRequest;
 import com.yaz.persistence.entities.ExtraCharge;

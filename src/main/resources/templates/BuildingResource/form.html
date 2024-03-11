@@ -77,7 +77,7 @@
 
   </cm-form-input>
 
-<div class="content-center flex flex-row justify-center gap-4">
+<div class="content-center flex flex-item justify-center gap-4">
 <label class="label gap-4">
 
   <span class="label-text">Moneda Principal</span>
@@ -116,10 +116,10 @@
   </label>
 </div>
 
-<div class="flex flex-row gap-4 p-2">
+<div class="flex flex-item gap-4 p-2">
 <div class="flex flex-col center">
   <label class="center label label-text">Monedas a mostrar al pagar</label>
-<div class="flex flex-row">
+<div class="flex flex-item">
 {#each GLO_CURRENCIES}
 <div class="form-control">
 
@@ -140,7 +140,7 @@
 
 
 <div class="flex flex-col center">
-<label class="cursor-pointer label flex flex-row  gap-4">
+<label class="cursor-pointer label flex flex-item  gap-4">
   <span class="label-text">Monto Fijo</span>
     <input name="fixedPay" type="checkbox"
 {#if dto.fixedPay}
@@ -173,7 +173,7 @@
 
 </label>
 
-  <label class="cursor-pointer label flex flex-row  gap-4">
+  <label class="cursor-pointer label flex flex-item  gap-4">
     <span class="label-text">Redondear Pagos</span>
     <input name="roundUpPayments" type="checkbox"
       {#if dto.roundUpPayments}

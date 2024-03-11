@@ -3,16 +3,14 @@ package com.yaz.persistence;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.yaz.persistence.domain.request.ExtraChargeUpdateRequest;
-import com.yaz.persistence.entities.ExtraCharge;
 import com.yaz.persistence.entities.ExtraCharge.Apt;
+import com.yaz.persistence.repository.mysql.ApartmentMySqlRepository;
+import com.yaz.persistence.repository.mysql.ExtraChargeRepository;
 import com.yaz.util.RandomUtil;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import java.time.Duration;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
-import java.util.Random;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
@@ -20,7 +18,7 @@ import org.junit.jupiter.api.Test;
 class ExtraChargeRepositoryTest {
 
   @Inject
-  ApartmentRepository apartmentRepository;
+  ApartmentMySqlRepository apartmentRepository;
   @Inject
   ExtraChargeRepository repository;
 

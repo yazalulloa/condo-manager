@@ -107,7 +107,7 @@ public class EmailConfigResource {
         .build()
         .toString();
 
-   // log.info("responseRedirect url: {}", url);
+    // log.info("responseRedirect url: {}", url);
 
     return Response.noContent()
         .header("HX-Redirect", url)
@@ -144,7 +144,7 @@ public class EmailConfigResource {
 
     final var single = Single.defer(() -> {
       final var responseUrl = new AuthorizationCodeResponseUrl(request.absoluteURI() + "?" + request.query());
-     // log.info("callback: {}", request.uri());
+      // log.info("callback: {}", request.uri());
 
       final var code = responseUrl.getCode();
       if (responseUrl.getError() != null) {

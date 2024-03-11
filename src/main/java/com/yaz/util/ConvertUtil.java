@@ -219,12 +219,13 @@ public class ConvertUtil {
         .build();
   }
 
+
+
   public static Rate parseRate(Response response) {
     final var etag = response.getHeaderString("etag");
     final var lastModified = response.getHeaderString("last-modified");
 
-    return parseRate(response.readEntity(String.class))
-        .toBuilder()
+    return parseRate(response.readEntity(String.class)).toBuilder()
         .etag(etag)
         .lastModified(lastModified)
         .build();
