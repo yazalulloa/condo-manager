@@ -62,32 +62,32 @@ public class EmailConfigService {
         });
   }
 
-  @CacheInvalidate(cacheName = EmailConfigCache.EXISTS)
+  //@CacheInvalidate(cacheName = EmailConfigCache.EXISTS)
   public Uni<Boolean> exists(String userId) {
     return repository().exists(userId);
   }
 
-  @CacheInvalidateAll(cacheName = EmailConfigCache.TOTAL_COUNT)
-  @CacheInvalidateAll(cacheName = EmailConfigCache.QUERY_COUNT)
-  @CacheInvalidate(cacheName = EmailConfigCache.EXISTS)
+  //@CacheInvalidateAll(cacheName = EmailConfigCache.TOTAL_COUNT)
+  //@CacheInvalidateAll(cacheName = EmailConfigCache.QUERY_COUNT)
+  //@CacheInvalidate(cacheName = EmailConfigCache.EXISTS)
   public Uni<Void> invalidateOne(String id) {
     return invalidateGet(id);
   }
 
-  @CacheInvalidateAll(cacheName = EmailConfigCache.SELECT)
-  @CacheInvalidateAll(cacheName = EmailConfigCache.DIPLAY)
-  @CacheInvalidate(cacheName = EmailConfigCache.GET)
-  @CacheInvalidate(cacheName = EmailConfigCache.GET_ITEM)
+  //@CacheInvalidateAll(cacheName = EmailConfigCache.SELECT)
+  //@CacheInvalidateAll(cacheName = EmailConfigCache.DIPLAY)
+  //@CacheInvalidate(cacheName = EmailConfigCache.GET)
+  //@CacheInvalidate(cacheName = EmailConfigCache.GET_ITEM)
   public Uni<Void> invalidateGet(String id) {
     return Uni.createFrom().voidItem();
   }
 
-  @CacheResult(cacheName = EmailConfigCache.TOTAL_COUNT, lockTimeout = Constants.CACHE_TIMEOUT)
+  //@CacheResult(cacheName = EmailConfigCache.TOTAL_COUNT, lockTimeout = Constants.CACHE_TIMEOUT)
   public Uni<Long> count() {
     return repository().count();
   }
 
-  @CacheResult(cacheName = EmailConfigCache.SELECT, lockTimeout = Constants.CACHE_TIMEOUT)
+  //@CacheResult(cacheName = EmailConfigCache.SELECT, lockTimeout = Constants.CACHE_TIMEOUT)
   public Uni<List<EmailConfigUser>> list(EmailConfigQuery query) {
     return repository().select(query);
   }
@@ -137,7 +137,7 @@ public class EmailConfigService {
             () -> Uni.createFrom().completionStage(emailConfigDeletedEvent.fireAsync(new EmailConfigDeleted(id))));
   }
 
-  @CacheResult(cacheName = EmailConfigCache.GET_ITEM, lockTimeout = Constants.CACHE_TIMEOUT)
+  //@CacheResult(cacheName = EmailConfigCache.GET_ITEM, lockTimeout = Constants.CACHE_TIMEOUT)
   public Uni<Optional<EmailConfigTableItem>> readItem(String id) {
     return repository().readWithUser(id);
   }
@@ -248,7 +248,7 @@ public class EmailConfigService {
   }
 
 
-  @CacheResult(cacheName = EmailConfigCache.DIPLAY, lockTimeout = Constants.CACHE_TIMEOUT)
+  //@CacheResult(cacheName = EmailConfigCache.DIPLAY, lockTimeout = Constants.CACHE_TIMEOUT)
   public Uni<List<EmailConfigDto>> displayList() {
     return repository().displayList();
   }
