@@ -1,0 +1,12 @@
+syntax = "proto3";
+package hrana.ws;
+
+option java_multiple_files = true;
+option java_package = "com.yaz.condo.manager.grpc.hrana.client";
+
+import "hrana/ws.proto";
+
+service TursoStreaming {
+  rpc Start(HelloMsg) returns (stream ServerMsg) {}
+  rpc Request(stream RequestMsg) returns (ResponseOkMsg) {}
+}
