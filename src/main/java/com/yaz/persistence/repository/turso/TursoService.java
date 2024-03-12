@@ -20,12 +20,15 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 @ApplicationScoped
 public class TursoService {
 
-
   private static final String TOTAL_COUNT = "SELECT COUNT(%s) as total_count FROM %s";
   private final TursoClient client;
 
   public TursoService(@RestClient TursoClient client) {
     this.client = client;
+  }
+
+  public Uni<TursoResponse> sqliteTables() {
+    return executeQuery("SELECT name FROM sqlite_master");
   }
 
   @Timed(value = "turso.query.request", description = "[Turso] A measure of how long it takes to execute a query")

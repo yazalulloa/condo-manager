@@ -6,6 +6,7 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.IOUtils;
 import com.google.api.client.util.store.FileDataStoreFactory;
+import com.yaz.client.turso.response.TursoResponse;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import java.io.ObjectOutputStream;
 

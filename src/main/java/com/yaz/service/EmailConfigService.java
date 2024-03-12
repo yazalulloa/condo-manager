@@ -131,14 +131,8 @@ public class EmailConfigService {
   public Uni<Integer> delete(String id) {
     gmailHelper.clearFlow(id);
     return repository().delete(id)
-        .flatMap(i -> {
-
-          if (i > 0) {
-            return invalidateOne(id)
-                .replaceWith(i);
-          }
-          return Uni.createFrom().item(i);
-        })
+        .flatMap(i -> invalidateOne(id)
+            .replaceWith(i))
         .eventually(
             () -> Uni.createFrom().completionStage(emailConfigDeletedEvent.fireAsync(new EmailConfigDeleted(id))));
   }

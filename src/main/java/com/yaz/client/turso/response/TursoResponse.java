@@ -3,6 +3,7 @@ package com.yaz.client.turso.response;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.yaz.util.SqlUtil;
+import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.vertx.core.json.JsonObject;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -14,6 +15,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
+@RegisterForReflection
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public record TursoResponse(
     String baton,
@@ -75,6 +77,7 @@ public record TursoResponse(
     return new Result(values());
   }
 
+  @RegisterForReflection
   public record Row(
       Map<String, String> map
   ) {
@@ -115,10 +118,12 @@ public record TursoResponse(
     }
 
     public boolean getBoolean(String active) {
-      return Optional.ofNullable(map.get(active)).map(str -> Boolean.parseBoolean(str) || "1".equals(str)).orElse(false);
+      return Optional.ofNullable(map.get(active)).map(str -> Boolean.parseBoolean(str) || "1".equals(str))
+          .orElse(false);
     }
   }
 
+  @RegisterForReflection
   public record Result(
       List<Row> rows
   ) {
