@@ -120,6 +120,7 @@ public class SqlUtil {
   public static String escape(Object object) {
     return Optional.ofNullable(object)
         .map(Object::toString)
+        .map(s -> s.replace("'", "''").replace("\\", "\\\\"))
         .map(s -> "'" + s + "'")
         .orElse("null");
   }

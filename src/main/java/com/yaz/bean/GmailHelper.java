@@ -119,6 +119,8 @@ public class GmailHelper {
       final var path = Paths.get(DIR, emailConfig.userId(), "StoredCredential");
       final var file = path.toFile();
       if (!file.exists()) {
+        clearFlow(emailConfig.userId());
+        log.info("File does not exists, writing  file");
         Paths.get(DIR, emailConfig.userId()).toFile().mkdirs();
         Files.write(file.toPath(), emailConfig.file());
       } else {
@@ -128,6 +130,10 @@ public class GmailHelper {
           clearFlow(emailConfig.userId());
           Paths.get(DIR, emailConfig.userId()).toFile().mkdirs();
           Files.write(file.toPath(), emailConfig.file());
+          final var newHash = FileUtil.checksumInputStream(file);
+          if (newHash != emailConfig.hash()) {
+            log.error("File changed, but hash is different");
+          }
         }
 
       }

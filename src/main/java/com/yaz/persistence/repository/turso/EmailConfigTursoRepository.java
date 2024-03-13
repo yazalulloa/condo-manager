@@ -15,7 +15,9 @@ import io.quarkus.arc.lookup.LookupIfProperty;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import java.util.Base64;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -106,9 +108,14 @@ public class EmailConfigTursoRepository implements EmailConfigRepository {
   }
 
   private EmailConfig from(Row row) {
+
+    final var file = Optional.ofNullable(row.getString("file"))
+        .map(Base64.getDecoder()::decode)
+        .orElse(null);
+
     return EmailConfig.builder()
         .userId(row.getString("user_id"))
-        .file(row.getByteArray("file"))
+        .file(file)
         .fileSize(row.getLong("file_size"))
         .hash(row.getLong("hash"))
         .active(row.getBoolean("active"))
@@ -137,19 +144,24 @@ public class EmailConfigTursoRepository implements EmailConfigRepository {
     return new EmailConfigUser(userFrom(row), from(row));
   }
 
+  private String fileEncode(byte[] file) {
+    return "'%s'".formatted(Base64.getEncoder().encodeToString(file));
+  }
+
   @Override
   public Uni<Integer> create(EmailConfig emailConfig) {
 
     final var params = Stream.of(
-            emailConfig.userId(),
-            emailConfig.file(),
+            SqlUtil.escape(emailConfig.userId()),
+            fileEncode(emailConfig.file()),
             emailConfig.fileSize(),
             emailConfig.hash(),
             emailConfig.active(),
             emailConfig.isAvailable(),
             emailConfig.hasRefreshToken(),
             emailConfig.expiresIn()
-        ).map(SqlUtil::escape)
+        )
+        .map(Objects::toString)
         .collect(Collectors.joining(","));
 
     final var sql = INSERT.formatted(COLLECTION, params);
@@ -180,7 +192,7 @@ public class EmailConfigTursoRepository implements EmailConfigRepository {
   @Override
   public Uni<Integer> update(EmailConfig emailConfig) {
 
-    final var sql = UPDATE.formatted(COLLECTION, SqlUtil.escape(emailConfig.file()), emailConfig.fileSize(),
+    final var sql = UPDATE.formatted(COLLECTION, fileEncode(emailConfig.file()), emailConfig.fileSize(),
         emailConfig.hash(), emailConfig.isAvailable(), emailConfig.hasRefreshToken(), emailConfig.expiresIn(),
         SqlUtil.escape(SqlUtil.formatDateSqlite(emailConfig.updatedAt())),
         SqlUtil.escape(SqlUtil.formatDateSqlite(emailConfig.lastCheckAt())),

@@ -8,3 +8,11 @@ services:
       - "13845:13845"
 #    env_file:
 #      - local.env
+  cmy-vx-2nd:
+    container_name: condo-manager-2nd
+    image: condo-manager:latest
+    restart: always
+    ports:
+      - "13855:13855"
+    environment:
+      - "PORT=13855"
