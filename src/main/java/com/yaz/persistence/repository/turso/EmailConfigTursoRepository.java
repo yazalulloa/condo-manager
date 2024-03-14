@@ -32,10 +32,6 @@ import lombok.extern.slf4j.Slf4j;
 public class EmailConfigTursoRepository implements EmailConfigRepository {
 
   private static final String COLLECTION = "email_configs";
-
-  private static final String ALL = "SELECT * FROM %s %s ORDER BY created_at DESC";
-
-  private static final String SELECT = "SELECT * FROM %s %s ORDER BY created_at DESC LIMIT ?";
   private static final String READ = "SELECT * FROM %s WHERE user_id = %s";
   private static final String EXISTS = "SELECT user_id FROM %s WHERE user_id = %s";
   private static final String DELETE = "DELETE FROM %s WHERE user_id = %s";
@@ -48,7 +44,8 @@ public class EmailConfigTursoRepository implements EmailConfigRepository {
            FROM email_configs
            LEFT JOIN users ON email_configs.user_id = users.id
             %s
-      ORDER BY email_configs.user_id DESC LIMIT %s;
+      GROUP BY email_configs.user_id
+      ORDER BY email_configs.user_id ASC LIMIT %s;
       """;
   private static final String READ_WITH_USER = """
       SELECT email_configs.*, users.provider_id, users.provider, users.email, users.username, users.name, users.picture
@@ -176,7 +173,7 @@ public class EmailConfigTursoRepository implements EmailConfigRepository {
       return SELECT_FULL.formatted("", query.limit());
     }
 
-    final var whereClause = "WHERE user_id > %s".formatted(SqlUtil.escape(lastId));
+    final var whereClause = "WHERE email_configs.user_id > %s".formatted(SqlUtil.escape(lastId));
 
     return SELECT_FULL.formatted(whereClause, query.limit());
   }
@@ -184,7 +181,9 @@ public class EmailConfigTursoRepository implements EmailConfigRepository {
   @Override
   public Uni<List<EmailConfigUser>> select(EmailConfigQuery query) {
 
-    return tursoService.executeQuery(selectQuery(query))
+    final var sql = selectQuery(query);
+    log.info("select query: {}", sql);
+    return tursoService.executeQuery(sql)
         .map(TursoResponse::values)
         .map(rows -> SqlUtil.toList(rows, this::fromWithUser));
   }

@@ -4,10 +4,10 @@ RES_DIR=$DIR/src/main/resources/META-INF/resources
 if [ -n "$1" ]
 then
   echo "Minify"
-  bun build --minify  --outdir="$RES_DIR"/out "$RES_DIR"/js
+  bunx build --minify  --outdir="$RES_DIR"/out "$RES_DIR"/js
 else
   echo "Watching"
-  bun build --outdir="$RES_DIR"/out "$RES_DIR"/js  --watch
+  bunx build --outdir="$RES_DIR"/out "$RES_DIR"/js  --watch
 fi
 
 
