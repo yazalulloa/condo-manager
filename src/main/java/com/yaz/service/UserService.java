@@ -44,7 +44,7 @@ public class UserService {
 
   public Uni<String> saveIfExists(User user) {
 
-    return getIdFromProvider(user.provider(), user.providerId())
+    return repository().getIdFromProvider(user.provider(), user.providerId())
         .flatMap(optional -> {
 
           if (optional.isPresent()) {
