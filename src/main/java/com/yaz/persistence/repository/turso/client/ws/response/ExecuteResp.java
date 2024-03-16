@@ -5,6 +5,7 @@ import io.vertx.core.json.JsonObject;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -77,10 +78,18 @@ public record ExecuteResp(String type, StmtResult result) implements Response {
       return Optional.ofNullable(getString(name)).map(String::getBytes).orElse(null);
     }
 
-    public boolean getBoolean(String active) {
-      return Optional.ofNullable(map.get(active))
+    public boolean getBoolean(String name) {
+      return Optional.ofNullable(map.get(name))
           .map(Value::asBool)
           .orElse(false);
+    }
+
+    public byte[] getBlob(String name) {
+
+      return Optional.ofNullable(map.get(name))
+          .map(Value::base64)
+          .map(Base64.getDecoder()::decode)
+          .orElse(null);
     }
   }
 }

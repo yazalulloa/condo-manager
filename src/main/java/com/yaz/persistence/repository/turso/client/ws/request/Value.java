@@ -69,7 +69,7 @@ public record Value(String type, Object value, String base64) {
   }
 
   public static Value blob(byte[] bytes) {
-    if (bytes == null) {
+    if (bytes == null || bytes.length == 0) {
       return nullV();
     }
 

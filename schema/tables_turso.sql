@@ -84,7 +84,7 @@ CREATE TABLE IF NOT EXISTS users
 CREATE TABLE IF NOT EXISTS email_configs
 (
     user_id           VARCHAR(50) NOT NULL,
-    file              TEXT        NOT NULL,
+    file              BLOB        NOT NULL,
     file_size         INT         NOT NULL,
     hash              BIGINT      NOT NULL,
     active            BOOL        NOT NULL,

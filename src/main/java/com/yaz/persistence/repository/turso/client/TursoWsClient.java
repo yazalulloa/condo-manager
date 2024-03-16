@@ -162,7 +162,7 @@ public class TursoWsClient {
       log.info("WebSocket is not connected {}", msg);
       return;
     }
-    log.info("Sending message: %s".formatted(msg));
+    //log.info("Sending message: %s".formatted(msg));
     webSocket.writeTextMessage(msg);
   }
 }

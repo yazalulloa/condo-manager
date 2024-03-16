@@ -18,7 +18,6 @@ import io.quarkus.arc.lookup.LookupIfProperty;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -93,13 +92,9 @@ public class EmailConfigTursoRepository implements EmailConfigRepository {
 
   private EmailConfig from(Row row) {
 
-    final var file = Optional.ofNullable(row.getString("file"))
-        .map(Base64.getDecoder()::decode)
-        .orElse(null);
-
     return EmailConfig.builder()
         .userId(row.getString("user_id"))
-        .file(file)
+        .file(row.getBlob("file"))
         .fileSize(row.getLong("file_size"))
         .hash(row.getLong("hash"))
         .active(row.getBoolean("active"))
@@ -128,17 +123,13 @@ public class EmailConfigTursoRepository implements EmailConfigRepository {
     return new EmailConfigUser(userFrom(row), from(row));
   }
 
-  private String fileEncode(byte[] file) {
-    return "'%s'".formatted(Base64.getEncoder().encodeToString(file));
-  }
-
   @Override
   public Uni<Integer> create(EmailConfig emailConfig) {
 
-    final var stmt = Stmt.stmt(INSERT, Value.text(emailConfig.userId()),
-        Value.text(Base64.getEncoder().encodeToString(emailConfig.file())),
+    final var stmt = Stmt.stmt(INSERT, Value.text(emailConfig.userId()), Value.blob(emailConfig.file()),
         Value.number(emailConfig.fileSize()), Value.number(emailConfig.hash()), Value.bool(emailConfig.active()),
-        Value.bool(emailConfig.isAvailable()), Value.bool(emailConfig.hasRefreshToken()), Value.number(emailConfig.expiresIn())
+        Value.bool(emailConfig.isAvailable()), Value.bool(emailConfig.hasRefreshToken()),
+        Value.number(emailConfig.expiresIn())
     );
 
     return tursoWsService.executeQuery(stmt)
@@ -167,27 +158,17 @@ public class EmailConfigTursoRepository implements EmailConfigRepository {
   @Override
   public Uni<Integer> update(EmailConfig emailConfig) {
 
-    final var stmt = Stmt.stmt(UPDATE, Value.blob(emailConfig.file()), Value.number(emailConfig.fileSize()),
-        Value.number(emailConfig.hash()),
-        Value.bool(emailConfig.isAvailable()), Value.bool(emailConfig.hasRefreshToken()),
-        Value.number(emailConfig.expiresIn()),
-        Value.text(emailConfig.updatedAt()), Value.text(emailConfig.lastCheckAt()),
-        Value.text(emailConfig.stacktrace()),
-        Value.text(emailConfig.userId())
+    final var stmt = Stmt.stmt(UPDATE,
+        Value.blob(emailConfig.file()), Value.number(emailConfig.fileSize()),
+        Value.number(emailConfig.hash()), Value.bool(emailConfig.isAvailable()),
+        Value.bool(emailConfig.hasRefreshToken()),
+        Value.number(emailConfig.expiresIn()), Value.text(emailConfig.updatedAt()),
+        Value.text(emailConfig.lastCheckAt()),
+        Value.text(emailConfig.stacktrace()), Value.text(emailConfig.userId())
     );
 
     return tursoWsService.executeQuery(stmt)
         .map(executeResp -> executeResp.result().rowCount());
-
-//    final var sql = UPDATE.formatted(COLLECTION, fileEncode(emailConfig.file()), emailConfig.fileSize(),
-//        emailConfig.hash(), emailConfig.isAvailable(), emailConfig.hasRefreshToken(), emailConfig.expiresIn(),
-//        SqlUtil.escape(SqlUtil.formatDateSqlite(emailConfig.updatedAt())),
-//        SqlUtil.escape(SqlUtil.formatDateSqlite(emailConfig.lastCheckAt())),
-//        SqlUtil.escape(emailConfig.stacktrace()), SqlUtil.escape(emailConfig.userId())
-//    );
-//
-//    return tursoService.executeQuery(sql)
-//        .map(TursoResponse::affectedRows);
   }
 
   @Override
