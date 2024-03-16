@@ -1,13 +1,16 @@
 package com.yaz.persistence.repository.turso;
 
-import com.yaz.client.turso.response.TursoResponse;
-import com.yaz.client.turso.response.TursoResponse.Row;
 import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.domain.query.RateQuery;
 import com.yaz.persistence.domain.query.SortOrder;
 import com.yaz.persistence.entities.Rate;
 import com.yaz.persistence.repository.RateRepository;
+import com.yaz.persistence.repository.turso.client.TursoWsService;
+import com.yaz.persistence.repository.turso.client.ws.request.Stmt;
+import com.yaz.persistence.repository.turso.client.ws.request.Value;
+import com.yaz.persistence.repository.turso.client.ws.response.ExecuteResp.Row;
 import com.yaz.util.SqlUtil;
+import com.yaz.util.StringUtil;
 import io.quarkus.arc.lookup.LookupIfProperty;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -15,8 +18,6 @@ import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -28,84 +29,94 @@ import lombok.extern.slf4j.Slf4j;
 public class RateTursoRepository implements RateRepository {
 
   private static final String COLLECTION = "rates";
-  private static final String SELECT = "SELECT * FROM rates %s ORDER BY id %s LIMIT %s";
-  private static final String DELETE_BY_ID = "DELETE FROM rates WHERE id = %s";
-  private static final String LAST = "SELECT * FROM rates WHERE from_currency = '%s' AND to_currency = '%s' ORDER BY id DESC LIMIT 1";
-  private static final String HASH_EXISTS = "SELECT id FROM rates WHERE hash = %s LIMIT 1";
-  private static final String INSERT = "INSERT INTO rates (from_currency, to_currency, rate, date_of_rate, source, hash, etag, last_modified) VALUES (%s) returning id";
+  private static final String SELECT = "SELECT * FROM %s %s ORDER BY id %s LIMIT ?";
+  private static final String DELETE_BY_ID = "DELETE FROM %s WHERE id = ?".formatted(COLLECTION);
+  private static final String LAST = "SELECT * FROM %s WHERE from_currency = ? AND to_currency = ? ORDER BY id DESC LIMIT 1".formatted(
+      COLLECTION);
+  private static final String HASH_EXISTS = "SELECT id FROM %s WHERE hash = ? LIMIT 1".formatted(COLLECTION);
+  private static final String INSERT = """
+      INSERT INTO %s (from_currency, to_currency, rate, date_of_rate, source, hash, etag, last_modified) VALUES (%s) returning id
+      """.formatted(COLLECTION, SqlUtil.params(8));
 
-  private final TursoService tursoService;
+  private final TursoWsService tursoWsService;
 
   @Override
   public Uni<Long> count() {
-    return tursoService.count("id", COLLECTION);
+    return tursoWsService.count("id", COLLECTION);
   }
 
   @Override
   public Uni<Integer> delete(long id) {
-    return tursoService.executeQuery(DELETE_BY_ID.formatted(id))
-        .map(TursoResponse::affectedRows);
+
+    return tursoWsService.executeQuery(Stmt.stmt(DELETE_BY_ID, Value.number(id)))
+        .map(executeResp -> executeResp.result().rowCount());
   }
 
   @Override
   public Uni<List<Rate>> listRows(RateQuery query) {
 
-    final var whereParams = new ArrayList<String>();
+    final var whereParams = new ArrayList<String>(2);
+    final var values = new ArrayList<Value>(2);
 
     Optional.of(query.lastId())
         .filter(l -> l > 0)
         .ifPresent(lastId -> {
 
           final var direction = query.sortOrder() == SortOrder.DESC ? "<" : ">";
-          whereParams.add("id %s %d".formatted(direction, lastId));
+          whereParams.add("id %s ?".formatted(direction));
+          values.add(Value.number(lastId));
         });
 
-    Optional.ofNullable(query.date())
-        .map(String::trim)
-        .filter(s -> !s.isEmpty())
-        .map("date_of_rate <= '%s'"::formatted)
-        .ifPresent(whereParams::add);
+    final var date = StringUtil.trimFilter(query.date());
+
+    if (date != null) {
+      whereParams.add("date_of_rate <= ?");
+      values.add(Value.text(date));
+    }
 
     var whereClause = String.join(" AND ", whereParams);
     if (!whereClause.isEmpty()) {
       whereClause = " WHERE " + whereClause;
     }
 
-    final var sql = SELECT.formatted(whereClause, query.sortOrder(), query.limit());
-
-    return tursoService.executeQuery(sql)
-        .map(TursoResponse::values)
-        .map(rows -> SqlUtil.toList(rows, this::from));
+    values.add(Value.number(query.limit()));
+    final var sql = SELECT.formatted(COLLECTION, whereClause, query.sortOrder());
+    return tursoWsService.selectQuery(sql, values, this::from);
   }
 
   @Override
   public Uni<Optional<Long>> save(Rate rate) {
 
-    final var params = Stream.of(
-            rate.fromCurrency().name(),
-            rate.toCurrency().name(),
-            rate.rate(),
-            rate.dateOfRate(),
-            rate.source().name(),
-            rate.hash(),
-            rate.etag(),
-            rate.lastModified()
-        )
-        .map(SqlUtil::escape)
-        .collect(Collectors.joining(","));
+    final var stmt = Stmt.stmt(INSERT, Value.enumV(rate.fromCurrency()), Value.enumV(rate.toCurrency()),
+        Value.number(rate.rate()), Value.text(rate.dateOfRate()), Value.enumV(rate.source()), Value.number(rate.hash()),
+        Value.text(rate.etag()), Value.text(rate.lastModified()));
+    return tursoWsService.selectOne(stmt, row -> row.getLong("id"));
 
-    final var sql = INSERT.formatted(params);
-
-    return tursoService.executeQuery(sql)
-        .map(TursoResponse::values)
-        .map(rows -> {
-          if (rows.isEmpty()) {
-            return Optional.empty();
-          } else {
-            return Optional.ofNullable(rows.getFirst())
-                .map(row -> row.getLong("id"));
-          }
-        });
+//    final var params = Stream.of(
+//            rate.fromCurrency().name(),
+//            rate.toCurrency().name(),
+//            rate.rate(),
+//            rate.dateOfRate(),
+//            rate.source().name(),
+//            rate.hash(),
+//            rate.etag(),
+//            rate.lastModified()
+//        )
+//        .map(SqlUtil::escape)
+//        .collect(Collectors.joining(","));
+//
+//    final var sql = INSERT.formatted(params);
+//
+//    return tursoService.executeQuery(sql)
+//        .map(TursoResponse::values)
+//        .map(rows -> {
+//          if (rows.isEmpty()) {
+//            return Optional.empty();
+//          } else {
+//            return Optional.ofNullable(rows.getFirst())
+//                .map(row -> row.getLong("id"));
+//          }
+//        });
   }
 
   private Rate from(Row row) {
@@ -126,26 +137,23 @@ public class RateTursoRepository implements RateRepository {
 
   @Override
   public Uni<Optional<Rate>> last(Currency fromCurrency, Currency toCurrency) {
-    return tursoService.executeQuery(LAST.formatted(fromCurrency, toCurrency))
-        .map(TursoResponse::values)
-        .map(values -> {
+    return tursoWsService.selectOne(Stmt.stmt(LAST, Value.enumV(fromCurrency), Value.enumV(toCurrency)), this::from);
 
-          if (values.isEmpty()) {
-            return Optional.empty();
-          }
-
-          return Optional.ofNullable(from(values.getFirst()));
-        });
+//    return tursoService.executeQuery(LAST.formatted(fromCurrency, toCurrency))
+//        .map(TursoResponse::values)
+//        .map(values -> {
+//
+//          if (values.isEmpty()) {
+//            return Optional.empty();
+//          }
+//
+//          return Optional.ofNullable(from(values.getFirst()));
+//        });
   }
 
   @Override
   public Uni<Boolean> exists(long hash) {
-    return tursoService.executeQuery(HASH_EXISTS.formatted(hash))
-        .map(res -> {
-
-          return res.firstRow()
-              .map(row -> row.getFirst() != null)
-              .orElse(false);
-        });
+    return tursoWsService.selectOne(Stmt.stmt(HASH_EXISTS, Value.number(hash)), row -> row.getLong("id") != null)
+        .map(opt -> opt.orElse(false));
   }
 }

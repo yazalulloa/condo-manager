@@ -1,21 +1,22 @@
 package com.yaz.persistence.repository.turso;
 
-import com.yaz.client.turso.response.TursoResponse;
-import com.yaz.client.turso.response.TursoResponse.Row;
 import com.yaz.persistence.domain.IdentityProvider;
 import com.yaz.persistence.domain.OidcDbTokenQueryRequest;
 import com.yaz.persistence.entities.OidcDbToken;
 import com.yaz.persistence.entities.OidcDbToken.User;
 import com.yaz.persistence.repository.OidcDbTokenRepository;
+import com.yaz.persistence.repository.turso.client.TursoWsService;
+import com.yaz.persistence.repository.turso.client.ws.request.Stmt;
+import com.yaz.persistence.repository.turso.client.ws.request.Value;
+import com.yaz.persistence.repository.turso.client.ws.response.ExecuteResp.Row;
 import com.yaz.util.SqlUtil;
 import io.quarkus.arc.lookup.LookupIfProperty;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -31,30 +32,38 @@ public class OidcDbTokenTursoRepository implements OidcDbTokenRepository {
       SELECT oidc_db_token_state_manager.*,users.provider_id, users.provider, users.email, users.username, users.name, users.picture
       FROM %s %s
       LEFT JOIN users ON oidc_db_token_state_manager.user_id = users.id
-      ORDER BY id DESC LIMIT %s
+      ORDER BY id DESC LIMIT ?
       """;
-  private static final String DELETE = "DELETE FROM %s WHERE id = %s";
-  private static final String UPDATE_USER_ID = "UPDATE %s SET user_id = %s WHERE id = %s";
-  private static final String DELETE_BY_USER = "DELETE FROM %s WHERE user_id = %s";
-  private static final String READ = "SELECT * FROM %s WHERE id = %s";
+  private static final String DELETE = "DELETE FROM %s WHERE id = ?".formatted(COLLECTION);
+  private static final String UPDATE_USER_ID = "UPDATE %s SET user_id = ? WHERE id = ?".formatted(COLLECTION);
+  private static final String DELETE_BY_USER = "DELETE FROM %s WHERE user_id = ?".formatted(COLLECTION);
+  private static final String READ = "SELECT * FROM %s WHERE id = ?".formatted(COLLECTION);
+  private static final String DELETE_IF_EXPIRED = "DELETE FROM %s WHERE expires_in < ?".formatted(COLLECTION);
+  private static final String INSERT = "INSERT INTO %s (id, id_token, access_token, refresh_token, expires_in) VALUES (%s)".formatted(
+      COLLECTION, SqlUtil.params(5));
 
-  private final TursoService tursoService;
+  private final TursoWsService tursoWsService;
 
   @Override
   public Uni<Long> count() {
-    return tursoService.count("id", COLLECTION);
+    return tursoWsService.count("id", COLLECTION);
   }
 
   @Override
   public Uni<List<OidcDbToken>> select(OidcDbTokenQueryRequest queryRequest) {
-    final var whereClause =
-        queryRequest.lastId() == null ? "" : "WHERE id > %s".formatted(SqlUtil.escape(queryRequest.lastId()));
 
-    final var sql = SELECT.formatted(COLLECTION, whereClause, queryRequest.limit());
+    final var whereClause = queryRequest.lastId() == null ? "" : "WHERE id > ?";
+    final var sql = SELECT.formatted(COLLECTION, whereClause);
 
-    return tursoService.executeQuery(sql)
-        .map(TursoResponse::values)
-        .map(rows -> SqlUtil.toList(rows, this::from));
+    final var values = new ArrayList<Value>();
+    if (queryRequest.lastId() != null) {
+      values.add(Value.text(queryRequest.lastId()));
+    }
+
+    values.add(Value.number(queryRequest.limit()));
+
+    return tursoWsService.selectQuery(sql, values, this::from);
+
   }
 
   private OidcDbToken from(Row row) {
@@ -81,59 +90,41 @@ public class OidcDbTokenTursoRepository implements OidcDbTokenRepository {
   @Override
   public Uni<Integer> delete(String id) {
 
-    final var sql = DELETE.formatted(COLLECTION, SqlUtil.escape(id));
-    return tursoService.executeQuery(sql)
-        .map(TursoResponse::affectedRows);
+    return tursoWsService.executeQuery(DELETE, Value.text(id))
+        .map(executeResp -> executeResp.result().rowCount());
   }
 
   @Override
   public Uni<Integer> updateUserId(String id, String userId) {
-    final var sql = UPDATE_USER_ID.formatted(COLLECTION, SqlUtil.escape(userId), SqlUtil.escape(id));
-    return tursoService.executeQuery(sql)
-        .map(TursoResponse::affectedRows);
+
+    return tursoWsService.executeQuery(UPDATE_USER_ID, Value.text(userId), Value.text(id))
+        .map(executeResp -> executeResp.result().rowCount());
   }
 
   @Override
   public Uni<Integer> deleteByUser(String userId) {
 
-    final var sql = DELETE_BY_USER.formatted(COLLECTION, SqlUtil.escape(userId));
-    return tursoService.executeQuery(sql)
-        .map(TursoResponse::affectedRows);
+    return tursoWsService.executeQuery(DELETE_BY_USER, Value.text(userId))
+        .map(executeResp -> executeResp.result().rowCount());
   }
 
   @Override
   public Uni<Integer> insert(String idToken, String accessToken, String refreshToken, long expiresIn, String id) {
 
-    final var params = Stream.of(id, idToken, accessToken, refreshToken, expiresIn)
-        .map(SqlUtil::escape)
-        .collect(Collectors.joining(","));
-
-    final var sql = "INSERT INTO %s (id, id_token, access_token, refresh_token, expires_in) VALUES (%s)".formatted(
-        COLLECTION, params);
-
-    return tursoService.executeQuery(sql)
-        .map(TursoResponse::affectedRows);
+    return tursoWsService.executeQuery(Stmt.stmt(INSERT, Value.text(id), Value.text(idToken), Value.text(accessToken),
+            Value.text(refreshToken), Value.number(expiresIn)))
+        .map(executeResp -> executeResp.result().rowCount());
   }
 
   @Override
   public Uni<Optional<OidcDbToken>> read(String id) {
-
-    final var sql = READ.formatted(COLLECTION, SqlUtil.escape(id));
-    return tursoService.executeQuery(sql)
-        .map(TursoResponse::values)
-        .map(rows -> {
-          if (rows.isEmpty()) {
-            return Optional.empty();
-          } else {
-            return Optional.ofNullable(from(rows.getFirst()));
-          }
-        });
+    return tursoWsService.selectOne(Stmt.stmt(READ, Value.text(id)), this::from);
   }
 
   @Override
   public Uni<Integer> deleteIfExpired(long expiresIn) {
-    final var sql = "DELETE FROM %s WHERE expires_in < %s".formatted(COLLECTION, expiresIn);
-    return tursoService.executeQuery(sql)
-        .map(TursoResponse::affectedRows);
+
+    return tursoWsService.executeQuery(DELETE_IF_EXPIRED, Value.number(expiresIn))
+        .map(executeResp -> executeResp.result().rowCount());
   }
 }

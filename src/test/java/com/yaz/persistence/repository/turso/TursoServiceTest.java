@@ -1,13 +1,9 @@
 package com.yaz.persistence.repository.turso;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-import com.yaz.client.turso.response.TursoResponse;
+import com.yaz.persistence.repository.turso.client.TursoService;
 import io.quarkus.test.junit.QuarkusTest;
 import io.vertx.core.json.Json;
-import io.vertx.core.json.JsonObject;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest

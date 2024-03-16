@@ -1,14 +1,15 @@
-package com.yaz.persistence.repository.turso;
+package com.yaz.persistence.repository.turso.client;
 
-import com.yaz.client.turso.RequestsItem;
-import com.yaz.client.turso.Stmt;
 import com.yaz.client.turso.TursoClient;
-import com.yaz.client.turso.TursoQuery;
+import com.yaz.client.turso.request.RequestsItem;
+import com.yaz.client.turso.request.Stmt;
+import com.yaz.client.turso.request.TursoQuery;
 import com.yaz.client.turso.response.ResultsItem;
 import com.yaz.client.turso.response.TursoResponse;
 import io.micrometer.core.annotation.Timed;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -23,6 +24,7 @@ public class TursoService {
   private static final String TOTAL_COUNT = "SELECT COUNT(%s) as total_count FROM %s";
   private final TursoClient client;
 
+  @Inject
   public TursoService(@RestClient TursoClient client) {
     this.client = client;
   }
@@ -65,31 +67,25 @@ public class TursoService {
   }
 
   public Uni<TursoResponse> executeQuery(String sql) {
-    return executeQuery(simpleQuery(sql));
+    return executeQuery(TursoQuery.simple(sql));
   }
 
-  public TursoQuery simpleQuery(String sql) {
-    final var tursoQuery = new TursoQuery();
-    tursoQuery.setRequests(new ArrayList<>());
-    final var execute = new RequestsItem("execute", new Stmt(sql));
-    tursoQuery.getRequests().add(execute);
-    tursoQuery.getRequests().add(new RequestsItem("close"));
-    return tursoQuery;
-  }
 
   public Uni<Long> count(String column, String table) {
 
     final var query = TOTAL_COUNT.formatted(column, table);
 
-    return executeQuery(simpleQuery(query))
+    return executeQuery(TursoQuery.simple(query))
         .map(response -> response.results().getFirst().response().result().rows().getFirst().getFirst().value())
         .map(Long::parseLong);
   }
+
   public Uni<TursoResponse> executeQueries(List<String> queries) {
     final var tursoQuery = new TursoQuery();
     tursoQuery.setRequests(new ArrayList<>());
 
-    queries.stream().map(Stmt::new).map(stmt -> new RequestsItem("execute", stmt)).forEach(tursoQuery.getRequests()::add);
+    queries.stream().map(Stmt::simple).map(stmt -> new RequestsItem("execute", stmt))
+        .forEach(tursoQuery.getRequests()::add);
     tursoQuery.getRequests().add(new RequestsItem("close"));
     return executeQuery(tursoQuery);
   }

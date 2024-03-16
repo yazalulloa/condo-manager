@@ -1,6 +1,8 @@
 package com.yaz.bean;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.yaz.bean.qualifier.NonNullObjectMapper;
 import com.yaz.util.JacksonUtil;
 import io.quarkus.arc.All;
 import io.quarkus.jackson.ObjectMapperCustomizer;
@@ -25,4 +27,12 @@ public class CustomObjectMapper {
 
     return mapper;
   }
+
+  @Singleton
+  @Produces
+  @NonNullObjectMapper
+  JsonMapper jsonMapper() {
+    return JacksonUtil.jsonMapper();
+  }
+
 }

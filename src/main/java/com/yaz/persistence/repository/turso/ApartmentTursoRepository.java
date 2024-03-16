@@ -6,6 +6,8 @@ import com.yaz.persistence.domain.query.ApartmentQuery;
 import com.yaz.persistence.entities.Apartment;
 import com.yaz.persistence.entities.ExtraCharge.Apt;
 import com.yaz.persistence.repository.ApartmentRepository;
+import com.yaz.persistence.repository.turso.client.TursoService;
+import com.yaz.persistence.repository.turso.client.TursoWsService;
 import com.yaz.util.SqlUtil;
 import com.yaz.util.StringUtil;
 import io.quarkus.arc.lookup.LookupIfProperty;
@@ -90,10 +92,11 @@ public class ApartmentTursoRepository implements ApartmentRepository {
   public static final String DELETE_EMAILS = "DELETE FROM apartment_emails WHERE building_id = %s AND apt_number = %s AND email NOT IN (%s)";
 
   private final TursoService tursoService;
+  private final TursoWsService tursoWsService;
 
   @Override
   public Uni<Long> count() {
-    return tursoService.count("*", COLLECTION);
+    return tursoWsService.count("*", COLLECTION);
   }
 
   @Override

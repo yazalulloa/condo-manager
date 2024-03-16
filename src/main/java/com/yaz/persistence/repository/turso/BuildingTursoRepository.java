@@ -5,6 +5,8 @@ import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.domain.query.BuildingQuery;
 import com.yaz.persistence.entities.Building;
 import com.yaz.persistence.repository.BuildingRepository;
+import com.yaz.persistence.repository.turso.client.TursoService;
+import com.yaz.persistence.repository.turso.client.TursoWsService;
 import com.yaz.util.SqlUtil;
 import com.yaz.util.StringUtil;
 import io.quarkus.arc.lookup.LookupIfProperty;
@@ -65,10 +67,11 @@ public class BuildingTursoRepository implements BuildingRepository {
   private static final String SELECT_BY_EMAIL_CONFIG = "SELECT id FROM %s WHERE email_config_id = %s";
 
   private final TursoService tursoService;
+  private final TursoWsService tursoWsService;
 
   @Override
   public Uni<Long> count() {
-    return tursoService.count("id", COLLECTION);
+    return tursoWsService.count("id", COLLECTION);
   }
 
   @Override

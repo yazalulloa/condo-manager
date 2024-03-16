@@ -1,13 +1,13 @@
 package com.yaz.job;
 
+import com.yaz.service.SaveNewBcvRate;
+import com.yaz.util.RxUtil;
 import io.quarkus.scheduler.Scheduled;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import com.yaz.service.SaveNewBcvRate;
-import com.yaz.util.RxUtil;
 
 @Slf4j
 @ApplicationScoped
@@ -17,7 +17,7 @@ public class BcvJob {
   private final AtomicInteger counter = new AtomicInteger();
   private final SaveNewBcvRate saveNewBcvRate;
 
-  @Scheduled(delay = 1,  every = "1H")
+  @Scheduled(delay = 1, every = "1H")
   public void runAsStart() {
     saveNewBcvRate();
   }
@@ -28,7 +28,6 @@ public class BcvJob {
   }
 
   private void saveNewBcvRate() {
-
     //log.info("RUN_JOB {} counter: {}", Thread.currentThread(), counter.incrementAndGet());
 
     saveNewBcvRate.saveNewRate()

@@ -13,6 +13,9 @@ public class RandomUtil {
   public static final char[] HEXADECIMAL = "0123456789ABCDEF".toCharArray();
   private static final int DEFAULT_LENGTH = 6;
 
+  private static final long UNSIGNED_LONG_19_MIN = 1000000000000000000L;
+  private static final int UNSIGNED_INT_10_MIN = 1000000000;
+
   public static String getID() {
     return getID(DEFAULT_LENGTH, Type.ALPHANUMERIC);
   }
@@ -95,6 +98,14 @@ public class RandomUtil {
 
   public static BigDecimal randomBigDecimal(int integer, int fraction) {
     return new BigDecimal(randomIntStr(integer) + "." + randomIntStr(fraction));
+  }
+
+  public static long unsignedLong19() {
+    return getInstance().nextLong(UNSIGNED_LONG_19_MIN, Long.MAX_VALUE);
+  }
+
+  public static int unsignedInt10() {
+    return getInstance().nextInt(UNSIGNED_INT_10_MIN, Integer.MAX_VALUE);
   }
 
   public enum Type {

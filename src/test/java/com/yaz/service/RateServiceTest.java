@@ -36,4 +36,10 @@ class RateServiceTest {
     Assertions.assertEquals(countDb, count.get());
   }
 
+  @Test
+  void newRate() {
+    final var result = rateService.newRate().blockingGet();
+    System.out.println(result);
+  }
+
 }

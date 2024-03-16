@@ -4,6 +4,7 @@ import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.domain.query.RateQuery;
 import com.yaz.persistence.entities.Rate;
 import com.yaz.persistence.entities.Rate.Source;
+import com.yaz.persistence.repository.turso.client.TursoService;
 import com.yaz.util.MutinyUtil;
 import com.yaz.util.PagingJsonFile;
 import com.yaz.util.RxUtil;
@@ -28,7 +29,7 @@ class RateTursoRepositoryTest {
 
   @Test
   void exists() {
-    final var exists = repository.exists(1696958915).await().indefinitely();
+    final var exists = repository.exists(2655678915L).await().indefinitely();
     System.out.println(exists);
   }
 

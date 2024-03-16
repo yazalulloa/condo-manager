@@ -1,5 +1,6 @@
 package com.yaz.client.turso;
 
+import com.yaz.client.turso.request.TursoQuery;
 import io.smallrye.mutiny.Uni;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;

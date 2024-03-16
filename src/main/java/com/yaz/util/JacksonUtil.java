@@ -18,6 +18,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.blackbird.BlackbirdModule;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import io.vertx.core.json.jackson.DatabindCodec;
+import io.vertx.core.json.jackson.VertxModule;
 import java.util.Collection;
 import java.util.Map;
 
@@ -28,7 +29,7 @@ public class JacksonUtil {
     return defaultConfig(DatabindCodec.mapper());
   }
 
-  public static void loadModules(){
+  public static void loadModules() {
     DatabindCodec.mapper().findAndRegisterModules();
   }
 
@@ -108,6 +109,7 @@ public class JacksonUtil {
         .addModule(new ParameterNamesModule())
         .addModule(new Jdk8Module())
         .addModule(new BlackbirdModule())
+        .addModule(new VertxModule())
         .serializationInclusion(JsonInclude.Include.NON_NULL)
         .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
         .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)

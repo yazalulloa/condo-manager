@@ -1,4 +1,4 @@
-package com.yaz.client.turso;
+package com.yaz.client.turso.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

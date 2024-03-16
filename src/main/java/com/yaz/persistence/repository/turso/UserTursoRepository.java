@@ -7,6 +7,8 @@ import com.yaz.persistence.domain.query.SortOrder;
 import com.yaz.persistence.domain.query.UserQuery;
 import com.yaz.persistence.entities.User;
 import com.yaz.persistence.repository.UserRepository;
+import com.yaz.persistence.repository.turso.client.TursoService;
+import com.yaz.persistence.repository.turso.client.TursoWsService;
 import com.yaz.util.DateUtil;
 import com.yaz.util.SqlUtil;
 import io.quarkus.arc.lookup.LookupIfProperty;
@@ -40,10 +42,11 @@ public class UserTursoRepository implements UserRepository {
   private static final String SELECT_ID_FROM_PROVIDER = "SELECT id FROM %s WHERE provider = %s AND provider_id = %s";
 
   private final TursoService tursoService;
+  private final TursoWsService tursoWsService;
 
   @Override
   public Uni<Long> count() {
-    return tursoService.count("id", COLLECTION);
+    return tursoWsService.count("id", COLLECTION);
   }
 
   @Override

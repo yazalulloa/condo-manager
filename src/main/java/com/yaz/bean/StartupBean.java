@@ -1,18 +1,15 @@
 package com.yaz.bean;
 
-import com.yaz.persistence.repository.turso.TursoService;
+import com.yaz.persistence.repository.turso.client.TursoService;
+import com.yaz.persistence.repository.turso.client.TursoWsService;
 import com.yaz.service.NotificationService;
 import com.yaz.util.EnvParams;
 import com.yaz.util.FileUtil;
-import com.yaz.util.RxUtil;
-import com.yaz.util.rx.RetryWithDelay;
 import io.quarkus.runtime.Startup;
 import io.quarkus.runtime.StartupEvent;
-import io.reactivex.rxjava3.schedulers.Schedulers;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
-import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,6 +21,7 @@ public class StartupBean {
   private final NotificationService notificationService;
   private final EnvParams envParams;
   private final TursoService tursoService;
+  private final TursoWsService tursoWsService;
 
   @Startup(value = 0)
   void init() {
@@ -51,6 +49,8 @@ public class StartupBean {
 
     log.info("AFTER STARTUP");
     notificationService.sendAppStartup();
+    tursoWsService.heartBeat();
+    //tursoWsClient.start();
 //    Completable.complete()
 //        .delay(3, TimeUnit.SECONDS)
 //        .andThen(Completable.fromAction(() -> notificationService.sendAppStartup()))

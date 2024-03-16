@@ -2,6 +2,7 @@ package com.yaz.client.turso;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.yaz.client.turso.request.TursoQuery;
 import com.yaz.persistence.domain.query.SortOrder;
 import com.yaz.service.RateService;
 import com.yaz.util.MutinyUtil;
@@ -12,7 +13,6 @@ import io.reactivex.rxjava3.core.Completable;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import jakarta.inject.Inject;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -48,11 +48,7 @@ class TursoClientTest {
   @Test
   void selectRates() {
 
-    final var tursoQuery = new TursoQuery();
-    tursoQuery.setRequests(new ArrayList<>());
-    final var execute = new RequestsItem("execute", new Stmt("select * from rates"));
-    tursoQuery.getRequests().add(execute);
-    tursoQuery.getRequests().add(new RequestsItem("close"));
+    final var tursoQuery = TursoQuery.simple("select * from rates");
 
     final var string = Json.encode(tursoQuery);
 
@@ -94,11 +90,7 @@ class TursoClientTest {
 
       final var query = sql + values;
 
-        final var tursoQuery = new TursoQuery();
-        tursoQuery.setRequests(new ArrayList<>());
-        final var execute = new RequestsItem("execute", new Stmt(query));
-        tursoQuery.getRequests().add(execute);
-        tursoQuery.getRequests().add(new RequestsItem("close"));
+      final var tursoQuery = TursoQuery.simple(query);
 
       return MutinyUtil.single(tursoClient.query(tursoQuery))
           .flatMapCompletable(response -> {
@@ -112,7 +104,6 @@ class TursoClientTest {
     completable.blockingAwait();
 
   }
-
 
 
 }
