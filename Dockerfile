@@ -1,5 +1,6 @@
 FROM quay.io/quarkus/ubi-quarkus-graalvmce-builder-image:jdk-21.0.1 AS build
 
+WORKDIR /app
 COPY mvnw .
 COPY .mvn .mvn
 COPY pom.xml .
@@ -9,14 +10,21 @@ COPY local.env .env
 COPY src ./src
 USER root
 RUN source ./.env
-RUN --mount=type=cache,target=/root/.m2 ./mvnw clean package -DskipTests -Dnative
+RUN --mount=type=cache,target=/root/.m2 ./mvnw clean package -DskipTests
 
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.8
-WORKDIR /work/
-COPY --from=build /project/target/*-runner /work/application
-COPY local.env .env
-RUN chmod 775 /work
 
-EXPOSE 13835
+FROM registry.access.redhat.com/ubi8/openjdk-21:1.18
+WORKDIR /app
+ENV LANGUAGE='en_US:en'
 
-ENTRYPOINT ["./application", "-Dquarkus.http.host=0.0.0.0"]
+COPY --from=build --chown=185 /app/target/quarkus-app/lib/ /deployments/lib/
+COPY --from=build --chown=185 /app/target/quarkus-app/*.jar /deployments/
+COPY --from=build --chown=185 /app/target/quarkus-app/app/ /deployments/app/
+COPY --from=build --chown=185 /app/target/quarkus-app/quarkus/ /deployments/quarkus/
+
+USER 185
+ENV JAVA_OPTS_APPEND="-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
+ENV JAVA_APP_JAR="/deployments/quarkus-run.jar"
+
+ENTRYPOINT [ "/opt/jboss/container/java/run/run-java.sh" ]
+

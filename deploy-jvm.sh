@@ -5,6 +5,6 @@ DIR=$(dirname "$(readlink -f "$0")")
 
 #./mvnw clean package -DskipTests -Dnative -Dquarkus.native.container-build=true
 #docker build -f src/main/docker/Dockerfile.native.native-micro -t quarkus/code-with-quarkus .
-docker build -f "$DIR"/Dockerfile -t condo-manager:latest . && \
+docker build --progress=plain -f "$DIR"/Dockerfile -t condo-manager:latest . && \
  docker compose -f "$DIR"/docker-compose.yml up -d --no-deps --build --remove-orphans && \
  docker logs -f condo-manager
