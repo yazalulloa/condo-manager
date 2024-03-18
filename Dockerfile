@@ -9,7 +9,7 @@ RUN --mount=type=cache,target=/root/.m2 ./mvnw -B org.apache.maven.plugins:maven
 
 COPY local.env .env
 COPY src /code/src
-RUN source ./.env
+#RUN source ./.env
 RUN --mount=type=cache,target=/root/.m2 ./mvnw package -Dnative -DskipTests
 
 ## Stage 2 : create the docker final image

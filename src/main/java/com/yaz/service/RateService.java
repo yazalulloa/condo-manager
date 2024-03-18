@@ -188,7 +188,7 @@ public class RateService {
 
           String nextPageUrl = null;
           if (results.size() == actualLimit) {
-            results.remove(results.size() - 1);
+            results.removeLast();
             results.trimToSize();
 
             final var last = results.getLast();
