@@ -1,11 +1,14 @@
 package com.yaz.resource.domain.response;
 
+import com.yaz.persistence.entities.OidcDbToken;
+import com.yaz.resource.OidcDbTokenResource;
+import com.yaz.util.ConvertUtil;
+import java.time.ZoneOffset;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import com.yaz.persistence.entities.OidcDbToken;
-import com.yaz.resource.OidcDbTokenResource;
 
 
 public record OidcDbTokenTableResponse(
@@ -19,6 +22,9 @@ public record OidcDbTokenTableResponse(
   public static class Item {
 
     private final OidcDbToken token;
+
+    @Getter(lazy = true)
+    private final String tokenDuration = genTokenDuration();
 
     @Getter(lazy = true)
     private final String cardId = genCardId();
@@ -40,6 +46,14 @@ public record OidcDbTokenTableResponse(
 
     public String genCardIdRef() {
       return "#" + genCardId();
+    }
+
+    public String genTokenDuration() {
+
+      final var expiresIn = TimeUnit.SECONDS.toMillis(getToken().expiresIn());
+
+      final var createdAt = getToken().createdAt().toInstant(ZoneOffset.UTC).toEpochMilli();
+      return ConvertUtil.formatDuration(expiresIn - createdAt);
     }
   }
 

@@ -1,10 +1,10 @@
 package com.yaz.service;
 
-import com.yaz.persistence.repository.mysql.ExtraChargeRepository;
 import com.yaz.persistence.domain.request.ExtraChargeCreateRequest;
 import com.yaz.persistence.domain.request.ExtraChargeUpdateRequest;
 import com.yaz.persistence.entities.ExtraCharge;
 import com.yaz.persistence.entities.ExtraCharge.Keys;
+import com.yaz.persistence.repository.turso.ExtraChargeRepository;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;

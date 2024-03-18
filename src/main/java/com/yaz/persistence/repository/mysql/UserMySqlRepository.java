@@ -4,11 +4,9 @@ import com.yaz.persistence.domain.IdentityProvider;
 import com.yaz.persistence.domain.MySqlQueryRequest;
 import com.yaz.persistence.domain.query.UserQuery;
 import com.yaz.persistence.entities.User;
-import com.yaz.persistence.repository.UserRepository;
 import com.yaz.persistence.repository.mysql.MySqlService.TrxMode;
 import com.yaz.util.SqlUtil;
 import com.yaz.util.StringUtil;
-import io.quarkus.arc.lookup.LookupIfProperty;
 import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.sqlclient.Row;
 import io.vertx.mutiny.sqlclient.RowIterator;
@@ -26,11 +24,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@LookupIfProperty(name = "app.repository.impl", stringValue = "mysql")
+//@LookupIfProperty(name = "app.repository.impl", stringValue = "mysql")
 //@Named("mysql")
 @ApplicationScoped
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
-public class UserMySqlRepository implements UserRepository {
+public class UserMySqlRepository {
 
   private static final String COLLECTION = "users";
   private static final String SELECT = "SELECT *, BIN_TO_UUID(id) as uuid_id FROM %s %s ORDER BY id DESC LIMIT ?";
@@ -49,12 +47,12 @@ public class UserMySqlRepository implements UserRepository {
 
   private final MySqlService mySqlService;
 
-  @Override
+
   public Uni<Long> count() {
     return mySqlService.totalCount(COLLECTION);
   }
 
-  @Override
+
   public Uni<Integer> delete(String id) {
 
     return mySqlService.request(DELETE_BY_ID, Tuple.of(id))
@@ -62,7 +60,6 @@ public class UserMySqlRepository implements UserRepository {
   }
 
 
-  @Override
   public Uni<Optional<String>> getIdFromProvider(IdentityProvider provider, String providerId) {
 
     return mySqlService.request(getIdFromProviderQuery(provider, providerId))
@@ -98,14 +95,14 @@ public class UserMySqlRepository implements UserRepository {
         .build();
   }
 
-  @Override
+
   public Uni<Integer> updateLastLoginAt(String id) {
 
     return mySqlService.request(UPDATE, Tuple.of(id))
         .map(SqlResult::rowCount);
   }
 
-  @Override
+
   public Uni<String> save(User user) {
 
     final var list = new ArrayList<MySqlQueryRequest>();
@@ -139,7 +136,7 @@ public class UserMySqlRepository implements UserRepository {
     return MySqlQueryRequest.normal(INSERT, params);
   }
 
-  @Override
+
   public Uni<List<User>> select(UserQuery query) {
 
     final var queryRequest = where(query);

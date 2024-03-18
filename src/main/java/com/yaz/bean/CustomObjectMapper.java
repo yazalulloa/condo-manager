@@ -28,11 +28,11 @@ public class CustomObjectMapper {
     return mapper;
   }
 
-  @Singleton
-  @Produces
-  @NonNullObjectMapper
-  JsonMapper jsonMapper() {
-    return JacksonUtil.jsonMapper();
-  }
+//  @Singleton
+//  @Produces
+//  @NonNullObjectMapper
+//  JsonMapper jsonMapper() {
+//    return JacksonUtil.jsonMapper();
+//  }
 
 }

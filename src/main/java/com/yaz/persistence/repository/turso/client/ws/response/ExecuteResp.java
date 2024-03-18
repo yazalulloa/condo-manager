@@ -91,5 +91,9 @@ public record ExecuteResp(String type, StmtResult result) implements Response {
           .map(Base64.getDecoder()::decode)
           .orElse(null);
     }
+
+    public double getDouble(String amount) {
+      return value(amount).map(Value::asDouble).orElseThrow();
+    }
   }
 }

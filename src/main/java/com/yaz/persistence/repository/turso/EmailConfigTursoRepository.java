@@ -5,7 +5,6 @@ import com.yaz.persistence.domain.IdentityProvider;
 import com.yaz.persistence.domain.query.EmailConfigQuery;
 import com.yaz.persistence.entities.EmailConfig;
 import com.yaz.persistence.repository.EmailConfigRepository;
-import com.yaz.persistence.repository.turso.client.TursoService;
 import com.yaz.persistence.repository.turso.client.TursoWsService;
 import com.yaz.persistence.repository.turso.client.ws.request.Stmt;
 import com.yaz.persistence.repository.turso.client.ws.request.Value;
@@ -24,7 +23,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@LookupIfProperty(name = "app.repository.impl", stringValue = "turso")
+////@LookupIfProperty(name = "app.repository.impl", stringValue = "turso")
 //@Named("turso")
 @ApplicationScoped
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
@@ -65,7 +64,7 @@ public class EmailConfigTursoRepository implements EmailConfigRepository {
            WHERE email_configs.is_available = true AND email_configs.active = true
       ORDER BY users.email DESC;
       """;
-  private final TursoService tursoService;
+
   private final TursoWsService tursoWsService;
 
   @Override

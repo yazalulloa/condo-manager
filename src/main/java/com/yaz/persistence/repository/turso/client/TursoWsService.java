@@ -1,6 +1,10 @@
 package com.yaz.persistence.repository.turso.client;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.yaz.bean.qualifier.NonNullObjectMapper;
 import com.yaz.persistence.repository.turso.client.ws.Listener;
@@ -27,9 +31,11 @@ import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
@@ -39,7 +45,6 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 @Slf4j
 @ApplicationScoped
 public class TursoWsService {
-
 
   private static final Map<Integer, String> STORED_QUERIES = new HashMap<>();
 
@@ -53,14 +58,20 @@ public class TursoWsService {
   private static final String TOTAL_COUNT = "SELECT COUNT(%s) as total_count FROM %s";
   private final TursoWsClient client;
   private final String jwt;
-  private final JsonMapper jsonMapper;
+  private final ObjectMapper mapper;
 
   @Inject
   public TursoWsService(TursoWsClient client, @ConfigProperty(name = "app.turso-jwt") String jwt,
-      @NonNullObjectMapper JsonMapper jsonMapper) {
+  ObjectMapper objectMapper
+  //    @NonNullObjectMapper JsonMapper jsonMapper
+  ) {
     this.client = client;
     this.jwt = jwt;
-    this.jsonMapper = jsonMapper;
+    this.mapper = objectMapper
+        .copy()
+        .setSerializationInclusion(JsonInclude.Include.NON_NULL)
+        .setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
+        .configure(JsonGenerator.Feature.WRITE_BIGDECIMAL_AS_PLAIN, true);
     client.addMsgHandler(this::handleMessage);
   }
 
@@ -110,7 +121,7 @@ public class TursoWsService {
 
   private <T> T fromJson(String json, Class<T> clazz) {
     try {
-      return jsonMapper.readValue(json, clazz);
+      return mapper.readValue(json, clazz);
     } catch (JsonProcessingException e) {
       log.error("Failed to parse json: %s".formatted(json));
       throw new RuntimeException(e);
@@ -119,7 +130,7 @@ public class TursoWsService {
 
   private String toJson(Object object) {
     try {
-      return jsonMapper.writeValueAsString(object);
+      return mapper.writeValueAsString(object);
     } catch (JsonProcessingException e) {
       log.error("Failed to serialize object: %s".formatted(object));
       throw new RuntimeException(e);
@@ -171,26 +182,61 @@ public class TursoWsService {
     return RandomUtil.unsignedInt10();
   }
 
-  public void simpleQuery(Stmt stmt, Handler<AsyncResult<List<TursoResult>>> handler) {
+//  public void executeStatements(Stmt stmt, Handler<AsyncResult<List<TursoResult>>> handler) {
+//    final var streamId = getStreamId();
+//    final var openStreamReq = createRequest(OpenStreamReq.create(streamId));
+//    final var executeReq = createRequest(ExecuteReq.create(streamId, stmt));
+//    final var closeStreamReq = createRequest(CloseStreamReq.create(streamId));
+//
+//    final var listener = new Listener(
+//        new int[]{openStreamReq.requestId(), executeReq.requestId(), closeStreamReq.requestId()}, handler);
+//
+//    LISTENERS.put(openStreamReq.requestId(), listener);
+//    LISTENERS.put(executeReq.requestId(), listener);
+//    LISTENERS.put(closeStreamReq.requestId(), listener);
+//
+//    request(openStreamReq);
+//    request(executeReq);
+//    request(closeStreamReq);
+//  }
+
+  public void executeStatements(Handler<AsyncResult<List<TursoResult>>> handler, Stmt... stmts) {
     final var streamId = getStreamId();
     final var openStreamReq = createRequest(OpenStreamReq.create(streamId));
-    final var executeReq = createRequest(ExecuteReq.create(streamId, stmt));
+
+    final var executeReqs = new RequestMsg[stmts.length];
+    for (int i = 0; i < stmts.length; i++) {
+      final var executeReq = createRequest(ExecuteReq.create(streamId, stmts[i]));
+      executeReqs[i] = executeReq;
+    }
+    //final var executeReq = createRequest(ExecuteReq.create(streamId, stmt));
     final var closeStreamReq = createRequest(CloseStreamReq.create(streamId));
 
-    final var listener = new Listener(
-        new int[]{openStreamReq.requestId(), executeReq.requestId(), closeStreamReq.requestId()}, handler);
+    final var requests = new int[executeReqs.length + 2];
+    requests[0] = openStreamReq.requestId();
+    requests[requests.length - 1] = closeStreamReq.requestId();
+    for (int i = 0; i < executeReqs.length; i++) {
+      requests[i + 1] = executeReqs[i].requestId();
+    }
+
+    final var listener = new Listener(requests, handler);
 
     LISTENERS.put(openStreamReq.requestId(), listener);
-    LISTENERS.put(executeReq.requestId(), listener);
+    for (RequestMsg executeResp : executeReqs) {
+      LISTENERS.put(executeResp.requestId(), listener);
+    }
+
     LISTENERS.put(closeStreamReq.requestId(), listener);
 
     request(openStreamReq);
-    request(executeReq);
+    for (RequestMsg executeResp : executeReqs) {
+      request(executeResp);
+    }
     request(closeStreamReq);
   }
 
-  public Uni<List<TursoResult>> uniSimpleQuery(Stmt stmt) {
-    return AsyncResultUni.toUni(handler -> simpleQuery(stmt, handler));
+  public Uni<List<TursoResult>> uniSimpleQuery(Stmt... stmt) {
+    return AsyncResultUni.toUni(handler -> executeStatements(handler, stmt));
   }
 
   public Uni<ExecuteResp> executeQuery(String sql, Value... values) {
@@ -198,13 +244,16 @@ public class TursoWsService {
     return executeQuery(stmt);
   }
 
-  public Uni<ExecuteResp> executeQuery(Stmt stmt) {
-    return uniSimpleQuery(stmt)
+  public Uni<ExecuteResp[]> executeQueries(Stmt... stmts) {
+
+    return uniSimpleQuery(stmts)
         .flatMap(list -> {
+          final var resps = new ExecuteResp[stmts.length];
 
           final var errorBuilder = new StringBuilder();
 
-          ExecuteResp executeResp = null;
+          int i = 0;
+
           for (TursoResult result : list) {
             final var responseMsg = result.responseMsg();
             final var error = responseMsg.error();
@@ -221,7 +270,10 @@ public class TursoWsService {
               if (result.requestMsg().request().type().equals("execute") && responseMsg.response() != null) {
 
                 try {
-                  executeResp = jsonMapper.treeToValue(responseMsg.response(), ExecuteResp.class);
+                  final var executeResp = mapper.treeToValue(responseMsg.response(), ExecuteResp.class);
+                  resps[i] = executeResp;
+                  i++;
+
                 } catch (JsonProcessingException e) {
                   return Uni.createFrom().failure(e);
                 }
@@ -234,47 +286,46 @@ public class TursoWsService {
             return Uni.createFrom().failure(new RuntimeException(errorBuilder.toString()));
           }
 
-          if (executeResp == null) {
+          if (resps.length == 0) {
             return Uni.createFrom().failure(new RuntimeException("No response"));
           }
 
-          return Uni.createFrom().item(executeResp);
+          return Uni.createFrom().item(resps);
         });
+
+  }
+
+  public Uni<ExecuteResp> executeQuery(Stmt stmt) {
+    return executeQueries(stmt)
+        .map(a -> a[0]);
+  }
+
+  public Uni<Long> count(String sql, Value... values) {
+    return executeQuery(Stmt.stmt(sql, values))
+        .map(this::extractCount);
   }
 
   public Uni<Long> count(String column, String table) {
     final var sql = TOTAL_COUNT.formatted(column, table);
 
     return executeQuery(Stmt.sql(sql))
-        .map(executeResp -> {
-          final var rows = executeResp.result().rows();
-          if (rows.length > 0 && rows[0].length > 0) {
-            final var value = rows[0][0];
-            switch (value.type()) {
-              case "float":
-                return ((Number) value.value()).longValue();
-              case "integer", "text":
-                return Long.parseLong((String) value.value());
-              case "null", "blob":
-                break;
-            }
-          }
-//          for (Value[] values : rows) {
-//            for (Value value : values) {
-//              switch (value.type()) {
-//                case "float":
-//                  return ((Number) value.value()).longValue();
-//                case "integer", "text":
-//                  return Long.parseLong((String) value.value());
-//                case "null", "blob":
-//                  break;
-//
-//              }
-//            }
-//          }
+        .map(this::extractCount);
+  }
+  public long extractCount(ExecuteResp executeResp) {
+    final var rows = executeResp.result().rows();
+    if (rows.length > 0 && rows[0].length > 0) {
+      final var value = rows[0][0];
+      switch (value.type()) {
+        case "float":
+          return ((Number) value.value()).longValue();
+        case "integer", "text":
+          return Long.parseLong((String) value.value());
+        case "null", "blob":
+          break;
+      }
+    }
 
-          throw new RuntimeException("No count found");
-        });
+    throw new RuntimeException("No count found");
   }
 
   public <T> Uni<List<T>> selectQuery(String sql, Function<Row, T> function) {
@@ -291,6 +342,22 @@ public class TursoWsService {
             list.add(function.apply(row));
           }
           return list;
+
+
+        });
+  }
+
+  public <T> Uni<Set<T>> selectQuerySet(Stmt stmt, Function<Row, T> function) {
+    return executeQuery(stmt)
+        .map(executeResp -> {
+
+          final var rows = executeResp.rows();
+
+          final var set = HashSet.<T>newHashSet(rows.length);
+          for (Row row : rows) {
+            set.add(function.apply(row));
+          }
+          return set;
 
 
         });
@@ -315,4 +382,5 @@ public class TursoWsService {
     return selectOne(Stmt.sqlWithArgs(sql, values.toArray(new Value[0])), function);
 
   }
+
 }

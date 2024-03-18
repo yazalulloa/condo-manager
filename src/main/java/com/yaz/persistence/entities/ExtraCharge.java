@@ -25,6 +25,7 @@ public class ExtraCharge {
   private final String buildingId;
   private final String secondaryId;
   private final String id;
+  private final Type type;
   private final String description;
   private final double amount;
   private final Currency currency;
@@ -33,6 +34,10 @@ public class ExtraCharge {
 
   public Keys keys() {
     return new Keys(buildingId, secondaryId, id);
+  }
+
+  public enum Type {
+    BUILDING, RECEIPT
   }
 
   @Jacksonized

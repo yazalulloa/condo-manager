@@ -1,30 +1,29 @@
-FROM quay.io/quarkus/ubi-quarkus-graalvmce-builder-image:jdk-21.0.1 AS build
-
-WORKDIR /app
-COPY mvnw .
-COPY .mvn .mvn
-COPY pom.xml .
-RUN --mount=type=cache,target=/root/.m2 ./mvnw verify --fail-never -DskipTests
+## Stage 1 : build with maven builder image with native capabilities
+FROM quay.io/quarkus/ubi-quarkus-mandrel-builder-image:jdk-21 AS build
+COPY --chown=quarkus:quarkus mvnw /code/mvnw
+COPY --chown=quarkus:quarkus .mvn /code/.mvn
+COPY --chown=quarkus:quarkus pom.xml /code/
+USER quarkus
+WORKDIR /code
+RUN --mount=type=cache,target=/root/.m2 ./mvnw -B org.apache.maven.plugins:maven-dependency-plugin:3.1.2:go-offline
 
 COPY local.env .env
-COPY src ./src
-USER root
+COPY src /code/src
 RUN source ./.env
-RUN --mount=type=cache,target=/root/.m2 ./mvnw clean package -DskipTests
+RUN --mount=type=cache,target=/root/.m2 ./mvnw package -Dnative -DskipTests
+
+## Stage 2 : create the docker final image
+FROM quay.io/quarkus/quarkus-micro-image:2.0
+WORKDIR /work/
+COPY --from=build /code/target/*-runner /work/application
+
+# set up permissions for user `1001`
+RUN chmod 775 /work /work/application \
+  && chown -R 1001 /work \
+  && chmod -R "g+rwX" /work \
+  && chown -R 1001:root /work
 
 
-FROM registry.access.redhat.com/ubi8/openjdk-21:1.18
-WORKDIR /app
-ENV LANGUAGE='en_US:en'
+USER 1001
 
-COPY --from=build --chown=185 /app/target/quarkus-app/lib/ /deployments/lib/
-COPY --from=build --chown=185 /app/target/quarkus-app/*.jar /deployments/
-COPY --from=build --chown=185 /app/target/quarkus-app/app/ /deployments/app/
-COPY --from=build --chown=185 /app/target/quarkus-app/quarkus/ /deployments/quarkus/
-
-USER 185
-ENV JAVA_OPTS_APPEND="-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
-ENV JAVA_APP_JAR="/deployments/quarkus-run.jar"
-
-ENTRYPOINT [ "/opt/jboss/container/java/run/run-java.sh" ]
-
+CMD ["./application", "-Dquarkus.http.host=0.0.0.0"]

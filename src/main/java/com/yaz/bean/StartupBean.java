@@ -1,7 +1,5 @@
 package com.yaz.bean;
 
-import com.yaz.persistence.repository.turso.client.TursoService;
-import com.yaz.persistence.repository.turso.client.TursoWsService;
 import com.yaz.service.NotificationService;
 import com.yaz.util.EnvParams;
 import com.yaz.util.FileUtil;
@@ -20,8 +18,6 @@ public class StartupBean {
 
   private final NotificationService notificationService;
   private final EnvParams envParams;
-  private final TursoService tursoService;
-  private final TursoWsService tursoWsService;
 
   @Startup(value = 0)
   void init() {
@@ -29,15 +25,6 @@ public class StartupBean {
     if (envParams.isShowDir()) {
       FileUtil.showDir();
     }
-
-//    RxUtil.single(tursoService.sqliteTables())
-//        .subscribeOn(Schedulers.io())
-//        .retryWhen(RetryWithDelay.retry(500, TimeUnit.MILLISECONDS))
-//        .subscribe(tursoResponse -> {
-//
-//        }, throwable -> {
-//          log.error("FAILED_TO_GET_SQLITE_TABLES", throwable);
-//        });
   }
 
   void onStart(@Observes StartupEvent ev) {
@@ -49,12 +36,6 @@ public class StartupBean {
 
     log.info("AFTER STARTUP");
     notificationService.sendAppStartup();
-    tursoWsService.heartBeat();
-    //tursoWsClient.start();
-//    Completable.complete()
-//        .delay(3, TimeUnit.SECONDS)
-//        .andThen(Completable.fromAction(() -> notificationService.sendAppStartup()))
-//        .subscribe(() -> log.info("AFTER_STARTUP_SEND"), throwable -> log.error("AFTER_STARTUP_SEND_ERROR", throwable));
   }
 
 

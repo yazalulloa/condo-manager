@@ -1,6 +1,7 @@
 package com.yaz.util;
 
 import com.yaz.client.turso.response.TursoResponse;
+import com.yaz.persistence.repository.turso.client.ws.response.ExecuteResp;
 import io.reactivex.rxjava3.core.Maybe;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
@@ -130,5 +131,13 @@ public class SqlUtil {
       return null;
     }
     return SQLITE_DATE_TIME_FORMATTER.format(temporalAccessor);
+  }
+
+  public static Integer rowCount(ExecuteResp[] resps) {
+    int affected = 0;
+    for (var resp : resps) {
+      affected += resp.result().rowCount();
+    }
+    return affected;
   }
 }

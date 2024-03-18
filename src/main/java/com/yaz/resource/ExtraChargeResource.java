@@ -5,6 +5,7 @@ import com.yaz.persistence.domain.request.ExtraChargeUpdateRequest;
 import com.yaz.persistence.entities.ExtraCharge;
 import com.yaz.persistence.entities.ExtraCharge.Apt;
 import com.yaz.persistence.entities.ExtraCharge.Keys;
+import com.yaz.persistence.entities.ExtraCharge.Type;
 import com.yaz.resource.domain.request.ExtraChargeRequest;
 import com.yaz.resource.domain.response.ExtraChargeFormDto;
 import com.yaz.resource.domain.response.ExtraChargeTableItem;
@@ -156,6 +157,7 @@ public class ExtraChargeResource {
             final var createRequest = ExtraChargeCreateRequest.builder()
                 .buildingId(buildingId)
                 .secondaryId(buildingId)
+                .type(Type.BUILDING)
                 .description(formDto.getDescription())
                 .amount(formDto.getAmount().doubleValue())
                 .currency(formDto.getCurrency())
@@ -235,6 +237,7 @@ public class ExtraChargeResource {
                 .buildingId(keys.buildingId())
                 .secondaryId(keys.secondaryId())
                 .id(keys.id())
+                .type(Type.BUILDING)
                 .description(formDto.getDescription())
                 .amount(formDto.getAmount().doubleValue())
                 .currency(formDto.getCurrency())

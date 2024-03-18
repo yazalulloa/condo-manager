@@ -12,7 +12,6 @@ import io.quarkus.cache.CacheInvalidateAll;
 import io.quarkus.cache.CacheResult;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,11 +25,13 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class UserService {
 
-  private final Instance<UserRepository> repository;
+  //private final Instance<UserRepository> repository;
+  private final UserRepository repository;
 
 
   private UserRepository repository() {
-    return repository.get();
+    //return repository.get();
+    return repository;
   }
 
   public Uni<Long> count() {

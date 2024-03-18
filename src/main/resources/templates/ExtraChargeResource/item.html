@@ -21,7 +21,10 @@
   <div>{item.item.formatAmount}</div>
   <div class="flex flex-col text-sm">
     {#for apt in item.item.apartments}
-    <span>{apt.number} {apt.name}</span>
+   <div class="flex flex-row justify-start gap-2">
+    <span>{apt.number}</span>
+    <span>{apt.name}</span>
+   </div>
     {/for}
   </div>
 

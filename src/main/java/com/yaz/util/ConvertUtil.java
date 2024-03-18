@@ -151,11 +151,15 @@ public class ConvertUtil {
     }
   }
 
-  public static String formatDuration(long timestamp) {
+  public static String formatDurationNow(long timestamp) {
     final var currentTimeMillis = System.currentTimeMillis();
 
     final var timeUp = currentTimeMillis - timestamp;
-    return DurationFormatUtils.formatDuration(timeUp, "HH:mm:ss", false);
+    return formatDuration(timeUp);
+  }
+
+  public static String formatDuration(long time) {
+    return DurationFormatUtils.formatDuration(time, "HH:mm:ss", false);
   }
 
   public static void formatDate(String field, JsonObject jsonObject) {

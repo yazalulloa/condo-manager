@@ -1,18 +1,20 @@
 package com.yaz.persistence.repository.turso;
 
-import com.yaz.client.turso.response.TursoResponse;
 import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.domain.query.BuildingQuery;
 import com.yaz.persistence.entities.Building;
 import com.yaz.persistence.repository.BuildingRepository;
-import com.yaz.persistence.repository.turso.client.TursoService;
 import com.yaz.persistence.repository.turso.client.TursoWsService;
+import com.yaz.persistence.repository.turso.client.ws.request.Stmt;
+import com.yaz.persistence.repository.turso.client.ws.request.Value;
+import com.yaz.persistence.repository.turso.client.ws.response.ExecuteResp;
 import com.yaz.util.SqlUtil;
 import com.yaz.util.StringUtil;
 import io.quarkus.arc.lookup.LookupIfProperty;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -24,7 +26,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@LookupIfProperty(name = "app.repository.impl", stringValue = "turso")
+////@LookupIfProperty(name = "app.repository.impl", stringValue = "turso")
 //@Named("turso")
 @ApplicationScoped
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
@@ -39,19 +41,19 @@ public class BuildingTursoRepository implements BuildingRepository {
       %s
       GROUP BY buildings.id
       ORDER BY buildings.id
-      LIMIT %s
+      LIMIT ?
       """;
-  private static final String READ = "SELECT * FROM %s WHERE id = %s";
-  private static final String DELETE = "DELETE FROM %s WHERE id = %s";
+  private static final String READ = "SELECT * FROM %s WHERE id = ?".formatted(COLLECTION);
+  private static final String DELETE = "DELETE FROM %s WHERE id = ?".formatted(COLLECTION);
   private static final String INSERT = """
       INSERT INTO %s (id, name, rif, main_currency, debt_currency, currencies_to_show_amount_to_pay, fixed_pay, fixed_pay_amount, 
       round_up_payments, email_config_id) VALUES (%s);
-      """;
+      """.formatted(COLLECTION, SqlUtil.params(10));
 
   private static final String UPDATE = """
-      UPDATE %s SET name = %s, rif = %s, main_currency = %s, debt_currency = %s, currencies_to_show_amount_to_pay = %s, fixed_pay = %s,
-            fixed_pay_amount = %s, round_up_payments = %s, email_config_id = %s WHERE id = %s;
-      """;
+      UPDATE %s SET name = ?, rif = ?, main_currency = ?, debt_currency = ?, currencies_to_show_amount_to_pay = ?, fixed_pay = ?,
+            fixed_pay_amount = ?, round_up_payments = ?, email_config_id = ? WHERE id = ?;
+      """.formatted(COLLECTION);
 
   private static final String INSERT_IGNORE = """
       INSERT INTO %s (id, name, rif, main_currency, debt_currency, currencies_to_show_amount_to_pay, fixed_pay, fixed_pay_amount, 
@@ -61,12 +63,13 @@ public class BuildingTursoRepository implements BuildingRepository {
 
   private static final String EMAIL_CONFIG_DELETED = "UPDATE %s SET email_config_id = NULL WHERE id IN (%s)";
 
-  private static final String EXISTS = "SELECT id FROM %s WHERE id = %s LIMIT 1";
+  private static final String EXISTS = "SELECT id FROM %s WHERE id = ? LIMIT 1".formatted(COLLECTION);
 
   private static final String SELECT_ALL_IDS = "SELECT id FROM %s ORDER BY id".formatted(COLLECTION);
-  private static final String SELECT_BY_EMAIL_CONFIG = "SELECT id FROM %s WHERE email_config_id = %s";
+  private static final String SELECT_BY_EMAIL_CONFIG = "SELECT id FROM %s WHERE email_config_id = ?".formatted(
+      COLLECTION);
 
-  private final TursoService tursoService;
+
   private final TursoWsService tursoWsService;
 
   @Override
@@ -76,29 +79,31 @@ public class BuildingTursoRepository implements BuildingRepository {
 
   @Override
   public Uni<Integer> delete(String id) {
-    final var sql = DELETE.formatted(COLLECTION, SqlUtil.escape(id));
-    return tursoService.executeQuery(sql)
-        .map(TursoResponse::affectedRows);
-  }
 
-  private String selectQuery(BuildingQuery query) {
-    final var lastId = StringUtil.trimFilter(query.lastId());
-    if (lastId == null) {
-      return SELECT.formatted("", query.limit());
-    } else {
-      return SELECT.formatted("WHERE buildings.id > " + SqlUtil.escape(lastId), query.limit());
-    }
+    return tursoWsService.executeQuery(DELETE, Value.text(id))
+        .map(e -> e.result().rowCount());
   }
 
   @Override
   public Uni<List<Building>> select(BuildingQuery query) {
 
-    return tursoService.executeQuery(selectQuery(query))
-        .map(TursoResponse::result)
-        .map(result -> SqlUtil.toList(result.rows(), this::from));
+    final var lastId = StringUtil.trimFilter(query.lastId());
+    final var values = new ArrayList<Value>();
+    var whereClause = "";
+
+    if (lastId != null) {
+      whereClause = "WHERE buildings.id > ?";
+      values.add(Value.text(lastId));
+    }
+
+    values.add(Value.number(query.limit()));
+
+    final var sql = SELECT.formatted(whereClause);
+
+    return tursoWsService.selectQuery(sql, values, this::from);
   }
 
-  private Building from(TursoResponse.Row row) {
+  private Building from(ExecuteResp.Row row) {
 
     final var currenciesToShowAmountToPay = Optional.ofNullable(row.getString("currencies_to_show_amount_to_pay"))
         .map(str -> str.split(","))
@@ -127,75 +132,61 @@ public class BuildingTursoRepository implements BuildingRepository {
 
   @Override
   public Uni<Integer> insertIgnore(Collection<Building> buildings) {
-    final var values = buildings.stream()
-        .map(building -> Stream.of(
-                building.id(),
-                building.name(),
-                building.rif(),
-                building.mainCurrency().name(),
-                building.debtCurrency().name(),
-                building.currenciesToShowAmountToPay().stream()
-                    .map(Enum::name)
-                    .collect(Collectors.joining(",")),
-                building.fixedPay(),
-                building.fixedPayAmount(),
-                building.roundUpPayments()
-            )
-            .map(SqlUtil::escape)
-            .collect(Collectors.joining(",")))
-        .map("(%s)"::formatted)
-        .collect(Collectors.joining(","));
-    final var sql = INSERT_IGNORE.formatted(COLLECTION, values);
 
-    return tursoService.executeQuery(sql)
-        .map(TursoResponse::affectedRows);
+    final var values = buildings.stream().flatMap(building -> {
+      return Stream.of(
+          Value.text(building.id()), Value.text(building.name()),
+          Value.text(building.rif()), Value.enumV(building.mainCurrency()), Value.enumV(building.debtCurrency()),
+          Value.text(building.currenciesToShowAmountToPay().stream()
+              .map(Enum::name)
+              .collect(Collectors.joining(","))),
+          Value.bool(building.fixedPay()), Value.number(building.fixedPayAmount()),
+          Value.bool(building.roundUpPayments())
+      );
+    }).toArray(Value[]::new);
+
+    final var params = Stream.generate(() -> SqlUtil.params(9))
+        .map("(%s)"::formatted)
+        .limit(buildings.size())
+        .collect(Collectors.joining(","));
+
+    return tursoWsService.executeQuery(INSERT_IGNORE.formatted(COLLECTION, params), values)
+        .map(e -> e.result().rowCount());
   }
 
   @Override
   public Uni<List<String>> selectAllIds() {
-    return tursoService.executeQuery(SELECT_ALL_IDS)
-        .map(TursoResponse::result)
-        .map(result -> result.rows().stream()
-            .map(row -> row.getString("id"))
-            .toList());
+    return tursoWsService.selectQuery(SELECT_ALL_IDS, row -> row.getString("id"));
   }
 
   @Override
   public Uni<Boolean> exists(String buildingId) {
-    return tursoService.executeQuery(EXISTS.formatted(COLLECTION, SqlUtil.escape(buildingId)))
-        .map(TursoResponse::result)
-        .map(result -> !result.rows().isEmpty());
+
+    return tursoWsService.selectOne(Stmt.stmt(EXISTS, Value.text(buildingId)), row -> row.getString("id") != null)
+        .map(opt -> opt.orElse(false));
   }
 
   @Override
   public Uni<Optional<Building>> read(String buildingId) {
 
-    return tursoService.executeQuery(READ.formatted(COLLECTION, SqlUtil.escape(buildingId)))
-        .map(TursoResponse::result)
-        .map(result -> result.one(this::from));
+    return tursoWsService.selectOne(Stmt.stmt(READ, Value.text(buildingId)), this::from);
   }
 
   @Override
   public Uni<Integer> update(Building building) {
 
-    final var sql = UPDATE.formatted(
-        COLLECTION,
-        SqlUtil.escape(building.name()),
-        SqlUtil.escape(building.rif()),
-        SqlUtil.escape(building.mainCurrency().name()),
-        SqlUtil.escape(building.debtCurrency().name()),
-        SqlUtil.escape(building.currenciesToShowAmountToPay().stream()
-            .map(Enum::name)
-            .collect(Collectors.joining(","))),
-        building.fixedPay(),
-        building.fixedPayAmount(),
-        building.roundUpPayments(),
-        SqlUtil.escape(building.emailConfigId()),
-        SqlUtil.escape(building.id())
-    );
+    final var currenciesToShowAmountToPay = building.currenciesToShowAmountToPay().stream()
+        .map(Enum::name)
+        .collect(Collectors.joining(","));
 
-    return tursoService.executeQuery(sql)
-        .map(TursoResponse::affectedRows);
+    return tursoWsService.executeQuery(UPDATE, Value.text(building.name()), Value.text(building.rif()),
+            Value.enumV(building.mainCurrency()), Value.enumV(building.debtCurrency()),
+            Value.text(currenciesToShowAmountToPay),
+            Value.bool(building.fixedPay()), Value.number(building.fixedPayAmount()),
+            Value.bool(building.roundUpPayments()),
+            Value.text(building.emailConfigId()), Value.text(building.id()))
+        .map(e -> e.result().rowCount());
+
   }
 
   private String insertParams(Building building) {
@@ -220,32 +211,37 @@ public class BuildingTursoRepository implements BuildingRepository {
   @Override
   public Uni<Integer> insert(Building building) {
 
-    final var params = insertParams(building);
+    return tursoWsService.executeQuery(INSERT, Value.text(building.id()), Value.text(building.name()),
+            Value.text(building.rif()), Value.enumV(building.mainCurrency()), Value.enumV(building.debtCurrency()),
+            Value.text(building.currenciesToShowAmountToPay().stream()
+                .map(Enum::name)
+                .collect(Collectors.joining(","))),
+            Value.bool(building.fixedPay()), Value.number(building.fixedPayAmount()),
+            Value.bool(building.roundUpPayments()), Value.text(building.emailConfigId()))
+        .map(e -> e.result().rowCount());
 
-    final var sql = INSERT.formatted(COLLECTION, params);
-
-    return tursoService.executeQuery(sql)
-        .map(TursoResponse::affectedRows);
+//    final var params = insertParams(building);
+//
+//    final var sql = INSERT.formatted(COLLECTION, params);
+//
+//    return tursoService.executeQuery(sql)
+//        .map(TursoResponse::affectedRows);
   }
 
   @Override
   public Uni<Integer> updateEmailConfig(Set<String> ids) {
-    final var values = ids.stream().map(SqlUtil::escape)
-        .collect(Collectors.joining(","));
+    final var values = ids.stream()
+        .map(Value::text)
+        .toArray(Value[]::new);
 
-    final var sql = EMAIL_CONFIG_DELETED.formatted(COLLECTION, values);
+    final var sql = EMAIL_CONFIG_DELETED.formatted(COLLECTION, SqlUtil.params(ids.size()));
 
-    return tursoService.executeQuery(sql)
-        .map(TursoResponse::affectedRows);
+    return tursoWsService.executeQuery(sql, values)
+        .map(e -> e.result().rowCount());
   }
 
   @Override
   public Uni<Set<String>> selectByEmailConfig(String id) {
-
-    return tursoService.executeQuery(SELECT_BY_EMAIL_CONFIG.formatted(COLLECTION, SqlUtil.escape(id)))
-        .map(TursoResponse::result)
-        .map(result -> result.rows().stream()
-            .map(row -> row.getString("id"))
-            .collect(Collectors.toSet()));
+    return tursoWsService.selectQuerySet(Stmt.stmt(SELECT_BY_EMAIL_CONFIG, Value.text(id)), row -> row.getString("id"));
   }
 }

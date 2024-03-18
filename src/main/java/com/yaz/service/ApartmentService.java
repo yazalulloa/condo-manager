@@ -31,10 +31,12 @@ import lombok.extern.slf4j.Slf4j;
 public class ApartmentService {
 
 
-  private final Instance<ApartmentRepository> repository;
+  //private final Instance<ApartmentRepository> repository;
+  private final ApartmentRepository repository;
 
   private ApartmentRepository repository() {
-    return repository.get();
+    //return repository.get();
+    return repository;
   }
 
   public Uni<Integer> delete(String buildingId, String number) {

@@ -1,14 +1,10 @@
 package com.yaz.service;
 
 import com.yaz.mongo.MongoApartment;
-import com.yaz.persistence.repository.ApartmentRepository;
-import com.yaz.persistence.repository.BuildingRepository;
-import com.yaz.persistence.repository.mysql.ApartmentMySqlRepository;
-import com.yaz.persistence.repository.mysql.BuildingMySqlRepository;
-import com.yaz.persistence.repository.mysql.RateMySqlRepository;
 import com.yaz.persistence.entities.Apartment;
 import com.yaz.persistence.entities.Building;
-import com.yaz.persistence.entities.Rate;
+import com.yaz.persistence.repository.ApartmentRepository;
+import com.yaz.persistence.repository.BuildingRepository;
 import com.yaz.util.PagingJsonFile;
 import com.yaz.util.RxUtil;
 import io.reactivex.rxjava3.core.Completable;
@@ -40,10 +36,9 @@ import org.apache.commons.compress.utils.IOUtils;
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class LoadBackupService {
 
-  private final Vertx vertx;
+
   private final Instance<BuildingRepository> buildingRepository;
   private final Instance<ApartmentRepository> apartmentRepository;
-  private final RateMySqlRepository rateMySqlRepository;
   private final PagingJsonFile pagingJsonFile = new PagingJsonFile();
 
   public Completable load() {
@@ -102,9 +97,10 @@ public class LoadBackupService {
               }
               break;
               case "apartments.json.gz": {
+
                 final var completable = pagingJsonFile.pagingJsonFile(100, fileName, MongoApartment.class, list -> {
 
-                  log.info("INSERTING APARTMENTS SIZE: {}", list.size());
+                      log.info("INSERTING APARTMENTS SIZE: {}", list.size());
                       return Observable.fromIterable(list)
                           .map(apt -> Apartment.builder()
                               .buildingId(apt.apartmentId().buildingId())

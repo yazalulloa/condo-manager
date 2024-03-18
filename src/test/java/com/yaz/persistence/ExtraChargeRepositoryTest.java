@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import com.yaz.persistence.domain.request.ExtraChargeUpdateRequest;
 import com.yaz.persistence.entities.ExtraCharge.Apt;
 import com.yaz.persistence.repository.mysql.ApartmentMySqlRepository;
-import com.yaz.persistence.repository.mysql.ExtraChargeRepository;
+import com.yaz.persistence.repository.mysql.ExtraChargeMySqlRepository;
 import com.yaz.util.RandomUtil;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
@@ -20,7 +20,7 @@ class ExtraChargeRepositoryTest {
   @Inject
   ApartmentMySqlRepository apartmentRepository;
   @Inject
-  ExtraChargeRepository repository;
+  ExtraChargeMySqlRepository repository;
 
 
   @Test

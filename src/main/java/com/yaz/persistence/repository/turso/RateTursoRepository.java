@@ -22,7 +22,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@LookupIfProperty(name = "app.repository.impl", stringValue = "turso")
+//@LookupIfProperty(name = "app.repository.impl", stringValue = "turso")
 //@Named("turso")
 @ApplicationScoped
 @RequiredArgsConstructor(onConstructor_ = {@Inject})

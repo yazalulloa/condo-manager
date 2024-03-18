@@ -5,11 +5,9 @@ import com.yaz.persistence.domain.MySqlQueryRequest;
 import com.yaz.persistence.domain.query.ApartmentQuery;
 import com.yaz.persistence.entities.Apartment;
 import com.yaz.persistence.entities.ExtraCharge;
-import com.yaz.persistence.repository.ApartmentRepository;
 import com.yaz.persistence.repository.mysql.MySqlService.TrxMode;
 import com.yaz.util.SqlUtil;
 import com.yaz.util.StringUtil;
-import io.quarkus.arc.lookup.LookupIfProperty;
 import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.sqlclient.Row;
 import io.vertx.mutiny.sqlclient.RowIterator;
@@ -34,11 +32,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@LookupIfProperty(name = "app.repository.impl", stringValue = "mysql")
+//@LookupIfProperty(name = "app.repository.impl", stringValue = "mysql")
 //@Named("mysql")
 @ApplicationScoped
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
-public class ApartmentMySqlRepository implements ApartmentRepository {
+public class ApartmentMySqlRepository {
 
   private static final String COLLECTION = "apartments";
   private static final String DELETE_BY_BUILDING = "DELETE FROM %s WHERE building_id = ?".formatted(COLLECTION);
@@ -109,26 +107,26 @@ public class ApartmentMySqlRepository implements ApartmentRepository {
   private final MySqlService mySqlService;
   private final ApartmentEmailRepository emailRepository;
 
-  @Override
+  
   public Uni<Long> count() {
     return mySqlService.totalCount(COLLECTION);
   }
 
-  @Override
+  
   public Uni<Integer> delete(String buildingId, String number) {
 
     return mySqlService.request(DELETE_BY_ID, Tuple.of(buildingId, number))
         .map(SqlResult::rowCount);
   }
 
-  @Override
+  
   public Uni<Integer> deleteByBuildingId(String buildingId) {
 
     return mySqlService.request(DELETE_BY_BUILDING, Tuple.of(buildingId))
         .map(SqlResult::rowCount);
   }
 
-  @Override
+  
   public Uni<Integer> insert(Apartment apartment) {
     final var aptTuple = tuple(apartment);
     final var requests = new ArrayList<MySqlQueryRequest>();
@@ -230,7 +228,7 @@ public class ApartmentMySqlRepository implements ApartmentRepository {
   }
 
 
-  @Override
+  
   public Uni<List<Apartment>> select(ApartmentQuery query) {
 
     final var sqlQueryRequest = where(query);
@@ -245,7 +243,7 @@ public class ApartmentMySqlRepository implements ApartmentRepository {
         .map(rows -> SqlUtil.toList(rows, this::from));
   }
 
-  @Override
+  
   public Uni<Optional<Long>> queryCount(ApartmentQuery query) {
 
     final var buildings = query.buildings().stream()
@@ -333,7 +331,7 @@ public class ApartmentMySqlRepository implements ApartmentRepository {
     return MySqlQueryRequest.normal(stringBuilder.toString(), new Tuple(tuple));
   }
 
-  @Override
+  
   public Uni<Boolean> exists(String buildingId, String number) {
 
     return mySqlService.request(EXISTS, Tuple.of(buildingId, number))
@@ -341,7 +339,7 @@ public class ApartmentMySqlRepository implements ApartmentRepository {
         .map(RowIterator::hasNext);
   }
 
-  @Override
+  
   public Uni<Optional<Apartment>> read(String buildingId, String number) {
 
     return mySqlService.request(SELECT_FULL_ONE, Tuple.of(buildingId, number, 1))
@@ -358,7 +356,7 @@ public class ApartmentMySqlRepository implements ApartmentRepository {
     return Tuple.newInstance(params);
   }
 
-  @Override
+  
   public Uni<Integer> update(Apartment apartment) {
 
     final var updateQuery = MySqlQueryRequest.normal(UPDATE, updateTuple(apartment));
@@ -371,7 +369,7 @@ public class ApartmentMySqlRepository implements ApartmentRepository {
         .with((updateRowCount, deleteCount, insertCount) -> updateRowCount + deleteCount + insertCount);
   }
 
-  @Override
+  
   public Uni<Integer> insert(Collection<Apartment> apartments) {
 
     final var tuples = apartments.stream()
@@ -385,7 +383,7 @@ public class ApartmentMySqlRepository implements ApartmentRepository {
         .map(list -> list.stream().mapToInt(SqlResult::rowCount).sum());
   }
 
-  @Override
+  
   public Uni<List<ExtraCharge.Apt>> aptByBuildings(String buildingId) {
     return mySqlService.request(SELECT_MINIMAL_BY_BUILDING, Tuple.of(buildingId))
         .map(rowSet -> SqlUtil.toList(rowSet, row -> ExtraCharge.Apt.builder()

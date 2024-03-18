@@ -28,10 +28,12 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class BuildingService {
 
-  private final Instance<BuildingRepository> repository;
+  //private final Instance<BuildingRepository> repository;
+  private final BuildingRepository repository;
 
   private BuildingRepository repository() {
-    return repository.get();
+    //return repository.get();
+    return repository;
   }
 
   @CacheResult(cacheName = BuildingCache.TOTAL_COUNT, lockTimeout = Constants.CACHE_TIMEOUT)

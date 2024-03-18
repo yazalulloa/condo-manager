@@ -27,11 +27,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@LookupIfProperty(name = "app.repository.impl", stringValue = "mysql")
+//@LookupIfProperty(name = "app.repository.impl", stringValue = "mysql")
 //@Named("mysql")
 @ApplicationScoped
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
-public class BuildingMySqlRepository implements BuildingRepository {
+public class BuildingMySqlRepository  {
 
   private static final String COLLECTION = "buildings";
   private static final String SELECT = """
@@ -72,19 +72,19 @@ public class BuildingMySqlRepository implements BuildingRepository {
 
   private final MySqlService mySqlService;
 
-  @Override
+  
   public Uni<Long> count() {
     return mySqlService.totalCount(COLLECTION);
   }
 
-  @Override
+  
   public Uni<Integer> delete(String id) {
 
     return mySqlService.request(DELETE_BY_ID, Tuple.of(id))
         .map(SqlResult::rowCount);
   }
 
-  @Override
+  
   public Uni<List<Building>> select(BuildingQuery query) {
     final var stringBuilder = new StringBuilder(SELECT);
 
@@ -137,7 +137,7 @@ public class BuildingMySqlRepository implements BuildingRepository {
         .build();
   }
 
-  @Override
+  
   public Uni<Integer> insertIgnore(Collection<Building> buildings) {
 
     final var tuples = buildings.stream()
@@ -166,13 +166,13 @@ public class BuildingMySqlRepository implements BuildingRepository {
         .map(SqlResult::rowCount);
   }
 
-  @Override
+  
   public Uni<List<String>> selectAllIds() {
     return mySqlService.request(SELECT_ALL_IDS)
         .map(rows -> SqlUtil.toList(rows, row -> row.getString("id")));
   }
 
-  @Override
+  
   public Uni<Boolean> exists(String buildingId) {
 
     return mySqlService.request(EXISTS, Tuple.of(buildingId))
@@ -180,7 +180,7 @@ public class BuildingMySqlRepository implements BuildingRepository {
         .map(RowIterator::hasNext);
   }
 
-  @Override
+  
   public Uni<Optional<Building>> read(String buildingId) {
 
     return mySqlService.request(READ, Tuple.of(buildingId))
@@ -190,7 +190,7 @@ public class BuildingMySqlRepository implements BuildingRepository {
             .map(this::from));
   }
 
-  @Override
+  
   public Uni<Integer> update(Building building) {
 
     final var params = new ArrayTuple(10);
@@ -212,7 +212,7 @@ public class BuildingMySqlRepository implements BuildingRepository {
         .map(SqlResult::rowCount);
   }
 
-  @Override
+  
   public Uni<Integer> insert(Building building) {
 
     final var params = new ArrayTuple(11);
@@ -235,13 +235,13 @@ public class BuildingMySqlRepository implements BuildingRepository {
         .map(SqlResult::rowCount);
   }
 
-  @Override
+  
   public Uni<Integer> updateEmailConfig(Set<String> ids) {
     return mySqlService.request(MySqlQueryRequest.batch(EMAIL_CONFIG_DELETED, ids.stream().map(Tuple::of).toList()))
         .map(SqlResult::rowCount);
   }
 
-  @Override
+  
   public Uni<Set<String>> selectByEmailConfig(String id) {
 
     return mySqlService.request(SELECT_BY_EMAIL_CONFIG, Tuple.of(id))

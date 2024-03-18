@@ -240,4 +240,6 @@ public class ReflectionUtil {
   public static boolean isInstanceOf(Object obj, Class<?>... classes) {
     return Arrays.stream(classes).anyMatch(clazz -> clazz.isInstance(obj));
   }
+
+
 }

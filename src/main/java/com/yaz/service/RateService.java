@@ -40,12 +40,14 @@ import lombok.extern.slf4j.Slf4j;
 public class RateService {
 
 
-  private final Instance<RateRepository> repository;
+  //private final Instance<RateRepository> repository;
+  private final RateRepository repository;
   private final BcvClientService bcvClientService;
   private final WriteEntityToFile writeEntityToFile;
 
   private RateRepository repository() {
-    return repository.get();
+    //return repository.get();
+    return repository;
   }
 
 

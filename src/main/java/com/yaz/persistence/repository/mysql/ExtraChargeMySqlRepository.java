@@ -26,7 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @ApplicationScoped
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
-public class ExtraChargeRepository {
+public class ExtraChargeMySqlRepository {
 
   private static final String COLLECTION = "extra_charges";
   private static final String COLLECTION_APT = "extra_charges_apartments";
@@ -148,10 +148,10 @@ public class ExtraChargeRepository {
     return mySqlService.getUUID()
         .flatMap(uuid -> {
 
-          final var insert = """
-              INSERT INTO %s (building_id, secondary_id, id, description, amount, currency, active)
-              VALUES (?, ?, UUID_TO_BIN(?, true), ?, ?, ?, ?)
-              """.formatted(COLLECTION);
+            final var insert = """
+                INSERT INTO %s (building_id, secondary_id, id, description, amount, currency, active)
+                VALUES (?, ?, UUID_TO_BIN(?, true), ?, ?, ?, ?)
+                """.formatted(COLLECTION);
 
           final var tuple = Tuple.from(List.of(
               createRequest.buildingId(), createRequest.secondaryId(), uuid,

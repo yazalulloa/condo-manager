@@ -1,13 +1,13 @@
 package com.yaz.persistence.repository.turso;
 
-import com.yaz.client.turso.response.TursoResponse;
-import com.yaz.client.turso.response.TursoResponse.Row;
 import com.yaz.persistence.domain.query.ApartmentQuery;
 import com.yaz.persistence.entities.Apartment;
 import com.yaz.persistence.entities.ExtraCharge.Apt;
 import com.yaz.persistence.repository.ApartmentRepository;
-import com.yaz.persistence.repository.turso.client.TursoService;
 import com.yaz.persistence.repository.turso.client.TursoWsService;
+import com.yaz.persistence.repository.turso.client.ws.request.Stmt;
+import com.yaz.persistence.repository.turso.client.ws.request.Value;
+import com.yaz.persistence.repository.turso.client.ws.response.ExecuteResp.Row;
 import com.yaz.util.SqlUtil;
 import com.yaz.util.StringUtil;
 import io.quarkus.arc.lookup.LookupIfProperty;
@@ -27,20 +27,18 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@LookupIfProperty(name = "app.repository.impl", stringValue = "turso")
+////@LookupIfProperty(name = "app.repository.impl", stringValue = "turso")
 //@Named("turso")
 @ApplicationScoped
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class ApartmentTursoRepository implements ApartmentRepository {
 
   private static final String COLLECTION = "apartments";
-  private static final String DELETE_BY_BUILDING = "DELETE FROM %s WHERE building_id = %s";
-  private static final String DELETE_BY_ID = "DELETE FROM %s WHERE building_id = %s AND number = %s";
-  private static final String INSERT = "INSERT INTO %s (building_id, number, name, aliquot) VALUES %s";
-  private static final String INSERT_IGNORE = """
-      INSERT IGNORE INTO %s (building_id, number, name, aliquot) 
-      VALUES (%s);
-      """.formatted(COLLECTION, SqlUtil.params(4));
+  private static final String DELETE_BY_BUILDING = "DELETE FROM %s WHERE building_id = ?".formatted(COLLECTION);
+  private static final String DELETE_BY_ID = "DELETE FROM %s WHERE building_id = ? AND number = ?".formatted(
+      COLLECTION);
+  private static final String INSERT = "INSERT INTO %s (building_id, number, name, aliquot) VALUES (%s);".formatted(
+      COLLECTION, SqlUtil.params(4));
   private static final String SELECT_FULL = """
       SELECT apartments.*, GROUP_CONCAT(apartment_emails.email) as emails
       from apartments
@@ -49,8 +47,11 @@ public class ApartmentTursoRepository implements ApartmentRepository {
          %s
       GROUP BY apartments.building_id, apartments.number
       ORDER BY apartments.building_id, apartments.number
-      LIMIT %s;
+      LIMIT ?;
       """;
+
+  private static final String SELECT_FULL_ONE = SELECT_FULL.formatted(
+      " WHERE apartments.building_id = ? AND apartments.number = ? ");
 
   private static final String SELECT_FULL_WITH_LIKE = """
       SELECT apartments.*, GROUP_CONCAT(apartment_emails.email) as emails
@@ -67,31 +68,45 @@ public class ApartmentTursoRepository implements ApartmentRepository {
                                               apartments.number = apartment_emails.apt_number
       GROUP BY apartments.building_id, apartments.number
       ORDER BY apartments.building_id, apartments.number
-      LIMIT %s;
+      LIMIT ?;
             """;
 
-  private static final String UPDATE = "UPDATE %s SET name = %s, aliquot = %s WHERE building_id = %s AND number = %s";
+  private static final String UPDATE = """
+      UPDATE %s SET name = ?, aliquot = ? WHERE building_id = ? AND number = ?;
+      """.formatted(COLLECTION);
 
   private static final String QUERY_COUNT_WHERE = """
       SELECT COUNT(*) AS query_count
       FROM apartments
-      %s 
+      INNER JOIN apartment_emails
+      ON apartments.building_id = apartment_emails.building_id
+      AND apartments.number = apartment_emails.apt_number
       %s;
       """;
 
-  private static final String COUNT_JOIN = "INNER JOIN apartment_emails ON apartments.building_id = apartment_emails.building_id AND apartments.number = apartment_emails.apt_number";
+  private static final String CURSOR_QUERY = "(apartments.building_id,apartments.number) > (?,?)";
+  private static final String LIKE_QUERY = " concat(apartments.building_id, apartments.number, apartments.name, apartment_emails.email) LIKE ? ";
+  private static final String EXISTS = "SELECT building_id FROM %s WHERE building_id = ? AND number = ? LIMIT 1".formatted(
+      COLLECTION);
 
-  private static final String CURSOR_QUERY = "(apartments.building_id,apartments.number) > (%s,%s)";
-  private static final String LIKE_QUERY = " concat(apartments.building_id, apartments.number, apartments.name, apartment_emails.email) LIKE %s ";
-  private static final String EXISTS = "SELECT building_id,number FROM %s WHERE building_id = %s AND number = %s LIMIT 1";
-  private static final String SELECT_MINIMAL_BY_BUILDING = "SELECT building_id, number, name FROM %s WHERE building_id = %s ORDER BY number LIMIT 1";
+  private static final String SELECT_MINIMAL_BY_BUILDING = """
+      SELECT building_id, number, name FROM %s
+            WHERE building_id = ?
+            ORDER BY number
+            """.formatted(COLLECTION);
+  private static final String INSERT_IGNORE = """
+      INSERT IGNORE INTO %s (building_id, number, name, aliquot) 
+      VALUES %s;
+      """;
 
-  private static final String INSERT_EMAIL = "INSERT INTO apartment_emails (building_id, apt_number, email) VALUES %s ON CONFLICT DO NOTHING";
-  public static final String DELETE_EMAIL = "DELETE FROM apartment_emails WHERE building_id = %s AND apt_number = %s";
-  public static final String DELETE_EMAIL_BY_BUILDING = "DELETE FROM apartment_emails WHERE building_id = %s";
-  public static final String DELETE_EMAILS = "DELETE FROM apartment_emails WHERE building_id = %s AND apt_number = %s AND email NOT IN (%s)";
+  private static final String EMAIL_COLLECTION = "apartment_emails";
+  private static final String INSERT_EMAIL = "INSERT INTO %s (building_id, apt_number, email) VALUES %s ON CONFLICT DO NOTHING";
+  public static final String DELETE_EMAIL = "DELETE FROM %s WHERE building_id = ? AND apt_number = ?".formatted(
+      EMAIL_COLLECTION);
+  public static final String DELETE_EMAIL_BY_BUILDING = "DELETE FROM %s WHERE building_id = ?".formatted(
+      EMAIL_COLLECTION);
+  public static final String DELETE_EMAILS = "DELETE FROM %s WHERE building_id = ? AND apt_number = > AND email NOT IN (%s)";
 
-  private final TursoService tursoService;
   private final TursoWsService tursoWsService;
 
   @Override
@@ -102,122 +117,155 @@ public class ApartmentTursoRepository implements ApartmentRepository {
   @Override
   public Uni<Integer> delete(String buildingId, String number) {
 
-    final var deleteApt = DELETE_BY_ID.formatted(COLLECTION, SqlUtil.escape(buildingId), SqlUtil.escape(number));
-    final var deleteEmail = DELETE_EMAIL.formatted(SqlUtil.escape(buildingId), SqlUtil.escape(number));
+    final var values = new Value[]{Value.text(buildingId), Value.text(number)};
+    final var deleteApt = Stmt.stmt(DELETE_BY_ID, values);
+    final var deleteEmails = Stmt.stmt(DELETE_EMAIL, values);
 
-    return tursoService.executeQueries(List.of(deleteApt, deleteEmail))
-        .map(TursoResponse::affectedRows);
+    return tursoWsService.executeQueries(deleteApt, deleteEmails)
+        .map(resps -> {
+          int affected = 0;
+          for (var resp : resps) {
+            affected += resp.result().rowCount();
+          }
+          return affected;
+        });
+
   }
 
   @Override
   public Uni<Integer> deleteByBuildingId(String buildingId) {
-    final var deleteApt = DELETE_BY_BUILDING.formatted(COLLECTION, SqlUtil.escape(buildingId));
-    final var deleteEmail = DELETE_EMAIL_BY_BUILDING.formatted(SqlUtil.escape(buildingId));
-    return tursoService.executeQueries(List.of(deleteApt, deleteEmail))
-        .map(TursoResponse::affectedRows);
+
+    final var values = new Value[]{Value.text(buildingId)};
+    final var deleteApt = Stmt.stmt(DELETE_BY_BUILDING, values);
+    final var deleteEmails = Stmt.stmt(DELETE_EMAIL_BY_BUILDING, values);
+
+    return tursoWsService.executeQueries(deleteApt, deleteEmails)
+        .map(resps -> {
+          int affected = 0;
+          for (var resp : resps) {
+            affected += resp.result().rowCount();
+          }
+          return affected;
+        });
   }
 
   @Override
   public Uni<Integer> insert(Apartment apartment) {
-    final var queries = new ArrayList<String>(apartment.emails().size() + 1);
-    final var sql = INSERT.formatted(COLLECTION, "(%s)".formatted(aptParams(apartment)));
-    queries.add(sql);
 
-    final var emailParams = apartment.emails()
-        .stream()
-        .map(email -> String.join(",", SqlUtil.escape(apartment.buildingId()), SqlUtil.escape(apartment.number()),
-            SqlUtil.escape(email)))
-        .map("(%s)"::formatted)
-        .collect(Collectors.joining(","));
+    final var stmts = new Stmt[apartment.emails().size() + 1];
+    stmts[0] = Stmt.stmt(INSERT, Value.text(apartment.buildingId()), Value.text(apartment.number()),
+        Value.text(apartment.name()), Value.number(apartment.aliquot()));
 
-    queries.add(INSERT_EMAIL.formatted(emailParams));
+    int i = 1;
+    for (String email : apartment.emails()) {
+      stmts[i++] = Stmt.stmt(INSERT_EMAIL, Value.text(apartment.buildingId()), Value.text(apartment.number()),
+          Value.text(email));
+    }
 
-    return tursoService.executeQueries(queries)
-        .map(TursoResponse::affectedRows);
-  }
-
-  private String aptParams(Apartment apartment) {
-    return Stream.of(
-            apartment.buildingId(),
-            apartment.number(),
-            apartment.name(),
-            apartment.aliquot()
-        ).map(SqlUtil::escape)
-        .collect(Collectors.joining(","));
+    return tursoWsService.executeQueries(stmts)
+        .map(resps -> {
+          int affected = 0;
+          for (var resp : resps) {
+            affected += resp.result().rowCount();
+          }
+          return affected;
+        });
   }
 
   @Override
   public Uni<List<Apartment>> select(ApartmentQuery query) {
-    final var lastBuildingId = StringUtil.trimFilter(query.lastBuildingId());
-    final var lastNumber = StringUtil.trimFilter(query.lastNumber());
+    final var buildingId = StringUtil.trimFilter(query.lastBuildingId());
+    final var number = StringUtil.trimFilter(query.lastNumber());
+    final var whereClause = new ArrayList<String>();
+
+    var valuesSize = 1;
+    if (buildingId != null && number != null) {
+      whereClause.add(CURSOR_QUERY);
+      valuesSize += 2;
+    }
 
     final var buildings = query.buildings().stream()
         .map(StringUtil::trimFilter)
         .filter(Objects::nonNull)
-        .map(SqlUtil::escape)
         .collect(Collectors.toSet());
 
-    final var q = StringUtil.trimFilter(query.q());
-    final var whereClause = new ArrayList<String>();
-
-    var cursorQuery = "";
-
-    if (lastBuildingId != null && lastNumber != null) {
-      cursorQuery = CURSOR_QUERY.formatted(SqlUtil.escape(lastBuildingId), SqlUtil.escape(lastNumber));
-      whereClause.add(cursorQuery);
+    if (!buildings.isEmpty()) {
+      whereClause.add("apartments.building_id IN (" + SqlUtil.params(buildings.size()) + ")");
+      valuesSize += buildings.size();
     }
 
+    final var q = StringUtil.trimFilter(query.q());
+
     if (q != null) {
-      whereClause.add(LIKE_QUERY.formatted(SqlUtil.escape("%" + q + "%")));
+      whereClause.add(LIKE_QUERY);
+      valuesSize++;
+    }
+
+    final var values = new Value[valuesSize];
+    var currentIndex = 0;
+    if (buildingId != null && number != null) {
+      values[0] = Value.text(buildingId);
+      values[1] = Value.text(number);
+      currentIndex = 2;
     }
 
     if (!buildings.isEmpty()) {
-      whereClause.add("apartments.building_id IN (%s)".formatted(String.join(",", buildings)));
+
+      for (String building : buildings) {
+        values[currentIndex++] = Value.text(building);
+      }
     }
+
+    if (q != null) {
+      values[currentIndex++] = Value.text("%" + q + "%");
+    }
+
+    values[currentIndex] = Value.number(query.limit());
 
     String sql;
 
-    if (whereClause.isEmpty()) {
-      sql = SELECT_FULL.formatted("", query.limit());
+    final var where = whereClause.isEmpty() ? "" : "WHERE " + String.join(SqlUtil.AND, whereClause);
+    if (q == null) {
+      sql = SELECT_FULL.formatted(where);
     } else {
-      final var queryParams = " WHERE " + String.join(SqlUtil.AND, whereClause);
-      sql = SELECT_FULL_WITH_LIKE.formatted(queryParams, query.limit());
+      sql = SELECT_FULL_WITH_LIKE.formatted(where);
     }
 
-    return tursoService.executeQuery(sql)
-        .map(TursoResponse::values)
-        .map(result -> SqlUtil.toList(result, this::from));
+    return tursoWsService.selectQuery(Stmt.stmt(sql, values), this::from);
   }
 
   @Override
   public Uni<Optional<Long>> queryCount(ApartmentQuery query) {
+
     final var buildings = query.buildings().stream()
         .map(StringUtil::trimFilter)
         .filter(Objects::nonNull)
-        .map(SqlUtil::escape)
         .collect(Collectors.toSet());
 
     final var q = StringUtil.trimFilter(query.q());
 
     if (q != null || !buildings.isEmpty()) {
-      final var whereClause = new ArrayList<String>();
+
+      final var i = (q != null ? 1 : 0) + buildings.size();
+      final var values = new Value[i];
+
+      final var params = new ArrayList<String>();
+      if (!buildings.isEmpty()) {
+        params.add("apartments.building_id IN (" + SqlUtil.params(buildings.size()) + ")");
+        var j = 0;
+        for (String building : buildings) {
+          values[j++] = Value.text(building);
+        }
+      }
 
       if (q != null) {
-        whereClause.add(LIKE_QUERY.formatted(SqlUtil.escape("%" + q + "%")));
+        params.add(LIKE_QUERY);
+        values[i - 1] = Value.text("%" + q + "%");
       }
 
-      if (!buildings.isEmpty()) {
-        whereClause.add("apartments.building_id IN (%s)".formatted(String.join(",", buildings)));
-      }
+      final var queryParams = params.isEmpty() ? "" : " WHERE " + String.join(SqlUtil.AND, params);
 
-      final var queryParams = " WHERE " + String.join(SqlUtil.AND, whereClause);
-
-      final var sql = QUERY_COUNT_WHERE.formatted(q != null ? COUNT_JOIN : "", queryParams);
-
-      return tursoService.executeQuery(sql)
-          .map(TursoResponse::result)
-          .map(result -> result.firstRow().map(row -> row.getLong("query_count"))
-              .orElseThrow(() -> new RuntimeException("No count found")))
+      return tursoWsService.count(QUERY_COUNT_WHERE.formatted(queryParams), values)
           .map(Optional::of);
     }
 
@@ -226,22 +274,84 @@ public class ApartmentTursoRepository implements ApartmentRepository {
 
   @Override
   public Uni<Boolean> exists(String buildingId, String number) {
-    final var sql = EXISTS.formatted(COLLECTION, SqlUtil.escape(buildingId), SqlUtil.escape(number));
-    return tursoService.executeQuery(sql)
-        .map(TursoResponse::result)
-        .map(result -> result.firstRow().isPresent());
+
+    return tursoWsService.selectOne(Stmt.stmt(EXISTS, Value.text(buildingId), Value.text(number)),
+            row -> row.getString("building_id") != null)
+        .map(opt -> opt.orElse(false));
   }
 
   @Override
   public Uni<Optional<Apartment>> read(String buildingId, String number) {
-    final var whereClause = " WHERE apartments.building_id = %s AND apartments.number = %s ".formatted(
-        SqlUtil.escape(buildingId), SqlUtil.escape(number));
-    final var sql = SELECT_FULL.formatted(whereClause, 1);
 
-    return tursoService.executeQuery(sql)
-        .map(TursoResponse::result)
-        .map(result -> result.one(this::from));
+    return tursoWsService.selectOne(Stmt.stmt(SELECT_FULL_ONE, Value.text(buildingId), Value.text(number)), this::from);
+  }
 
+  @Override
+  public Uni<Integer> update(Apartment apartment) {
+
+    return tursoWsService.executeQuery(UPDATE, Value.text(apartment.name()), Value.number(apartment.aliquot()),
+            Value.text(apartment.buildingId()), Value.text(apartment.number()))
+        .map(e -> e.result().rowCount());
+  }
+
+  @Override
+  public Uni<Integer> insert(Collection<Apartment> apartments) {
+
+    var emailsSize = 0;
+    final var aptValues = new Value[apartments.size() * 4];
+    var aptIndex = 0;
+    for (Apartment apartment : apartments) {
+
+      aptValues[aptIndex++] = Value.text(apartment.buildingId());
+      aptValues[aptIndex++] = Value.text(apartment.number());
+      aptValues[aptIndex++] = Value.text(apartment.name());
+      aptValues[aptIndex++] = Value.number(apartment.aliquot());
+
+      emailsSize += apartment.emails().size();
+    }
+
+    final var emailValues = new Value[emailsSize * 3];
+    var emailIndex = 0;
+    for (Apartment apartment : apartments) {
+      for (String email : apartment.emails()) {
+        emailValues[emailIndex++] = Value.text(apartment.buildingId());
+        emailValues[emailIndex++] = Value.text(apartment.number());
+        emailValues[emailIndex++] = Value.text(email);
+      }
+    }
+
+    final var aptParams = Stream.generate(() -> SqlUtil.params(4))
+        .map("(%s)"::formatted)
+        .limit(apartments.size())
+        .collect(Collectors.joining(","));
+
+    final var insertApt = Stmt.stmt(INSERT_IGNORE.formatted(COLLECTION, aptParams), aptValues);
+
+    final var emailParams = Stream.generate(() -> SqlUtil.params(3))
+        .map("(%s)"::formatted)
+        .limit(emailsSize)
+        .collect(Collectors.joining(","));
+
+    final var insertEmail = Stmt.stmt(INSERT_IGNORE.formatted(EMAIL_COLLECTION, emailParams), emailValues);
+
+    return tursoWsService.executeQueries(insertApt, insertEmail)
+        .map(resps -> {
+          int affected = 0;
+          for (var resp : resps) {
+            affected += resp.result().rowCount();
+          }
+          return affected;
+        });
+  }
+
+  @Override
+  public Uni<List<Apt>> aptByBuildings(String buildingId) {
+
+    return tursoWsService.selectQuery(Stmt.stmt(SELECT_MINIMAL_BY_BUILDING, Value.text(buildingId)),
+        row -> Apt.builder()
+            .number(row.getString("number"))
+            .name(row.getString("name"))
+            .build());
   }
 
   private Apartment from(Row row) {
@@ -259,74 +369,6 @@ public class ApartmentTursoRepository implements ApartmentRepository {
         .emails(emails)
         .createdAt(row.getLocalDateTime("created_at"))
         .updatedAt(row.getLocalDateTime("updated_at"))
-        .build();
-  }
-
-  @Override
-  public Uni<Integer> update(Apartment apartment) {
-
-    final var updateApt = UPDATE.formatted(COLLECTION, SqlUtil.escape(apartment.name()),
-        SqlUtil.escape(apartment.aliquot()),
-        SqlUtil.escape(apartment.buildingId()), SqlUtil.escape(apartment.number()));
-
-    final var emailParams = apartment.emails()
-        .stream()
-        .map(email -> String.join(",", SqlUtil.escape(apartment.buildingId()), SqlUtil.escape(apartment.number()),
-            SqlUtil.escape(email)))
-        .map("(%s)"::formatted)
-        .collect(Collectors.joining(","));
-
-    final var insertEmails = INSERT_EMAIL.formatted(emailParams);
-
-    final var newEmails = apartment.emails().stream() 
-        .map(SqlUtil::escape)
-        .collect(Collectors.joining(","));
-
-    final var deleteEmails = DELETE_EMAILS.formatted(SqlUtil.escape(apartment.buildingId()),
-        SqlUtil.escape(apartment.number()), newEmails);
-
-    return tursoService.executeQueries(List.of(updateApt, insertEmails, deleteEmails))
-        .map(TursoResponse::affectedRows);
-  }
-
-  @Override
-  public Uni<Integer> insert(Collection<Apartment> apartments) {
-
-    final var params = apartments.stream()
-        .map(this::aptParams)
-        .map("(%s)"::formatted)
-        .collect(Collectors.joining(","));
-
-    final var insertApt = INSERT.formatted(COLLECTION, params) + " ON CONFLICT DO NOTHING";
-
-    final var emailParams = apartments.stream()
-        .flatMap(apartment -> {
-
-          return apartment.emails().stream()
-              .map(email -> String.join(",", SqlUtil.escape(apartment.buildingId()), SqlUtil.escape(apartment.number()),
-                  SqlUtil.escape(email)));
-        })
-        .map("(%s)"::formatted)
-        .collect(Collectors.joining(","));
-
-    final var insertEmail = INSERT_EMAIL.formatted(emailParams);
-
-    return tursoService.executeQueries(List.of(insertApt, insertEmail))
-        .map(TursoResponse::affectedRows);
-  }
-
-  @Override
-  public Uni<List<Apt>> aptByBuildings(String buildingId) {
-    final var sql = SELECT_MINIMAL_BY_BUILDING.formatted(COLLECTION, SqlUtil.escape(buildingId));
-    return tursoService.executeQuery(sql)
-        .map(TursoResponse::values)
-        .map(result -> SqlUtil.toList(result, this::fromApt));
-  }
-
-  private Apt fromApt(Row row) {
-    return Apt.builder()
-        .number(row.getString("number"))
-        .name(row.getString("name"))
         .build();
   }
 }

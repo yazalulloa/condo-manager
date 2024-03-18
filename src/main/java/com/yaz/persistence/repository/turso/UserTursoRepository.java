@@ -1,16 +1,17 @@
 package com.yaz.persistence.repository.turso;
 
-import com.yaz.client.turso.response.TursoResponse;
-import com.yaz.client.turso.response.TursoResponse.Row;
 import com.yaz.persistence.domain.IdentityProvider;
 import com.yaz.persistence.domain.query.SortOrder;
 import com.yaz.persistence.domain.query.UserQuery;
 import com.yaz.persistence.entities.User;
 import com.yaz.persistence.repository.UserRepository;
-import com.yaz.persistence.repository.turso.client.TursoService;
 import com.yaz.persistence.repository.turso.client.TursoWsService;
+import com.yaz.persistence.repository.turso.client.ws.request.Stmt;
+import com.yaz.persistence.repository.turso.client.ws.request.Value;
+import com.yaz.persistence.repository.turso.client.ws.response.ExecuteResp.Row;
 import com.yaz.util.DateUtil;
 import com.yaz.util.SqlUtil;
+import com.yaz.util.StringUtil;
 import io.quarkus.arc.lookup.LookupIfProperty;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -19,29 +20,28 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@LookupIfProperty(name = "app.repository.impl", stringValue = "turso")
+//@LookupIfProperty(name = "app.repository.impl", stringValue = "turso")
 //@Named("turso")
 @ApplicationScoped
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class UserTursoRepository implements UserRepository {
 
   private static final String COLLECTION = "users";
-  private static final String SELECT = "SELECT * FROM %s %s ORDER BY id DESC LIMIT %s";
-  private static final String DELETE = "DELETE FROM %s WHERE id = %s";
+  private static final String SELECT = "SELECT * FROM %s %s ORDER BY id DESC LIMIT ?";
+  private static final String DELETE = "DELETE FROM %s WHERE id = ?".formatted(COLLECTION);
   private static final String INSERT = """
       INSERT INTO %s (id, provider_id, provider, email, username, name, picture, data) VALUES (%s)
-      """;
-  private static final String UPDATE = "UPDATE %s SET last_login_at = datetime() WHERE id = %s";
-  private static final String LIKE_QUERY = " concat(email, name, username) LIKE %s ";
-  private static final String SELECT_ID_FROM_PROVIDER = "SELECT id FROM %s WHERE provider = %s AND provider_id = %s";
+      """.formatted(COLLECTION, SqlUtil.params(8));
+  private static final String UPDATE = "UPDATE %s SET last_login_at = datetime() WHERE id = ?".formatted(COLLECTION);
+  private static final String LIKE_QUERY = " concat(email, name, username) LIKE ? ";
+  private static final String SELECT_ID_FROM_PROVIDER = "SELECT id FROM %s WHERE provider = ? AND provider_id = ?".formatted(
+      COLLECTION);
 
-  private final TursoService tursoService;
+
   private final TursoWsService tursoWsService;
 
   @Override
@@ -51,79 +51,61 @@ public class UserTursoRepository implements UserRepository {
 
   @Override
   public Uni<Integer> delete(String id) {
-    final var sql = DELETE.formatted(COLLECTION, SqlUtil.escape(id));
-    return tursoService.executeQuery(sql)
-        .map(TursoResponse::affectedRows);
+    return tursoWsService.executeQuery(DELETE, Value.text(id))
+        .map(executeResp -> executeResp.result().rowCount());
   }
 
   @Override
   public Uni<Optional<String>> getIdFromProvider(IdentityProvider provider, String providerId) {
-    final var sql = SELECT_ID_FROM_PROVIDER.formatted(COLLECTION, SqlUtil.escape(provider.name()),
-        SqlUtil.escape(providerId));
-    return tursoService.executeQuery(sql)
-        .map(TursoResponse::result)
-        .map(result -> {
-          return result.firstRow()
-              .map(row -> row.getString("id"));
-        });
+
+    return tursoWsService.selectOne(
+        Stmt.stmt(SELECT_ID_FROM_PROVIDER, Value.text(provider.name()), Value.text(providerId)),
+        row -> row.getString("id"));
   }
 
   @Override
   public Uni<Integer> updateLastLoginAt(String id) {
-    final var sql = UPDATE.formatted(COLLECTION, SqlUtil.escape(id));
-    return tursoService.executeQuery(sql)
-        .map(TursoResponse::affectedRows);
+
+    return tursoWsService.executeQuery(UPDATE, Value.text(id))
+        .map(executeResp -> executeResp.result().rowCount());
   }
 
 
   @Override
   public Uni<String> save(User user) {
     final var now = DateUtil.epochSecond();
-    final String id = now + UUID.randomUUID().toString();
+    final var id = now + UUID.randomUUID().toString();
 
-    final var params = Stream.of(
-            id,
-            user.providerId(),
-            user.provider().name(),
-            user.email(),
-            user.username(),
-            user.name(),
-            user.picture(),
-            user.data()
-        ).map(SqlUtil::escape)
-        .collect(Collectors.joining(","));
-
-    final var sql = INSERT.formatted(COLLECTION, params);
-
-    return tursoService.executeQuery(sql)
+    return tursoWsService.executeQuery(INSERT, Value.text(id), Value.text(user.providerId()),
+            Value.enumV(user.provider()), Value.text(user.email()), Value.text(user.username()), Value.text(user.name()),
+            Value.text(user.picture()), Value.text(user.data().encode()))
         .replaceWith(id);
   }
 
   @Override
   public Uni<List<User>> select(UserQuery query) {
     final var whereParams = new ArrayList<String>();
+    final var values = new ArrayList<Value>();
 
-    Optional.ofNullable(query.lastId())
-        .map(String::trim)
-        .filter(s -> !s.isEmpty())
-        .ifPresent(lastId -> {
+    final var lastId = StringUtil.trimFilter(query.lastId());
 
-          final var direction = query.sortOrder() == SortOrder.DESC ? "<" : ">";
-          whereParams.add("id %s %s".formatted(direction, SqlUtil.escape(lastId)));
-        });
+    if (lastId != null) {
+      final var direction = query.sortOrder() == SortOrder.DESC ? "<" : ">";
+      whereParams.add("id %s ?".formatted(direction));
+      values.add(Value.text(lastId));
+    }
 
-    Optional.ofNullable(query.identityProvider())
-        .map(Enum::name)
-        .map(SqlUtil::escape)
-        .map("provider = %s"::formatted)
-        .ifPresent(whereParams::add);
+    if (query.identityProvider() != null) {
+      whereParams.add("provider = ?");
+      values.add(Value.text(query.identityProvider().name()));
+    }
 
-    Optional.ofNullable(query.q())
-        .map(String::trim)
-        .filter(s -> !s.isEmpty())
-        .map(SqlUtil::escape)
-        .map(LIKE_QUERY::formatted)
-        .ifPresent(whereParams::add);
+    final var q = StringUtil.trimFilter(query.q());
+
+    if (q != null) {
+      whereParams.add(LIKE_QUERY);
+      values.add(Value.text(q));
+    }
 
     var whereClause = String.join(" AND ", whereParams);
     if (!whereClause.isEmpty()) {
@@ -132,11 +114,11 @@ public class UserTursoRepository implements UserRepository {
       whereClause = "";
     }
 
-    final var sql = SELECT.formatted(COLLECTION, whereClause, query.limit());
+    values.add(Value.number(query.limit()));
 
-    return tursoService.executeQuery(sql)
-        .map(TursoResponse::values)
-        .map(rows -> SqlUtil.toList(rows, this::from));
+    final var sql = SELECT.formatted(COLLECTION, whereClause);
+
+    return tursoWsService.selectQuery(sql, values, this::from);
   }
 
   private User from(Row row) {

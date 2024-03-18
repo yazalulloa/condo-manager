@@ -197,6 +197,10 @@ public record Value(String type, Object value, String base64) {
       return "1".equals(value());
     }
 
+    if (type().equals(TEXT_TYPE)) {
+      return "true".equals(value());
+    }
+
     if (type().equals(NULL_TYPE)) {
       return null;
     }

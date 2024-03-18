@@ -22,10 +22,12 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class OidcDbTokenService {
 
-  private final Instance<OidcDbTokenRepository> repository;
+  //private final Instance<OidcDbTokenRepository> repository;
+  private final OidcDbTokenRepository repository;
 
   private OidcDbTokenRepository repository() {
-    return repository.get();
+    //return repository.get();
+    return repository;
   }
 
 

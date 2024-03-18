@@ -77,7 +77,7 @@ public class EnvParams {
             return "\nFecha de inicio: " + dateTime;
           }
 
-          final var duration = ConvertUtil.formatDuration(millis);
+          final var duration = ConvertUtil.formatDurationNow(millis);
 
           return "%nFecha de inicio %s%nTIME UP %s".formatted(dateTime, duration);
         })

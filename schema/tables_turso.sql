@@ -164,3 +164,40 @@ CREATE TRIGGER apartments_updated_at_trigger
 BEGIN
     UPDATE apartments SET updated_at = CURRENT_TIMESTAMP WHERE building_id = OLD.building_id AND number = OLD.number;
 END;
+
+CREATE TABLE IF NOT EXISTS extra_charges
+(
+    building_id  CHAR(20)                                       NOT NULL,
+    secondary_id CHAR(40)                                       NOT NULL,
+    id           VARCHAR(50)                                    NOT NULL,
+    type         TEXT CHECK ( type IN ('BUILDING', 'RECEIPT') ) NOT NULL,
+    description  VARCHAR(100)                                   NOT NULL,
+    amount       DECIMAL(16, 2)                                 NOT NULL,
+    currency     TEXT CHECK ( currency IN ('USD', 'VED') )      NOT NULL,
+    active       BOOL                                           NOT NULL,
+    created_at   DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at   DATETIME,
+    PRIMARY KEY (building_id, secondary_id, id)
+);
+
+CREATE TRIGGER extra_charges_updated_at_trigger
+    AFTER UPDATE
+    ON extra_charges
+    FOR EACH ROW
+BEGIN
+    UPDATE extra_charges
+    SET updated_at = CURRENT_TIMESTAMP
+    WHERE building_id = OLD.building_id
+      AND secondary_id = OLD.secondary_id
+      AND id = OLD.id;
+END;
+
+CREATE TABLE IF NOT EXISTS extra_charges_apartments
+(
+    building_id  CHAR(20)    NOT NULL,
+    secondary_id CHAR(40)    NOT NULL,
+    id           VARCHAR(50) NOT NULL,
+    apt_number   CHAR(20)    NOT NULL,
+    created_at   DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (building_id, secondary_id, id, apt_number)
+);

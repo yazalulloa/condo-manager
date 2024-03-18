@@ -24,11 +24,15 @@
 
   <span>{item.token.id}</span>
 
-  <span>Expira: {item.token.expiresIn.fromEpoch}</span>
-  <span>Creado: {item.token.createdAt.formatDate}</span>
-  {#if item.token.updatedAt}
-  <span>Actualizado: {item.token.updatedAt.formatDate}</span>
-  {/if}
+
+  <div class="flex flex-col gap-2">
+    <span>Creado: {item.token.createdAt.formatDate}</span>
+    <span>Expira: {item.token.expiresIn.fromEpoch}</span>
+    <span>{item.tokenDuration}</span>
+    {#if item.token.updatedAt}
+    <span hidden="hidden">Actualizado: {item.token.updatedAt.formatDate}</span>
+    {/if}
+  </div>
 
 {#include fragments/delete-btn deleteUrl=item.deleteUrl cardIdRef=item.cardIdRef/}
 </div>

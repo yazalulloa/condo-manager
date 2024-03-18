@@ -30,11 +30,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@LookupIfProperty(name = "app.repository.impl", stringValue = "mysql")
+//@LookupIfProperty(name = "app.repository.impl", stringValue = "mysql")
 //@Named("mysql")
 @ApplicationScoped
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
-public class RateMySqlRepository implements RateRepository {
+public class RateMySqlRepository  {
 
   private static final String COLLECTION = "rates";
   private static final String SELECT = "SELECT * FROM %s %s ORDER BY id %s LIMIT ?";
@@ -56,12 +56,12 @@ public class RateMySqlRepository implements RateRepository {
 
   private final MySqlService mySqlService;
 
-  @Override
+  
   public Uni<Long> count() {
     return mySqlService.totalCount(COLLECTION);
   }
 
-  @Override
+  
   public Uni<Integer> delete(long id) {
 
     return mySqlService.request(DELETE_BY_ID, Tuple.of(id))
@@ -83,7 +83,7 @@ public class RateMySqlRepository implements RateRepository {
         .build();
   }
 
-  @Override
+  
   public Uni<List<Rate>> listRows(RateQuery query) {
     final var stringBuilder = new StringBuilder();
 
@@ -156,7 +156,7 @@ public class RateMySqlRepository implements RateRepository {
     params.addValue(rate.lastModified());
   }
 
-  @Override
+  
   public Uni<Optional<Long>> save(Rate rate) {
 
     final var params = new ArrayTuple(9);
@@ -185,13 +185,13 @@ public class RateMySqlRepository implements RateRepository {
         });
   }
 
-  @Override
+  
   public Uni<Optional<Rate>> last(Currency fromCurrency, Currency toCurrency) {
     return mySqlService.request(LAST, Tuple.of(fromCurrency.name(), toCurrency.name()))
         .map(rowSet -> SqlUtil.toOptional(rowSet, this::from));
   }
 
-  @Override
+  
   public Uni<Boolean> exists(long hash) {
 
     return mySqlService.request(HASH_EXISTS, Tuple.of(hash))

@@ -5,23 +5,17 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import io.vertx.core.buffer.Buffer;
-import io.vertx.core.streams.ReadStream;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.extern.jackson.Jacksonized;
 
 @Jacksonized
 @Builder(toBuilder = true)
 @Accessors(fluent = true)
-@ToString
-@Getter
+@Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-@AllArgsConstructor
 public class FileResponse {
 
   @JsonProperty
@@ -36,8 +30,8 @@ public class FileResponse {
   @JsonProperty
   private final boolean deleteFile;
 
-  @JsonIgnore
-  private final ReadStream<Buffer> readStream;
+//  @JsonIgnore
+//  private final ReadStream<Buffer> readStream;
 
   @JsonIgnore
   private final long fileSize;

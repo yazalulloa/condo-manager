@@ -41,12 +41,14 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class EmailConfigService {
 
-  private final Instance<EmailConfigRepository> repository;
+  //private final Instance<EmailConfigRepository> repository;
+  private final EmailConfigRepository repository;
   private final GmailHelper gmailHelper;
   private final Event<EmailConfigDeleted> emailConfigDeletedEvent;
 
   private EmailConfigRepository repository() {
-    return repository.get();
+    //return repository.get();
+    return repository;
   }
 
   public Uni<EmailConfig> create(EmailConfig emailConfig) {

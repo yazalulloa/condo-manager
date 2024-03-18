@@ -20,11 +20,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@LookupIfProperty(name = "app.repository.impl", stringValue = "mysql")
+//@LookupIfProperty(name = "app.repository.impl", stringValue = "mysql")
 //@Named("mysql")
 @ApplicationScoped
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
-public class OidcDbTokenMySqlRepository implements OidcDbTokenRepository {
+public class OidcDbTokenMySqlRepository  {
 
   private static final String COLLECTION = "oidc_db_token_state_manager";
   private static final String SELECT = """
@@ -45,7 +45,7 @@ public class OidcDbTokenMySqlRepository implements OidcDbTokenRepository {
 
   private final MySqlService mySqlService;
 
-  @Override
+  
   public Uni<Long> count() {
     return mySqlService.totalCount(COLLECTION);
   }
@@ -71,7 +71,7 @@ public class OidcDbTokenMySqlRepository implements OidcDbTokenRepository {
         .build();
   }
 
-  @Override
+  
   public Uni<List<OidcDbToken>> select(OidcDbTokenQueryRequest queryRequest) {
 
     final var whereClause = queryRequest.lastId() == null ? "" : "WHERE id > ?";
@@ -89,36 +89,36 @@ public class OidcDbTokenMySqlRepository implements OidcDbTokenRepository {
         .map(rows -> SqlUtil.toList(rows, this::from));
   }
 
-  @Override
+  
   public Uni<Integer> delete(String id) {
     return mySqlService.request(DELETE, Tuple.of(id))
         .map(SqlResult::rowCount);
   }
 
-  @Override
+  
   public Uni<Integer> updateUserId(String id, String userId) {
     return mySqlService.request(UPDATE_USER_ID, Tuple.of(userId, id))
         .map(SqlResult::rowCount);
 
   }
 
-  @Override
+  
   public Uni<Integer> deleteByUser(String id) {
     return mySqlService.request(DELETE_BY_USER, Tuple.of(id))
         .map(SqlResult::rowCount);
   }
 
-  @Override
+  
   public Uni<Integer> insert(String idToken, String accessToken, String refreshToken, long expiresIn, String id) {
     throw new UnsupportedOperationException("Not implemented");
   }
 
-  @Override
+  
   public Uni<Optional<OidcDbToken>> read(String id) {
     throw new UnsupportedOperationException("Not implemented");
   }
 
-  @Override
+  
   public Uni<Integer> deleteIfExpired(long expiresIn) {
     throw new UnsupportedOperationException("Not implemented");
   }
