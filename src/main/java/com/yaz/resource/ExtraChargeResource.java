@@ -130,6 +130,7 @@ public class ExtraChargeResource {
             StringUtil.trimFilter(request.getDescription()) == null ? "No puede estar vacio" : null)
         .amount(Optional.ofNullable(amount).orElse(BigDecimal.ONE))
         .amountFieldError(amount == null || DecimalUtil.zeroOrLess(amount) ? "Debe ser mayor a 0" : null)
+        .apartmentFieldError(aptsSelected.isEmpty() ? "Debe seleccionar al menos un apartamento" : null)
         .currency(request.getCurrency())
         .active(request.isActive())
         .apartments(apartments)
@@ -165,15 +166,34 @@ public class ExtraChargeResource {
                 .apartments(formDto.getAptChecked())
                 .build();
 
-            final var extraChargeFormDto = ExtraChargeFormDto.builder()
-                .isEdit(false)
-                .buildingId(buildingId)
-                .apartments(apartments)
-                .refreshGrid(true)
-                .build();
-
             return service.create(createRequest)
-                .replaceWith(Response.ok(Templates.form(extraChargeFormDto)).build());
+                .map(extraCharge -> {
+                  final var apts = apartments.stream()
+                      .filter(apt -> createRequest.apartments().contains(apt.number()))
+                      .toList();
+
+                  return extraCharge.toBuilder()
+                      .apartments(apts)
+                      .build();
+                })
+                .map(extraCharge -> {
+
+                  return ExtraChargeFormDto.builder()
+                      .isEdit(false)
+                      .buildingId(buildingId)
+                      .apartments(apartments)
+                      .refreshGrid(false)
+                      .tableItem(ExtraChargeTableItem.builder()
+                          .id(encryptionService.encrypt(Json.encode(extraCharge.keys())))
+                          .item(extraCharge)
+                          .outOfBoundsUpdate(false)
+                          .addAfterEnd(true)
+                          .build())
+                      .build();
+
+                })
+                .map(Templates::form)
+                .map(templateInstance -> Response.ok(templateInstance).build());
           }
 
           return Uni.createFrom().item(Response.ok(Templates.form(formDto)).build());
@@ -249,7 +269,12 @@ public class ExtraChargeResource {
                 .isEdit(false)
                 .buildingId(keys.buildingId())
                 .apartments(apartments)
-                .tableItem(new ExtraChargeTableItem(extraCharge, id, true))
+                .tableItem(ExtraChargeTableItem.builder()
+                    .id(id)
+                    .item(extraCharge)
+                    .outOfBoundsUpdate(true)
+                    .addAfterEnd(false)
+                    .build())
                 .build();
 
             return service.update(updateRequest)

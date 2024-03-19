@@ -5,11 +5,13 @@ import com.yaz.persistence.domain.request.ExtraChargeUpdateRequest;
 import com.yaz.persistence.entities.ExtraCharge;
 import com.yaz.persistence.entities.ExtraCharge.Keys;
 import com.yaz.persistence.repository.turso.ExtraChargeRepository;
+import com.yaz.util.DateUtil;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,8 +38,23 @@ public class ExtraChargeService {
     return repository.delete(keys.buildingId(), keys.secondaryId(), keys.id());
   }
 
-  public Uni<Integer> create(ExtraChargeCreateRequest createRequest) {
-    return repository.insert(createRequest);
+  public Uni<ExtraCharge> create(ExtraChargeCreateRequest createRequest) {
+
+    final var now = DateUtil.epochSecond();
+    final String id = now + UUID.randomUUID().toString();
+    final var extraCharge = ExtraCharge.builder()
+        .id(id)
+        .buildingId(createRequest.buildingId())
+        .secondaryId(createRequest.secondaryId())
+        .type(createRequest.type())
+        .description(createRequest.description())
+        .amount(createRequest.amount())
+        .currency(createRequest.currency())
+        .active(createRequest.active())
+        .build();
+
+    return repository.insert(extraCharge, createRequest.apartments())
+        .replaceWith(extraCharge);
   }
 
   public Uni<Integer> update(ExtraChargeUpdateRequest updateRequest) {

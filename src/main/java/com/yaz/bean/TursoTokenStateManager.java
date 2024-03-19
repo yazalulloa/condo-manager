@@ -71,6 +71,7 @@ public class TursoTokenStateManager implements TokenStateManager {
                 tokens.accessToken(),
                 tokens.refreshToken()));
           }
+          log.info(FAILED_TO_ACQUIRE_TOKEN);
           return Uni.createFrom().failure(new AuthenticationCompletionException(FAILED_TO_ACQUIRE_TOKEN));
 
         })

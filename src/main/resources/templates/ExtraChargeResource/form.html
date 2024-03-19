@@ -78,6 +78,9 @@
     </label>
   </div>
 
+  {#if dto.apartmentFieldError}
+  <span class="text-red-500 text-xs">{dto.apartmentFieldError}</span>
+  {/if}
 
   {#if dto.apartments && !dto.apartments.isEmpty}
   <div>
@@ -123,6 +126,14 @@
 
 {#if dto.tableItem}
 
-  {#include ExtraChargeResource/item item=dto.tableItem /}
+ {#if dto.tableItem.addAfterEnd}
+     <div id="extra-charges-table-item-grid" hx-swap-oob="beforeend">
+       {#include ExtraChargeResource/item item=dto.tableItem /}
+     </div>
+ {#else}
+{#include ExtraChargeResource/item item=dto.tableItem /}
+ {/if}
+
+
 
 {/if}

@@ -1,6 +1,7 @@
 package com.yaz.service;
 
 import com.yaz.util.RandomUtil;
+import io.micrometer.core.annotation.Timed;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
@@ -28,6 +29,7 @@ public class EncryptionService {
     return Cipher.getInstance("AES/GCM/NoPadding");
   }
 
+  @Timed(value = "app.cipher.encryption", description = "Encrypts a string")
   public String encrypt(String original) {
     try {
       final var iv = new byte[16]; // Initialization Vector
@@ -44,6 +46,7 @@ public class EncryptionService {
     }
   }
 
+  @Timed(value = "app.cipher.decryption", description = "Decrypts a string")
   public String decrypt(String cypher) {
     try {
       final var split = cypher.split(SEPARATOR);

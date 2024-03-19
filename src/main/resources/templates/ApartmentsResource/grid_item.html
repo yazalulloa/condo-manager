@@ -18,7 +18,7 @@
   <div>{item.apt.buildingId}</div>
   <div>{item.apt.number}</div>
   <div>{item.apt.name}</div>
-  <div class="apt-emails">
+  <div class="flex flex-col gap-2 pt-1 pb-1 justify-center">
     {#for email in item.apt.emails}
     <span>{email}</span>
     {/for}

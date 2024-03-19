@@ -1,7 +1,6 @@
 package com.yaz.persistence.repository.turso;
 
 import com.yaz.persistence.domain.Currency;
-import com.yaz.persistence.domain.request.ExtraChargeCreateRequest;
 import com.yaz.persistence.domain.request.ExtraChargeUpdateRequest;
 import com.yaz.persistence.entities.ExtraCharge;
 import com.yaz.persistence.entities.ExtraCharge.Apt;
@@ -10,7 +9,6 @@ import com.yaz.persistence.repository.turso.client.TursoWsService;
 import com.yaz.persistence.repository.turso.client.ws.request.Stmt;
 import com.yaz.persistence.repository.turso.client.ws.request.Value;
 import com.yaz.persistence.repository.turso.client.ws.response.ExecuteResp.Row;
-import com.yaz.util.DateUtil;
 import com.yaz.util.SqlUtil;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -19,7 +17,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -166,34 +164,27 @@ public class ExtraChargeRepository {
         });
   }
 
-  public Uni<Integer> insert(ExtraChargeCreateRequest createRequest) {
-    final var now = DateUtil.epochSecond();
-    final String id = now + UUID.randomUUID().toString();
+  public Uni<Integer> insert(ExtraCharge extraCharge, Set<String> apartments) {
 
-    final var insertStmt = Stmt.stmt(INSERT, Value.text(createRequest.buildingId()),
-        Value.text(createRequest.secondaryId()),
-        Value.text(id), Value.enumV(createRequest.type()), Value.text(createRequest.description()),
-        Value.number(createRequest.amount()),
-        Value.enumV(createRequest.currency()), Value.bool(createRequest.active()));
+    final var insertStmt = Stmt.stmt(INSERT, Value.text(extraCharge.buildingId()),
+        Value.text(extraCharge.secondaryId()),
+        Value.text(extraCharge.id()), Value.enumV(extraCharge.type()), Value.text(extraCharge.description()),
+        Value.number(extraCharge.amount()),
+        Value.enumV(extraCharge.currency()), Value.bool(extraCharge.active()));
 
-    if (createRequest.apartments().isEmpty()) {
-      return tursoWsService.executeQuery(insertStmt)
-          .map(executeResp -> executeResp.result().rowCount());
-    }
-
-    final var aptValues = new Value[createRequest.apartments().size() * 4];
+    final var aptValues = new Value[apartments.size() * 4];
 
     var i = 0;
-    for (var apartment : createRequest.apartments()) {
-      aptValues[i++] = Value.text(createRequest.buildingId());
-      aptValues[i++] = Value.text(createRequest.secondaryId());
-      aptValues[i++] = Value.text(id);
+    for (var apartment : apartments) {
+      aptValues[i++] = Value.text(extraCharge.buildingId());
+      aptValues[i++] = Value.text(extraCharge.secondaryId());
+      aptValues[i++] = Value.text(extraCharge.id());
       aptValues[i++] = Value.text(apartment);
     }
 
     final var aptValuesParam = Stream.generate(() -> SqlUtil.params(4))
         .map("(%s)"::formatted)
-        .limit(createRequest.apartments().size())
+        .limit(apartments.size())
         .collect(Collectors.joining(","));
 
     final var insertApts = Stmt.stmt(INSERT_APT.formatted(COLLECTION_APT, aptValuesParam), aptValues);

@@ -16,11 +16,13 @@ public class ExtraChargeTableItem {
   private final ExtraCharge item;
   private final String id;
   private final boolean outOfBoundsUpdate;
+  private final boolean addAfterEnd;
 
   public ExtraChargeTableItem(ExtraCharge item, String id) {
     this.item = item;
     this.id = id;
     this.outOfBoundsUpdate = false;
+    this.addAfterEnd = false;
   }
 
   @JsonIgnore

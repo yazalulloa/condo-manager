@@ -29,7 +29,8 @@ public class ExtraChargeFormDto {
   @Builder.Default
   private final BigDecimal amount = BigDecimal.ONE;
   private final String amountFieldError;
-  private final Currency currency;
+  @Builder.Default
+  private final Currency currency = Currency.VED;
   @Builder.Default
   private final boolean active = true;
   private final List<Apt> apartments;
@@ -41,7 +42,7 @@ public class ExtraChargeFormDto {
   private final ExtraChargeTableItem tableItem;
 
   public boolean isSuccess() {
-    return descriptionFieldError == null && amountFieldError == null;
+    return descriptionFieldError == null && amountFieldError == null && apartmentFieldError == null;
   }
 
 }
