@@ -17,7 +17,7 @@ RUN --mount=type=cache,target=/root/.m2 ./mvnw package -Dnative -DskipTests
 FROM quay.io/quarkus/quarkus-micro-image:2.0
 WORKDIR /work/
 COPY --from=build /code/target/*-runner /work/application
-
+COPY local.env .env
 # set up permissions for user `1001`
 RUN chmod 775 /work /work/application \
   && chown -R 1001 /work \

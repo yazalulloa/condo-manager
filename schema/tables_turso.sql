@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS oidc_db_token_state_manager
 );
 
 
-CREATE TRIGGER oidc_db_token_state_manager_updated_at_trigger
+CREATE TRIGGER IF NOT EXISTS oidc_db_token_state_manager_updated_at_trigger
     AFTER UPDATE
     ON oidc_db_token_state_manager
     FOR EACH ROW
@@ -38,7 +38,7 @@ BEGIN
 END;
 
 
--- CREATE TRIGGER oidc_db_token_state_manager_updated_at_trigger
+-- CREATE TRIGGER IF NOT EXISTS  oidc_db_token_state_manager_updated_at_trigger
 --     AFTER UPDATE ON oidc_db_token_state_manager
 --     FOR EACH ROW
 --     WHEN NEW.updated_at < OLD.updated_at
@@ -46,7 +46,7 @@ END;
 --     UPDATE oidc_db_token_state_manager SET updated_at = CURRENT_TIMESTAMP WHERE id = OLD.id;
 -- END;
 
--- CREATE TRIGGER [oidc_db_token_state_manager_updated_at_trigger]
+-- CREATE TRIGGER IF NOT EXISTS  [oidc_db_token_state_manager_updated_at_trigger]
 --     AFTER UPDATE
 --     ON oidc_db_token_state_manager
 --     FOR EACH ROW
@@ -128,7 +128,7 @@ CREATE TABLE IF NOT EXISTS buildings
     updated_at                       DATETIME
 );
 
-CREATE TRIGGER buildings_updated_at_trigger
+CREATE TRIGGER IF NOT EXISTS buildings_updated_at_trigger
     AFTER UPDATE
     ON buildings
     FOR EACH ROW
@@ -157,7 +157,7 @@ CREATE TABLE IF NOT EXISTS apartment_emails
     PRIMARY KEY (building_id, apt_number, email)
 );
 
-CREATE TRIGGER apartments_updated_at_trigger
+CREATE TRIGGER IF NOT EXISTS apartments_updated_at_trigger
     AFTER UPDATE
     ON apartments
     FOR EACH ROW
@@ -180,7 +180,7 @@ CREATE TABLE IF NOT EXISTS extra_charges
     PRIMARY KEY (building_id, secondary_id, id)
 );
 
-CREATE TRIGGER extra_charges_updated_at_trigger
+CREATE TRIGGER IF NOT EXISTS extra_charges_updated_at_trigger
     AFTER UPDATE
     ON extra_charges
     FOR EACH ROW
@@ -201,3 +201,27 @@ CREATE TABLE IF NOT EXISTS extra_charges_apartments
     created_at   DATETIME DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (building_id, secondary_id, id, apt_number)
 );
+
+CREATE TABLE IF NOT EXISTS telegram_chats
+(
+    user_id    VARCHAR(50)     NOT NULL,
+    chat_id    BIGINT UNSIGNED NOT NULL,
+    data       JSONB           NOT NULL,
+    first_name TEXT,
+    last_name  TEXT,
+    username   TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME,
+    PRIMARY KEY (user_id, chat_id)
+);
+
+CREATE TRIGGER IF NOT EXISTS telegram_chats_updated_at_trigger
+    AFTER UPDATE
+    ON telegram_chats
+    FOR EACH ROW
+BEGIN
+    UPDATE telegram_chats
+    SET updated_at = CURRENT_TIMESTAMP
+    WHERE user_id = OLD.user_id
+      AND chat_id = OLD.chat_id;
+END;
