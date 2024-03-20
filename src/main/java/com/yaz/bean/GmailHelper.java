@@ -86,6 +86,7 @@ public class GmailHelper {
     return newFlow;
   }
 
+
   public void testCredential(Credential credential) throws IOException {
     final var gmail = gmail(credential);
     final var labels = gmail.users().labels().list("me").execute().getLabels();
