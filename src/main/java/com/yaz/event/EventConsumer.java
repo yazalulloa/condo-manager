@@ -35,16 +35,12 @@ public class EventConsumer {
 
   public void telegramMessageReceived(@ObservesAsync TelegramWebhookRequest task) {
     try {
-      log.info("Body: {}", task.body());
+
       telegramCommandResolver.resolve(task)
           .subscribe()
           .with(
-              i -> {
-                log.info("telegramMessageReceived: {}", task);
-              },
-              e -> {
-                log.error("ERROR telegramMessageReceived: {}", task, e);
-              });
+              i -> {},
+              e -> log.error("ERROR telegramMessageReceived: {}", task, e));
     } catch (Exception e) {
       log.error("telegramMessageReceived: {}", task, e);
     }

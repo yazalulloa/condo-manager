@@ -11,6 +11,7 @@ import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,7 +37,6 @@ public class TelegramCommandResolver {
         final var chat = message.chat();
 
         if (text != null && from != null) {
-          final var chatId = from.id();
 
           if (text.startsWith("/start") && text.length() > 8 && !from.isBot() && chat != null) {
             final var formatUserId = text.substring(7).trim();
@@ -87,6 +87,12 @@ public class TelegramCommandResolver {
 
   }
 
+
+  private Uni<Void> sendMessage(long chatId, String msg) {
+    return restService.sendMessage(chatId, msg)
+        .replaceWithVoid();
+  }
+
   private Uni<Void> addAccount(String userId, TelegramUser from, Chat chat) {
     final var chatId = from.id();
 
@@ -114,18 +120,24 @@ public class TelegramCommandResolver {
 
             if (chatMaybe.isEmpty()) {
               return chatService.save(telegramChat)
-                  .replaceWithVoid();
+                  .replaceWith(sendMessage(chatId, "Chat guardado"));
             }
 
-            final var oldChat = chatMaybe.get();
+            return Uni.createFrom().deferred(() -> {
+                  final var oldChat = chatMaybe.get();
 
-            if (!telegramChat.equals(oldChat)) {
-              return chatService.update(telegramChat)
-                  .replaceWithVoid();
-            } else {
-              return restService.sendMessage(chatId, "Cuenta ya enlazada")
-                  .replaceWithVoid();
-            }
+                  final var equalsCheck = Objects.equals(telegramChat.firstName(), oldChat.firstName())
+                      && Objects.equals(telegramChat.lastName(), oldChat.lastName())
+                      && Objects.equals(telegramChat.username(), oldChat.username())
+                      && Objects.equals(telegramChat.data(), oldChat.data());
+
+                  if (!equalsCheck) {
+                    return chatService.update(telegramChat).replaceWithVoid();
+                  }
+
+                  return Uni.createFrom().voidItem();
+                })
+                .replaceWith(sendMessage(chatId, "Cuenta ya enlazada"));
           }
 
           return restService.sendMessage(chatId, "Usuario no encontrado")

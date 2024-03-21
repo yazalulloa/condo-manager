@@ -30,7 +30,18 @@ import lombok.extern.slf4j.Slf4j;
 public class UserTursoRepository implements UserRepository {
 
   private static final String COLLECTION = "users";
-  private static final String SELECT = "SELECT * FROM %s %s ORDER BY id DESC LIMIT ?";
+//  private static final String SELECT = "SELECT * FROM %s %s ORDER BY id DESC LIMIT ?";
+
+  private static final String SELECT = """
+      SELECT users.*,telegram_chats.chat_id as telegram_chat_id, telegram_chats.username as telegram_username,
+        telegram_chats.first_name as telegram_first_name
+        from users
+      left join telegram_chats ON users.id = telegram_chats.user_id
+      %s
+      GROUP BY users.id
+      ORDER BY users.id
+      LIMIT ?
+      """;
   private static final String DELETE = "DELETE FROM %s WHERE id = ?".formatted(COLLECTION);
   private static final String INSERT = """
       INSERT INTO %s (id, provider_id, provider, email, username, name, picture, data) VALUES (%s)
@@ -119,7 +130,7 @@ public class UserTursoRepository implements UserRepository {
 
     values.add(Value.number(query.limit()));
 
-    final var sql = SELECT.formatted(COLLECTION, whereClause);
+    final var sql = SELECT.formatted(whereClause);
 
     return tursoWsService.selectQuery(sql, values, this::from);
   }
@@ -147,6 +158,11 @@ public class UserTursoRepository implements UserRepository {
         .data(row.getJsonObject("data"))
         .createdAt(row.getLocalDateTime("created_at"))
         .lastLoginAt(row.getLocalDateTime("last_login_at"))
+        .telegramChat(User.TelegramChat.builder()
+            .chatId(row.getLong("telegram_chat_id"))
+            .username(row.getString("telegram_username"))
+            .firstName(row.getString("telegram_first_name"))
+            .build())
         .build();
   }
 }

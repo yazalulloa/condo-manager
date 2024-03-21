@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.yaz.persistence.domain.IdentityProvider;
 import io.vertx.core.json.JsonObject;
 import java.time.LocalDateTime;
-import java.util.UUID;
 import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -32,5 +31,17 @@ public class User {
   private final JsonObject data;
   private final LocalDateTime createdAt;
   private final LocalDateTime lastLoginAt;
+  private final TelegramChat telegramChat;
 
+  @Builder
+
+  public record TelegramChat(
+      Long chatId, String username, String firstName
+  ) {
+
+    public boolean hasChat() {
+      return chatId != null;
+    }
+
+  }
 }

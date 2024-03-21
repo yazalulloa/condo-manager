@@ -23,6 +23,17 @@
     </div>
     <span>{item.user.username}</span>
     <span>{item.user.name}</span>
+
+    {#if item.user.telegramChat.hasChat}
+    <div class="flex flex-col gap-1 text-center items-center">
+      <img src="/assets/telegram_logo.svg" style="width:20px;height:20px;" alt="telegram_logo">
+      <span>{item.user.telegramChat.username}</span>
+      <span>{item.user.telegramChat.firstName}</span>
+
+    </div>
+
+    {/if}
+
    <div class="flex flex-col gap-2">
      <span>Creado: {item.user.createdAt.formatDate}</span>
      <span>Último acceso {item.user.lastLoginAt.formatDate}</span>

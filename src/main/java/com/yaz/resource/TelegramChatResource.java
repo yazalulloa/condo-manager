@@ -1,6 +1,7 @@
 package com.yaz.resource;
 
 
+import com.yaz.util.ConvertUtil;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
@@ -28,10 +29,10 @@ public class TelegramChatResource {
   @Path("start_url")
   public Response startUrl() {
     final var userId = identity.getAttribute("userId");
-    if (userId == null) {
+    if (userId == null || !(userId instanceof String)) {
       return Response.status(Response.Status.UNAUTHORIZED).build();
     }
-    return Response.temporaryRedirect(URI.create(startUrl + userId)).build();
+    return Response.temporaryRedirect(URI.create(startUrl + ConvertUtil.formatUserId((String) userId))).build();
   }
 
 }
