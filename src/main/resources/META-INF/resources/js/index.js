@@ -91,6 +91,17 @@ document.body.addEventListener("htmx:afterProcessNode", function (configEvent) {
 
 })
 
+document.body.addEventListener("htmx:afterSettle", function (configEvent) {
+
+  let elements = document.getElementsByClassName("hidden-to-be-removed");
+  for (let i = 0; i < elements.length; i++) {
+    let element = elements[i];
+    element.removeAttribute("hidden");
+
+  }
+
+});
+
 window.addDisableEventToButtons = function () {
   const buttons = document.getElementsByTagName('button');
 

@@ -10,10 +10,10 @@ import com.yaz.persistence.repository.turso.client.ws.request.Value;
 import com.yaz.persistence.repository.turso.client.ws.response.ExecuteResp.Row;
 import com.yaz.util.SqlUtil;
 import com.yaz.util.StringUtil;
-import io.quarkus.arc.lookup.LookupIfProperty;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.DELETE;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -54,22 +54,33 @@ public class ApartmentTursoRepository implements ApartmentRepository {
       " WHERE apartments.building_id = ? AND apartments.number = ? ");
 
   private static final String SELECT_FULL_WITH_LIKE = """
-      SELECT apartments.*, GROUP_CONCAT(apartment_emails.email) as emails
+      SELECT apartments.*,
+             GROUP_CONCAT(apartment_emails.email) AS emails
       FROM apartments
-               INNER JOIN (SELECT apartments.building_id, apartments.number
-                           FROM apartments
-                                    LEFT JOIN apartment_emails ON apartments.building_id = apartment_emails.building_id AND
-                                                                  apartments.number = apartment_emails.apt_number
-                           %s
-                           GROUP BY apartments.building_id, apartments.number) AS matched_apartments
-                          ON matched_apartments.building_id = apartments.building_id AND
-                             matched_apartments.number = apartments.number
-               INNER JOIN apartment_emails ON apartments.building_id = apartment_emails.building_id AND
-                                              apartments.number = apartment_emails.apt_number
+      LEFT JOIN apartment_emails ON apartments.building_id = apartment_emails.building_id AND apartments.number = apartment_emails.apt_number
+      %s
       GROUP BY apartments.building_id, apartments.number
       ORDER BY apartments.building_id, apartments.number
-      LIMIT ?;
-            """;
+      LIMIT ?
+      """;
+
+//  private static final String SELECT_FULL_WITH_LIKE = """
+//      SELECT apartments.*, GROUP_CONCAT(apartment_emails.email) as emails
+//      FROM apartments
+//               INNER JOIN (SELECT apartments.building_id, apartments.number
+//                           FROM apartments
+//                                    LEFT JOIN apartment_emails ON apartments.building_id = apartment_emails.building_id AND
+//                                                                  apartments.number = apartment_emails.apt_number
+//                           %s
+//                           GROUP BY apartments.building_id, apartments.number) AS matched_apartments
+//                          ON matched_apartments.building_id = apartments.building_id AND
+//                             matched_apartments.number = apartments.number
+//               INNER JOIN apartment_emails ON apartments.building_id = apartment_emails.building_id AND
+//                                              apartments.number = apartment_emails.apt_number
+//      GROUP BY apartments.building_id, apartments.number
+//      ORDER BY apartments.building_id, apartments.number
+//      LIMIT ?;
+//            """;
 
   private static final String UPDATE = """
       UPDATE %s SET name = ?, aliquot = ? WHERE building_id = ? AND number = ?;
@@ -106,7 +117,7 @@ public class ApartmentTursoRepository implements ApartmentRepository {
       EMAIL_COLLECTION);
   public static final String DELETE_EMAIL_BY_BUILDING = "DELETE FROM %s WHERE building_id = ?".formatted(
       EMAIL_COLLECTION);
-  public static final String DELETE_EMAILS = "DELETE FROM %s WHERE building_id = ? AND apt_number = > AND email NOT IN (%s)";
+  public static final String DELETE_EMAILS = "DELETE FROM %s WHERE building_id = ? AND apt_number = ? AND email NOT IN (%s)";
 
   private final TursoWsService tursoWsService;
 
@@ -164,13 +175,7 @@ public class ApartmentTursoRepository implements ApartmentRepository {
     }
 
     return tursoWsService.executeQueries(stmts)
-        .map(resps -> {
-          int affected = 0;
-          for (var resp : resps) {
-            affected += resp.result().rowCount();
-          }
-          return affected;
-        });
+        .map(SqlUtil::rowCount);
   }
 
   @Override
@@ -284,15 +289,34 @@ public class ApartmentTursoRepository implements ApartmentRepository {
   @Override
   public Uni<Optional<Apartment>> read(String buildingId, String number) {
 
-    return tursoWsService.selectOne(Stmt.stmt(SELECT_FULL_ONE, Value.text(buildingId), Value.text(number)), this::from);
+    return tursoWsService.selectOne(
+        Stmt.stmt(SELECT_FULL_ONE, Value.text(buildingId), Value.text(number), Value.number(1)), this::from);
   }
 
   @Override
   public Uni<Integer> update(Apartment apartment) {
+    final var stmts = new Stmt[apartment.emails().size() + 2];
+    final var buildingId = Value.text(apartment.buildingId());
+    final var number = Value.text(apartment.number());
+    stmts[0] = Stmt.stmt(UPDATE, Value.text(apartment.name()), Value.number(apartment.aliquot()),
+        buildingId, number);
 
-    return tursoWsService.executeQuery(UPDATE, Value.text(apartment.name()), Value.number(apartment.aliquot()),
-            Value.text(apartment.buildingId()), Value.text(apartment.number()))
-        .map(e -> e.result().rowCount());
+    var i = 1;
+    final var emailDeleteParams = new Value[apartment.emails().size() + 2];
+    emailDeleteParams[0] = buildingId;
+    emailDeleteParams[1] = number;
+    var j = 2;
+    for (var item : apartment.emails()) {
+      final var email = Value.text(item);
+      emailDeleteParams[j++] = email;
+      stmts[i++] = Stmt.stmt(INSERT_EMAIL, buildingId, number, email);
+    }
+
+    stmts[i] = Stmt.stmt(DELETE_EMAILS.formatted(EMAIL_COLLECTION, SqlUtil.params(apartment.emails().size())),
+        emailDeleteParams);
+
+    return tursoWsService.executeQueries(stmts)
+        .map(SqlUtil::rowCount);
   }
 
   @Override

@@ -43,9 +43,9 @@
     {#each GLO_NOTIFICATION_EVENTS}
 
     <label class="label cursor-pointer gap-2">
-    <span class="label-text">{it.name}</span>
+    <span class="label-text">{it}</span>
       <input type="checkbox" class="checkbox checkbox-primary"
-             hx-post="/api/notification_events/{item.user.id}/{it.name}"
+             hx-post="/api/notification_events/{item.user.id}/{it}"
              hx-headers='{"{inject:csrf.headerName}":"{inject:csrf.token}"}'
              value="true"
              name="mode"

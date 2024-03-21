@@ -1,7 +1,6 @@
 package com.yaz.resource;
 
 import com.yaz.persistence.domain.query.ApartmentQuery;
-import com.yaz.persistence.entities.Apartment;
 import com.yaz.resource.domain.ApartmentFormDto;
 import com.yaz.resource.domain.ApartmentFormDto.EmailForm;
 import com.yaz.resource.domain.ApartmentInitDto;
@@ -267,7 +266,7 @@ public class ApartmentsResource {
   @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
   @Produces(MediaType.TEXT_HTML)
   public Uni<TemplateInstance> create(@BeanParam ApartmentRequest request) {
-
+    log.info("Creating apartment {}", request);
     return fromRequest(request, false)
         .flatMap(dto -> {
           if (dto.isSuccess()) {
@@ -287,13 +286,15 @@ public class ApartmentsResource {
   @Path("/{buildingId}/{number}")
   @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
   @Produces(MediaType.TEXT_HTML)
-  public Uni<TemplateInstance> patch(@RestPath String buildingId, @RestPath String number, @BeanParam ApartmentRequest request) {
+  public Uni<TemplateInstance> patch(@RestPath String buildingId, @RestPath String number,
+      @BeanParam ApartmentRequest request) {
 
     request.setBuildingId(buildingId);
     request.setNumber(number);
     return fromRequest(request, true)
         .flatMap(dto -> {
           if (dto.isSuccess()) {
+            log.info("Updating apartment {}", request);
             return apartmentService.update(request)
                 .flatMap(apartment -> baseFormDto()
                     .map(apartmentFormDto -> apartmentFormDto.toBuilder()

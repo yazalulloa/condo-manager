@@ -16,7 +16,6 @@ import io.quarkus.cache.CacheInvalidateAll;
 import io.quarkus.cache.CacheResult;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
@@ -139,6 +138,11 @@ public class ApartmentService {
         .aliquot(request.getAliquot())
         .emails(request.getEmails())
         .build();
+
+    return insert(apartment);
+  }
+
+  public Uni<Apartment> insert(Apartment apartment) {
 
     return repository().insert(apartment)
         .flatMap(i -> {
