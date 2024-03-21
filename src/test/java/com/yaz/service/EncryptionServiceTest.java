@@ -2,14 +2,11 @@ package com.yaz.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.yaz.persistence.entities.ExtraCharge;
 import com.yaz.persistence.entities.ExtraCharge.Keys;
 import com.yaz.util.DateUtil;
 import io.quarkus.test.junit.QuarkusTest;
 import io.vertx.core.json.Json;
-import io.vertx.core.json.JsonObject;
 import jakarta.inject.Inject;
-import java.security.GeneralSecurityException;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
@@ -45,8 +42,49 @@ class EncryptionServiceTest {
 
   @Test
   void encrypt() {
+    final var epochSecond = DateUtil.epochSecond();
+    final var uuid = UUID.randomUUID();
+    final var userId = epochSecond + uuid.toString();
 
-    System.out.println(service.encrypt(DateUtil.epochSecond() + UUID.randomUUID().toString()));
+//    var current = userId;
+//    String idStart;
+//
+//    while (idStart != null) {
+//      final var substring = current.substring(0, current.length() - 2);
+//
+//    }
+//      System.out.println(service.encrypt(userId));
+//    }
+
+    System.out.println(epochSecond);
+    System.out.println(uuid);
+    System.out.println(userId);
+    encryptAndPrint(userId);
+    encryptAndPrint(epochSecond + "1");
+    encryptAndPrint(epochSecond + "");
+    encryptAndPrint(uuid.toString());
   }
+
+  void encryptAndPrint(String str) {
+    final var encrypt = service.encrypt(str);
+
+    System.out.printf("%s original: %s %s %s%n", encrypt.length(), str.length(), str, encrypt);
+
+  }
+
+  @Test
+  void findId() {
+    final var userId = DateUtil.epochSecond() + UUID.randomUUID().toString();
+    final var stringBuilder = new StringBuilder(userId);
+
+    while (!stringBuilder.isEmpty()) {
+      stringBuilder.deleteCharAt(stringBuilder.length() - 1);
+
+      if (stringBuilder.length() < 64) {
+        encryptAndPrint(stringBuilder.toString());
+      }
+    }
+  }
+
 
 }

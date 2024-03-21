@@ -112,4 +112,12 @@ public class UserService {
   public Uni<Integer> delete(String id) {
     return repository().delete(id);
   }
+
+  public Uni<Optional<User>> read(String userId) {
+    return repository().read(userId);
+  }
+
+  public Uni<Boolean> exists(String userId) {
+    return repository().exists(userId);
+  }
 }

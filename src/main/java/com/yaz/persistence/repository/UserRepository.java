@@ -20,4 +20,8 @@ public interface UserRepository {
   Uni<String> save(User user);
 
   Uni<List<User>> select(UserQuery query);
+
+  Uni<Optional<User>> read(String userId);
+
+  Uni<Boolean> exists(String userId);
 }

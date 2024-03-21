@@ -1,11 +1,9 @@
 package com.yaz.event;
 
-import com.yaz.client.domain.telegram.TelegramUpdate;
 import com.yaz.event.domain.EmailConfigDeleted;
 import com.yaz.event.domain.TelegramWebhookRequest;
 import com.yaz.service.BuildingService;
-import com.yaz.service.UserService;
-import io.vertx.core.json.Json;
+import com.yaz.service.TelegramCommandResolver;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.ObservesAsync;
 import jakarta.inject.Inject;
@@ -19,7 +17,7 @@ public class EventConsumer {
 
 
   private final BuildingService service;
-  private final UserService userService;
+  private final TelegramCommandResolver telegramCommandResolver;
 
   public void emailConfigDeleted(@ObservesAsync EmailConfigDeleted task) {
     log.info("emailConfigDeleted: {}", task);
@@ -37,8 +35,16 @@ public class EventConsumer {
 
   public void telegramMessageReceived(@ObservesAsync TelegramWebhookRequest task) {
     try {
-      final var telegramUpdate = Json.decodeValue(task.body(), TelegramUpdate.class);
-      log.info("telegramUpdate: {}", telegramUpdate);
+      log.info("Body: {}", task.body());
+      telegramCommandResolver.resolve(task)
+          .subscribe()
+          .with(
+              i -> {
+                log.info("telegramMessageReceived: {}", task);
+              },
+              e -> {
+                log.error("ERROR telegramMessageReceived: {}", task, e);
+              });
     } catch (Exception e) {
       log.error("telegramMessageReceived: {}", task, e);
     }

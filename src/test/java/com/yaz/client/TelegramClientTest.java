@@ -1,7 +1,6 @@
 package com.yaz.client;
 
-import static org.junit.jupiter.api.Assertions.*;
-
+import com.yaz.service.TelegramRestService;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
@@ -12,6 +11,9 @@ class TelegramClientTest {
 
   @RestClient
   TelegramClient client;
+
+  @Inject
+  TelegramRestService restService;
 
 
   @Test
@@ -25,5 +27,4 @@ class TelegramClientTest {
     final var webhookInfo = client.getWebhookInfo().await().indefinitely();
     System.out.println(webhookInfo);
   }
-
 }

@@ -12,7 +12,6 @@ import com.yaz.persistence.repository.turso.client.ws.response.ExecuteResp.Row;
 import com.yaz.util.DateUtil;
 import com.yaz.util.SqlUtil;
 import com.yaz.util.StringUtil;
-import io.quarkus.arc.lookup.LookupIfProperty;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -40,6 +39,10 @@ public class UserTursoRepository implements UserRepository {
   private static final String LIKE_QUERY = " concat(email, name, username) LIKE ? ";
   private static final String SELECT_ID_FROM_PROVIDER = "SELECT id FROM %s WHERE provider = ? AND provider_id = ?".formatted(
       COLLECTION);
+
+  private static final String READ = "SELECT * FROM %s WHERE id = ?".formatted(COLLECTION);
+
+  private static final String EXISTS = "SELECT id FROM %s WHERE id = ?".formatted(COLLECTION);
 
 
   private final TursoWsService tursoWsService;
@@ -119,6 +122,17 @@ public class UserTursoRepository implements UserRepository {
     final var sql = SELECT.formatted(COLLECTION, whereClause);
 
     return tursoWsService.selectQuery(sql, values, this::from);
+  }
+
+  @Override
+  public Uni<Optional<User>> read(String id) {
+    return tursoWsService.selectOne(Stmt.stmt(READ, Value.text(id)), this::from);
+  }
+
+  @Override
+  public Uni<Boolean> exists(String id) {
+    return tursoWsService.selectOne(Stmt.stmt(EXISTS, Value.text(id)), row -> row.getString("id"))
+        .map(Optional::isPresent);
   }
 
   private User from(Row row) {

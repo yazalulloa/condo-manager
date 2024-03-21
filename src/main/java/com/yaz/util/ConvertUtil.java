@@ -14,6 +14,7 @@ import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -224,7 +225,6 @@ public class ConvertUtil {
   }
 
 
-
   public static Rate parseRate(Response response) {
     final var etag = response.getHeaderString("etag");
     final var lastModified = response.getHeaderString("last-modified");
@@ -241,5 +241,77 @@ public class ConvertUtil {
     } catch (Exception e) {
       return null;
     }
+  }
+
+  public static String formatUserId(String userId) {
+    final var first = userId.substring(0, 10);
+    final var firstReverse = new StringBuilder(first).reverse().toString();
+
+    final var second = userId.substring(10);
+    final var split = second.split("-");
+
+    final int[] array = randPos();
+
+    final var stringBuilder = new StringBuilder();
+
+    for (int i : array) {
+      stringBuilder.append(split[i]).append("-");
+    }
+    stringBuilder.deleteCharAt(stringBuilder.length() - 1);
+
+    for (int i : array) {
+      stringBuilder.append(i);
+    }
+
+    final var actualLength = stringBuilder.length() + firstReverse.length();
+
+    final var randNumb = RandomUtil.getRandNumb(62 - actualLength);
+
+    final var length = randNumb.length();
+
+    return firstReverse + stringBuilder + randNumb + (length < 10 ? "0" : "") + length;
+  }
+
+  public static String getUserId(String str) {
+
+    final var random = Integer.parseInt(str.substring(str.length() - 2));
+    final var uuidStr = str.substring(10, str.length() - (2 + random));
+
+    final var stringBuilder = new StringBuilder(str.substring(0, 10)).reverse();
+    final var split = uuidStr.substring(0, uuidStr.length() - 5).split("-");
+    final var posCharArray = uuidStr.substring(uuidStr.length() - 5).toCharArray();
+
+    final var temp = new String[5];
+
+    for (int i = 0; i < 5; i++) {
+      final var pos = Integer.parseInt(String.valueOf(posCharArray[i]));
+      temp[pos] = split[i];
+    }
+
+    for (String s : temp) {
+      stringBuilder.append(s).append("-");
+    }
+
+    stringBuilder.deleteCharAt(stringBuilder.length() - 1);
+
+    return stringBuilder.toString();
+  }
+
+  public static int[] randPos() {
+    final int[] array = {0, 1, 2, 3, 4};
+    final var rand = RandomUtil.getInstance();
+
+    for (int i = 0; i < array.length; i++) {
+      int randomIndexToSwap = rand.nextInt(array.length);
+      int temp = array[randomIndexToSwap];
+      array[randomIndexToSwap] = array[i];
+      array[i] = temp;
+    }
+
+    if (Arrays.equals(array, new int[]{0, 1, 2, 3, 4})) {
+      return randPos();
+    }
+
+    return array;
   }
 }

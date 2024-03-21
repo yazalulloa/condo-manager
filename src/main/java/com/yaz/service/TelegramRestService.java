@@ -1,8 +1,10 @@
 package com.yaz.service;
 
+import com.yaz.client.domain.telegram.WebHookRequest;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import java.net.URI;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import com.yaz.client.TelegramClient;
@@ -43,6 +45,13 @@ public class TelegramRestService {
 
   public Uni<String> sendMessage(SendMessage sendMessage) {
     return request(sendMessage);
+  }
+
+  public Uni<String> setWebhook(String url) {
+    final var webHookRequest = WebHookRequest.builder()
+        .url(URI.create(url))
+        .build();
+    return client.setWebhook(webHookRequest);
   }
 
   /*public Single<HttpClientResponse> editMessageText(EditMessageText editMessageText) {

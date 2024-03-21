@@ -28,7 +28,14 @@ public class TelegramChatRepository {
       INSERT INTO %s (user_id, chat_id, data, first_name, last_name, username) VALUES (%s)
       """.formatted(COLLECTION, SqlUtil.params(6));
 
+  private static final String UPDATE = """
+      UPDATE %s SET data = ?, first_name = ?, last_name = ?, username = ? WHERE user_id = ? AND chat_id = ?
+      """.formatted(COLLECTION);
+
+
   private static final String READ = "SELECT * FROM %s WHERE user_id = ? AND chat_id = ?".formatted(COLLECTION);
+  private static final String EXISTS = "SELECT user_id,chat_id FROM %s WHERE user_id = ? AND chat_id = ?".formatted(
+      COLLECTION);
 
   private final TursoWsService tursoWsService;
 
@@ -69,5 +76,16 @@ public class TelegramChatRepository {
     return tursoWsService.selectOne(Stmt.stmt(READ, Value.text(userId), Value.number(chatId)), this::from);
   }
 
+  public Uni<Boolean> exists(String userId, long chatId) {
+    return tursoWsService.selectOne(Stmt.stmt(EXISTS, Value.text(userId), Value.number(chatId)),
+            row -> row.getString("user_id") != null)
+        .map(Optional::isPresent);
+  }
 
+  public Uni<Integer> update(TelegramChat chat) {
+
+    return tursoWsService.executeQuery(UPDATE, Value.text(chat.data().encode()), Value.text(chat.firstName()),
+            Value.text(chat.lastName()), Value.text(chat.username()), Value.text(chat.userId()), Value.number(chat.chatId()))
+        .map(executeResp -> executeResp.result().rowCount());
+  }
 }
