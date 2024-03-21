@@ -60,4 +60,8 @@ public class ExtraChargeService {
   public Uni<Integer> update(ExtraChargeUpdateRequest updateRequest) {
     return repository.update(updateRequest);
   }
+
+  public Uni<Integer> deleteByBuilding(String id) {
+    return repository.deleteByBuilding(id);
+  }
 }

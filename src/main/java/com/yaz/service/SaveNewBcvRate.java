@@ -23,7 +23,7 @@ public class SaveNewBcvRate {
   private final RateService rateService;
   private final EventBus eventBus;
   //private final BcvGetDocumentQueue bcvGetDocumentQueue;
-  //private final NotificationService notificationService;
+  private final NotificationService notificationService;
   // private final VertxHandler vertxHandler;
 
 
@@ -49,10 +49,8 @@ public class SaveNewBcvRate {
           final var saveRate = newRateSingle
               .map(BcvUsdRateResult::rate)
               .doAfterSuccess(r -> eventBus.publish(EventConstants.NEW_RATE, EventConstants.NEW_RATE))
-              //.doAfterSuccess(r -> vertxHandler.publishSse("new_rate"))
               .map(r -> "Nueva tasa añadida%n%s%nFecha de la tasa: %s".formatted(r.rate(), r.dateOfRate()))
-              //.flatMapCompletable(notificationService::sendNewRate)
-              .ignoreElement()
+              .flatMapCompletable(notificationService::sendNewRate)
               .andThen(newRateSingle);
 
           final var lastSingle = rateService.last(rate.fromCurrency(), rate.toCurrency())

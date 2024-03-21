@@ -152,12 +152,7 @@ public class ConvertUtil {
     }
   }
 
-  public static String formatDurationNow(long timestamp) {
-    final var currentTimeMillis = System.currentTimeMillis();
 
-    final var timeUp = currentTimeMillis - timestamp;
-    return formatDuration(timeUp);
-  }
 
   public static String formatDuration(long time) {
     return DurationFormatUtils.formatDuration(time, "HH:mm:ss", false);

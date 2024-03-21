@@ -22,6 +22,7 @@ public final class Stmt {
 
 
   public static Stmt sql(String sql) {
+
     return new Stmt(sql, null, new Value[0], new NamedArg[0], true);
   }
 

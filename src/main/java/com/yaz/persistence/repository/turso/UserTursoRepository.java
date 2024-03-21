@@ -3,6 +3,7 @@ package com.yaz.persistence.repository.turso;
 import com.yaz.persistence.domain.IdentityProvider;
 import com.yaz.persistence.domain.query.SortOrder;
 import com.yaz.persistence.domain.query.UserQuery;
+import com.yaz.persistence.entities.NotificationEvent;
 import com.yaz.persistence.entities.User;
 import com.yaz.persistence.repository.UserRepository;
 import com.yaz.persistence.repository.turso.client.TursoWsService;
@@ -16,9 +17,12 @@ import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -34,9 +38,10 @@ public class UserTursoRepository implements UserRepository {
 
   private static final String SELECT = """
       SELECT users.*,telegram_chats.chat_id as telegram_chat_id, telegram_chats.username as telegram_username,
-        telegram_chats.first_name as telegram_first_name
+        telegram_chats.first_name as telegram_first_name, GROUP_CONCAT(notifications_events.event) as events
         from users
       left join telegram_chats ON users.id = telegram_chats.user_id
+      left join notifications_events ON users.id = notifications_events.user_id
       %s
       GROUP BY users.id
       ORDER BY users.id
@@ -147,6 +152,13 @@ public class UserTursoRepository implements UserRepository {
   }
 
   private User from(Row row) {
+    final var events = Optional.ofNullable(row.getString("events"))
+        .map(Object::toString)
+        .map(str -> Arrays.stream(str.split(","))
+            .map(NotificationEvent.Event::valueOf)
+            .collect(Collectors.toSet()))
+        .orElseGet(Collections::emptySet);
+
     return User.builder()
         .id(row.getString("id"))
         .providerId(row.getString("provider_id"))
@@ -163,6 +175,7 @@ public class UserTursoRepository implements UserRepository {
             .username(row.getString("telegram_username"))
             .firstName(row.getString("telegram_first_name"))
             .build())
+        .notificationEvents(events)
         .build();
   }
 }

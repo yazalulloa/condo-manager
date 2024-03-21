@@ -63,6 +63,9 @@ public class ExtraChargeRepository {
   private static final String UPDATE = """
       UPDATE %s SET description = ?, amount = ?, currency = ?, active = ? WHERE building_id = ? AND secondary_id = ? AND id = ?
       """.formatted(COLLECTION);
+
+  private static final String DELETE_BY_BUILDING = "DELETE FROM %s WHERE building_id = ? AND secondary_id = ?".formatted(
+      COLLECTION);
   private static final String COLLECTION_APT = "extra_charges_apartments";
   private static final String INSERT_APT = """
       INSERT INTO %s (building_id, secondary_id, id, apt_number) VALUES %s ON CONFLICT DO NOTHING;
@@ -76,6 +79,9 @@ public class ExtraChargeRepository {
       """.formatted(COLLECTION_APT);
 
   private static final String DELETE_APT = "DELETE FROM %s WHERE building_id = ? AND secondary_id = ? AND  id = ?".formatted(
+      COLLECTION_APT);
+
+  private static final String DELETE_APT_BY_BUILDING = "DELETE FROM %s WHERE building_id = ? AND secondary_id = ?".formatted(
       COLLECTION_APT);
 
   private final TursoWsService tursoWsService;
@@ -240,6 +246,16 @@ public class ExtraChargeRepository {
     }
 
     return tursoWsService.executeQueries(stmts)
+        .map(SqlUtil::rowCount);
+  }
+
+  public Uni<Integer> deleteByBuilding(String id) {
+    final var value = Value.text(id);
+    final var values = new Value[]{value, value};
+    final var delete = Stmt.stmt(DELETE_BY_BUILDING, values);
+    final var deleteApt = Stmt.stmt(DELETE_APT_BY_BUILDING, values);
+
+    return tursoWsService.executeQueries(delete, deleteApt)
         .map(SqlUtil::rowCount);
   }
 }

@@ -8,8 +8,9 @@
 
   <details>
   <summary>
-  <div class="hover:bg-[#00000014] rounded-lg p-4 bg-neutral flex-wrap flex-item flex justify-between items-center gap-2"
-       id={item.cardId}>
+  <div
+      class="hover:bg-[#00000014] rounded-lg p-4 bg-neutral flex-wrap flex-item flex justify-between items-center gap-2"
+      id={item.cardId}>
 
     <img src="{item.user.picture}" alt="Avatar" class="w-10 h-10 rounded-full" referrerpolicy="no-referrer">
 
@@ -17,27 +18,49 @@
          data-tip="{item.user.providerId}">
       <span>{item.user.provider}</span>
     </div>
-    <div class="tooltip tooltip-bottom"
-         data-tip="{item.user.id}">
-      <span>{item.user.email}</span>
+
+    <div class="flex flex-col gap-1 text-center items-center">
+      <div class="tooltip tooltip-bottom"
+           data-tip="{item.user.id}">
+        <span>{item.user.email}</span>
+      </div>
+      <span>{item.user.username}</span>
+      <span>{item.user.name}</span>
     </div>
-    <span>{item.user.username}</span>
-    <span>{item.user.name}</span>
 
     {#if item.user.telegramChat.hasChat}
     <div class="flex flex-col gap-1 text-center items-center">
       <img src="/assets/telegram_logo.svg" style="width:20px;height:20px;" alt="telegram_logo">
-      <span>{item.user.telegramChat.username}</span>
-      <span>{item.user.telegramChat.firstName}</span>
+    <span>{item.user.telegramChat.username}</span>
+    <span>{item.user.telegramChat.firstName}</span>
 
-    </div>
+  </div>
 
     {/if}
 
-   <div class="flex flex-col gap-2">
-     <span>Creado: {item.user.createdAt.formatDate}</span>
-     <span>Último acceso {item.user.lastLoginAt.formatDate}</span>
-   </div>
+
+  <div class="flex flex-col gap-1 text-center items-center text-sm">
+    {#each GLO_NOTIFICATION_EVENTS}
+
+    <label class="label cursor-pointer gap-2">
+    <span class="label-text">{it.name}</span>
+      <input type="checkbox" class="checkbox checkbox-primary"
+             hx-post="/api/notification_events/{item.user.id}/{it.name}"
+             hx-headers='{"{inject:csrf.headerName}":"{inject:csrf.token}"}'
+             value="true"
+             name="mode"
+    {#if item.user.notificationEvents.contains(it)}
+             checked="checked"
+    {/if}
+    />
+    </label>
+    {/each}
+    </div>
+
+    <div class="flex flex-col gap-2">
+    <span>Creado: {item.user.createdAt.formatDate}</span>
+    <span>Último acceso {item.user.lastLoginAt.formatDate}</span>
+  </div>
 
     {#include fragments/delete-btn deleteUrl=item.deleteUrl cardIdRef=item.cardIdRef/}
     </div>
@@ -45,7 +68,7 @@
     <div class="flex flex-col gap-2 p-2">
     <span class="text-sm">ID: {item.user.id}</span>
     <span class="text-sm">{item.user.data.encodePrettily}</span>
-    </div>
+  </div>
   </details>
 
 </div>

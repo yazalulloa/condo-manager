@@ -4,7 +4,9 @@ import com.yaz.persistence.domain.IdentityProvider;
 import com.yaz.persistence.domain.query.UserQuery;
 import com.yaz.resource.domain.response.UserTableResponse;
 import com.yaz.service.EmailConfigService;
+import com.yaz.service.NotificationEventService;
 import com.yaz.service.OidcDbTokenService;
+import com.yaz.service.TelegramChatService;
 import com.yaz.service.UserService;
 import com.yaz.util.ConvertUtil;
 import com.yaz.util.StringUtil;
@@ -33,6 +35,8 @@ public class UserResource {
   private final UserService service;
   private final EmailConfigService emailConfigService;
   private final OidcDbTokenService tokenService;
+  private final NotificationEventService notificationEventService;
+  private final TelegramChatService telegramChatService;
 
   @CheckedTemplate
   public static class Templates {
@@ -58,7 +62,9 @@ public class UserResource {
     return service.delete(id)
         .replaceWith(counters())
         .eventually(() -> tokenService.deleteByUser(id))
-        .eventually(() -> emailConfigService.delete(id));
+        .eventually(() -> emailConfigService.delete(id))
+        .eventually(() -> notificationEventService.deleteByUser(id))
+        .eventually(() -> telegramChatService.deleteByUser(id));
   }
 
   @GET

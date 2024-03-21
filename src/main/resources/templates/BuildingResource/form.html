@@ -193,10 +193,11 @@
 <select class="select select-bordered w-full" name="emailConfig">
 {#for item in dto.emailConfigs}
     <option
+    value="{item.id}"
 {#if item.id == dto.emailConfig}
     selected
 {/if}
-    value="{item.id}">
+    >
   <span>{item.name}</span>
   <span>{item.email}</span>
 </option>

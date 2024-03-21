@@ -100,7 +100,8 @@ public class ApartmentTursoRepository implements ApartmentRepository {
       """;
 
   private static final String EMAIL_COLLECTION = "apartment_emails";
-  private static final String INSERT_EMAIL = "INSERT INTO %s (building_id, apt_number, email) VALUES %s ON CONFLICT DO NOTHING";
+  private static final String INSERT_EMAIL = "INSERT INTO %s (building_id, apt_number, email) VALUES (%s) ON CONFLICT DO NOTHING"
+      .formatted(EMAIL_COLLECTION, SqlUtil.params(3));
   public static final String DELETE_EMAIL = "DELETE FROM %s WHERE building_id = ? AND apt_number = ?".formatted(
       EMAIL_COLLECTION);
   public static final String DELETE_EMAIL_BY_BUILDING = "DELETE FROM %s WHERE building_id = ?".formatted(

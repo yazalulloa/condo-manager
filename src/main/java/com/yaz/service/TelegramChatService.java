@@ -1,11 +1,15 @@
 package com.yaz.service;
 
+import com.yaz.persistence.entities.NotificationEvent;
 import com.yaz.persistence.entities.TelegramChat;
 import com.yaz.persistence.repository.turso.TelegramChatRepository;
+import com.yaz.util.RxUtil;
+import io.reactivex.rxjava3.core.Single;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.util.Optional;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -38,5 +42,9 @@ public class TelegramChatService {
 
   public Uni<Integer> update(TelegramChat telegramChat) {
     return repository.update(telegramChat);
+  }
+
+  public Single<Set<Long>> chatByEvents(NotificationEvent.Event... events) {
+    return RxUtil.single(repository.chatByEvents(events));
   }
 }

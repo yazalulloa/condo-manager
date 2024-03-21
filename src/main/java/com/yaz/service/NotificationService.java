@@ -1,9 +1,14 @@
 package com.yaz.service;
 
-import com.yaz.domain.NotificationEvent;
+
+import com.yaz.persistence.entities.NotificationEvent;
+import com.yaz.persistence.entities.NotificationEvent.Event;
 import com.yaz.util.EnvParams;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Observable;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import java.util.function.LongFunction;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -18,26 +23,49 @@ public class NotificationService {
   private final EnvParams envParams;
 
   //private final SendLogs sendLogs;
-  //private final TelegramChatService chatService;
+  private final TelegramChatService chatService;
 //  private final TranslationProvider translationProvider;
 
   public void sendAppStartup() {
-    final var event = NotificationEvent.APP_STARTUP;
+    final var event = NotificationEvent.Event.APP_STARTUP;
     final var msg = event.name();//translationProvider.translate(event.name());
-    final var string = envParams.addEnvInfo(msg, false);
+    final var string = envParams.addEnvInfo(msg, true);
 
-    if (envParams.isSendNotifications()) {
-      restService.sendMessage(475635800, string)
-          .subscribe()
-          .with(
-              telegramMessage -> {
-                //log.info("TELEGRAM_MESSAGE {}", telegramMessage);
-              },
-              throwable -> log.error("TELEGRAM_ERROR", throwable));
+    send(string, Event.APP_STARTUP)
+        .subscribe(() -> {
+        }, throwable -> log.error("NOTIFICATION_ERROR", throwable));
+  }
+
+
+  public Completable sendNewRate(String msg) {
+    return send(envParams.addEnvInfo(msg), NotificationEvent.Event.NEW_RATE);
+  }
+
+  public Completable send(String msg, NotificationEvent.Event event) {
+    return sendNotification(chatId -> restService.rxSendMessage(chatId, msg), event);
+  }
+
+  private Completable sendNotification(LongFunction<Completable> function, NotificationEvent.Event... set) {
+    if (!envParams.isSendNotifications()) {
+      return Completable.complete();
     }
 
-    //return blocking(send(EnvUtil.addEnvInfo(msg, false), event));
+    return chatService.chatByEvents(set)
+        .filter(s -> !s.isEmpty())
+        .flatMapObservable(Observable::fromIterable)
+        .map(function::apply)
+        .toList()
+        .toFlowable()
+        .flatMapCompletable(Completable::merge);
   }
+
+  public Completable sendShuttingDownApp() {
+    final var event = NotificationEvent.Event.APP_SHUTTING_DOWN;
+    final var caption = event.name();//translationProvider.translate(event.name());
+
+    return send(envParams.addEnvInfo(caption), Event.APP_SHUTTING_DOWN);
+  }
+
 
  /* private Completable sendNotification(Set<NotificationEvent> set, Function<Long, Completable> function) {
     return chatService.chatsByEvents(set)

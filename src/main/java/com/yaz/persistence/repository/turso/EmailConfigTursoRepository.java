@@ -58,7 +58,7 @@ public class EmailConfigTursoRepository implements EmailConfigRepository {
       last_check_at = ?, stacktrace = ? WHERE user_id = ?;
       """.formatted(COLLECTION);
   private static final String SELECT_DISPLAY = """
-      SELECT users.email, users.username, users.name, users.picture
+      SELECT email_configs.user_id,users.email, users.username, users.name, users.picture
            FROM email_configs
            LEFT JOIN users ON email_configs.user_id = users.id
            WHERE email_configs.is_available = true AND email_configs.active = true

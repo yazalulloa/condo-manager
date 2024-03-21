@@ -225,3 +225,12 @@ BEGIN
     WHERE user_id = OLD.user_id
       AND chat_id = OLD.chat_id;
 END;
+
+CREATE TABLE IF NOT EXISTS notifications_events
+(
+    user_id    VARCHAR(50)                                           NOT NULL,
+    event      TEXT CHECK ( event IN ('APP_STARTUP', 'APP_SHUTTING_DOWN', 'NEW_RATE',
+                                      'CONFIG_EMAIL_FAILED_CHECK') ) NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id, event)
+);

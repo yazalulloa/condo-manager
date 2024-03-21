@@ -77,9 +77,17 @@ public class EnvParams {
             return "\nFecha de inicio: " + dateTime;
           }
 
-          final var duration = ConvertUtil.formatDurationNow(millis);
+          final var timeUp = System.currentTimeMillis() - millis;
+          log.info("APP_STARTED_AT {}", timeUp);
+          String duration;
 
-          return "%nFecha de inicio %s%nTIME UP %s".formatted(dateTime, duration);
+          if (timeUp < 1000) {
+            duration = timeUp + "ms";
+          } else {
+            duration = ConvertUtil.formatDuration(timeUp);
+          }
+
+          return "%nFecha de inicio %s%nTIME UP: %s".formatted(dateTime, duration);
         })
         .ifPresent(str -> builder.append(" ").append(str));
 

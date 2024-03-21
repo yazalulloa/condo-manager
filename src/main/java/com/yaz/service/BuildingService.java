@@ -1,6 +1,7 @@
 package com.yaz.service;
 
 
+import com.yaz.event.domain.BuildingDeleted;
 import com.yaz.persistence.domain.query.BuildingQuery;
 import com.yaz.persistence.entities.Building;
 import com.yaz.persistence.repository.BuildingRepository;
@@ -14,7 +15,7 @@ import io.quarkus.cache.CacheResult;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.inject.Instance;
+import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +31,7 @@ public class BuildingService {
 
   //private final Instance<BuildingRepository> repository;
   private final BuildingRepository repository;
+  private final Event<BuildingDeleted> buildingDeletedEvent;
 
   private BuildingRepository repository() {
     //return repository.get();
@@ -51,7 +53,8 @@ public class BuildingService {
           }
 
           return Uni.createFrom().item(i);
-        });
+        })
+        .eventually(() -> Uni.createFrom().completionStage(buildingDeletedEvent.fireAsync(new BuildingDeleted(id))));
   }
 
   @CacheInvalidateAll(cacheName = BuildingCache.TOTAL_COUNT)

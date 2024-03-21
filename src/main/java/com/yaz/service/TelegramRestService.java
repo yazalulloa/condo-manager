@@ -1,16 +1,17 @@
 package com.yaz.service;
 
+import com.yaz.client.TelegramClient;
+import com.yaz.client.domain.telegram.ParseMode;
+import com.yaz.client.domain.telegram.SendMessage;
 import com.yaz.client.domain.telegram.WebHookRequest;
+import com.yaz.util.RxUtil;
+import io.reactivex.rxjava3.core.Completable;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.net.URI;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
-import com.yaz.client.TelegramClient;
-import com.yaz.client.domain.telegram.ParseMode;
-import com.yaz.client.domain.telegram.SendMessage;
-import com.yaz.client.domain.telegram.TelegramMessage;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 @Slf4j
@@ -33,7 +34,7 @@ public class TelegramRestService {
     return client.sendMessage(build);
   }
 
-  public Uni<String>  sendMessage(long chatId, String text) {
+  public Uni<String> sendMessage(long chatId, String text) {
 
     final var sendMessage = SendMessage.builder()
         .chatId(chatId)
@@ -41,6 +42,10 @@ public class TelegramRestService {
         .build();
 
     return request(sendMessage);
+  }
+
+  public Completable rxSendMessage(long chatId, String text) {
+    return RxUtil.single(sendMessage(chatId, text)).ignoreElement();
   }
 
   public Uni<String> sendMessage(SendMessage sendMessage) {

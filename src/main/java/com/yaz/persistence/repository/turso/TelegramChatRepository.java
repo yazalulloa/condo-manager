@@ -1,5 +1,6 @@
 package com.yaz.persistence.repository.turso;
 
+import com.yaz.persistence.entities.NotificationEvent;
 import com.yaz.persistence.entities.TelegramChat;
 import com.yaz.persistence.repository.turso.client.TursoWsService;
 import com.yaz.persistence.repository.turso.client.ws.request.Stmt;
@@ -10,6 +11,7 @@ import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.util.Optional;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,6 +38,12 @@ public class TelegramChatRepository {
   private static final String READ = "SELECT * FROM %s WHERE user_id = ? AND chat_id = ?".formatted(COLLECTION);
   private static final String EXISTS = "SELECT user_id,chat_id FROM %s WHERE user_id = ? AND chat_id = ?".formatted(
       COLLECTION);
+
+  private static final String SELECT_BY_NOTIFICATION_EVENT = """
+      SELECT telegram_chats.chat_id from telegram_chats
+        inner join (SELECT user_id from notifications_events WHERE event in (%s)) as matched_users
+        on matched_users.user_id = telegram_chats.user_id;
+      """;
 
   private final TursoWsService tursoWsService;
 
@@ -85,7 +93,21 @@ public class TelegramChatRepository {
   public Uni<Integer> update(TelegramChat chat) {
 
     return tursoWsService.executeQuery(UPDATE, Value.text(chat.data().encode()), Value.text(chat.firstName()),
-            Value.text(chat.lastName()), Value.text(chat.username()), Value.text(chat.userId()), Value.number(chat.chatId()))
+            Value.text(chat.lastName()), Value.text(chat.username()), Value.text(chat.userId()),
+            Value.number(chat.chatId()))
         .map(executeResp -> executeResp.result().rowCount());
+  }
+
+  public Uni<Set<Long>> chatByEvents(NotificationEvent.Event[] events) {
+
+    final var params = SqlUtil.params(events.length);
+    final var sql = SELECT_BY_NOTIFICATION_EVENT.formatted(params);
+
+    final var values = new Value[events.length];
+    for (int i = 0; i < events.length; i++) {
+      values[i] = Value.enumV(events[i]);
+    }
+
+    return tursoWsService.selectQuerySet(Stmt.stmt(sql, values), row -> row.getLong("chat_id"));
   }
 }
