@@ -5,8 +5,6 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.yaz.bean.qualifier.NonNullObjectMapper;
 import com.yaz.persistence.repository.turso.client.ws.Listener;
 import com.yaz.persistence.repository.turso.client.ws.TursoResult;
 import com.yaz.persistence.repository.turso.client.ws.request.CloseStreamReq;
@@ -62,8 +60,8 @@ public class TursoWsService {
 
   @Inject
   public TursoWsService(TursoWsClient client, @ConfigProperty(name = "app.turso-jwt") String jwt,
-  ObjectMapper objectMapper
-  //    @NonNullObjectMapper JsonMapper jsonMapper
+      ObjectMapper objectMapper
+      //    @NonNullObjectMapper JsonMapper jsonMapper
   ) {
     this.client = client;
     this.jwt = jwt;
@@ -73,11 +71,29 @@ public class TursoWsService {
         .setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
         .configure(JsonGenerator.Feature.WRITE_BIGDECIMAL_AS_PLAIN, true);
     client.addMsgHandler(this::handleMessage);
+    client.addExceptionHandler(this::handleError);
+    client.addCloseHandler(v -> handleCloseClient());
   }
 
   public Future<Void> heartBeat() {
     return client.start()
         .onSuccess(v -> client.sendHeartBeat());
+  }
+
+  private void handleError(Throwable e) {
+    for (Listener listener : LISTENERS.values()) {
+      listener.handler().handle(Future.failedFuture(e));
+    }
+    LISTENERS.clear();
+    RESULTS.clear();
+  }
+
+  private void handleCloseClient() {
+    for (Listener listener : LISTENERS.values()) {
+      listener.handler().handle(Future.failedFuture(new RuntimeException("Connection closed")));
+    }
+    LISTENERS.clear();
+    RESULTS.clear();
   }
 
   private void handleMessage(String json) {
@@ -155,21 +171,6 @@ public class TursoWsService {
     return RequestMsg.create(getRequestId(), request);
   }
 
-//  public void loadSchema() {
-//
-//    final var streamId = STREAM_ID.getAndIncrement();
-//    final var openStreamReq = createRequest(OpenStreamReq.create(streamId));
-//    //final var sqlId = SQL_ID.getAndIncrement();
-//    // final var storeSqlReq = createRequest(StoreSqlReq.create(sqlId, "SELECT * FROM sqlite_schema;"));
-//    //final var executeReq = createRequest(ExecuteReq.create(streamId, Stmt.fromID(sqlId)));
-//    final var executeReq = createRequest(ExecuteReq.create(streamId, Stmt.sql("SELECT * FROM sqlite_schema;")));
-//    final var closeStreamReq = createRequest(CloseStreamReq.create(streamId));
-//
-//    request(openStreamReq);
-//    request(executeReq);
-//    request(closeStreamReq);
-//  }
-
   public Uni<ExecuteResp> loadSchema() {
     return executeQuery(Stmt.sql("SELECT * FROM sqlite_schema;"));
   }
@@ -181,24 +182,6 @@ public class TursoWsService {
   private int getRequestId() {
     return RandomUtil.unsignedInt10();
   }
-
-//  public void executeStatements(Stmt stmt, Handler<AsyncResult<List<TursoResult>>> handler) {
-//    final var streamId = getStreamId();
-//    final var openStreamReq = createRequest(OpenStreamReq.create(streamId));
-//    final var executeReq = createRequest(ExecuteReq.create(streamId, stmt));
-//    final var closeStreamReq = createRequest(CloseStreamReq.create(streamId));
-//
-//    final var listener = new Listener(
-//        new int[]{openStreamReq.requestId(), executeReq.requestId(), closeStreamReq.requestId()}, handler);
-//
-//    LISTENERS.put(openStreamReq.requestId(), listener);
-//    LISTENERS.put(executeReq.requestId(), listener);
-//    LISTENERS.put(closeStreamReq.requestId(), listener);
-//
-//    request(openStreamReq);
-//    request(executeReq);
-//    request(closeStreamReq);
-//  }
 
   public void executeStatements(Handler<AsyncResult<List<TursoResult>>> handler, Stmt... stmts) {
     final var streamId = getStreamId();
@@ -311,6 +294,7 @@ public class TursoWsService {
     return executeQuery(Stmt.sql(sql))
         .map(this::extractCount);
   }
+
   public long extractCount(ExecuteResp executeResp) {
     final var rows = executeResp.result().rows();
     if (rows.length > 0 && rows[0].length > 0) {

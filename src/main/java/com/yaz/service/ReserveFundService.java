@@ -2,10 +2,12 @@ package com.yaz.service;
 
 import com.yaz.persistence.entities.ReserveFund;
 import com.yaz.persistence.repository.turso.ReserveFundRepository;
+import com.yaz.util.monad.Result;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,4 +43,11 @@ public class ReserveFundService {
     return repository.selectByBuilding(buildingId);
   }
 
+  public Uni<Optional<ReserveFund>> read(String buildingId, String id) {
+    return repository.read(buildingId, id);
+  }
+
+  public Uni<Integer> create(ReserveFund reserveFund) {
+    return repository.insert(reserveFund);
+  }
 }

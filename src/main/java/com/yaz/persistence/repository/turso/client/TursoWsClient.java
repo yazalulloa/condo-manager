@@ -6,7 +6,6 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.WebSocket;
 import io.vertx.core.http.WebSocketClient;
 import io.vertx.core.http.WebSocketClientOptions;
-import io.vertx.core.http.WebSocketFrame;
 import io.vertx.mutiny.core.Vertx;
 import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -32,6 +31,8 @@ public class TursoWsClient {
   private WebSocket webSocket;
   private final AtomicBoolean connecting = new AtomicBoolean(false);
   private final List<Handler<String>> msgHandlers = new ArrayList<>();
+  private final List<Handler<Throwable>> exceptionHandlers = new ArrayList<>();
+  private final List<Handler<Void>> closeHandlers = new ArrayList<>();
 
   @Inject
   public TursoWsClient(Vertx vertx, @ConfigProperty(name = "quarkus.rest-client.turso-db.url") String url) {
@@ -54,6 +55,14 @@ public class TursoWsClient {
     msgHandlers.add(handler);
   }
 
+  public void addExceptionHandler(Handler<Throwable> handler) {
+    exceptionHandlers.add(handler);
+  }
+
+  public void addCloseHandler(Handler<Void> handler) {
+    closeHandlers.add(handler);
+  }
+
   private WebSocketClient client() {
     if (client != null) {
       return client;
@@ -74,7 +83,6 @@ public class TursoWsClient {
 
   public Future<Void> start() {
 
-
     //log.info("Starting");
     if (connecting.get()) {
       //log.info("Already connecting");
@@ -94,14 +102,15 @@ public class TursoWsClient {
 
           webSocket.frameHandler(frame -> {
                 if (frame.isPing()) {
-                //  log.info("Received ping");
-                  webSocket.writeFrame(WebSocketFrame.pongFrame(Buffer.buffer(0xA)));
+                  log.info("Received ping");
+                  webSocket.writePong(Buffer.buffer(0xA));
+                  //webSocket.writeFrame(WebSocketFrame.pongFrame(Buffer.buffer(0xA)));
                 } else {
                   // log.info("Received frame: {}", frame.textData());
                 }
               })
               //.binaryMessageHandler(b -> log.info("Received binary {}", b.toString()))
-             // .pongHandler(b -> log.info("Received pong {}", b.toString()))
+              // .pongHandler(b -> log.info("Received pong {}", b.toString()))
               .drainHandler(v -> {
                 log.info("Drain handler");
               }).textMessageHandler(message -> {
@@ -109,10 +118,12 @@ public class TursoWsClient {
                 msgHandlers.forEach(h -> h.handle(message));
               }).exceptionHandler(e -> {
                 log.info("Closed by error", e);
-                restart(5);
+                exceptionHandlers.forEach(h -> h.handle(e));
+                restart(3);
               }).closeHandler(v -> {
                 log.info("Closed");
-                restart(7);
+                closeHandlers.forEach(h -> h.handle(null));
+                restart(1);
               });
 
           sendHeartBeat();
@@ -152,7 +163,8 @@ public class TursoWsClient {
   public void sendHeartBeat() {
     if (webSocket != null) {
       //log.info("Sending ping");
-      webSocket.writeFrame(WebSocketFrame.pingFrame(Buffer.buffer(0x9)));
+      webSocket.writePing(Buffer.buffer(0x9));
+      //webSocket.writeFrame(WebSocketFrame.pingFrame(Buffer.buffer(0x9)));
     }
   }
 

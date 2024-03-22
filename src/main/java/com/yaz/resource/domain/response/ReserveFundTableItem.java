@@ -3,6 +3,7 @@ package com.yaz.resource.domain.response;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yaz.persistence.entities.ReserveFund;
 import com.yaz.resource.ReserveFundResource;
+import java.util.UUID;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
@@ -13,17 +14,20 @@ import lombok.RequiredArgsConstructor;
 @Builder(toBuilder = true)
 public class ReserveFundTableItem {
 
+  private final String key;
   private final ReserveFund item;
   private final boolean outOfBoundsUpdate;
+  private final boolean addAfterEnd;
+  @Builder.Default
+  private final String cardId = "reserve-fund-card-id-" + UUID.randomUUID();
+//  @JsonIgnore
+//  @Getter(lazy = true)
+//  private final String cardId = genCardId();
+//
+//  public String genCardId() {
+//    return "extra-charge-card-id-" + key;
+//  }
 
-  public static ReserveFundTableItem of(ReserveFund item) {
-    return new ReserveFundTableItem(item, false);
-  }
-
-
-  @JsonIgnore
-  @Getter(lazy = true)
-  private final String cardId = genCardId();
   @JsonIgnore
   @Getter(lazy = true)
   private final String cardIdRef = genCardIdRef();
@@ -35,19 +39,14 @@ public class ReserveFundTableItem {
   private final String editUrl = genEditUrl();
 
   private String genEditUrl() {
-    return ReserveFundResource.PATH + "/form/" + getItem().buildingId() + "/" + getItem().id();
-  }
-
-
-  public String genCardId() {
-    return "reserve-fund-card-id-" + getItem().id();
+    return ReserveFundResource.PATH + "/form/" + key;
   }
 
   public String genDeleteUrl() {
-    return ReserveFundResource.DELETE_PATH + getItem().buildingId() + "/" + getItem().id();
+    return ReserveFundResource.DELETE_PATH + key;
   }
 
   public String genCardIdRef() {
-    return "#" + genCardId();
+    return "#" + cardId;
   }
 }

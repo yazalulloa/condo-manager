@@ -10,13 +10,8 @@ import com.yaz.resource.EmailConfigResource;
 import com.yaz.resource.domain.response.EmailConfigDto;
 import com.yaz.resource.domain.response.EmailConfigTableItem;
 import com.yaz.resource.domain.response.EmailConfigTableResponse;
-import com.yaz.service.cache.EmailConfigCache;
-import com.yaz.util.Constants;
 import com.yaz.util.PagingProcessor;
 import com.yaz.util.RxUtil;
-import io.quarkus.cache.CacheInvalidate;
-import io.quarkus.cache.CacheInvalidateAll;
-import io.quarkus.cache.CacheResult;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Observable;
@@ -24,7 +19,6 @@ import io.reactivex.rxjava3.core.Single;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Event;
-import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
@@ -157,7 +151,8 @@ public class EmailConfigService {
   }
 
   public Uni<EmailConfig> check(EmailConfig config) {
-    return update(gmailHelper.check(config));
+    return gmailHelper.check(config)
+        .flatMap(this::update);
   }
 
   public Uni<EmailConfigTableItem> check(EmailConfigTableItem item) {

@@ -200,4 +200,8 @@ public class RxUtil {
   public static <T> Single<T> single(Uni<T> uni) {
     return toMaybe(uni).toSingle();
   }
+
+  public static <T> Completable completable(Uni<T> voidUni) {
+    return toMaybe(voidUni).ignoreElement();
+  }
 }

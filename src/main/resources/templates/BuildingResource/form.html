@@ -32,6 +32,12 @@
 </div>
 {/if}
 
+{#if dto.isEdit}
+
+    <input type="hidden" name="id" value="{dto.id}">
+
+{#else}
+
     <cm-form-input
     class=""
     id="idField"
@@ -49,6 +55,10 @@
 >
 
 </cm-form-input>
+
+{/if}
+
+
 
 
     <cm-form-input

@@ -1,6 +1,7 @@
 package com.yaz.persistence.entities;
 
 import com.yaz.persistence.domain.Currency;
+import com.yaz.persistence.domain.ExpenseType;
 import java.math.BigDecimal;
 import lombok.Builder;
 
@@ -10,12 +11,7 @@ public record Expense(
     BigDecimal amount,
     Currency currency,
     Boolean reserveFund,
-    Type type
+    ExpenseType type
 ) {
 
-  public enum Type {
-    COMMON, UNCOMMON;
-
-    public static final Type[] VALUES = values();
-  }
 }

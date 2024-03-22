@@ -1,9 +1,10 @@
 {@com.yaz.resource.domain.response.ReserveFundTableItem item}
 
-<div class="reserve-funds-grid hover:bg-[#00000014] p-2"
-    id={item.cardId}
+<div id="{item.cardId}"
+     class="reserve-funds-grid hover:bg-[#00000014] p-2"
+
   {#if item.outOfBoundsUpdate}
-      hx-swap-oob="true"
+     hx-swap-oob="true"
   {/if}
   >
 
@@ -13,26 +14,26 @@
 </div>
 
   <div class="flex flex-col gap-1 items-center text-center">
-    <div>
+  <div>
   <span
       class="inline-block whitespace-nowrap rounded-full px-[0.65em] pb-[0.25em] pt-[0.35em] text-center align-baseline font-bold leading-none text-sm
 {item.item.active ? 'bg-success-100 text-success-700' : 'bg-danger-100 text-danger-700'}
 ">
     {item.item.pay}
-      {#if item.item.type.name == 'PERCENTAGE'}
-        %
-      {/if}
-  </span>
+    {#if item.item.type.name == 'PERCENTAGE'}
+      %
+    {/if}
+    </span>
     </div>
 
     <div>
-  <span
-      class="inline-block whitespace-nowrap rounded-full px-[0.65em] pb-[0.25em] pt-[0.35em] text-center align-baseline font-bold leading-none text-sm
+        <span
+        class="inline-block whitespace-nowrap rounded-full px-[0.65em] pb-[0.25em] pt-[0.35em] text-center align-baseline font-bold leading-none text-sm
 {item.item.addToExpenses ? 'bg-success-100 text-success-700' : 'bg-danger-100 text-danger-700'}
 ">
     {item.item.expenseType}
   </span>
-    </div>
+  </div>
 
   </div>
 
@@ -45,6 +46,7 @@
   <div class="block">
     <button class="edit-btn"
             hx-get="{item.editUrl}"
+            hx-headers='{"card-id":"{item.cardId}"}'
             hx-indicator=".htmx-indicator"
             hx-trigger="click"
             hx-swap="none">

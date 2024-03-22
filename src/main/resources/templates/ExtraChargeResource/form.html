@@ -9,6 +9,9 @@
       hx-patch="/api/extra_charges/{dto.id}"
   {#else}
       hx-post="/api/extra_charges/buildings/{dto.buildingId}"
+  {#if dto.clearForm}
+      hx-swap-oob="true"
+  {/if}
   {/if}
       data-te-validation-init
     script="
@@ -110,13 +113,9 @@
     </button>
 
     <button class="btn btn-neutral" type="button"
-            script="
-    on click send clear to <cm-form-input/> in #buildings-extra-charge-form
-    on click send 'clear-value-cm' to <select/> in #buildings-extra-charge-form
-    on click send 'dispose-validation' to #buildings-extra-charge-form
-    on click set #buildings-extra-charge-form@hx-post to '/api/extra_charges/buildings/{dto.buildingId}'
-    on click remove @hx-patch from #buildings-extra-charge-form
-">
+         hx-get="/api/extra_charges/form/new/{dto.buildingId}"
+            hx-swap="none"
+            >
       Limpiar
     </button>
     <img class="htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">
@@ -133,7 +132,4 @@
  {#else}
 {#include ExtraChargeResource/item item=dto.tableItem /}
  {/if}
-
-
-
 {/if}

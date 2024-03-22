@@ -3,6 +3,7 @@ package com.yaz.resource;
 import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.domain.query.BuildingQuery;
 import com.yaz.persistence.entities.Building;
+import com.yaz.persistence.entities.ReserveFund;
 import com.yaz.resource.domain.request.BuildingRequest;
 import com.yaz.resource.domain.response.BuildingCountersDto;
 import com.yaz.resource.domain.response.BuildingEditFormInit;
@@ -10,6 +11,7 @@ import com.yaz.resource.domain.response.BuildingFormDto;
 import com.yaz.resource.domain.response.BuildingReportResponse;
 import com.yaz.resource.domain.response.ExtraChargeFormDto;
 import com.yaz.resource.domain.response.ExtraChargeTableItem;
+import com.yaz.resource.domain.response.ReserveFundFormDto;
 import com.yaz.resource.domain.response.ReserveFundTableItem;
 import com.yaz.service.ApartmentService;
 import com.yaz.service.BuildingService;
@@ -23,7 +25,6 @@ import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
 import io.smallrye.mutiny.Uni;
-import io.vertx.core.json.Json;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.DELETE;
@@ -162,11 +163,17 @@ public class BuildingResource {
                 .build();
           };
 
-          final var list = extraCharges.stream().map(extraCharge -> new ExtraChargeTableItem(extraCharge,
-                  encryptionService.encrypt(Json.encode(extraCharge.keys()))))
+          final var list = extraCharges.stream().map(
+                  extraCharge -> new ExtraChargeTableItem(extraCharge, encryptionService.encryptObj(extraCharge.keys())))
               .toList();
 
-          final var reserveFundTableItems = reserveFunds.stream().map(ReserveFundTableItem::of).toList();
+          final var reserveFundTableItems = reserveFunds.stream().map(reserveFund -> {
+            final var key = encryptionService.encryptObj(reserveFund.keys());
+            return ReserveFundTableItem.builder()
+                .key(key)
+                .item(reserveFund)
+                .build();
+          }).toList();
 
           return BuildingEditFormInit.builder()
               .buildingFormDto(supplier.get())
@@ -175,6 +182,10 @@ public class BuildingResource {
                   .isEdit(false)
                   .buildingId(buildingId)
                   .apartments(apartments)
+                  .build())
+              .reserveFundFormDto(ReserveFundFormDto.builder()
+                  .isEdit(false)
+                  .key(encryptionService.encryptObj(new ReserveFund.Keys(buildingId, null)))
                   .build())
               .reserveFunds(reserveFundTableItems)
               .build();

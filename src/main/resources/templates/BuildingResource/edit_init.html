@@ -1,8 +1,18 @@
 {@com.yaz.resource.domain.response.BuildingEditFormInit res}
 
+{#if res.buildingFormDto.isEdit}
+    <div class="text-center bold underline p-2">
+      {res.buildingFormDto.id}
+    </div>
+{/if}
+
 {#include BuildingResource/form dto=res.buildingFormDto /}
 
-<hr>
+<div class="p-2"></div>
+
+<hr class="p-3 w-3/4 center">
+
+<div class="text-center">Cargos Extra: <span id="extra-charges-form-counter">{res.extraCharges.size}</span></div>
 
 <div class="flex flex-item flex-wrap gap-6 justify-center p-2">
 
@@ -19,11 +29,16 @@
 
 </div>
 
-<hr>
+    <div class="p-2"></div>
+
+<hr class="p-3 w-3/4 center">
+    <div class="text-center">Fondos de Reserva: <span id="reserve-funds-form-counter">{res.reserveFunds.size}</span></div>
 
     <div class="flex flex-item flex-wrap gap-6 justify-center p-2">
 
+
 {#include ReserveFundResource/grid items=res.reserveFunds /}
+      {#include ReserveFundResource/form dto=res.reserveFundFormDto /}
 
 
 </div>

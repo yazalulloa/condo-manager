@@ -2,6 +2,7 @@ package com.yaz.service;
 
 import com.yaz.util.RandomUtil;
 import io.micrometer.core.annotation.Timed;
+import io.vertx.core.json.Json;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
@@ -17,6 +18,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 @Slf4j
 @ApplicationScoped
 public class EncryptionService {
+
   private static final String SEPARATOR = "@";
 
   private final SecretKey secretKey;
@@ -27,6 +29,10 @@ public class EncryptionService {
 
   private Cipher cipher() throws NoSuchPaddingException, NoSuchAlgorithmException {
     return Cipher.getInstance("AES/GCM/NoPadding");
+  }
+
+  public String encryptObj(Object obj) {
+    return encrypt(Json.encode(obj));
   }
 
   @Timed(value = "app.cipher.encryption", description = "Encrypts a string")
@@ -61,5 +67,9 @@ public class EncryptionService {
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
+  }
+
+  public <T> T decryptObj(String json, Class<T> clazz) {
+    return Json.decodeValue(decrypt(json), clazz);
   }
 }

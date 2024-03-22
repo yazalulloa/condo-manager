@@ -38,6 +38,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jboss.resteasy.reactive.Cache;
 import org.jboss.resteasy.reactive.RestPath;
 
 @Slf4j
@@ -69,6 +70,31 @@ public class ExtraChargeResource {
     final var keys = Json.decodeValue(json, Keys.class);
     return service.delete(keys)
         .replaceWith(Response.ok().build());
+  }
+
+  @GET
+  @Cache(maxAge = 10)
+  @Path("/form/new/{buildingId}")
+  @Produces(MediaType.TEXT_HTML)
+  public Uni<Response> newForm(@NotBlank @RestPath String buildingId) {
+
+    return Uni.combine()
+        .all()
+        .unis(buildingService.get(buildingId), apartmentService.aptByBuildings(buildingId))
+        .with((building, apartments) -> {
+          if (building.isEmpty()) {
+            return Response.status(Status.NOT_FOUND).entity("Building Not Found").build();
+          }
+
+          final var formDto = ExtraChargeFormDto.builder()
+              .clearForm(true)
+              .buildingId(buildingId)
+              .apartments(apartments)
+              .build();
+
+          return Response.ok(Templates.form(formDto)).build();
+        });
+
   }
 
   @GET
@@ -184,7 +210,7 @@ public class ExtraChargeResource {
                       .apartments(apartments)
                       .refreshGrid(false)
                       .tableItem(ExtraChargeTableItem.builder()
-                          .id(encryptionService.encrypt(Json.encode(extraCharge.keys())))
+                          .id(encryptionService.encryptObj(extraCharge.keys()))
                           .item(extraCharge)
                           .outOfBoundsUpdate(false)
                           .addAfterEnd(true)
@@ -209,7 +235,7 @@ public class ExtraChargeResource {
 
           return extraCharges.stream()
               .map(extraCharge -> new ExtraChargeTableItem(extraCharge,
-                  encryptionService.encrypt(Json.encode(extraCharge.keys()))))
+                  encryptionService.encryptObj(extraCharge.keys())))
               .toList();
         })
         .map(Templates::grid);

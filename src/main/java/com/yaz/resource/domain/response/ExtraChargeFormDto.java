@@ -22,6 +22,7 @@ import lombok.extern.jackson.Jacksonized;
 public class ExtraChargeFormDto {
 
   private final boolean isEdit;
+  private final boolean clearForm;
   private final String buildingId;
   private final String id;
   private final String description;

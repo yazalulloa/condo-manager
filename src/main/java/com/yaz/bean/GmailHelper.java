@@ -12,6 +12,9 @@ import com.google.api.services.gmail.GmailScopes;
 import com.yaz.persistence.entities.EmailConfig;
 import com.yaz.util.DateUtil;
 import com.yaz.util.FileUtil;
+import io.smallrye.mutiny.Uni;
+import io.smallrye.mutiny.infrastructure.Infrastructure;
+import io.smallrye.mutiny.unchecked.Unchecked;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.io.File;
@@ -87,25 +90,23 @@ public class GmailHelper {
   }
 
 
-  public void testCredential(Credential credential) throws IOException {
-    final var gmail = gmail(credential);
-    final var labels = gmail.users().labels().list("me").execute().getLabels();
+  public Uni<Void> testCredential(Credential credential) {
+    return Uni.createFrom().deferred(() -> {
+      try {
 
-  }
-
-  public void testNoError(Credential credential) {
-    try {
-      logCredential(credential);
-      testCredential(credential);
-    } catch (Exception e) {
-      log.info("Error: ", e);
-    }
-  }
-
-  private void logCredential(Credential credential) {
 //    log.info("credential: expires {} expires milliseconds {} access token {} refresh token {}",
 //        credential.getExpiresInSeconds(), credential.getExpirationTimeMilliseconds(), credential.getAccessToken(),
 //        credential.getRefreshToken());
+
+        final var gmail = gmail(credential);
+        final var labels = gmail.users().labels().list("me").execute().getLabels();
+        return Uni.createFrom().voidItem();
+      } catch (Exception e) {
+
+        return Uni.createFrom().failure(e);
+      }
+    }).runSubscriptionOn(Infrastructure.getDefaultWorkerPool());
+
   }
 
   public Gmail gmail(Credential credential) {
@@ -114,77 +115,85 @@ public class GmailHelper {
         .build();
   }
 
-  public EmailConfig check(EmailConfig emailConfig) {
+  public Uni<EmailConfig> check(EmailConfig emailConfig) {
 
-    try {
-      final var path = Paths.get(DIR, emailConfig.userId(), "StoredCredential");
-      final var file = path.toFile();
-      if (!file.exists()) {
-        clearFlow(emailConfig.userId());
-        log.info("File does not exists, writing  file");
-        Paths.get(DIR, emailConfig.userId()).toFile().mkdirs();
-        Files.write(file.toPath(), emailConfig.file());
-      } else {
-        final var hash = FileUtil.checksumInputStream(file);
-        if (emailConfig.hash() != hash) {
-          log.info("File changed, writing new file");
-          clearFlow(emailConfig.userId());
-          Paths.get(DIR, emailConfig.userId()).toFile().mkdirs();
-          Files.write(file.toPath(), emailConfig.file());
-          final var newHash = FileUtil.checksumInputStream(file);
-          if (newHash != emailConfig.hash()) {
-            log.error("File changed, but hash is different");
+    return Uni.createFrom()
+        .deferred(() -> {
+          try {
+            final var path = Paths.get(DIR, emailConfig.userId(), "StoredCredential");
+            final var file = path.toFile();
+            if (!file.exists()) {
+              clearFlow(emailConfig.userId());
+              log.info("File does not exists, writing  file");
+              Paths.get(DIR, emailConfig.userId()).toFile().mkdirs();
+              Files.write(file.toPath(), emailConfig.file());
+            } else {
+              final var hash = FileUtil.checksumInputStream(file);
+              if (emailConfig.hash() != hash) {
+                log.info("File changed, writing new file");
+                clearFlow(emailConfig.userId());
+                Paths.get(DIR, emailConfig.userId()).toFile().mkdirs();
+                Files.write(file.toPath(), emailConfig.file());
+                final var newHash = FileUtil.checksumInputStream(file);
+                if (newHash != emailConfig.hash()) {
+                  log.error("File changed, but hash is different");
+                }
+              }
+
+            }
+
+            final var flow = flow(emailConfig.userId());
+            final var credential = flow.loadCredential(emailConfig.userId());
+
+            return testCredential(credential)
+                .map(Unchecked.function(v -> {
+                  final var hash = FileUtil.checksumInputStream(file);
+                  final var fileSize = FileUtil.fileSize(file);
+                  final var bytes = Files.readAllBytes(path);
+
+                  if (emailConfig.hash() != hash) {
+
+                    return emailConfig.toBuilder()
+                        .file(bytes)
+                        .fileSize(fileSize)
+                        .hash(hash)
+                        .active(true)
+                        .isAvailable(true)
+                        .hasRefreshToken(credential.getRefreshToken() != null)
+                        .expiresIn(credential.getExpirationTimeMilliseconds())
+                        .updatedAt(DateUtil.utcLocalDateTime())
+                        .lastCheckAt(DateUtil.utcLocalDateTime())
+                        .stacktrace(null)
+                        .build();
+                  }
+
+                  return emailConfig.toBuilder()
+                      .lastCheckAt(DateUtil.utcLocalDateTime())
+                      .stacktrace(null)
+                      .isAvailable(true)
+                      .build();
+                }));
+
+
+          } catch (Exception e) {
+            if (e instanceof TokenResponseException) {
+              log.debug("Error gmail check: {}", e.getMessage());
+            } else {
+              log.error("Error gmail check: ", e);
+            }
+            final var stacktrace = ExceptionUtils.getStackTrace(e);
+
+            final var config = emailConfig.toBuilder()
+                .isAvailable(false)
+                .updatedAt(DateUtil.utcLocalDateTime())
+                .lastCheckAt(DateUtil.utcLocalDateTime())
+                .stacktrace(e.getMessage())
+                .build();
+
+            return Uni.createFrom().item(config);
           }
-        }
+        }).runSubscriptionOn(Infrastructure.getDefaultWorkerPool());
 
-      }
 
-      final var flow = flow(emailConfig.userId());
-      final var credential = flow.loadCredential(emailConfig.userId());
-      logCredential(credential);
-
-      testCredential(credential);
-
-      final var hash = FileUtil.checksumInputStream(file);
-      final var fileSize = FileUtil.fileSize(file);
-      final var bytes = Files.readAllBytes(path);
-
-      if (emailConfig.hash() != hash) {
-
-        return emailConfig.toBuilder()
-            .file(bytes)
-            .fileSize(fileSize)
-            .hash(hash)
-            .active(true)
-            .isAvailable(true)
-            .hasRefreshToken(credential.getRefreshToken() != null)
-            .expiresIn(credential.getExpirationTimeMilliseconds())
-            .updatedAt(DateUtil.utcLocalDateTime())
-            .lastCheckAt(DateUtil.utcLocalDateTime())
-            .stacktrace(null)
-            .build();
-      }
-
-      return emailConfig.toBuilder()
-          .lastCheckAt(DateUtil.utcLocalDateTime())
-          .stacktrace(null)
-          .isAvailable(true)
-          .build();
-
-    } catch (Exception e) {
-      if (e instanceof TokenResponseException) {
-        log.debug("Error gmail check: {}", e.getMessage());
-      } else {
-        log.error("Error gmail check: ", e);
-      }
-      final var stacktrace = ExceptionUtils.getStackTrace(e);
-
-      return emailConfig.toBuilder()
-          .isAvailable(false)
-          .updatedAt(DateUtil.utcLocalDateTime())
-          .lastCheckAt(DateUtil.utcLocalDateTime())
-          .stacktrace(e.getMessage())
-          .build();
-    }
   }
 }

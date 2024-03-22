@@ -1,5 +1,7 @@
 package com.yaz.persistence.entities;
 
+import com.yaz.persistence.domain.ExpenseType;
+import com.yaz.persistence.domain.ReserveFundType;
 import java.math.BigDecimal;
 import lombok.Builder;
 
@@ -12,15 +14,17 @@ public record ReserveFund(
     BigDecimal expense,
     BigDecimal pay,
     Boolean active,
-    Type type,
-    Expense.Type expenseType,
+    ReserveFundType type,
+    ExpenseType expenseType,
     Boolean addToExpenses
 ) {
 
-  public enum Type {
-    FIXED_PAY, PERCENTAGE;
+  public Keys keys() {
+    return new Keys(buildingId, id);
+  }
 
+  public record Keys(String buildingId,
+                     String id) {
 
-    public static final Type[] VALUES = values();
   }
 }

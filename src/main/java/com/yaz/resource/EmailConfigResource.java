@@ -167,28 +167,30 @@ public class EmailConfigResource {
         final var userId = getUserId();
         //log.info("token response: {}", response);
         final var credential = flow.createAndStoreCredential(response, userId);
-        gmailHelper.testNoError(credential);
-        final var fileName = GmailHelper.DIR + "/" + userId + "/StoredCredential";
-        final var hash = FileUtil.checksumInputStream(new File(fileName));
-        final var fileSize = FileUtil.fileSize(new File(fileName));
-        final var file = Files.readAllBytes(Paths.get(fileName));
 
-        final var emailConfig = EmailConfig.builder()
-            .userId(userId)
-            .file(file)
-            .fileSize(fileSize)
-            .hash(hash)
-            .active(true)
-            .isAvailable(true)
-            .hasRefreshToken(credential.getRefreshToken() != null)
-            .expiresIn(credential.getExpirationTimeMilliseconds())
-            .createdAt(DateUtil.utcLocalDateTime())
-            .build();
+        return RxUtil.completable(gmailHelper.testCredential(credential))
+            .andThen(Single.fromCallable(() -> {
+              final var fileName = GmailHelper.DIR + "/" + userId + "/StoredCredential";
+              final var hash = FileUtil.checksumInputStream(new File(fileName));
+              final var fileSize = FileUtil.fileSize(new File(fileName));
+              final var file = Files.readAllBytes(Paths.get(fileName));
 
-        final var responseUni = service.create(emailConfig)
-            .replaceWith(Response.temporaryRedirect(new URI("/")).build());
+              final var emailConfig = EmailConfig.builder()
+                  .userId(userId)
+                  .file(file)
+                  .fileSize(fileSize)
+                  .hash(hash)
+                  .active(true)
+                  .isAvailable(true)
+                  .hasRefreshToken(credential.getRefreshToken() != null)
+                  .expiresIn(credential.getExpirationTimeMilliseconds())
+                  .createdAt(DateUtil.utcLocalDateTime())
+                  .build();
 
-        return RxUtil.single(responseUni);
+              return service.create(emailConfig)
+                  .replaceWith(Response.temporaryRedirect(new URI("/")).build());
+            }))
+            .flatMap(RxUtil::single);
       }
     });
 

@@ -17,6 +17,7 @@ public class BuildingEditFormInit {
 
   private final BuildingFormDto buildingFormDto;
   private final ExtraChargeFormDto extraChargeFormDto;
+  private final ReserveFundFormDto reserveFundFormDto;
   private final List<ExtraChargeTableItem> extraCharges;
   private final List<ReserveFundTableItem> reserveFunds;
 }

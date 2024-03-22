@@ -1,9 +1,9 @@
 package com.yaz.service;
 
 
-import com.yaz.persistence.entities.Expense;
+import com.yaz.persistence.domain.ExpenseType;
 import com.yaz.persistence.entities.ReserveFund;
-import com.yaz.persistence.entities.ReserveFund.Type;
+import com.yaz.persistence.domain.ReserveFundType;
 import com.yaz.util.DateUtil;
 import com.yaz.util.RandomUtil;
 import io.quarkus.test.junit.QuarkusTest;
@@ -29,8 +29,8 @@ class ReserveFundServiceTest {
             .expense(RandomUtil.randomBigDecimal(4, 2))
             .pay(RandomUtil.randomBigDecimal(4, 2))
             .active(RandomUtil.bool())
-            .type(RandomUtil.bool() ? Type.FIXED_PAY : Type.PERCENTAGE)
-            .expenseType(RandomUtil.bool() ? Expense.Type.COMMON : Expense.Type.UNCOMMON)
+            .type(RandomUtil.bool() ? ReserveFundType.FIXED_PAY : ReserveFundType.PERCENTAGE)
+            .expenseType(RandomUtil.bool() ? ExpenseType.COMMON : ExpenseType.UNCOMMON)
             .addToExpenses(RandomUtil.bool())
             .build())
         .limit(RandomUtil.randomInt(3, 20));
