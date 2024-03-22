@@ -3,7 +3,7 @@ module.exports = {
   // darkMode: 'class',
   darkMode: 'media',
   content: [
-    "./src/main/resources/**/*.{html,js}",
+    "./src/main/resources/**/*.{html,js,ts}",
     "./node_modules/tw-elements/dist/js/**/*.js",
     "../node_modules/tw-elements/dist/js/tw-elements.umd.min.js"
   ],

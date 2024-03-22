@@ -5,7 +5,9 @@ import com.yaz.event.domain.EmailConfigDeleted;
 import com.yaz.event.domain.TelegramWebhookRequest;
 import com.yaz.service.BuildingService;
 import com.yaz.service.ExtraChargeService;
+import com.yaz.service.ReserveFundService;
 import com.yaz.service.TelegramCommandResolver;
+import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.ObservesAsync;
 import jakarta.inject.Inject;
@@ -20,6 +22,7 @@ public class EventConsumer {
 
   private final BuildingService buildingService;
   private final ExtraChargeService extraChargeService;
+  private final ReserveFundService reserveFundService;
   private final TelegramCommandResolver telegramCommandResolver;
 
   public void emailConfigDeleted(@ObservesAsync EmailConfigDeleted task) {
@@ -39,7 +42,11 @@ public class EventConsumer {
   public void buildingDeleted(@ObservesAsync BuildingDeleted task) {
     log.info("buildingDeleted: {}", task);
 
-    extraChargeService.deleteByBuilding(task.id())
+    Uni.combine()
+        .all()
+        .unis(reserveFundService.deleteByBuilding(task.id()),
+            extraChargeService.deleteByBuilding(task.id()))
+        .with(Integer::sum)
         .subscribe()
         .with(
             i -> {
@@ -56,7 +63,8 @@ public class EventConsumer {
       telegramCommandResolver.resolve(task)
           .subscribe()
           .with(
-              i -> {},
+              i -> {
+              },
               e -> log.error("ERROR telegramMessageReceived: {}", task, e));
     } catch (Exception e) {
       log.error("telegramMessageReceived: {}", task, e);

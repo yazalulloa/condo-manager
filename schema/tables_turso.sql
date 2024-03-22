@@ -234,3 +234,31 @@ CREATE TABLE IF NOT EXISTS notifications_events
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (user_id, event)
 );
+
+CREATE TABLE IF NOT EXISTS reserve_funds
+(
+    building_id     CHAR(20)                                              NOT NULL,
+    id              VARCHAR(50)                                           NOT NULL,
+    name            VARCHAR(100)                                          NOT NULL,
+    fund            DECIMAL(16, 2)                                        NOT NULL,
+    expense         DECIMAL(16, 2),
+    pay             DECIMAL(16, 2),
+    active          BOOL                                                  NOT NULL,
+    type            TEXT CHECK ( type IN ('FIXED_PAY', 'PERCENTAGE') )    NOT NULL,
+    expense_type    TEXT CHECK ( expense_type IN ('COMMON', 'UNCOMMON') ) NOT NULL,
+    add_to_expenses BOOL                                                  NOT NULL,
+    created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at      DATETIME,
+    PRIMARY KEY (building_id, id)
+);
+
+CREATE TRIGGER IF NOT EXISTS reserve_funds_updated_at_trigger
+    AFTER UPDATE
+    ON reserve_funds
+    FOR EACH ROW
+BEGIN
+    UPDATE reserve_funds
+    SET updated_at = CURRENT_TIMESTAMP
+    WHERE building_id = OLD.building_id
+      AND id = OLD.id;
+END;

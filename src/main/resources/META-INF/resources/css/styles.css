@@ -303,6 +303,22 @@
   width: 100%;
 }
 
+.reserve-funds-grid {
+  display: grid;
+  border-bottom: 1px solid black;
+  grid-template-columns: 2fr 2fr 2fr 2fr;
+  grid-template-rows: auto;
+  grid-gap: 4px;
+  width: 100%;
+  text-align: center;
+}
+
+.reserve-funds-grid > * {
+  text-align: center;
+  margin: auto;
+  width: 100%;
+}
+
 .std-form-control {
   display: block;
   width: 100%;

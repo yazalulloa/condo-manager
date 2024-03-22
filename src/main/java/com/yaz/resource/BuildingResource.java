@@ -10,11 +10,13 @@ import com.yaz.resource.domain.response.BuildingFormDto;
 import com.yaz.resource.domain.response.BuildingReportResponse;
 import com.yaz.resource.domain.response.ExtraChargeFormDto;
 import com.yaz.resource.domain.response.ExtraChargeTableItem;
+import com.yaz.resource.domain.response.ReserveFundTableItem;
 import com.yaz.service.ApartmentService;
 import com.yaz.service.BuildingService;
 import com.yaz.service.EmailConfigService;
 import com.yaz.service.EncryptionService;
 import com.yaz.service.ExtraChargeService;
+import com.yaz.service.ReserveFundService;
 import com.yaz.util.DecimalUtil;
 import com.yaz.util.StringUtil;
 import io.quarkus.qute.CheckedTemplate;
@@ -56,6 +58,8 @@ public class BuildingResource {
   private final ApartmentService apartmentService;
   private final ExtraChargeService extraChargeService;
   private final EncryptionService encryptionService;
+  private final ReserveFundService reserveFundService;
+
 
   @CheckedTemplate
   public static class Templates {
@@ -130,8 +134,8 @@ public class BuildingResource {
 
     return Uni.combine().all()
         .unis(service.get(buildingId), emailConfigService.displayList(), apartmentService.aptByBuildings(buildingId),
-            extraChargeService.byBuilding(buildingId))
-        .with((optional, emailConfigs, apartments, extraCharges) -> {
+            extraChargeService.byBuilding(buildingId), reserveFundService.listByBuilding(buildingId))
+        .with((optional, emailConfigs, apartments, extraCharges, reserveFunds) -> {
 
           Supplier<BuildingFormDto> supplier = () -> {
             if (optional.isEmpty()) {
@@ -162,6 +166,8 @@ public class BuildingResource {
                   encryptionService.encrypt(Json.encode(extraCharge.keys()))))
               .toList();
 
+          final var reserveFundTableItems = reserveFunds.stream().map(ReserveFundTableItem::of).toList();
+
           return BuildingEditFormInit.builder()
               .buildingFormDto(supplier.get())
               .extraCharges(list)
@@ -170,6 +176,7 @@ public class BuildingResource {
                   .buildingId(buildingId)
                   .apartments(apartments)
                   .build())
+              .reserveFunds(reserveFundTableItems)
               .build();
         })
         .map(Templates::edit_init);

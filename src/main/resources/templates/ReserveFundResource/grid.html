@@ -1,0 +1,15 @@
+{@java.util.List<com.yaz.resource.domain.response.ReserveFundTableItem> items}
+
+<div id="reserve-fund-table-item-grid" class="min-w-3/5">
+  <div class="reserve-funds-grid p-2 font-bold">
+    <span>Fondo</span>
+    <span>Monto</span>
+    <span>Gasto</span>
+    <span>Acciones</span>
+  </div>
+
+  {#for item in items}
+
+  {#include ReserveFundResource/item item=item /}
+  {/for}
+  </div>

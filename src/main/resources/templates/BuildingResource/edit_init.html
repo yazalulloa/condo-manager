@@ -2,6 +2,8 @@
 
 {#include BuildingResource/form dto=res.buildingFormDto /}
 
+<hr>
+
 <div class="flex flex-item flex-wrap gap-6 justify-center p-2">
 
 
@@ -14,5 +16,14 @@
     {#include ExtraChargeResource/grid extraCharges=res.extraCharges /}
   </div>
   {#include ExtraChargeResource/form dto=res.extraChargeFormDto /}
+
+</div>
+
+<hr>
+
+    <div class="flex flex-item flex-wrap gap-6 justify-center p-2">
+
+{#include ReserveFundResource/grid items=res.reserveFunds /}
+
 
 </div>

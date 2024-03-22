@@ -108,6 +108,10 @@ public class RandomUtil {
     return getInstance().nextInt(UNSIGNED_INT_10_MIN, Integer.MAX_VALUE);
   }
 
+  public static boolean bool() {
+    return getInstance().nextBoolean();
+  }
+
   public enum Type {
     ALPHANUMERIC, HEXADECIMAL, NUMERIC, CHARS
   }
