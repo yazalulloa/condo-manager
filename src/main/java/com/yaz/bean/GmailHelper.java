@@ -172,7 +172,24 @@ public class GmailHelper {
                       .stacktrace(null)
                       .isAvailable(true)
                       .build();
-                }));
+                }))
+                .onFailure()
+                .recoverWithItem(e -> {
+                  if (e instanceof TokenResponseException) {
+                    log.debug("Error gmail check: {}", e.getMessage());
+                  } else {
+                    log.error("Error gmail check: ", e);
+                  }
+                  final var stacktrace = ExceptionUtils.getStackTrace(e);
+
+                 return emailConfig.toBuilder()
+                      .isAvailable(false)
+                      .updatedAt(DateUtil.utcLocalDateTime())
+                      .lastCheckAt(DateUtil.utcLocalDateTime())
+                      .stacktrace(e.getMessage())
+                      .build();
+
+                });
 
 
           } catch (Exception e) {
