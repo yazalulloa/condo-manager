@@ -25,5 +25,10 @@ public interface EmailConfigRepository {
 
   Uni<Optional<EmailConfigTableItem>> readWithUser(String id);
 
+  Uni<Optional<EmailConfig>> read(String userId);
   Uni<List<EmailConfigDto>> displayList();
+
+  Uni<Optional<byte[]>>getFile(String userId);
+
+  Uni<Integer> updateLastCheck(String userId, boolean hasRefreshToken, Long expiresIn);
 }

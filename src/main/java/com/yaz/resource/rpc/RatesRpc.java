@@ -24,6 +24,7 @@ import org.jboss.resteasy.reactive.RestQuery;
 public class RatesRpc {
 
   private final RateService service;
+  private final VertxFileSystemExample vertxFileSystemExample;
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
@@ -45,6 +46,13 @@ public class RatesRpc {
               .results(results)
               .build();
         });
+  }
+
+  @GET
+  @Path("/data")
+  @Produces(MediaType.TEXT_PLAIN)
+  public String data() {
+    return vertxFileSystemExample.data();
   }
 
   @Data

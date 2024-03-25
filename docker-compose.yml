@@ -1,4 +1,3 @@
-version: '3'
 services:
   cmy-vx:
     container_name: condo-manager

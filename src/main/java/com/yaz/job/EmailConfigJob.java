@@ -1,6 +1,7 @@
 package com.yaz.job;
 
 import com.yaz.service.EmailConfigService;
+import com.yaz.service.GmailChecker;
 import io.quarkus.scheduler.Scheduled;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -12,7 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class EmailConfigJob {
 
-  private final EmailConfigService service;
+  private final GmailChecker gmailChecker;
 
   @Scheduled(delay = 1, every = "30M")
   public void runAsStart() {
@@ -21,7 +22,7 @@ public class EmailConfigJob {
 
   private void checkAll() {
 
-    service.checkAll()
+    gmailChecker.checkAll()
         .subscribe(() -> {
         }, throwable -> log.error("ERROR", throwable));
   }

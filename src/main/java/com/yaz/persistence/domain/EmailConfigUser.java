@@ -10,8 +10,9 @@ public record EmailConfigUser(
 
 
   public boolean hasExpired() {
-    return emailConfig.expiresIn() < System.currentTimeMillis();
+    return emailConfig.expiresIn() == null || emailConfig.expiresIn() < System.currentTimeMillis();
   }
+
   public boolean shouldGetNewOne() {
 
     return hasExpired() && !emailConfig.hasRefreshToken();

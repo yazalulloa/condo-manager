@@ -150,34 +150,34 @@ public class EmailConfigService {
         });
   }
 
-  public Uni<EmailConfig> check(EmailConfig config) {
-    return gmailHelper.check(config)
-        .flatMap(this::update);
-  }
+//  public Uni<EmailConfig> check(EmailConfig config) {
+//    return gmailHelper.check(config)
+//        .flatMap(this::update);
+//  }
 
-  public Uni<EmailConfigTableItem> check(EmailConfigTableItem item) {
-    if (item.getItem().shouldGetNewOne()) {
-      return Uni.createFrom().item(item);
-    }
+//  public Uni<EmailConfigTableItem> check(EmailConfigTableItem item) {
+//    if (item.getItem().shouldGetNewOne()) {
+//      return Uni.createFrom().item(item);
+//    }
+//
+//    return check(item.getItem().emailConfig())
+//        .map(emailConfig -> emailConfig.toBuilder()
+//            .file(null)
+//            .build())
+//        .map(emailConfig -> EmailConfigTableItem.ofItem(new EmailConfigUser(item.getItem().user(), emailConfig)));
+//  }
 
-    return check(item.getItem().emailConfig())
-        .map(emailConfig -> emailConfig.toBuilder()
-            .file(null)
-            .build())
-        .map(emailConfig -> EmailConfigTableItem.ofItem(new EmailConfigUser(item.getItem().user(), emailConfig)));
-  }
 
-
-  public Maybe<EmailConfigTableItem> loadItem(String id) {
-    return RxUtil.single(readItem(id))
-        .flatMapMaybe(Maybe::fromOptional)
-        .map(this::check)
-        .flatMapSingle(RxUtil::single)
-        .switchIfEmpty(Maybe.defer(() -> {
-          gmailHelper.clearFlow(id);
-          return Maybe.empty();
-        }));
-  }
+//  public Maybe<EmailConfigTableItem> loadItem(String id) {
+//    return RxUtil.single(readItem(id))
+//        .flatMapMaybe(Maybe::fromOptional)
+//        .map(this::check)
+//        .flatMapSingle(RxUtil::single)
+//        .switchIfEmpty(Maybe.defer(() -> {
+//          gmailHelper.clearFlow(id);
+//          return Maybe.empty();
+//        }));
+//  }
 
   public PagingProcessor<List<EmailConfigUser>> pagingProcessor(int pageSize) {
     return new ListServicePagingProcessorImpl<>(new ListService<>() {
@@ -199,29 +199,31 @@ public class EmailConfigService {
     }, EmailConfigQuery.builder().limit(pageSize).build());
   }
 
-  public Completable checkAll() {
-    final var ids = new HashSet<String>();
-    return RxUtil.paging(pagingProcessor(1), list -> {
-      return Observable.fromIterable(list)
-          .flatMapCompletable(emailConfigUser -> {
-            ids.add(emailConfigUser.emailConfig().userId());
 
-            if (emailConfigUser.shouldGetNewOne()) {
-              return Completable.complete();
-            }
 
-            final var emailConfig = emailConfigUser.emailConfig();
-            return RxUtil.single(check(emailConfig))
-                .doOnError(throwable -> log.error("ERROR with config {}", emailConfig.userId(), throwable))
-                .ignoreElement()
-                .onErrorComplete();
-          });
-    }).doOnComplete(() -> {
-
-      log.info("CHECK_ALL_DONE {}", ids.size());
-      deleteNotFound(ids);
-    });
-  }
+//  public Completable checkAll() {
+//    final var ids = new HashSet<String>();
+//    return RxUtil.paging(pagingProcessor(1), list -> {
+//      return Observable.fromIterable(list)
+//          .flatMapCompletable(emailConfigUser -> {
+//            ids.add(emailConfigUser.emailConfig().userId());
+//
+//            if (emailConfigUser.shouldGetNewOne()) {
+//              return Completable.complete();
+//            }
+//
+//            final var emailConfig = emailConfigUser.emailConfig();
+//            return RxUtil.single(check(emailConfig))
+//                .doOnError(throwable -> log.error("ERROR with config {}", emailConfig.userId(), throwable))
+//                .ignoreElement()
+//                .onErrorComplete();
+//          });
+//    }).doOnComplete(() -> {
+//
+//      log.info("CHECK_ALL_DONE {}", ids.size());
+//      deleteNotFound(ids);
+//    });
+//  }
 
   private void deleteNotFound(Collection<String> list) {
 
@@ -248,5 +250,16 @@ public class EmailConfigService {
   //@CacheResult(cacheName = EmailConfigCache.DIPLAY, lockTimeout = Constants.CACHE_TIMEOUT)
   public Uni<List<EmailConfigDto>> displayList() {
     return repository().displayList();
+  }
+
+  public Single<byte[]> getFile(String userId) {
+    return RxUtil.toMaybe(repository().getFile(userId))
+        .flatMap(Maybe::fromOptional)
+        .toSingle();
+  }
+
+  public Completable updateLastCheck(String userId, boolean hasRefreshToken, Long expiresIn) {
+    return RxUtil.completable(repository().updateLastCheck(userId, hasRefreshToken, expiresIn));
+
   }
 }

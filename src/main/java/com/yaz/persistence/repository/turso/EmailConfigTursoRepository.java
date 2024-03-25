@@ -11,9 +11,9 @@ import com.yaz.persistence.repository.turso.client.ws.request.Value;
 import com.yaz.persistence.repository.turso.client.ws.response.ExecuteResp.Row;
 import com.yaz.resource.domain.response.EmailConfigDto;
 import com.yaz.resource.domain.response.EmailConfigTableItem;
+import com.yaz.util.DateUtil;
 import com.yaz.util.SqlUtil;
 import com.yaz.util.StringUtil;
-import io.quarkus.arc.lookup.LookupIfProperty;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -37,8 +37,15 @@ public class EmailConfigTursoRepository implements EmailConfigRepository {
       INSERT INTO %s (user_id, file, file_size, hash, active, is_available, has_refresh_token, expires_in) VALUES (%s);
       """.formatted(COLLECTION, SqlUtil.params(8));
 
-  private static final String SELECT_FULL = """
-      SELECT email_configs.*, users.provider_id, users.provider, users.email, users.username, users.name, users.picture
+  private static final String COMMON_FIELDS = """
+      email_configs.user_id, email_configs.file_size, email_configs.hash, email_configs.active,
+      email_configs.is_available, email_configs.has_refresh_token, email_configs.expires_in, email_configs.created_at,
+      email_configs.updated_at, email_configs.last_check_at, email_configs.stacktrace
+      """;
+
+  private static final String SELECT_WITH_USER = """
+      SELECT %s,
+      users.provider_id, users.provider, users.email, users.username, users.name, users.picture
            FROM email_configs
            LEFT JOIN users ON email_configs.user_id = users.id
             %s
@@ -46,7 +53,7 @@ public class EmailConfigTursoRepository implements EmailConfigRepository {
       ORDER BY email_configs.user_id ASC LIMIT ?;
       """;
   private static final String READ_WITH_USER = """
-      SELECT email_configs.*, users.provider_id, users.provider, users.email, users.username, users.name, users.picture
+      SELECT %s, users.provider_id, users.provider, users.email, users.username, users.name, users.picture
          FROM email_configs
          INNER JOIN users ON email_configs.user_id = users.id
          WHERE email_configs.user_id = ?;
@@ -64,6 +71,7 @@ public class EmailConfigTursoRepository implements EmailConfigRepository {
            WHERE email_configs.is_available = true AND email_configs.active = true
       ORDER BY users.email DESC;
       """;
+
 
   private final TursoWsService tursoWsService;
 
@@ -85,6 +93,7 @@ public class EmailConfigTursoRepository implements EmailConfigRepository {
   }
 
 
+  @Override
   public Uni<Optional<EmailConfig>> read(String id) {
     return tursoWsService.selectOne(Stmt.stmt(READ, Value.text(id)), this::from);
   }
@@ -139,10 +148,10 @@ public class EmailConfigTursoRepository implements EmailConfigRepository {
     final var lastId = StringUtil.trimFilter(query.lastId());
     if (lastId == null) {
 
-      return Stmt.stmt(SELECT_FULL.formatted(""), Value.number(query.limit()));
+      return Stmt.stmt(SELECT_WITH_USER.formatted(COMMON_FIELDS,""), Value.number(query.limit()));
     }
 
-    final var sql = SELECT_FULL.formatted("WHERE email_configs.user_id > ?");
+    final var sql = SELECT_WITH_USER.formatted(COMMON_FIELDS, "WHERE email_configs.user_id > ?");
 
     return Stmt.stmt(sql, Value.text(lastId), Value.number(query.limit()));
 
@@ -173,13 +182,35 @@ public class EmailConfigTursoRepository implements EmailConfigRepository {
   @Override
   public Uni<Optional<EmailConfigTableItem>> readWithUser(String id) {
 
-    return tursoWsService.selectOne(Stmt.stmt(READ_WITH_USER, Value.text(id)), this::fromWithUser)
+    return tursoWsService.selectOne(Stmt.stmt(READ_WITH_USER.formatted(COMMON_FIELDS), Value.text(id)), this::fromWithUser)
         .map(opt -> opt.map(EmailConfigTableItem::ofItem));
   }
+
 
   @Override
   public Uni<List<EmailConfigDto>> displayList() {
     return tursoWsService.selectQuery(SELECT_DISPLAY, this::fromDisplay);
+  }
+
+  @Override
+  public Uni<Optional<byte[]>> getFile(String userId) {
+    return tursoWsService.selectOne(Stmt.stmt(READ, Value.text(userId)), row -> row.getBlob("file"));
+  }
+
+  @Override
+  public Uni<Integer> updateLastCheck(String userId, boolean hasRefreshToken, Long expiresIn) {
+
+    final var stmt = Stmt.stmt("""
+            UPDATE %s
+            SET has_refresh_token = ?, expires_in = ?, last_check_at = ?, is_available = true, stacktrace = null
+            WHERE user_id = ?;
+            """.formatted(COLLECTION),
+        Value.bool(hasRefreshToken), Value.number(expiresIn), Value.text(DateUtil.utcLocalDateTime()),
+        Value.text(userId)
+    );
+
+    return tursoWsService.executeQuery(stmt)
+        .map(executeResp -> executeResp.result().rowCount());
   }
 
   private EmailConfigDto fromDisplay(Row row) {

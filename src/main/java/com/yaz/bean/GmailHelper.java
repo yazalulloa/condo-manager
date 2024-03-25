@@ -41,6 +41,7 @@ public class GmailHelper {
 
   private static final Map<String, AuthorizationCodeFlow> FLOW_MAP = new ConcurrentHashMap<>();
 
+
   private final String googleClientId;
   private final String googleClientSecret;
   private final String appName;
@@ -65,10 +66,17 @@ public class GmailHelper {
         .build();
   }
 
+
   public boolean clearFlow(String userId) {
+    return clearFlow(userId, true);
+  }
+
+  public boolean clearFlow(String userId, boolean deleteDir) {
     final var path = DIR + "/" + userId;
     try {
-      FileUtils.deleteDirectory(new File(path));
+      if (deleteDir) {
+        FileUtils.deleteDirectory(new File(path));
+      }
       FLOW_MAP.remove(userId);
       return true;
     } catch (IOException e) {
@@ -115,7 +123,11 @@ public class GmailHelper {
         .build();
   }
 
-  public Uni<EmailConfig> check(EmailConfig emailConfig) {
+  public Credential credential(String userId) throws IOException {
+    return flow(userId).loadCredential(userId);
+  }
+
+  /*public Uni<EmailConfig> check(EmailConfig emailConfig) {
 
     return Uni.createFrom()
         .deferred(() -> {
@@ -142,8 +154,7 @@ public class GmailHelper {
 
             }
 
-            final var flow = flow(emailConfig.userId());
-            final var credential = flow.loadCredential(emailConfig.userId());
+            final var credential = credential(emailConfig.userId());
 
             return testCredential(credential)
                 .map(Unchecked.function(v -> {
@@ -182,7 +193,7 @@ public class GmailHelper {
                   }
                   final var stacktrace = ExceptionUtils.getStackTrace(e);
 
-                 return emailConfig.toBuilder()
+                  return emailConfig.toBuilder()
                       .isAvailable(false)
                       .updatedAt(DateUtil.utcLocalDateTime())
                       .lastCheckAt(DateUtil.utcLocalDateTime())
@@ -212,5 +223,5 @@ public class GmailHelper {
         }).runSubscriptionOn(Infrastructure.getDefaultWorkerPool());
 
 
-  }
+  }*/
 }

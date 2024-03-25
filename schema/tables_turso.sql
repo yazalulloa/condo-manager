@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS email_configs
     hash              BIGINT      NOT NULL,
     active            BOOL        NOT NULL,
     is_available      BOOL        NOT NULL,
-    expires_in        BIGINT      NOT NULL,
+    expires_in        BIGINT,
     has_refresh_token BOOL        NOT NULL,
     created_at        DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at        DATETIME,

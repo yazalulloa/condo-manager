@@ -26,7 +26,7 @@ public class EmailConfig {
   private final boolean active;
   private final boolean isAvailable;
   private final boolean hasRefreshToken;
-  private final long expiresIn;
+  private final Long expiresIn;
   private final LocalDateTime createdAt;
   private final LocalDateTime updatedAt;
   private final LocalDateTime lastCheckAt;

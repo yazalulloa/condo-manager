@@ -6,6 +6,7 @@ import com.yaz.bean.qualifier.NonNullObjectMapper;
 import com.yaz.util.JacksonUtil;
 import io.quarkus.arc.All;
 import io.quarkus.jackson.ObjectMapperCustomizer;
+import io.vertx.rxjava3.core.Vertx;
 import jakarta.inject.Singleton;
 import jakarta.ws.rs.Produces;
 import java.util.List;
@@ -27,6 +28,11 @@ public class CustomObjectMapper {
 
     return mapper;
   }
+//  @Singleton
+//  @Produces
+//  Vertx rxVertx(io.vertx.mutiny.core.Vertx vertx) {
+//    return Vertx.newInstance(vertx.getDelegate());
+//  }
 
 //  @Singleton
 //  @Produces

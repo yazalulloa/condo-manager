@@ -19,10 +19,6 @@ class EmailConfigServiceTest {
   EmailConfigService service;
 
 
-  @Test
-  void checkAll() {
-    service.checkAll().blockingAwait();
-  }
 
   @Test
   void sizecheck() {

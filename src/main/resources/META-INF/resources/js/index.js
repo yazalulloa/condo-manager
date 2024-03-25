@@ -10,8 +10,11 @@ import {
   Validation,
 } from "tw-elements";
 
+
+
 import './loader.js';
 import './sse.js';
+import './components.js';
 
 import _hyperscript from 'hyperscript.org';
 import './elements.js';

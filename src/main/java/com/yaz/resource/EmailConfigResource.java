@@ -8,6 +8,7 @@ import com.yaz.persistence.entities.EmailConfig;
 import com.yaz.resource.domain.response.EmailConfigTableItem;
 import com.yaz.resource.domain.response.EmailConfigTableResponse;
 import com.yaz.service.EmailConfigService;
+import com.yaz.service.GmailChecker;
 import com.yaz.util.DateUtil;
 import com.yaz.util.FileUtil;
 import com.yaz.util.MutinyUtil;
@@ -17,6 +18,7 @@ import com.yaz.util.StringUtil;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.identity.SecurityIdentity;
+import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.http.HttpServerRequest;
@@ -52,6 +54,7 @@ public class EmailConfigResource {
 
   private final EmailConfigService service;
   private final GmailHelper gmailHelper;
+  private final GmailChecker gmailChecker;
 
   @Inject
   SecurityIdentity identity;
@@ -119,7 +122,7 @@ public class EmailConfigResource {
   public Uni<?> redirect(HttpServerRequest request) throws URISyntaxException, IOException {
 
     final var userId = getUserId();
-    final var single = service.loadItem(userId)
+    final var single = loadItem(userId)
         .map(item -> {
 
           if (item.getItem().shouldGetNewOne() || item.getItem().emailConfig().stacktrace() != null) {
@@ -231,12 +234,31 @@ public class EmailConfigResource {
   @Produces(MediaType.TEXT_HTML)
   public Uni<TemplateInstance> check(@RestPath String id) {
 
-    final var single = service.loadItem(id)
+    final var single = loadItem(id)
         .map(Templates::item)
         .switchIfEmpty(Single.fromCallable(() -> {
           return Templates.refresh("/");
         }));
 
     return MutinyUtil.toUni(single);
+  }
+
+  private Maybe<EmailConfigTableItem> loadItem(String id) {
+    return RxUtil.single(service.readItem(id))
+        .flatMapMaybe(Maybe::fromOptional)
+        .flatMap(item -> {
+          if (item.getItem().shouldGetNewOne()) {
+            return Maybe.just(item);
+          }
+
+          final var emailConfig = item.getItem().emailConfig();
+          return gmailChecker.check(emailConfig.userId(), emailConfig.hash())
+              .andThen(RxUtil.single(service.readItem(id)))
+              .flatMapMaybe(Maybe::fromOptional);
+        })
+        .switchIfEmpty(Maybe.defer(() -> {
+          gmailHelper.clearFlow(id);
+          return Maybe.empty();
+        }));
   }
 }

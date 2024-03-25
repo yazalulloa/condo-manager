@@ -53,7 +53,7 @@ public class RandomUtil {
   }
 
   public static String generate(int length, char[] array) {
-    StringBuilder sb = new StringBuilder();
+    final var sb = new StringBuilder();
     for (int i = 0; i < length; i++) {
       char c = array[getInstance().nextInt(array.length)];
       sb.append(c);
