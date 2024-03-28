@@ -37,6 +37,11 @@ public class StaticReactiveRoutes {
       return;
     }
 
+    if (path.equals("/receipts")) {
+     rc.next();
+      return;
+    }
+
     final var indexOfDot = path.lastIndexOf(".");
     final var count = path.chars().filter(ch -> ch == '/').count();
 

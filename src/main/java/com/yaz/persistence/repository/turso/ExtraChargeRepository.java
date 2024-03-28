@@ -57,9 +57,14 @@ public class ExtraChargeRepository {
           ORDER BY extra_charges.building_id, extra_charges.secondary_id, extra_charges.id;
       """;
   private static final String INSERT = """
+      INSERT INTO %s (building_id, secondary_id,  type, description, amount, currency, active)
+      VALUES (%s) returning id
+      """.formatted(COLLECTION, SqlUtil.params(7));
+
+  private static final String INSERT_BULK = """
       INSERT INTO %s (building_id, secondary_id, id, type, description, amount, currency, active)
-      VALUES (%s)
-      """.formatted(COLLECTION, SqlUtil.params(8));
+      VALUES %s
+      """;
   private static final String UPDATE = """
       UPDATE %s SET description = ?, amount = ?, currency = ?, active = ? WHERE building_id = ? AND secondary_id = ? AND id = ?
       """.formatted(COLLECTION);
@@ -101,7 +106,7 @@ public class ExtraChargeRepository {
     return ExtraCharge.builder()
         .buildingId(row.getString("building_id"))
         .secondaryId(row.getString("secondary_id"))
-        .id(row.getString("id"))
+        .id(row.getLong("id"))
         .description(row.getString("description"))
         .amount(row.getDouble("amount"))
         .currency(row.getEnum("currency", Currency::valueOf))
@@ -138,10 +143,10 @@ public class ExtraChargeRepository {
     return apts;
   }
 
-  public Uni<Optional<ExtraCharge>> read(String buildingId, String secondaryId, String id) {
+  public Uni<Optional<ExtraCharge>> read(String buildingId, String secondaryId, long id) {
     final var query = READ.formatted(sqlConfig.separator().column(), sqlConfig.separator().row());
 
-    return tursoWsService.selectOne(Stmt.stmt(query, Value.text(buildingId), Value.text(secondaryId), Value.text(id)),
+    return tursoWsService.selectOne(Stmt.stmt(query, Value.text(buildingId), Value.text(secondaryId), Value.number(id)),
         this::from);
   }
 
@@ -153,10 +158,10 @@ public class ExtraChargeRepository {
     return tursoWsService.selectQuery(Stmt.stmt(query, Value.text(buildingId), Value.text(secondaryId)), this::from);
   }
 
-  public Uni<Integer> delete(String buildingId, String secondaryId, String id) {
+  public Uni<Integer> delete(String buildingId, String secondaryId, long id) {
 
     final var values = new Value[]{Value.text(buildingId), Value.text(secondaryId),
-        Value.text(id)};
+        Value.number(id)};
     final var deleteStm = Stmt.stmt(DELETE, values);
     final var deleteApts = Stmt.stmt(DELETE_APT, values);
 
@@ -173,30 +178,32 @@ public class ExtraChargeRepository {
   public Uni<Integer> insert(ExtraCharge extraCharge, Set<String> apartments) {
 
     final var insertStmt = Stmt.stmt(INSERT, Value.text(extraCharge.buildingId()),
-        Value.text(extraCharge.secondaryId()),
-        Value.text(extraCharge.id()), Value.enumV(extraCharge.type()), Value.text(extraCharge.description()),
+        Value.text(extraCharge.secondaryId()), Value.enumV(extraCharge.type()), Value.text(extraCharge.description()),
         Value.number(extraCharge.amount()),
         Value.enumV(extraCharge.currency()), Value.bool(extraCharge.active()));
 
-    final var aptValues = new Value[apartments.size() * 4];
+    return tursoWsService.selectOne(insertStmt, row -> row.getLong("id"))
+        .map(opt -> opt.orElseThrow(() -> new IllegalStateException("Insert failed")))
+        .map(id -> {
+          final var aptValues = new Value[apartments.size() * 4];
 
-    var i = 0;
-    for (var apartment : apartments) {
-      aptValues[i++] = Value.text(extraCharge.buildingId());
-      aptValues[i++] = Value.text(extraCharge.secondaryId());
-      aptValues[i++] = Value.text(extraCharge.id());
-      aptValues[i++] = Value.text(apartment);
-    }
+          var i = 0;
+          for (var apartment : apartments) {
+            aptValues[i++] = Value.text(extraCharge.buildingId());
+            aptValues[i++] = Value.text(extraCharge.secondaryId());
+            aptValues[i++] = Value.number(id);
+            aptValues[i++] = Value.text(apartment);
+          }
 
-    final var aptValuesParam = Stream.generate(() -> SqlUtil.params(4))
-        .map("(%s)"::formatted)
-        .limit(apartments.size())
-        .collect(Collectors.joining(","));
+          final var aptValuesParam = Stream.generate(() -> SqlUtil.params(4))
+              .map("(%s)"::formatted)
+              .limit(apartments.size())
+              .collect(Collectors.joining(","));
 
-    final var insertApts = Stmt.stmt(INSERT_APT.formatted(COLLECTION_APT, aptValuesParam), aptValues);
-
-    return tursoWsService.executeQueries(insertStmt, insertApts)
-        .map(SqlUtil::rowCount);
+          return Stmt.stmt(INSERT_APT.formatted(COLLECTION_APT, aptValuesParam), aptValues);
+        })
+        .flatMap(tursoWsService::executeQuery)
+        .map(executeResp -> executeResp.result().rowCount() + 1);
   }
 
 
@@ -210,18 +217,18 @@ public class ExtraChargeRepository {
         Value.number(updateRequest.amount()),
         Value.enumV(updateRequest.currency()), Value.bool(updateRequest.active()),
         Value.text(updateRequest.buildingId()),
-        Value.text(updateRequest.secondaryId()), Value.text(updateRequest.id()));
+        Value.text(updateRequest.secondaryId()), Value.number(updateRequest.id()));
 
     if (apartments.isEmpty()) {
 
       stmts[i] = Stmt.stmt(DELETE_APT, Value.text(updateRequest.buildingId()),
-          Value.text(updateRequest.secondaryId()), Value.text(updateRequest.id()));
+          Value.text(updateRequest.secondaryId()), Value.number(updateRequest.id()));
 
     } else {
       final var deleteAptValues = new Value[apartments.size() + 3];
       deleteAptValues[0] = Value.text(updateRequest.buildingId());
       deleteAptValues[1] = Value.text(updateRequest.secondaryId());
-      deleteAptValues[2] = Value.text(updateRequest.id());
+      deleteAptValues[2] = Value.number(updateRequest.id());
 
       final var insertAptValues = new Value[apartments.size() * 4];
       var insertAptIndex = 0;
@@ -229,7 +236,7 @@ public class ExtraChargeRepository {
       for (var apartment : apartments) {
         insertAptValues[insertAptIndex++] = Value.text(updateRequest.buildingId());
         insertAptValues[insertAptIndex++] = Value.text(updateRequest.secondaryId());
-        insertAptValues[insertAptIndex++] = Value.text(updateRequest.id());
+        insertAptValues[insertAptIndex++] = Value.number(updateRequest.id());
         insertAptValues[insertAptIndex++] = Value.text(apartment);
 
         deleteAptValues[deleteAptIndex++] = Value.text(apartment);
@@ -257,5 +264,13 @@ public class ExtraChargeRepository {
 
     return tursoWsService.executeQueries(delete, deleteApt)
         .map(SqlUtil::rowCount);
+  }
+
+  public Stmt[] stmtDeleteByReceipt(String buildingId, String secondaryId) {
+    final var values = new Value[]{Value.text(buildingId), Value.text(secondaryId)};
+    final var delete = Stmt.stmt(DELETE_BY_BUILDING, values);
+    final var deleteApt = Stmt.stmt(DELETE_APT_BY_BUILDING, values);
+
+    return new Stmt[]{delete, deleteApt};
   }
 }

@@ -22,7 +22,7 @@ class EncryptionServiceTest {
     final var keys = Keys.builder()
         .buildingId("ANTONIETA")
         .secondaryId("ANTONIETA")
-        .id(UUID.randomUUID().toString())
+        .id(1)
         .build();
 
     final var str = Json.encode(keys);
@@ -63,6 +63,7 @@ class EncryptionServiceTest {
     encryptAndPrint(epochSecond + "1");
     encryptAndPrint(epochSecond + "");
     encryptAndPrint(uuid.toString());
+    encryptAndPrint("1");
   }
 
   void encryptAndPrint(String str) {

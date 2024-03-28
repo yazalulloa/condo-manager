@@ -74,4 +74,7 @@ public class DateUtil {
   public static long epochSecond() {
     return Instant.now().getEpochSecond();
   }
+  public static long epochMilli() {
+    return Instant.now().toEpochMilli();
+  }
 }

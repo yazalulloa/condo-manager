@@ -1,10 +1,9 @@
-package com.yaz.persistence.domain.request;
+package com.yaz.persistence.domain.query;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import com.yaz.persistence.domain.Currency;
+import java.util.Collections;
 import java.util.Set;
 import lombok.Builder;
 import lombok.Data;
@@ -17,15 +16,13 @@ import lombok.extern.jackson.Jacksonized;
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class ExtraChargeUpdateRequest {
-  private final String buildingId;
-  private final String secondaryId;
-  private final long id;
-  private final String description;
-  private final double amount;
-  private final Currency currency;
-  private final boolean active;
-  private final Set<String> apartments;
+public class ReceiptQuery {
+
+  private final String lastBuildingId;
+  private final Long lastId;
+  @Builder.Default
+  private final Set<String> buildings = Collections.emptySet();
+  @Builder.Default
+  private final int limit = 25;
 
 }

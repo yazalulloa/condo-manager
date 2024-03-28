@@ -95,5 +95,9 @@ public record ExecuteResp(String type, StmtResult result) implements Response {
     public double getDouble(String amount) {
       return value(amount).map(Value::asDouble).orElseThrow();
     }
+
+    public int getInt(String name) {
+      return value(name).map(Value::asInt).orElseThrow(() -> new IllegalArgumentException("Not found " + name));
+    }
   }
 }

@@ -167,18 +167,21 @@ END;
 
 CREATE TABLE IF NOT EXISTS extra_charges
 (
+    id           INTEGER PRIMARY KEY,
     building_id  CHAR(20)                                       NOT NULL,
     secondary_id CHAR(40)                                       NOT NULL,
-    id           VARCHAR(50)                                    NOT NULL,
     type         TEXT CHECK ( type IN ('BUILDING', 'RECEIPT') ) NOT NULL,
     description  VARCHAR(100)                                   NOT NULL,
     amount       DECIMAL(16, 2)                                 NOT NULL,
     currency     TEXT CHECK ( currency IN ('USD', 'VED') )      NOT NULL,
     active       BOOL                                           NOT NULL,
     created_at   DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at   DATETIME,
-    PRIMARY KEY (building_id, secondary_id, id)
+    updated_at   DATETIME
 );
+
+
+CREATE INDEX IF NOT EXISTS extra_charges_building_id_secondary_id_idx ON extra_charges (building_id, secondary_id);
+CREATE INDEX IF NOT EXISTS extra_charges_type_idx ON extra_charges (type);
 
 CREATE TRIGGER IF NOT EXISTS extra_charges_updated_at_trigger
     AFTER UPDATE
@@ -262,3 +265,60 @@ BEGIN
     WHERE building_id = OLD.building_id
       AND id = OLD.id;
 END;
+
+
+CREATE TABLE IF NOT EXISTS receipts
+(
+    id          INTEGER PRIMARY KEY,
+    building_id CHAR(20) NOT NULL,
+    year        SMALLINT NOT NULL,
+    month       SMALLINT NOT NULL,
+    date        DATE     NOT NULL,
+    rate_id     INTEGER  NOT NULL,
+    sent        BOOL     NOT NULL,
+    last_sent   DATETIME,
+    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at  DATETIME
+);
+
+
+CREATE INDEX IF NOT EXISTS receipts_building_id_idx ON receipts (building_id);
+
+CREATE TRIGGER IF NOT EXISTS receipts_updated_at_trigger
+    AFTER UPDATE
+    ON receipts
+    FOR EACH ROW
+BEGIN
+    UPDATE receipts
+    SET updated_at = CURRENT_TIMESTAMP
+    WHERE id = OLD.id;
+END;
+
+CREATE TABLE IF NOT EXISTS expenses
+(
+    id           INTEGER PRIMARY KEY,
+    building_id  CHAR(20)                                      NOT NULL,
+    receipt_id   VARCHAR(50)                                   NOT NULL,
+    description  TEXT                                          NOT NULL,
+    amount       DECIMAL(16, 2)                                NOT NULL,
+    currency     TEXT CHECK ( currency IN ('USD', 'VED') )     NOT NULL,
+    reserve_fund BOOL                                          NOT NULL,
+    type         TEXT CHECK ( type IN ('COMMON', 'UNCOMMON') ) NOT NULL
+);
+
+
+CREATE INDEX IF NOT EXISTS expenses_building_id_receipt_id_idx ON expenses (building_id, receipt_id);
+
+CREATE TABLE IF NOT EXISTS debts
+(
+    id                               INTEGER PRIMARY KEY,
+    building_id                      CHAR(20)       NOT NULL,
+    receipt_id                       VARCHAR(50)    NOT NULL,
+    apt_number                       CHAR(20)       NOT NULL,
+    receipts                         SMALLINT       NOT NULL,
+    amount                           DECIMAL(16, 2) NOT NULL,
+    months                           TEXT,
+    previous_payment_amount          DECIMAL(16, 2),
+    previous_payment_amount_currency TEXT CHECK ( previous_payment_amount_currency IN ('USD', 'VED') )
+);
+CREATE INDEX IF NOT EXISTS debts_building_id_receipt_id_apt_number_idx ON debts (building_id, receipt_id, apt_number);

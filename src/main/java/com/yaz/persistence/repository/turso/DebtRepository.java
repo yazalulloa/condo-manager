@@ -1,0 +1,87 @@
+package com.yaz.persistence.repository.turso;
+
+import com.yaz.persistence.domain.Currency;
+import com.yaz.persistence.entities.Debt;
+import com.yaz.persistence.repository.turso.client.ws.request.Stmt;
+import com.yaz.persistence.repository.turso.client.ws.request.Value;
+import com.yaz.persistence.repository.turso.client.ws.response.ExecuteResp.Row;
+import com.yaz.util.SqlUtil;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+//@LookupIfProperty(name = "app.repository.impl", stringValue = "turso")
+//@Named("turso")
+@ApplicationScoped
+@RequiredArgsConstructor(onConstructor_ = {@Inject})
+public class DebtRepository {
+
+  private static final String COLLECTION = "debts";
+
+  public static final String INSERT = """
+      INSERT INTO %s (building_id, receipt_id, apt_number, receipts, amount, months, previous_payment_amount, 
+      previous_payment_amount_currency) VALUES %s
+      """;
+  private static final String SELECT_BY_RECEIPT = "SELECT * FROM %s WHERE building_id = ? AND receipt_id = ? ORDER BY id".formatted(
+      COLLECTION);
+  private static final String DELETE_BY_RECEIPT = "DELETE FROM %s WHERE building_id = ? AND receipt_id = ?".formatted(
+      COLLECTION);
+
+  Debt from(Row row) {
+    final var months = Arrays.stream(row.getString("months").split(",")).map(Integer::parseInt)
+        .collect(Collectors.toSet());
+    return Debt.builder()
+        .buildingId(row.getString("building_id"))
+        .receiptId(row.getLong("receipt_id"))
+        .aptNumber(row.getString("apt_number"))
+        .receipts(row.getInt("receipts"))
+        .amount(row.getBigDecimal("amount"))
+        .months(months)
+        .previousPaymentAmount(row.getBigDecimal("previous_payment_amount"))
+        .previousPaymentAmountCurrency(row.getEnum("previous_payment_amount_currency", Currency::valueOf))
+        .build();
+  }
+
+  public Stmt stmtSelectByReceipt(String buildingId, String receiptId) {
+    return Stmt.stmt(SELECT_BY_RECEIPT, Value.text(buildingId), Value.text(receiptId));
+  }
+
+  public Stmt stmtDeleteByReceipt(String buildingId, long receiptId) {
+    return Stmt.stmt(DELETE_BY_RECEIPT, Value.text(buildingId), Value.number(receiptId));
+  }
+
+  public Stmt stmtInsert(long receiptId, Collection<Debt> debts) {
+
+    final var values = new Value[8 * debts.size()];
+    var i = 0;
+
+    for (Debt debt : debts) {
+      values[i++] = Value.text(debt.buildingId());
+      values[i++] = Value.number(receiptId);
+      values[i++] = Value.text(debt.aptNumber());
+      values[i++] = Value.number(debt.receipts());
+      values[i++] = Value.number(debt.amount());
+
+      final var months = Optional.ofNullable(debt.months())
+          .stream()
+          .flatMap(Collection::stream)
+          .map(String::valueOf)
+          .collect(Collectors.joining(","));
+
+      values[i++] = Value.text(months);
+      values[i++] = Value.number(debt.previousPaymentAmount());
+      values[i++] = Value.enumV(debt.previousPaymentAmountCurrency());
+    }
+
+    final var sql = INSERT.formatted(COLLECTION, SqlUtil.valuesParams(8, debts.size()));
+
+    return Stmt.stmt(sql, values);
+  }
+
+}

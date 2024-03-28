@@ -7,6 +7,8 @@ services:
       - "13845:13845"
     env_file:
       - local.env
+    environment:
+      - DOCKER_TIMEZONE=America/Caracas
 #  cmy-vx-2nd:
 #    container_name: condo-manager-2nd
 #    image: condo-manager:latest

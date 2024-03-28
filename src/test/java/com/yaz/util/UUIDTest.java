@@ -31,4 +31,16 @@ public class UUIDTest {
     Assertions.assertEquals(userId, userId1);
   }
 
+  @Test
+  void ids() {
+
+
+    final var epochSecond = DateUtil.epochSecond();
+    final var epochMilli = DateUtil.epochMilli();
+    final var uuid = UUID.randomUUID().toString();
+
+    System.out.println(epochSecond + uuid);
+    System.out.println(epochMilli + uuid);
+
+  }
 }

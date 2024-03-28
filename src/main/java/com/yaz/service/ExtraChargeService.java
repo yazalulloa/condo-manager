@@ -5,13 +5,11 @@ import com.yaz.persistence.domain.request.ExtraChargeUpdateRequest;
 import com.yaz.persistence.entities.ExtraCharge;
 import com.yaz.persistence.entities.ExtraCharge.Keys;
 import com.yaz.persistence.repository.turso.ExtraChargeRepository;
-import com.yaz.util.DateUtil;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -26,7 +24,7 @@ public class ExtraChargeService {
     return repository.count();
   }
 
-  public Uni<Optional<ExtraCharge>> read(String buildingId, String secondaryId, String id) {
+  public Uni<Optional<ExtraCharge>> read(String buildingId, String secondaryId, long id) {
     return repository.read(buildingId, secondaryId, id);
   }
 
@@ -40,10 +38,7 @@ public class ExtraChargeService {
 
   public Uni<ExtraCharge> create(ExtraChargeCreateRequest createRequest) {
 
-    final var now = DateUtil.epochSecond();
-    final String id = now + UUID.randomUUID().toString();
     final var extraCharge = ExtraCharge.builder()
-        .id(id)
         .buildingId(createRequest.buildingId())
         .secondaryId(createRequest.secondaryId())
         .type(createRequest.type())

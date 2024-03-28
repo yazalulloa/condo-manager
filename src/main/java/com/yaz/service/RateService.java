@@ -34,9 +34,9 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
-@ApplicationScoped
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
+  @Slf4j
+  @ApplicationScoped
+  @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class RateService {
 
 

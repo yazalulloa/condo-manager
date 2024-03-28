@@ -33,6 +33,12 @@ public class SqlUtil {
         .collect(Collectors.joining(","));
   }
 
+  public static String valuesParams(int paramsSize, int valuesSize) {
+    return Stream.generate(() -> "(" + params(paramsSize) + ")")
+        .limit(valuesSize)
+        .collect(Collectors.joining(","));
+  }
+
   public static <T> List<T> toList(RowSet<Row> rows, Function<Row, T> function) {
     final var list = new ArrayList<T>(rows.size());
 

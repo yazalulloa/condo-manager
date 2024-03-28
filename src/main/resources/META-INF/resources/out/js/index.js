@@ -3186,123 +3186,123 @@ var require__hyperscript_min = __commonJS((exports, module) => {
           return t3 && c4 === 0;
         }
         while (o3 < a3.length) {
-          if (q4() === "-" && N3() === "-" && (n2.isWhitespace(I4(2)) || I4(2) === "" || I4(2) === "-") || q4() === "/" && N3() === "/" && (n2.isWhitespace(I4(2)) || I4(2) === "" || I4(2) === "/")) {
-            h5();
-          } else if (q4() === "/" && N3() === "*" && (n2.isWhitespace(I4(2)) || I4(2) === "" || I4(2) === "*")) {
-            v4();
+          if (q3() === "-" && N2() === "-" && (n2.isWhitespace(I3(2)) || I3(2) === "" || I3(2) === "-") || q3() === "/" && N2() === "/" && (n2.isWhitespace(I3(2)) || I3(2) === "" || I3(2) === "/")) {
+            h4();
+          } else if (q3() === "/" && N2() === "*" && (n2.isWhitespace(I3(2)) || I3(2) === "" || I3(2) === "*")) {
+            v3();
           } else {
-            if (n2.isWhitespace(q4())) {
-              r3.push(A4());
-            } else if (!R4() && q4() === "." && (n2.isAlpha(N3()) || N3() === "{" || N3() === "-")) {
-              r3.push(d5());
-            } else if (!R4() && q4() === "#" && (n2.isAlpha(N3()) || N3() === "{")) {
+            if (n2.isWhitespace(q3())) {
+              r3.push(A3());
+            } else if (!R3() && q3() === "." && (n2.isAlpha(N2()) || N2() === "{" || N2() === "-")) {
+              r3.push(d4());
+            } else if (!R3() && q3() === "#" && (n2.isAlpha(N2()) || N2() === "{")) {
               r3.push(k3());
-            } else if (q4() === "[" && N3() === "@") {
-              r3.push(E4());
-            } else if (q4() === "@") {
-              r3.push(T4());
-            } else if (q4() === "*" && n2.isAlpha(N3())) {
-              r3.push(y4());
-            } else if (n2.isAlpha(q4()) || !f3() && n2.isIdentifierChar(q4())) {
-              r3.push(x4());
-            } else if (n2.isNumeric(q4())) {
-              r3.push(g4());
-            } else if (!f3() && (q4() === '"' || q4() === "`")) {
-              r3.push(w4());
-            } else if (!f3() && q4() === "'") {
+            } else if (q3() === "[" && N2() === "@") {
+              r3.push(E3());
+            } else if (q3() === "@") {
+              r3.push(T3());
+            } else if (q3() === "*" && n2.isAlpha(N2())) {
+              r3.push(y3());
+            } else if (n2.isAlpha(q3()) || !f3() && n2.isIdentifierChar(q3())) {
+              r3.push(x3());
+            } else if (n2.isNumeric(q3())) {
+              r3.push(g3());
+            } else if (!f3() && (q3() === '"' || q3() === "`")) {
+              r3.push(w3());
+            } else if (!f3() && q3() === "'") {
               if (n2.isValidSingleQuoteStringStart(r3)) {
-                r3.push(w4());
+                r3.push(w3());
               } else {
-                r3.push(b4());
+                r3.push(b3());
               }
-            } else if (n2.OP_TABLE[q4()]) {
-              if (l3 === "$" && q4() === "{") {
+            } else if (n2.OP_TABLE[q3()]) {
+              if (l3 === "$" && q3() === "{") {
                 c4++;
               }
-              if (q4() === "}") {
+              if (q3() === "}") {
                 c4--;
               }
-              r3.push(b4());
-            } else if (f3() || n2.isReservedChar(q4())) {
-              r3.push(p4("RESERVED", C3()));
+              r3.push(b3());
+            } else if (f3() || n2.isReservedChar(q3())) {
+              r3.push(p3("RESERVED", C2()));
             } else {
               if (o3 < a3.length) {
-                throw Error("Unknown token: " + q4() + " ");
+                throw Error("Unknown token: " + q3() + " ");
               }
             }
           }
         }
         return new i2(r3, [], a3);
-        function m4(e4, t4) {
-          var r4 = p4(e4, t4);
+        function m3(e4, t4) {
+          var r4 = p3(e4, t4);
           r4.op = true;
           return r4;
         }
-        function p4(e4, t4) {
+        function p3(e4, t4) {
           return { type: e4, value: t4 || "", start: o3, end: o3 + 1, column: s3, line: u3 };
         }
-        function h5() {
-          while (q4() && !n2.isNewline(q4())) {
-            C3();
+        function h4() {
+          while (q3() && !n2.isNewline(q3())) {
+            C2();
           }
-          C3();
+          C2();
         }
-        function v4() {
-          while (q4() && !(q4() === "*" && N3() === "/")) {
-            C3();
+        function v3() {
+          while (q3() && !(q3() === "*" && N2() === "/")) {
+            C2();
           }
-          C3();
-          C3();
+          C2();
+          C2();
         }
-        function d5() {
-          var e4 = p4("CLASS_REF");
-          var t4 = C3();
-          if (q4() === "{") {
+        function d4() {
+          var e4 = p3("CLASS_REF");
+          var t4 = C2();
+          if (q3() === "{") {
             e4.template = true;
-            t4 += C3();
-            while (q4() && q4() !== "}") {
-              t4 += C3();
+            t4 += C2();
+            while (q3() && q3() !== "}") {
+              t4 += C2();
             }
-            if (q4() !== "}") {
+            if (q3() !== "}") {
               throw Error("Unterminated class reference");
             } else {
-              t4 += C3();
+              t4 += C2();
             }
           } else {
-            while (n2.isValidCSSClassChar(q4())) {
-              t4 += C3();
+            while (n2.isValidCSSClassChar(q3())) {
+              t4 += C2();
             }
           }
           e4.value = t4;
           e4.end = o3;
           return e4;
         }
-        function E4() {
-          var e4 = p4("ATTRIBUTE_REF");
-          var t4 = C3();
-          while (o3 < a3.length && q4() !== "]") {
-            t4 += C3();
+        function E3() {
+          var e4 = p3("ATTRIBUTE_REF");
+          var t4 = C2();
+          while (o3 < a3.length && q3() !== "]") {
+            t4 += C2();
           }
-          if (q4() === "]") {
-            t4 += C3();
+          if (q3() === "]") {
+            t4 += C2();
           }
           e4.value = t4;
           e4.end = o3;
           return e4;
         }
-        function T4() {
-          var e4 = p4("ATTRIBUTE_REF");
-          var t4 = C3();
-          while (n2.isValidCSSIDChar(q4())) {
-            t4 += C3();
+        function T3() {
+          var e4 = p3("ATTRIBUTE_REF");
+          var t4 = C2();
+          while (n2.isValidCSSIDChar(q3())) {
+            t4 += C2();
           }
-          if (q4() === "=") {
-            t4 += C3();
-            if (q4() === '"' || q4() === "'") {
-              let e5 = w4();
+          if (q3() === "=") {
+            t4 += C2();
+            if (q3() === '"' || q3() === "'") {
+              let e5 = w3();
               t4 += e5.value;
-            } else if (n2.isAlpha(q4()) || n2.isNumeric(q4()) || n2.isIdentifierChar(q4())) {
-              let e5 = x4();
+            } else if (n2.isAlpha(q3()) || n2.isNumeric(q3()) || n2.isIdentifierChar(q3())) {
+              let e5 = x3();
               t4 += e5.value;
             }
           }
@@ -3310,98 +3310,98 @@ var require__hyperscript_min = __commonJS((exports, module) => {
           e4.end = o3;
           return e4;
         }
-        function y4() {
-          var e4 = p4("STYLE_REF");
-          var t4 = C3();
-          while (n2.isAlpha(q4()) || q4() === "-") {
-            t4 += C3();
+        function y3() {
+          var e4 = p3("STYLE_REF");
+          var t4 = C2();
+          while (n2.isAlpha(q3()) || q3() === "-") {
+            t4 += C2();
           }
           e4.value = t4;
           e4.end = o3;
           return e4;
         }
         function k3() {
-          var e4 = p4("ID_REF");
-          var t4 = C3();
-          if (q4() === "{") {
+          var e4 = p3("ID_REF");
+          var t4 = C2();
+          if (q3() === "{") {
             e4.template = true;
-            t4 += C3();
-            while (q4() && q4() !== "}") {
-              t4 += C3();
+            t4 += C2();
+            while (q3() && q3() !== "}") {
+              t4 += C2();
             }
-            if (q4() !== "}") {
+            if (q3() !== "}") {
               throw Error("Unterminated id reference");
             } else {
-              C3();
+              C2();
             }
           } else {
-            while (n2.isValidCSSIDChar(q4())) {
-              t4 += C3();
+            while (n2.isValidCSSIDChar(q3())) {
+              t4 += C2();
             }
           }
           e4.value = t4;
           e4.end = o3;
           return e4;
         }
-        function x4() {
-          var e4 = p4("IDENTIFIER");
-          var t4 = C3();
-          while (n2.isAlpha(q4()) || n2.isNumeric(q4()) || n2.isIdentifierChar(q4())) {
-            t4 += C3();
+        function x3() {
+          var e4 = p3("IDENTIFIER");
+          var t4 = C2();
+          while (n2.isAlpha(q3()) || n2.isNumeric(q3()) || n2.isIdentifierChar(q3())) {
+            t4 += C2();
           }
-          if (q4() === "!" && t4 === "beep") {
-            t4 += C3();
+          if (q3() === "!" && t4 === "beep") {
+            t4 += C2();
           }
           e4.value = t4;
           e4.end = o3;
           return e4;
         }
-        function g4() {
-          var e4 = p4("NUMBER");
-          var t4 = C3();
-          while (n2.isNumeric(q4())) {
-            t4 += C3();
+        function g3() {
+          var e4 = p3("NUMBER");
+          var t4 = C2();
+          while (n2.isNumeric(q3())) {
+            t4 += C2();
           }
-          if (q4() === "." && n2.isNumeric(N3())) {
-            t4 += C3();
+          if (q3() === "." && n2.isNumeric(N2())) {
+            t4 += C2();
           }
-          while (n2.isNumeric(q4())) {
-            t4 += C3();
+          while (n2.isNumeric(q3())) {
+            t4 += C2();
           }
-          if (q4() === "e" || q4() === "E") {
-            if (n2.isNumeric(N3())) {
-              t4 += C3();
-            } else if (N3() === "-") {
-              t4 += C3();
-              t4 += C3();
+          if (q3() === "e" || q3() === "E") {
+            if (n2.isNumeric(N2())) {
+              t4 += C2();
+            } else if (N2() === "-") {
+              t4 += C2();
+              t4 += C2();
             }
           }
-          while (n2.isNumeric(q4())) {
-            t4 += C3();
+          while (n2.isNumeric(q3())) {
+            t4 += C2();
           }
           e4.value = t4;
           e4.end = o3;
           return e4;
         }
-        function b4() {
-          var e4 = m4();
-          var t4 = C3();
-          while (q4() && n2.OP_TABLE[t4 + q4()]) {
-            t4 += C3();
+        function b3() {
+          var e4 = m3();
+          var t4 = C2();
+          while (q3() && n2.OP_TABLE[t4 + q3()]) {
+            t4 += C2();
           }
           e4.type = n2.OP_TABLE[t4];
           e4.value = t4;
           e4.end = o3;
           return e4;
         }
-        function w4() {
-          var e4 = p4("STRING");
-          var t4 = C3();
+        function w3() {
+          var e4 = p3("STRING");
+          var t4 = C2();
           var r4 = "";
-          while (q4() && q4() !== t4) {
-            if (q4() === "\\") {
-              C3();
-              let t5 = C3();
+          while (q3() && q3() !== t4) {
+            if (q3() === "\\") {
+              C2();
+              let t5 = C2();
               if (t5 === "b") {
                 r4 += "\b";
               } else if (t5 === "f") {
@@ -3415,7 +3415,7 @@ var require__hyperscript_min = __commonJS((exports, module) => {
               } else if (t5 === "v") {
                 r4 += "\v";
               } else if (t5 === "x") {
-                const t6 = S4();
+                const t6 = S3();
                 if (Number.isNaN(t6)) {
                   throw Error("Invalid hexadecimal escape at " + n2.positionString(e4));
                 }
@@ -3424,58 +3424,58 @@ var require__hyperscript_min = __commonJS((exports, module) => {
                 r4 += t5;
               }
             } else {
-              r4 += C3();
+              r4 += C2();
             }
           }
-          if (q4() !== t4) {
+          if (q3() !== t4) {
             throw Error("Unterminated string at " + n2.positionString(e4));
           } else {
-            C3();
+            C2();
           }
           e4.value = r4;
           e4.end = o3;
           e4.template = t4 === "`";
           return e4;
         }
-        function S4() {
+        function S3() {
           const e4 = 16;
-          if (!q4()) {
+          if (!q3()) {
             return NaN;
           }
-          let t4 = e4 * Number.parseInt(C3(), e4);
-          if (!q4()) {
+          let t4 = e4 * Number.parseInt(C2(), e4);
+          if (!q3()) {
             return NaN;
           }
-          t4 += Number.parseInt(C3(), e4);
+          t4 += Number.parseInt(C2(), e4);
           return t4;
         }
-        function q4() {
+        function q3() {
           return a3.charAt(o3);
         }
-        function N3() {
+        function N2() {
           return a3.charAt(o3 + 1);
         }
-        function I4(e4 = 1) {
+        function I3(e4 = 1) {
           return a3.charAt(o3 + e4);
         }
-        function C3() {
-          l3 = q4();
+        function C2() {
+          l3 = q3();
           o3++;
           s3++;
           return l3;
         }
-        function R4() {
+        function R3() {
           return n2.isAlpha(l3) || n2.isNumeric(l3) || l3 === ")" || l3 === '"' || l3 === "'" || l3 === "`" || l3 === "}" || l3 === "]";
         }
-        function A4() {
-          var e4 = p4("WHITESPACE");
+        function A3() {
+          var e4 = p3("WHITESPACE");
           var t4 = "";
-          while (q4() && n2.isWhitespace(q4())) {
-            if (n2.isNewline(q4())) {
+          while (q3() && n2.isWhitespace(q3())) {
+            if (n2.isNewline(q3())) {
               s3 = 0;
               u3++;
             }
-            t4 += C3();
+            t4 += C2();
           }
           e4.value = t4;
           e4.end = o3;
@@ -3927,7 +3927,7 @@ var require__hyperscript_min = __commonJS((exports, module) => {
     class o2 {
       constructor(e3, t3) {
         this.lexer = e3 ?? new n2;
-        this.parser = t3 ?? new a2(this).use(T3).use(y3);
+        this.parser = t3 ?? new a2(this).use(T2).use(y2);
         this.parser.runtime = this;
       }
       matchesSelector(e3, t3) {
@@ -3959,7 +3959,7 @@ var require__hyperscript_min = __commonJS((exports, module) => {
         return typeof e3 === "object" && Symbol.iterator in e3 && typeof e3[Symbol.iterator] === "function";
       }
       shouldAutoIterate(e3) {
-        return e3 != null && e3[p3] || this.isArrayLike(e3);
+        return e3 != null && e3[p2] || this.isArrayLike(e3);
       }
       forEach(e3, t3) {
         if (e3 == null) {
@@ -4317,7 +4317,7 @@ var require__hyperscript_min = __commonJS((exports, module) => {
           if (e3.meta.feature && e3.meta.feature.behavior) {
             n3 = e3.meta.feature.behavior + "Scope";
           }
-          var i3 = h4(r3, n3);
+          var i3 = h3(r3, n3);
           return i3;
         } else {
           return {};
@@ -4549,7 +4549,7 @@ var require__hyperscript_min = __commonJS((exports, module) => {
         if (this.triggerEvent(e3, "hyperscript:beep", { element: e3, expression: t3, value: r3 })) {
           var n3;
           if (r3) {
-            if (r3 instanceof m3) {
+            if (r3 instanceof m2) {
               n3 = "ElementCollection";
             } else if (r3.constructor) {
               n3 = r3.constructor.name;
@@ -4562,7 +4562,7 @@ var require__hyperscript_min = __commonJS((exports, module) => {
           var a3 = r3;
           if (n3 === "String") {
             a3 = '"' + a3 + '"';
-          } else if (r3 instanceof m3) {
+          } else if (r3 instanceof m2) {
             a3 = Array.from(r3);
           }
           console.log("///_ BEEP! The expression (" + i2.sourceFor.call(t3).replace("beep! ", "") + ") evaluates to:", a3, "of type " + n3);
@@ -4651,12 +4651,12 @@ var require__hyperscript_min = __commonJS((exports, module) => {
       }
     }
 
-    class m3 {
+    class m2 {
       constructor(e3, t3, r3) {
         this._css = e3;
         this.relativeToElement = t3;
         this.escape = r3;
-        this[p3] = true;
+        this[p2] = true;
       }
       get css() {
         if (this.escape) {
@@ -4691,8 +4691,8 @@ var require__hyperscript_min = __commonJS((exports, module) => {
         return e3;
       }
     }
-    const p3 = Symbol();
-    function h4(e3, t3) {
+    const p2 = Symbol();
+    function h3(e3, t3) {
       var r3 = e3[t3];
       if (r3) {
         return r3;
@@ -4702,25 +4702,25 @@ var require__hyperscript_min = __commonJS((exports, module) => {
         return n3;
       }
     }
-    function v3(e3) {
+    function v2(e3) {
       try {
         return JSON.parse(e3);
       } catch (e4) {
-        d4(e4);
+        d3(e4);
         return null;
       }
     }
-    function d4(e3) {
+    function d3(e3) {
       if (console.error) {
         console.error(e3);
       } else if (console.log) {
         console.log("ERROR: ", e3);
       }
     }
-    function E3(e3, t3) {
+    function E2(e3, t3) {
       return new (e3.bind.apply(e3, [e3].concat(t3)));
     }
-    function T3(t3) {
+    function T2(t3) {
       t3.addLeafExpression("parenthesized", function(e3, t4, r4) {
         if (r4.matchOpToken("(")) {
           var n3 = r4.clearFollows();
@@ -4816,19 +4816,19 @@ var require__hyperscript_min = __commonJS((exports, module) => {
           var o3 = n2.tokenize(a4);
           var s4 = e3.requireElement("expression", o3);
           return { type: "classRefTemplate", args: [s4], op: function(e4, t5) {
-            return new m3("." + t5, e4.me, true);
+            return new m2("." + t5, e4.me, true);
           }, evaluate: function(e4) {
             return t4.unifiedEval(this, e4);
           } };
         } else {
           const e4 = i3.value;
           return { type: "classRef", css: e4, evaluate: function(t5) {
-            return new m3(e4, t5.me, true);
+            return new m2(e4, t5.me, true);
           } };
         }
       });
 
-      class r3 extends m3 {
+      class r3 extends m2 {
         constructor(e3, t4, r4) {
           super(e3, t4);
           this.templateParts = r4;
@@ -4875,7 +4875,7 @@ var require__hyperscript_min = __commonJS((exports, module) => {
           if (u4) {
             return new r3(s4, e4.me, t5);
           } else {
-            return new m3(s4, e4.me);
+            return new m2(s4, e4.me);
           }
         }, evaluate: function(e4) {
           return t4.unifiedEval(this, e4);
@@ -5519,40 +5519,40 @@ var require__hyperscript_min = __commonJS((exports, module) => {
         } else {
           var f4 = e3.requireElement("implicitMeTarget", r4);
         }
-        var m4 = false;
-        var p5;
+        var m3 = false;
+        var p4;
         if (r4.matchToken("in")) {
-          m4 = true;
-          var h5 = e3.requireElement("unaryExpression", r4);
+          m3 = true;
+          var h4 = e3.requireElement("unaryExpression", r4);
         } else if (r4.matchToken("within")) {
-          p5 = e3.requireElement("unaryExpression", r4);
+          p4 = e3.requireElement("unaryExpression", r4);
         } else {
-          p5 = document.body;
+          p4 = document.body;
         }
-        var v5 = false;
+        var v4 = false;
         if (r4.matchToken("with")) {
           r4.requireToken("wrapping");
-          v5 = true;
+          v4 = true;
         }
-        return { type: "relativePositionalExpression", from: f4, forwardSearch: a4, inSearch: m4, wrapping: v5, inElt: h5, withinElt: p5, operator: n3.value, args: [o3, f4, h5, p5], op: function(e4, t5, r5, n4, f5) {
-          var p6 = t5.css;
-          if (p6 == null) {
+        return { type: "relativePositionalExpression", from: f4, forwardSearch: a4, inSearch: m3, wrapping: v4, inElt: h4, withinElt: p4, operator: n3.value, args: [o3, f4, h4, p4], op: function(e4, t5, r5, n4, f5) {
+          var p5 = t5.css;
+          if (p5 == null) {
             throw "Expected a CSS value to be returned by " + i2.sourceFor.apply(o3);
           }
-          if (m4) {
+          if (m3) {
             if (n4) {
               if (a4) {
-                return l3(r5, n4, p6, v5);
+                return l3(r5, n4, p5, v4);
               } else {
-                return c4(r5, n4, p6, v5);
+                return c4(r5, n4, p5, v4);
               }
             }
           } else {
             if (f5) {
               if (a4) {
-                return s3(r5, f5, p6, v5);
+                return s3(r5, f5, p5, v4);
               } else {
-                return u3(r5, f5, p6, v5);
+                return u3(r5, f5, p5, v4);
               }
             }
           }
@@ -5630,7 +5630,7 @@ var require__hyperscript_min = __commonJS((exports, module) => {
           throw Error("The value of " + e3.sourceFor() + " does not have a contains or includes method on it");
         }
       }
-      function p4(e3, t4, r4) {
+      function p3(e3, t4, r4) {
         if (t4["match"]) {
           return !!t4.match(r4);
         } else if (t4["matches"]) {
@@ -5743,7 +5743,7 @@ var require__hyperscript_min = __commonJS((exports, module) => {
               c5 = c5.css ? c5.css : c5;
             }
           }
-          var m4 = n3;
+          var m3 = n3;
           n3 = { type: "comparisonOperator", operator: a4, typeName: u4, nullOk: l4, lhs: n3, rhs: c5, args: [n3, c5], op: function(e4, r5, n4) {
             if (a4 === "==") {
               return r5 == n4;
@@ -5756,10 +5756,10 @@ var require__hyperscript_min = __commonJS((exports, module) => {
               return r5 !== n4;
             }
             if (a4 === "match") {
-              return r5 != null && p4(m4, r5, n4);
+              return r5 != null && p3(m3, r5, n4);
             }
             if (a4 === "not match") {
-              return r5 == null || !p4(m4, r5, n4);
+              return r5 == null || !p3(m3, r5, n4);
             }
             if (a4 === "in") {
               return n4 != null && f3(c5, n4, r5);
@@ -5768,16 +5768,16 @@ var require__hyperscript_min = __commonJS((exports, module) => {
               return n4 == null || !f3(c5, n4, r5);
             }
             if (a4 === "contain") {
-              return r5 != null && f3(m4, r5, n4);
+              return r5 != null && f3(m3, r5, n4);
             }
             if (a4 === "not contain") {
-              return r5 == null || !f3(m4, r5, n4);
+              return r5 == null || !f3(m3, r5, n4);
             }
             if (a4 === "include") {
-              return r5 != null && f3(m4, r5, n4);
+              return r5 != null && f3(m3, r5, n4);
             }
             if (a4 === "not include") {
-              return r5 == null || !f3(m4, r5, n4);
+              return r5 == null || !f3(m3, r5, n4);
             }
             if (a4 === "===") {
               return r5 === n4;
@@ -5882,7 +5882,7 @@ var require__hyperscript_min = __commonJS((exports, module) => {
           }
         } };
       });
-      var v4 = function(e3) {
+      var v3 = function(e3) {
         var t4 = [];
         if (e3.token(0).value === "(" && (e3.token(1).value === ")" || e3.token(2).value === "," || e3.token(2).value === ")")) {
           e3.matchOpToken("(");
@@ -5910,71 +5910,71 @@ var require__hyperscript_min = __commonJS((exports, module) => {
           } else {
             a4 = "on " + s4;
           }
-          var u4 = v4(r4);
+          var u4 = v3(r4);
           var l4 = null;
           if (r4.matchOpToken("[")) {
             l4 = e3.requireElement("expression", r4);
             r4.requireOpToken("]");
           }
-          var c5, f4, m4;
+          var c5, f4, m3;
           if (r4.currentToken().type === "NUMBER") {
-            var p5 = r4.consumeToken();
-            if (!p5.value)
+            var p4 = r4.consumeToken();
+            if (!p4.value)
               return;
-            c5 = parseInt(p5.value);
+            c5 = parseInt(p4.value);
             if (r4.matchToken("to")) {
-              var h5 = r4.consumeToken();
-              if (!h5.value)
+              var h4 = r4.consumeToken();
+              if (!h4.value)
                 return;
-              f4 = parseInt(h5.value);
+              f4 = parseInt(h4.value);
             } else if (r4.matchToken("and")) {
-              m4 = true;
+              m3 = true;
               r4.requireToken("on");
             }
           }
-          var d6, E4;
+          var d5, E3;
           if (s4 === "intersection") {
-            d6 = {};
+            d5 = {};
             if (r4.matchToken("with")) {
-              d6["with"] = e3.requireElement("expression", r4).evaluate();
+              d5["with"] = e3.requireElement("expression", r4).evaluate();
             }
             if (r4.matchToken("having")) {
               do {
                 if (r4.matchToken("margin")) {
-                  d6["rootMargin"] = e3.requireElement("stringLike", r4).evaluate();
+                  d5["rootMargin"] = e3.requireElement("stringLike", r4).evaluate();
                 } else if (r4.matchToken("threshold")) {
-                  d6["threshold"] = e3.requireElement("expression", r4).evaluate();
+                  d5["threshold"] = e3.requireElement("expression", r4).evaluate();
                 } else {
                   e3.raiseParseError(r4, "Unknown intersection config specification");
                 }
               } while (r4.matchToken("and"));
             }
           } else if (s4 === "mutation") {
-            E4 = {};
+            E3 = {};
             if (r4.matchToken("of")) {
               do {
                 if (r4.matchToken("anything")) {
-                  E4["attributes"] = true;
-                  E4["subtree"] = true;
-                  E4["characterData"] = true;
-                  E4["childList"] = true;
+                  E3["attributes"] = true;
+                  E3["subtree"] = true;
+                  E3["characterData"] = true;
+                  E3["childList"] = true;
                 } else if (r4.matchToken("childList")) {
-                  E4["childList"] = true;
+                  E3["childList"] = true;
                 } else if (r4.matchToken("attributes")) {
-                  E4["attributes"] = true;
-                  E4["attributeOldValue"] = true;
+                  E3["attributes"] = true;
+                  E3["attributeOldValue"] = true;
                 } else if (r4.matchToken("subtree")) {
-                  E4["subtree"] = true;
+                  E3["subtree"] = true;
                 } else if (r4.matchToken("characterData")) {
-                  E4["characterData"] = true;
-                  E4["characterDataOldValue"] = true;
+                  E3["characterData"] = true;
+                  E3["characterDataOldValue"] = true;
                 } else if (r4.currentToken().type === "ATTRIBUTE_REF") {
-                  var T5 = r4.consumeToken();
-                  if (E4["attributeFilter"] == null) {
-                    E4["attributeFilter"] = [];
+                  var T4 = r4.consumeToken();
+                  if (E3["attributeFilter"] == null) {
+                    E3["attributeFilter"] = [];
                   }
-                  if (T5.value.indexOf("@") == 0) {
-                    E4["attributeFilter"].push(T5.value.substring(1));
+                  if (T4.value.indexOf("@") == 0) {
+                    E3["attributeFilter"].push(T4.value.substring(1));
                   } else {
                     e3.raiseParseError(r4, "Only shorthand attribute references are allowed here");
                   }
@@ -5983,12 +5983,12 @@ var require__hyperscript_min = __commonJS((exports, module) => {
                 }
               } while (r4.matchToken("or"));
             } else {
-              E4["attributes"] = true;
-              E4["characterData"] = true;
-              E4["childList"] = true;
+              E3["attributes"] = true;
+              E3["characterData"] = true;
+              E3["childList"] = true;
             }
           }
-          var y5 = null;
+          var y4 = null;
           var k4 = false;
           if (r4.matchToken("from")) {
             if (r4.matchToken("elsewhere")) {
@@ -5996,79 +5996,79 @@ var require__hyperscript_min = __commonJS((exports, module) => {
             } else {
               r4.pushFollow("or");
               try {
-                y5 = e3.requireElement("expression", r4);
+                y4 = e3.requireElement("expression", r4);
               } finally {
                 r4.popFollow();
               }
-              if (!y5) {
+              if (!y4) {
                 e3.raiseParseError(r4, 'Expected either target value or "elsewhere".');
               }
             }
           }
-          if (y5 === null && k4 === false && r4.matchToken("elsewhere")) {
+          if (y4 === null && k4 === false && r4.matchToken("elsewhere")) {
             k4 = true;
           }
           if (r4.matchToken("in")) {
-            var x5 = e3.parseElement("unaryExpression", r4);
+            var x4 = e3.parseElement("unaryExpression", r4);
           }
           if (r4.matchToken("debounced")) {
             r4.requireToken("at");
-            var g5 = e3.requireElement("unaryExpression", r4);
-            var b5 = g5.evaluate({});
+            var g4 = e3.requireElement("unaryExpression", r4);
+            var b4 = g4.evaluate({});
           } else if (r4.matchToken("throttled")) {
             r4.requireToken("at");
-            var g5 = e3.requireElement("unaryExpression", r4);
-            var w5 = g5.evaluate({});
+            var g4 = e3.requireElement("unaryExpression", r4);
+            var w4 = g4.evaluate({});
           }
-          i3.push({ execCount: 0, every: n3, on: s4, args: u4, filter: l4, from: y5, inExpr: x5, elsewhere: k4, startCount: c5, endCount: f4, unbounded: m4, debounceTime: b5, throttleTime: w5, mutationSpec: E4, intersectionSpec: d6, debounced: undefined, lastExec: undefined });
+          i3.push({ execCount: 0, every: n3, on: s4, args: u4, filter: l4, from: y4, inExpr: x4, elsewhere: k4, startCount: c5, endCount: f4, unbounded: m3, debounceTime: b4, throttleTime: w4, mutationSpec: E3, intersectionSpec: d5, debounced: undefined, lastExec: undefined });
         } while (r4.matchToken("or"));
-        var S5 = true;
+        var S4 = true;
         if (!n3) {
           if (r4.matchToken("queue")) {
             if (r4.matchToken("all")) {
-              var q4 = true;
-              var S5 = false;
+              var q3 = true;
+              var S4 = false;
             } else if (r4.matchToken("first")) {
-              var N3 = true;
+              var N2 = true;
             } else if (r4.matchToken("none")) {
-              var I4 = true;
+              var I3 = true;
             } else {
               r4.requireToken("last");
             }
           }
         }
-        var C3 = e3.requireElement("commandList", r4);
-        e3.ensureTerminated(C3);
-        var R4, A4;
+        var C2 = e3.requireElement("commandList", r4);
+        e3.ensureTerminated(C2);
+        var R3, A3;
         if (r4.matchToken("catch")) {
-          R4 = r4.requireTokenType("IDENTIFIER").value;
-          A4 = e3.requireElement("commandList", r4);
-          e3.ensureTerminated(A4);
+          R3 = r4.requireTokenType("IDENTIFIER").value;
+          A3 = e3.requireElement("commandList", r4);
+          e3.ensureTerminated(A3);
         }
         if (r4.matchToken("finally")) {
-          var L3 = e3.requireElement("commandList", r4);
-          e3.ensureTerminated(L3);
+          var L2 = e3.requireElement("commandList", r4);
+          e3.ensureTerminated(L2);
         }
-        var O3 = { displayName: a4, events: i3, start: C3, every: n3, execCount: 0, errorHandler: A4, errorSymbol: R4, execute: function(e4) {
-          let r5 = t4.getEventQueueFor(e4.me, O3);
+        var O2 = { displayName: a4, events: i3, start: C2, every: n3, execCount: 0, errorHandler: A3, errorSymbol: R3, execute: function(e4) {
+          let r5 = t4.getEventQueueFor(e4.me, O2);
           if (r5.executing && n3 === false) {
-            if (I4 || N3 && r5.queue.length > 0) {
+            if (I3 || N2 && r5.queue.length > 0) {
               return;
             }
-            if (S5) {
+            if (S4) {
               r5.queue.length = 0;
             }
             r5.queue.push(e4);
             return;
           }
-          O3.execCount++;
+          O2.execCount++;
           r5.executing = true;
           e4.meta.onHalt = function() {
             r5.executing = false;
             var e5 = r5.queue.shift();
             if (e5) {
               setTimeout(function() {
-                O3.execute(e5);
+                O2.execute(e5);
               }, 1);
             }
           };
@@ -6080,14 +6080,14 @@ var require__hyperscript_min = __commonJS((exports, module) => {
             }
             t4.triggerEvent(e4.me, "exception", { error: r6 });
           };
-          C3.execute(e4);
+          C2.execute(e4);
         }, install: function(e4, r5) {
-          for (const r6 of O3.events) {
+          for (const r6 of O2.events) {
             var n4;
             if (r6.elsewhere) {
               n4 = [document];
             } else if (r6.from) {
-              n4 = r6.from.evaluate(t4.makeContext(e4, O3, e4, null));
+              n4 = r6.from.evaluate(t4.makeContext(e4, O2, e4, null));
             } else {
               n4 = [e4];
             }
@@ -6100,7 +6100,7 @@ var require__hyperscript_min = __commonJS((exports, module) => {
               if (r6.mutationSpec) {
                 i4 = "hyperscript:mutation";
                 const e5 = new MutationObserver(function(e6, r7) {
-                  if (!O3.executing) {
+                  if (!O2.executing) {
                     t4.triggerEvent(n5, i4, { mutationList: e6, observer: r7 });
                   }
                 });
@@ -6124,7 +6124,7 @@ var require__hyperscript_min = __commonJS((exports, module) => {
                   n5.removeEventListener(i4, a);
                   return;
                 }
-                var s5 = t4.makeContext(e4, O3, e4, o5);
+                var s5 = t4.makeContext(e4, O2, e4, o5);
                 if (r6.elsewhere && e4.contains(o5.target)) {
                   return;
                 }
@@ -6139,9 +6139,9 @@ var require__hyperscript_min = __commonJS((exports, module) => {
                     s5.locals[e5.value] = s5.event["detail"][e5.value];
                   }
                 }
-                s5.meta.errorHandler = A4;
-                s5.meta.errorSymbol = R4;
-                s5.meta.finallyHandler = L3;
+                s5.meta.errorHandler = A3;
+                s5.meta.errorSymbol = R3;
+                s5.meta.finallyHandler = L2;
                 if (r6.filter) {
                   var u5 = s5.meta.context;
                   s5.meta.context = s5.event;
@@ -6188,7 +6188,7 @@ var require__hyperscript_min = __commonJS((exports, module) => {
                     clearTimeout(r6.debounced);
                   }
                   r6.debounced = setTimeout(function() {
-                    O3.execute(s5);
+                    O2.execute(s5);
                   }, r6.debounceTime);
                   return;
                 }
@@ -6199,13 +6199,13 @@ var require__hyperscript_min = __commonJS((exports, module) => {
                     r6.lastExec = Date.now();
                   }
                 }
-                O3.execute(s5);
+                O2.execute(s5);
               });
             });
           }
         } };
-        e3.setParent(C3, O3);
-        return O3;
+        e3.setParent(C2, O2);
+        return O2;
       });
       t3.addFeature("def", function(e3, t4, r4) {
         if (!r4.matchToken("def"))
@@ -6234,11 +6234,11 @@ var require__hyperscript_min = __commonJS((exports, module) => {
           var f4 = e3.requireElement("commandList", r4);
           e3.ensureTerminated(f4);
         }
-        var m4 = { displayName: o3 + "(" + s4.map(function(e4) {
+        var m3 = { displayName: o3 + "(" + s4.map(function(e4) {
           return e4.value;
         }).join(", ") + ")", name: o3, args: s4, start: u4, errorHandler: c5, errorSymbol: l4, finallyHandler: f4, install: function(e4, r5) {
           var n4 = function() {
-            var n5 = t4.makeContext(r5, m4, e4, null);
+            var n5 = t4.makeContext(r5, m3, e4, null);
             n5.meta.errorHandler = c5;
             n5.meta.errorSymbol = l4;
             n5.meta.finallyHandler = f4;
@@ -6253,18 +6253,18 @@ var require__hyperscript_min = __commonJS((exports, module) => {
             if (n5.meta.caller) {
               n5.meta.callingCommand = n5.meta.caller.meta.command;
             }
-            var p5, h5 = null;
-            var v5 = new Promise(function(e5, t5) {
-              p5 = e5;
-              h5 = t5;
+            var p4, h4 = null;
+            var v4 = new Promise(function(e5, t5) {
+              p4 = e5;
+              h4 = t5;
             });
             u4.execute(n5);
             if (n5.meta.returned) {
               return n5.meta.returnValue;
             } else {
-              n5.meta.resolve = p5;
-              n5.meta.reject = h5;
-              return v5;
+              n5.meta.resolve = p4;
+              n5.meta.reject = h4;
+              return v4;
             }
           };
           n4.hyperfunc = true;
@@ -6275,8 +6275,8 @@ var require__hyperscript_min = __commonJS((exports, module) => {
         if (c5) {
           e3.ensureTerminated(c5);
         }
-        e3.setParent(u4, m4);
-        return m4;
+        e3.setParent(u4, m3);
+        return m3;
       });
       t3.addFeature("set", function(e3, t4, r4) {
         let n3 = e3.parseElement("setCommand", r4);
@@ -6337,7 +6337,7 @@ var require__hyperscript_min = __commonJS((exports, module) => {
         return { install: function(t5, n4) {
           r4.assignToNamespace(e2.document && e2.document.body, a4, o3, function(e3, t6, n5) {
             var a5 = r4.getInternalData(e3);
-            var o4 = h4(a5, i3 + "Scope");
+            var o4 = h3(a5, i3 + "Scope");
             for (var l5 = 0;l5 < s4.length; l5++) {
               o4[s4[l5]] = n5[s4[l5]];
             }
@@ -6422,7 +6422,7 @@ var require__hyperscript_min = __commonJS((exports, module) => {
         }
         var o3 = t4.requireElement("jsBody", n3);
         n3.matchToken("end");
-        var s4 = E3(Function, i3.concat([o3.jsSource]));
+        var s4 = E2(Function, i3.concat([o3.jsSource]));
         var u4 = { jsSource: o3.jsSource, function: s4, inputs: i3, op: function(t5) {
           var n4 = [];
           i3.forEach(function(e3) {
@@ -6512,7 +6512,7 @@ var require__hyperscript_min = __commonJS((exports, module) => {
             if (a4.type === "NUMBER" || a4.type === "L_PAREN") {
               i3.push({ time: e3.requireElement("expression", r4).evaluate() });
             } else {
-              i3.push({ name: e3.requireElement("dotOrColonPath", r4, "Expected event name").evaluate(), args: v4(r4) });
+              i3.push({ name: e3.requireElement("dotOrColonPath", r4, "Expected event name").evaluate(), args: v3(r4) });
             }
           } while (r4.matchToken("or"));
           if (r4.matchToken("from")) {
@@ -6590,7 +6590,7 @@ var require__hyperscript_min = __commonJS((exports, module) => {
         }
         return e3.parseElement("dotOrColonPath", r4);
       });
-      function d5(e3, t4, r4, n3) {
+      function d4(e3, t4, r4, n3) {
         var i3 = t4.requireElement("eventName", n3);
         var a4 = t4.parseElement("namedArgumentList", n3);
         if (e3 === "send" && n3.matchToken("to") || e3 === "trigger" && n3.matchToken("on")) {
@@ -6609,15 +6609,15 @@ var require__hyperscript_min = __commonJS((exports, module) => {
       }
       t3.addCommand("trigger", function(e3, t4, r4) {
         if (r4.matchToken("trigger")) {
-          return d5("trigger", e3, t4, r4);
+          return d4("trigger", e3, t4, r4);
         }
       });
       t3.addCommand("send", function(e3, t4, r4) {
         if (r4.matchToken("send")) {
-          return d5("send", e3, t4, r4);
+          return d4("send", e3, t4, r4);
         }
       });
-      var T4 = function(e3, t4, r4, n3) {
+      var T3 = function(e3, t4, r4, n3) {
         if (n3) {
           if (e3.commandBoundary(r4.currentToken())) {
             e3.raiseParseError(r4, "'return' commands must return a value.  If you do not wish to return a value, use 'exit' instead.");
@@ -6642,12 +6642,12 @@ var require__hyperscript_min = __commonJS((exports, module) => {
       };
       t3.addCommand("return", function(e3, t4, r4) {
         if (r4.matchToken("return")) {
-          return T4(e3, t4, r4, true);
+          return T3(e3, t4, r4, true);
         }
       });
       t3.addCommand("exit", function(e3, t4, r4) {
         if (r4.matchToken("exit")) {
-          return T4(e3, t4, r4, false);
+          return T3(e3, t4, r4, false);
         }
       });
       t3.addCommand("halt", function(e3, t4, r4) {
@@ -6664,7 +6664,7 @@ var require__hyperscript_min = __commonJS((exports, module) => {
           } else if (r4.matchToken("default")) {
             var a4 = true;
           }
-          var o3 = T4(e3, t4, r4, false);
+          var o3 = T3(e3, t4, r4, false);
           var s4 = { keepExecuting: true, bubbling: i3, haltDefault: a4, exit: o3, op: function(e4) {
             if (e4.event) {
               if (i3) {
@@ -6732,7 +6732,7 @@ var require__hyperscript_min = __commonJS((exports, module) => {
         } };
         return i3;
       });
-      var y4 = function(e3, t4, r4) {
+      var y3 = function(e3, t4, r4) {
         var n3 = e3.requireElement("expression", r4);
         var i3 = { expr: n3, args: [n3], op: function(e4, r5) {
           e4.result = r5;
@@ -6743,7 +6743,7 @@ var require__hyperscript_min = __commonJS((exports, module) => {
       t3.addCommand("call", function(e3, t4, r4) {
         if (!r4.matchToken("call"))
           return;
-        var n3 = y4(e3, t4, r4);
+        var n3 = y3(e3, t4, r4);
         if (n3.expr && n3.expr.type !== "functionCall") {
           e3.raiseParseError(r4, "Must be a function invocation");
         }
@@ -6751,7 +6751,7 @@ var require__hyperscript_min = __commonJS((exports, module) => {
       });
       t3.addCommand("get", function(e3, t4, r4) {
         if (r4.matchToken("get")) {
-          return y4(e3, t4, r4);
+          return y3(e3, t4, r4);
         }
       });
       t3.addCommand("make", function(e3, t4, r4) {
@@ -6797,7 +6797,7 @@ var require__hyperscript_min = __commonJS((exports, module) => {
           return o3;
         } else {
           o3 = { args: [n3, i3], op: function(e4, r5, n4) {
-            e4.result = E3(r5, n4);
+            e4.result = E2(r5, n4);
             if (a4) {
               t4.setSymbol(a4.name, e4, a4.scope, e4.result);
             }
@@ -6874,7 +6874,7 @@ var require__hyperscript_min = __commonJS((exports, module) => {
           var f4 = n3.attribute;
           l4 = n3.root;
         }
-        var m4 = { target: n3, symbolWrite: a4, value: i3, args: [l4, c5, i3], op: function(e4, r5, i4, o4) {
+        var m3 = { target: n3, symbolWrite: a4, value: i3, args: [l4, c5, i3], op: function(e4, r5, i4, o4) {
           if (a4) {
             t4.setSymbol(n3.name, e4, n3.scope, o4);
           } else {
@@ -6901,7 +6901,7 @@ var require__hyperscript_min = __commonJS((exports, module) => {
           }
           return t4.findNext(this, e4);
         } };
-        return m4;
+        return m3;
       };
       t3.addCommand("default", function(e3, t4, r4) {
         if (!r4.matchToken("default"))
@@ -6976,7 +6976,7 @@ var require__hyperscript_min = __commonJS((exports, module) => {
         e3.setParent(s4, u4);
         return u4;
       });
-      var x4 = function(e3, t4, r4, n3) {
+      var x3 = function(e3, t4, r4, n3) {
         var i3 = t4.currentToken();
         var a4;
         if (t4.matchToken("for") || n3) {
@@ -7001,52 +7001,52 @@ var require__hyperscript_min = __commonJS((exports, module) => {
           }
         } else {
           if (!e3.commandBoundary(t4.currentToken()) && t4.currentToken().value !== "forever") {
-            var m4 = e3.requireElement("expression", t4);
+            var m3 = e3.requireElement("expression", t4);
             t4.requireToken("times");
           } else {
             t4.matchToken("forever");
-            var p5 = true;
+            var p4 = true;
           }
         }
         if (t4.matchToken("index")) {
           var o3 = t4.requireTokenType("IDENTIFIER");
-          var h5 = o3.value;
+          var h4 = o3.value;
         }
-        var v5 = e3.parseElement("commandList", t4);
-        if (v5 && c5) {
-          var d6 = v5;
-          while (d6.next) {
-            d6 = d6.next;
+        var v4 = e3.parseElement("commandList", t4);
+        if (v4 && c5) {
+          var d5 = v4;
+          while (d5.next) {
+            d5 = d5.next;
           }
-          var E4 = { type: "waitATick", op: function() {
+          var E3 = { type: "waitATick", op: function() {
             return new Promise(function(e4) {
               setTimeout(function() {
-                e4(r4.findNext(E4));
+                e4(r4.findNext(E3));
               }, 0);
             });
           } };
-          d6.next = E4;
+          d5.next = E3;
         }
         if (t4.hasMore()) {
           t4.requireToken("end");
         }
         if (a4 == null) {
           a4 = "_implicit_repeat_" + i3.start;
-          var T5 = a4;
+          var T4 = a4;
         } else {
-          var T5 = a4 + "_" + i3.start;
+          var T4 = a4 + "_" + i3.start;
         }
-        var y5 = { identifier: a4, indexIdentifier: h5, slot: T5, expression: s4, forever: p5, times: m4, until: l4, event: c5, on: f4, whileExpr: u4, resolveNext: function() {
+        var y4 = { identifier: a4, indexIdentifier: h4, slot: T4, expression: s4, forever: p4, times: m3, until: l4, event: c5, on: f4, whileExpr: u4, resolveNext: function() {
           return this;
-        }, loop: v5, args: [u4, m4], op: function(e4, t5, n4) {
-          var i4 = e4.meta.iterators[T5];
+        }, loop: v4, args: [u4, m3], op: function(e4, t5, n4) {
+          var i4 = e4.meta.iterators[T4];
           var o4 = false;
           var s5 = null;
           if (this.forever) {
             o4 = true;
           } else if (this.until) {
             if (c5) {
-              o4 = e4.meta.iterators[T5].eventFired === false;
+              o4 = e4.meta.iterators[T4].eventFired === false;
             } else {
               o4 = t5 !== true;
             }
@@ -7065,44 +7065,44 @@ var require__hyperscript_min = __commonJS((exports, module) => {
             } else {
               e4.result = i4.index;
             }
-            if (h5) {
-              e4.locals[h5] = i4.index;
+            if (h4) {
+              e4.locals[h4] = i4.index;
             }
             i4.index++;
-            return v5;
+            return v4;
           } else {
-            e4.meta.iterators[T5] = null;
+            e4.meta.iterators[T4] = null;
             return r4.findNext(this.parent, e4);
           }
         } };
-        e3.setParent(v5, y5);
+        e3.setParent(v4, y4);
         var k4 = { name: "repeatInit", args: [s4, c5, f4], op: function(e4, t5, r5, n4) {
           var i4 = { index: 0, value: t5, eventFired: false };
-          e4.meta.iterators[T5] = i4;
+          e4.meta.iterators[T4] = i4;
           if (t5 && t5[Symbol.iterator]) {
             i4.iterator = t5[Symbol.iterator]();
           }
           if (c5) {
             var a5 = n4 || e4.me;
             a5.addEventListener(r5, function(t6) {
-              e4.meta.iterators[T5].eventFired = true;
+              e4.meta.iterators[T4].eventFired = true;
             }, { once: true });
           }
-          return y5;
+          return y4;
         }, execute: function(e4) {
           return r4.unifiedExec(this, e4);
         } };
-        e3.setParent(y5, k4);
+        e3.setParent(y4, k4);
         return k4;
       };
       t3.addCommand("repeat", function(e3, t4, r4) {
         if (r4.matchToken("repeat")) {
-          return x4(e3, r4, t4, false);
+          return x3(e3, r4, t4, false);
         }
       });
       t3.addCommand("for", function(e3, t4, r4) {
         if (r4.matchToken("for")) {
-          return x4(e3, r4, t4, true);
+          return x3(e3, r4, t4, true);
         }
       });
       t3.addCommand("continue", function(e3, t4, r4) {
@@ -7176,7 +7176,7 @@ var require__hyperscript_min = __commonJS((exports, module) => {
         }
         return s4;
       });
-      function g4(e3, t4, r4) {
+      function g3(e3, t4, r4) {
         r4.matchToken("at") || r4.matchToken("from");
         const n3 = { includeStart: true, includeEnd: false };
         n3.from = r4.matchToken("start") ? 0 : e3.requireElement("expression", r4);
@@ -7194,7 +7194,7 @@ var require__hyperscript_min = __commonJS((exports, module) => {
         return n3;
       }
 
-      class b4 {
+      class b3 {
         constructor(e3, t4) {
           this.re = e3;
           this.str = t4;
@@ -7208,14 +7208,14 @@ var require__hyperscript_min = __commonJS((exports, module) => {
         }
       }
 
-      class w4 {
+      class w3 {
         constructor(e3, t4, r4) {
           this.re = e3;
           this.flags = t4;
           this.str = r4;
         }
         [Symbol.iterator]() {
-          return new b4(new RegExp(this.re, this.flags), this.str);
+          return new b3(new RegExp(this.re, this.flags), this.str);
         }
       }
       t3.addCommand("pick", (e3, t4, r4) => {
@@ -7223,7 +7223,7 @@ var require__hyperscript_min = __commonJS((exports, module) => {
           return;
         r4.matchToken("the");
         if (r4.matchToken("item") || r4.matchToken("items") || r4.matchToken("character") || r4.matchToken("characters")) {
-          const n3 = g4(e3, t4, r4);
+          const n3 = g3(e3, t4, r4);
           r4.requireToken("from");
           const i3 = e3.requireElement("expression", r4);
           return { args: [i3, n3.from, n3.to], op(e4, r5, i4, a4) {
@@ -7264,7 +7264,7 @@ var require__hyperscript_min = __commonJS((exports, module) => {
           r4.requireToken("from");
           const a4 = e3.parseElement("expression", r4);
           return { args: [a4, n3], op(e4, r5, n4) {
-            e4.result = new w4(n4, i3, r5);
+            e4.result = new w3(n4, i3, r5);
             return t4.findNext(this, e4);
           } };
         }
@@ -7307,7 +7307,7 @@ var require__hyperscript_min = __commonJS((exports, module) => {
         } };
         return k3(e3, t4, r4, i3, a4);
       });
-      function S4(e3, t4) {
+      function S3(e3, t4) {
         var r4 = "text";
         var n3;
         e3.matchToken("a") || e3.matchToken("an");
@@ -7328,7 +7328,7 @@ var require__hyperscript_min = __commonJS((exports, module) => {
           return;
         var n3 = e3.requireElement("stringLike", r4);
         if (r4.matchToken("as")) {
-          var i3 = S4(r4, e3);
+          var i3 = S3(r4, e3);
         }
         if (r4.matchToken("with") && r4.currentToken().value !== "{") {
           var a4 = e3.parseElement("nakedNamedArgumentList", r4);
@@ -7336,7 +7336,7 @@ var require__hyperscript_min = __commonJS((exports, module) => {
           var a4 = e3.parseElement("objectLiteral", r4);
         }
         if (i3 == null && r4.matchToken("as")) {
-          i3 = S4(r4, e3);
+          i3 = S3(r4, e3);
         }
         var o3 = i3 ? i3.type : "text";
         var s4 = i3 ? i3.conversion : null;
@@ -7398,7 +7398,7 @@ var require__hyperscript_min = __commonJS((exports, module) => {
         return u4;
       });
     }
-    function y3(e3) {
+    function y2(e3) {
       e3.addCommand("settle", function(e4, t4, r3) {
         if (r3.matchToken("settle")) {
           if (!e4.commandBoundary(r3.currentToken())) {
@@ -7644,9 +7644,9 @@ var require__hyperscript_min = __commonJS((exports, module) => {
                 e4.raiseParseError(r3, "Expected either a class reference or attribute expression");
               }
             } else {
-              var m4 = [l3];
+              var m3 = [l3];
               while (l3 = e4.parseElement("classRef", r3)) {
-                m4.push(l3);
+                m3.push(l3);
               }
             }
           }
@@ -7658,14 +7658,14 @@ var require__hyperscript_min = __commonJS((exports, module) => {
             }
           }
           if (r3.matchToken("for")) {
-            var p4 = e4.requireElement("expression", r3);
+            var p3 = e4.requireElement("expression", r3);
           } else if (r3.matchToken("until")) {
-            var h5 = e4.requireElement("dotOrColonPath", r3, "Expected event name");
+            var h4 = e4.requireElement("dotOrColonPath", r3, "Expected event name");
             if (r3.matchToken("from")) {
-              var v4 = e4.requireElement("expression", r3);
+              var v3 = e4.requireElement("expression", r3);
             }
           }
-          var d5 = { classRef: l3, classRef2: c4, classRefs: m4, attributeRef: f3, on: s3, time: p4, evt: h5, from: v4, toggle: function(e5, r4, n5, i4) {
+          var d4 = { classRef: l3, classRef2: c4, classRefs: m3, attributeRef: f3, on: s3, time: p3, evt: h4, from: v3, toggle: function(e5, r4, n5, i4) {
             t4.nullCheck(e5, s3);
             if (a4) {
               t4.implicitLoop(e5, function(e6) {
@@ -7696,30 +7696,30 @@ var require__hyperscript_min = __commonJS((exports, module) => {
                 }
               });
             }
-          }, args: [s3, p4, h5, v4, l3, c4, m4], op: function(e5, r4, n5, i4, a5, o5, s4, u4) {
+          }, args: [s3, p3, h4, v3, l3, c4, m3], op: function(e5, r4, n5, i4, a5, o5, s4, u4) {
             if (n5) {
               return new Promise(function(i5) {
-                d5.toggle(r4, o5, s4, u4);
+                d4.toggle(r4, o5, s4, u4);
                 setTimeout(function() {
-                  d5.toggle(r4, o5, s4, u4);
-                  i5(t4.findNext(d5, e5));
+                  d4.toggle(r4, o5, s4, u4);
+                  i5(t4.findNext(d4, e5));
                 }, n5);
               });
             } else if (i4) {
               return new Promise(function(n6) {
                 var l4 = a5 || e5.me;
                 l4.addEventListener(i4, function() {
-                  d5.toggle(r4, o5, s4, u4);
-                  n6(t4.findNext(d5, e5));
+                  d4.toggle(r4, o5, s4, u4);
+                  n6(t4.findNext(d4, e5));
                 }, { once: true });
-                d5.toggle(r4, o5, s4, u4);
+                d4.toggle(r4, o5, s4, u4);
               });
             } else {
               this.toggle(r4, o5, s4, u4);
-              return t4.findNext(d5, e5);
+              return t4.findNext(d4, e5);
             }
           } };
-          return d5;
+          return d4;
         }
       });
       var t3 = { display: function(r3, n4, i4) {
@@ -7975,32 +7975,32 @@ var require__hyperscript_min = __commonJS((exports, module) => {
             l3 = true;
             f3 = o4.name;
           } else if (o4.type === "attributeRef" && s3 === "into") {
-            var m4 = true;
+            var m3 = true;
             f3 = o4.name;
             c4 = e4.requireElement("implicitMeTarget", r3);
           } else if (o4.type === "styleRef" && s3 === "into") {
-            var p4 = true;
+            var p3 = true;
             f3 = o4.name;
             c4 = e4.requireElement("implicitMeTarget", r3);
           } else if (o4.attribute && s3 === "into") {
-            var m4 = o4.attribute.type === "attributeRef";
-            var p4 = o4.attribute.type === "styleRef";
+            var m3 = o4.attribute.type === "attributeRef";
+            var p3 = o4.attribute.type === "styleRef";
             f3 = o4.attribute.name;
             c4 = o4.root;
           } else {
             c4 = o4;
           }
-          var h5 = { target: o4, operation: s3, symbolWrite: l3, value: n4, args: [c4, f3, n4], op: function(e5, r4, n5, i5) {
+          var h4 = { target: o4, operation: s3, symbolWrite: l3, value: n4, args: [c4, f3, n4], op: function(e5, r4, n5, i5) {
             if (l3) {
               a3(t4, e5, n5, i5);
             } else {
               t4.nullCheck(r4, c4);
               if (s3 === "into") {
-                if (m4) {
+                if (m3) {
                   t4.implicitLoop(r4, function(e6) {
                     e6.setAttribute(n5, i5);
                   });
-                } else if (p4) {
+                } else if (p3) {
                   t4.implicitLoop(r4, function(e6) {
                     e6.style[n5] = i5;
                   });
@@ -8025,7 +8025,7 @@ var require__hyperscript_min = __commonJS((exports, module) => {
             }
             return t4.findNext(this, e5);
           } };
-          return h5;
+          return h4;
         }
       });
       function o3(e4, t4, r3) {
@@ -8088,7 +8088,7 @@ var require__hyperscript_min = __commonJS((exports, module) => {
           } else if (n4.matchToken("using")) {
             var f3 = e4.requireElement("expression", n4);
           }
-          var m4 = { to: u3, args: [i4, a4, s3, u3, f3, c4], op: function(e5, n5, a5, o4, s4, u4, l4) {
+          var m3 = { to: u3, args: [i4, a4, s3, u3, f3, c4], op: function(e5, n5, a5, o4, s4, u4, l4) {
             t4.nullCheck(n5, i4);
             var c5 = [];
             t4.implicitLoop(n5, function(e6) {
@@ -8102,26 +8102,26 @@ var require__hyperscript_min = __commonJS((exports, module) => {
                   e6.style.transition = r2.defaultTransition;
                 }
                 var f4 = t4.getInternalData(e6);
-                var m5 = getComputedStyle(e6);
-                var p4 = {};
-                for (var h5 = 0;h5 < m5.length; h5++) {
-                  var v4 = m5[h5];
-                  var d5 = m5[v4];
-                  p4[v4] = d5;
+                var m4 = getComputedStyle(e6);
+                var p3 = {};
+                for (var h4 = 0;h4 < m4.length; h4++) {
+                  var v3 = m4[h4];
+                  var d4 = m4[v3];
+                  p3[v3] = d4;
                 }
                 if (!f4.initialStyles) {
-                  f4.initialStyles = p4;
+                  f4.initialStyles = p3;
                 }
-                for (var h5 = 0;h5 < a5.length; h5++) {
-                  var E4 = a5[h5];
-                  var T4 = o4[h5];
-                  if (T4 === "computed" || T4 == null) {
-                    e6.style[E4] = p4[E4];
+                for (var h4 = 0;h4 < a5.length; h4++) {
+                  var E3 = a5[h4];
+                  var T3 = o4[h4];
+                  if (T3 === "computed" || T3 == null) {
+                    e6.style[E3] = p3[E3];
                   } else {
-                    e6.style[E4] = T4;
+                    e6.style[E3] = T3;
                   }
                 }
-                var y4 = false;
+                var y3 = false;
                 var k3 = false;
                 e6.addEventListener("transitionend", function() {
                   if (!k3) {
@@ -8131,10 +8131,10 @@ var require__hyperscript_min = __commonJS((exports, module) => {
                   }
                 }, { once: true });
                 e6.addEventListener("transitionstart", function() {
-                  y4 = true;
+                  y3 = true;
                 }, { once: true });
                 setTimeout(function() {
-                  if (!k3 && !y4) {
+                  if (!k3 && !y3) {
                     e6.style.transition = c6;
                     k3 = true;
                     n7();
@@ -8157,10 +8157,10 @@ var require__hyperscript_min = __commonJS((exports, module) => {
               c5.push(n6);
             });
             return Promise.all(c5).then(function() {
-              return t4.findNext(m4, e5);
+              return t4.findNext(m3, e5);
             });
           } };
-          return m4;
+          return m3;
         }
       });
       e3.addCommand("measure", function(e4, t4, r3) {
@@ -8274,35 +8274,35 @@ var require__hyperscript_min = __commonJS((exports, module) => {
               }
               r3.matchToken("px");
               var f3 = r3.matchAnyToken("smoothly", "instantly");
-              var m4 = { block: "start", inline: "nearest" };
+              var m3 = { block: "start", inline: "nearest" };
               if (s3) {
                 if (s3.value === "top") {
-                  m4.block = "start";
+                  m3.block = "start";
                 } else if (s3.value === "bottom") {
-                  m4.block = "end";
+                  m3.block = "end";
                 } else if (s3.value === "middle") {
-                  m4.block = "center";
+                  m3.block = "center";
                 }
               }
               if (u3) {
                 if (u3.value === "left") {
-                  m4.inline = "start";
+                  m3.inline = "start";
                 } else if (u3.value === "center") {
-                  m4.inline = "center";
+                  m3.inline = "center";
                 } else if (u3.value === "right") {
-                  m4.inline = "end";
+                  m3.inline = "end";
                 }
               }
               if (f3) {
                 if (f3.value === "smoothly") {
-                  m4.behavior = "smooth";
+                  m3.behavior = "smooth";
                 } else if (f3.value === "instantly") {
-                  m4.behavior = "instant";
+                  m3.behavior = "instant";
                 }
               }
             }
           }
-          var p4 = { target: i4, args: [i4, c4], op: function(e5, r4, i5) {
+          var p3 = { target: i4, args: [i4, c4], op: function(e5, r4, i5) {
             if (n4) {
               window.history.back();
             } else if (a4) {
@@ -8322,8 +8322,8 @@ var require__hyperscript_min = __commonJS((exports, module) => {
                   let t5 = e6.getBoundingClientRect();
                   let r5 = document.createElement("div");
                   let n5 = l3.value === "+" ? i5 : i5 * -1;
-                  let a5 = m4.inline == "start" || m4.inline == "end" ? n5 : 0;
-                  let o5 = m4.block == "start" || m4.block == "end" ? n5 : 0;
+                  let a5 = m3.inline == "start" || m3.inline == "end" ? n5 : 0;
+                  let o5 = m3.block == "start" || m3.block == "end" ? n5 : 0;
                   r5.style.position = "absolute";
                   r5.style.top = t5.top + window.scrollY + o5 + "px";
                   r5.style.left = t5.left + window.scrollX + a5 + "px";
@@ -8337,12 +8337,12 @@ var require__hyperscript_min = __commonJS((exports, module) => {
                   }, 100);
                   e6 = r5;
                 }
-                e6.scrollIntoView(m4);
+                e6.scrollIntoView(m3);
               });
             }
-            return t4.findNext(p4, e5);
+            return t4.findNext(p3, e5);
           } };
-          return p4;
+          return p3;
         }
       });
       r2.conversions.dynamicResolvers.push(function(t4, r3) {
@@ -8458,17 +8458,17 @@ var require__hyperscript_min = __commonJS((exports, module) => {
         return r3;
       };
     }
-    const k2 = new o2, x3 = k2.lexer, g3 = k2.parser;
-    function b3(e3, t3) {
+    const k2 = new o2, x2 = k2.lexer, g2 = k2.parser;
+    function b2(e3, t3) {
       return k2.evaluate(e3, t3);
     }
-    function w3() {
+    function w2() {
       var t3 = Array.from(e2.document.querySelectorAll("script[type='text/hyperscript'][src]"));
       Promise.all(t3.map(function(e3) {
         return fetch(e3.src).then(function(e4) {
           return e4.text();
         });
-      })).then((e3) => e3.forEach((e4) => S3(e4))).then(() => n3(function() {
+      })).then((e3) => e3.forEach((e4) => S2(e4))).then(() => n3(function() {
         a3();
         k2.processNode(document.documentElement);
         e2.document.addEventListener("htmx:load", function(e3) {
@@ -8485,7 +8485,7 @@ var require__hyperscript_min = __commonJS((exports, module) => {
       function i3() {
         var e3 = document.querySelector('meta[name="htmx-config"]');
         if (e3) {
-          return v3(e3.content);
+          return v2(e3.content);
         } else {
           return null;
         }
@@ -8497,10 +8497,10 @@ var require__hyperscript_min = __commonJS((exports, module) => {
         }
       }
     }
-    const S3 = Object.assign(b3, { config: r2, use(e3) {
-      e3(S3);
-    }, internals: { lexer: x3, parser: g3, runtime: k2, Lexer: n2, Tokens: i2, Parser: a2, Runtime: o2 }, ElementCollection: m3, addFeature: g3.addFeature.bind(g3), addCommand: g3.addCommand.bind(g3), addLeafExpression: g3.addLeafExpression.bind(g3), addIndirectExpression: g3.addIndirectExpression.bind(g3), evaluate: k2.evaluate.bind(k2), parse: k2.parse.bind(k2), processNode: k2.processNode.bind(k2), version: "0.9.12", browserInit: w3 });
-    return S3;
+    const S2 = Object.assign(b2, { config: r2, use(e3) {
+      e3(S2);
+    }, internals: { lexer: x2, parser: g2, runtime: k2, Lexer: n2, Tokens: i2, Parser: a2, Runtime: o2 }, ElementCollection: m2, addFeature: g2.addFeature.bind(g2), addCommand: g2.addCommand.bind(g2), addLeafExpression: g2.addLeafExpression.bind(g2), addIndirectExpression: g2.addIndirectExpression.bind(g2), evaluate: k2.evaluate.bind(k2), parse: k2.parse.bind(k2), processNode: k2.processNode.bind(k2), version: "0.9.12", browserInit: w2 });
+    return S2;
   });
 });
 
@@ -17756,440 +17756,6 @@ var loader = __toESM(require_loader(), 1);
   }
 })();
 
-// src/main/resources/META-INF/resources/js/components.js
-var b2 = function() {
-};
-var q3 = function(e2) {
-  return e2();
-};
-var I3 = function() {
-  return Object.create(null);
-};
-var x2 = function(e2) {
-  e2.forEach(q3);
-};
-var z3 = function(e2) {
-  return typeof e2 == "function";
-};
-var H3 = function(e2, t2) {
-  return e2 != e2 ? t2 == t2 : e2 !== t2 || e2 && typeof e2 == "object" || typeof e2 == "function";
-};
-var F3 = function(e2) {
-  return Object.keys(e2).length === 0;
-};
-var G2 = function(e2, ...t2) {
-  if (e2 == null) {
-    for (const i2 of t2)
-      i2(undefined);
-    return b2;
-  }
-  const n2 = e2.subscribe(...t2);
-  return n2.unsubscribe ? () => n2.unsubscribe() : n2;
-};
-var K3 = function(e2, t2, n2) {
-  e2.$$.on_destroy.push(G2(t2, n2));
-};
-var h3 = function(e2, t2) {
-  e2.appendChild(t2);
-};
-var J3 = function(e2, t2, n2) {
-  e2.insertBefore(t2, n2 || null);
-};
-var P2 = function(e2) {
-  e2.parentNode && e2.parentNode.removeChild(e2);
-};
-var g2 = function(e2) {
-  return document.createElement(e2);
-};
-var N2 = function(e2) {
-  return document.createTextNode(e2);
-};
-var C2 = function() {
-  return N2(" ");
-};
-var A3 = function(e2, t2, n2, i2) {
-  return e2.addEventListener(t2, n2, i2), () => e2.removeEventListener(t2, n2, i2);
-};
-var O2 = function(e2, t2, n2) {
-  n2 == null ? e2.removeAttribute(t2) : e2.getAttribute(t2) !== n2 && e2.setAttribute(t2, n2);
-};
-var Q3 = function(e2) {
-  return Array.from(e2.childNodes);
-};
-var W3 = function(e2, t2) {
-  t2 = "" + t2, e2.data !== t2 && (e2.data = t2);
-};
-var X3 = function(e2) {
-  const t2 = {};
-  return e2.childNodes.forEach((n2) => {
-    t2[n2.slot || "default"] = true;
-  }), t2;
-};
-var E2 = function(e2) {
-  B3 = e2;
-};
-var Z3 = function() {
-  S2 || (S2 = true, Y3.then(M3));
-};
-var V3 = function(e2) {
-  w2.push(e2);
-};
-var M3 = function() {
-  if (p2 !== 0)
-    return;
-  const e2 = B3;
-  do {
-    try {
-      for (;p2 < y2.length; ) {
-        const t2 = y2[p2];
-        p2++, E2(t2), tt3(t2.$$);
-      }
-    } catch (t2) {
-      throw y2.length = 0, p2 = 0, t2;
-    }
-    for (E2(null), y2.length = 0, p2 = 0;R3.length; )
-      R3.pop()();
-    for (let t2 = 0;t2 < w2.length; t2 += 1) {
-      const n2 = w2[t2];
-      L2.has(n2) || (L2.add(n2), n2());
-    }
-    w2.length = 0;
-  } while (y2.length);
-  for (;T2.length; )
-    T2.pop()();
-  S2 = false, L2.clear(), E2(e2);
-};
-var tt3 = function(e2) {
-  if (e2.fragment !== null) {
-    e2.update(), x2(e2.before_update);
-    const t2 = e2.dirty;
-    e2.dirty = [-1], e2.fragment && e2.fragment.p(e2.ctx, t2), e2.after_update.forEach(V3);
-  }
-};
-var et3 = function(e2) {
-  const t2 = [], n2 = [];
-  w2.forEach((i2) => e2.indexOf(i2) === -1 ? t2.push(i2) : n2.push(i2)), n2.forEach((i2) => i2()), w2 = t2;
-};
-var st3 = function(e2, t2) {
-  e2 && e2.i && (nt3.delete(e2), e2.i(t2));
-};
-var it3 = function(e2, t2, n2) {
-  const { fragment: i2, after_update: c3 } = e2.$$;
-  i2 && i2.m(t2, n2), V3(() => {
-    const s2 = e2.$$.on_mount.map(q3).filter(z3);
-    e2.$$.on_destroy ? e2.$$.on_destroy.push(...s2) : x2(s2), e2.$$.on_mount = [];
-  }), c3.forEach(V3);
-};
-var rt2 = function(e2, t2) {
-  const n2 = e2.$$;
-  n2.fragment !== null && (et3(n2.after_update), x2(n2.on_destroy), n2.fragment && n2.fragment.d(t2), n2.on_destroy = n2.fragment = null, n2.ctx = []);
-};
-var ct3 = function(e2, t2) {
-  e2.$$.dirty[0] === -1 && (y2.push(e2), Z3(), e2.$$.dirty.fill(0)), e2.$$.dirty[t2 / 31 | 0] |= 1 << t2 % 31;
-};
-var ot2 = function(e2, t2, n2, i2, c3, s2, o2 = null, u2 = [-1]) {
-  const $3 = B3;
-  E2(e2);
-  const r2 = e2.$$ = {
-    fragment: null,
-    ctx: [],
-    props: s2,
-    update: b2,
-    not_equal: c3,
-    bound: I3(),
-    on_mount: [],
-    on_destroy: [],
-    on_disconnect: [],
-    before_update: [],
-    after_update: [],
-    context: new Map(t2.context || ($3 ? $3.$$.context : [])),
-    callbacks: I3(),
-    dirty: u2,
-    skip_bound: false,
-    root: t2.target || $3.$$.root
-  };
-  o2 && o2(r2.root);
-  let l2 = false;
-  if (r2.ctx = n2 ? n2(e2, t2.props || {}, (f2, k2, ...a2) => {
-    const _2 = a2.length ? a2[0] : k2;
-    return r2.ctx && c3(r2.ctx[f2], r2.ctx[f2] = _2) && (!r2.skip_bound && r2.bound[f2] && r2.bound[f2](_2), l2 && ct3(e2, f2)), k2;
-  }) : [], r2.update(), l2 = true, x2(r2.before_update), r2.fragment = i2 ? i2(r2.ctx) : false, t2.target) {
-    if (t2.hydrate) {
-      const f2 = Q3(t2.target);
-      r2.fragment && r2.fragment.l(f2), f2.forEach(P2);
-    } else
-      r2.fragment && r2.fragment.c();
-    t2.intro && st3(e2.$$.fragment), it3(e2, t2.target, t2.anchor), M3();
-  }
-  E2($3);
-};
-var j3 = function(e2, t2, n2, i2) {
-  var s2;
-  const c3 = (s2 = n2[e2]) == null ? undefined : s2.type;
-  if (t2 = c3 === "Boolean" && typeof t2 != "boolean" ? t2 != null : t2, !i2 || !n2[e2])
-    return t2;
-  if (i2 === "toAttribute")
-    switch (c3) {
-      case "Object":
-      case "Array":
-        return t2 == null ? null : JSON.stringify(t2);
-      case "Boolean":
-        return t2 ? "" : null;
-      case "Number":
-        return t2 ?? null;
-      default:
-        return t2;
-    }
-  else
-    switch (c3) {
-      case "Object":
-      case "Array":
-        return t2 && JSON.parse(t2);
-      case "Boolean":
-        return t2;
-      case "Number":
-        return t2 != null ? +t2 : t2;
-      default:
-        return t2;
-    }
-};
-var ut3 = function(e2, t2, n2, i2, c3, s2) {
-  let o2 = class extends v2 {
-    constructor() {
-      super(e2, n2, c3), this.$$p_d = t2;
-    }
-    static get observedAttributes() {
-      return Object.keys(t2).map((u2) => (t2[u2].attribute || u2).toLowerCase());
-    }
-  };
-  return Object.keys(t2).forEach((u2) => {
-    Object.defineProperty(o2.prototype, u2, {
-      get() {
-        return this.$$c && u2 in this.$$c ? this.$$c[u2] : this.$$d[u2];
-      },
-      set($3) {
-        var r2;
-        $3 = j3(u2, $3, t2), this.$$d[u2] = $3, (r2 = this.$$c) == null || r2.$set({ [u2]: $3 });
-      }
-    });
-  }), i2.forEach((u2) => {
-    Object.defineProperty(o2.prototype, u2, {
-      get() {
-        var $3;
-        return ($3 = this.$$c) == null ? undefined : $3[u2];
-      }
-    });
-  }), s2 && (o2 = s2(o2)), e2.element = o2, o2;
-};
-var ft3 = function(e2, t2 = b2) {
-  let n2;
-  const i2 = new Set;
-  function c3(u2) {
-    if (H3(e2, u2) && (e2 = u2, n2)) {
-      const $3 = !m2.length;
-      for (const r2 of i2)
-        r2[1](), m2.push(r2, e2);
-      if ($3) {
-        for (let r2 = 0;r2 < m2.length; r2 += 2)
-          m2[r2][0](m2[r2 + 1]);
-        m2.length = 0;
-      }
-    }
-  }
-  function s2(u2) {
-    c3(u2(e2));
-  }
-  function o2(u2, $3 = b2) {
-    const r2 = [u2, $3];
-    return i2.add(r2), i2.size === 1 && (n2 = t2(c3, s2) || b2), u2(e2), () => {
-      i2.delete(r2), i2.size === 0 && n2 && (n2(), n2 = null);
-    };
-  }
-  return { set: c3, update: s2, subscribe: o2 };
-};
-var dt3 = function(e2) {
-  let t2, n2, i2, c3, s2, o2, u2, $3, r2, l2, f2, k2;
-  return {
-    c() {
-      t2 = g2("div"), n2 = g2("span"), i2 = N2(e2[0]), c3 = C2(), s2 = g2("button"), s2.textContent = "-", o2 = C2(), u2 = g2("button"), u2.textContent = "+", $3 = C2(), r2 = g2("button"), l2 = N2("Reset"), O2(s2, "type", "button"), O2(u2, "type", "button"), O2(r2, "type", "button"), r2.disabled = e2[1];
-    },
-    m(a2, _2) {
-      J3(a2, t2, _2), h3(t2, n2), h3(n2, i2), h3(t2, c3), h3(t2, s2), h3(t2, o2), h3(t2, u2), h3(t2, $3), h3(t2, r2), h3(r2, l2), f2 || (k2 = [
-        A3(s2, "click", e2[4]),
-        A3(u2, "click", e2[3]),
-        A3(r2, "click", e2[5])
-      ], f2 = true);
-    },
-    p(a2, [_2]) {
-      _2 & 1 && W3(i2, a2[0]), _2 & 2 && (r2.disabled = a2[1]);
-    },
-    i: b2,
-    o: b2,
-    d(a2) {
-      a2 && P2(t2), f2 = false, x2(k2);
-    }
-  };
-};
-var at3 = function(e2, t2, n2) {
-  let i2, c3, { initialValue: s2 = 0 } = t2, o2 = ft3(s2);
-  K3(e2, o2, (l2) => n2(0, c3 = l2));
-  const u2 = () => o2.update((l2) => l2 += 1), $3 = () => o2.update((l2) => l2 -= 1), r2 = () => o2.set(s2);
-  return e2.$$set = (l2) => {
-    "initialValue" in l2 && n2(6, s2 = l2.initialValue);
-  }, e2.$$.update = () => {
-    e2.$$.dirty & 65 && n2(1, i2 = c3 === s2);
-  }, [c3, i2, o2, u2, $3, r2, s2];
-};
-var U3 = Object.defineProperty;
-var D2 = (e2, t2, n2) => (t2 in e2) ? U3(e2, t2, { enumerable: true, configurable: true, writable: true, value: n2 }) : e2[t2] = n2;
-var d3 = (e2, t2, n2) => (D2(e2, typeof t2 != "symbol" ? t2 + "" : t2, n2), n2);
-var B3;
-var y2 = [];
-var R3 = [];
-var w2 = [];
-var T2 = [];
-var Y3 = Promise.resolve();
-var S2 = false;
-var L2 = new Set;
-var p2 = 0;
-var nt3 = new Set;
-var v2;
-typeof HTMLElement == "function" && (v2 = class extends HTMLElement {
-  constructor(t2, n2, i2) {
-    super();
-    d3(this, "$$ctor");
-    d3(this, "$$s");
-    d3(this, "$$c");
-    d3(this, "$$cn", false);
-    d3(this, "$$d", {});
-    d3(this, "$$r", false);
-    d3(this, "$$p_d", {});
-    d3(this, "$$l", {});
-    d3(this, "$$l_u", new Map);
-    this.$$ctor = t2, this.$$s = n2, i2 && this.attachShadow({ mode: "open" });
-  }
-  addEventListener(t2, n2, i2) {
-    if (this.$$l[t2] = this.$$l[t2] || [], this.$$l[t2].push(n2), this.$$c) {
-      const c3 = this.$$c.$on(t2, n2);
-      this.$$l_u.set(n2, c3);
-    }
-    super.addEventListener(t2, n2, i2);
-  }
-  removeEventListener(t2, n2, i2) {
-    if (super.removeEventListener(t2, n2, i2), this.$$c) {
-      const c3 = this.$$l_u.get(n2);
-      c3 && (c3(), this.$$l_u.delete(n2));
-    }
-  }
-  async connectedCallback() {
-    if (this.$$cn = true, !this.$$c) {
-      let t2 = function(s2) {
-        return () => {
-          let o2;
-          return {
-            c: function() {
-              o2 = g2("slot"), s2 !== "default" && O2(o2, "name", s2);
-            },
-            m: function(r2, l2) {
-              J3(r2, o2, l2);
-            },
-            d: function(r2) {
-              r2 && P2(o2);
-            }
-          };
-        };
-      };
-      if (await Promise.resolve(), !this.$$cn || this.$$c)
-        return;
-      const n2 = {}, i2 = X3(this);
-      for (const s2 of this.$$s)
-        s2 in i2 && (n2[s2] = [t2(s2)]);
-      for (const s2 of this.attributes) {
-        const o2 = this.$$g_p(s2.name);
-        o2 in this.$$d || (this.$$d[o2] = j3(o2, s2.value, this.$$p_d, "toProp"));
-      }
-      for (const s2 in this.$$p_d)
-        !(s2 in this.$$d) && this[s2] !== undefined && (this.$$d[s2] = this[s2], delete this[s2]);
-      this.$$c = new this.$$ctor({
-        target: this.shadowRoot || this,
-        props: {
-          ...this.$$d,
-          $$slots: n2,
-          $$scope: {
-            ctx: []
-          }
-        }
-      });
-      const c3 = () => {
-        this.$$r = true;
-        for (const s2 in this.$$p_d)
-          if (this.$$d[s2] = this.$$c.$$.ctx[this.$$c.$$.props[s2]], this.$$p_d[s2].reflect) {
-            const o2 = j3(s2, this.$$d[s2], this.$$p_d, "toAttribute");
-            o2 == null ? this.removeAttribute(this.$$p_d[s2].attribute || s2) : this.setAttribute(this.$$p_d[s2].attribute || s2, o2);
-          }
-        this.$$r = false;
-      };
-      this.$$c.$$.after_update.push(c3), c3();
-      for (const s2 in this.$$l)
-        for (const o2 of this.$$l[s2]) {
-          const u2 = this.$$c.$on(s2, o2);
-          this.$$l_u.set(o2, u2);
-        }
-      this.$$l = {};
-    }
-  }
-  attributeChangedCallback(t2, n2, i2) {
-    var c3;
-    this.$$r || (t2 = this.$$g_p(t2), this.$$d[t2] = j3(t2, i2, this.$$p_d, "toProp"), (c3 = this.$$c) == null || c3.$set({ [t2]: this.$$d[t2] }));
-  }
-  disconnectedCallback() {
-    this.$$cn = false, Promise.resolve().then(() => {
-      this.$$cn || (this.$$c.$destroy(), this.$$c = undefined);
-    });
-  }
-  $$g_p(t2) {
-    return Object.keys(this.$$p_d).find((n2) => this.$$p_d[n2].attribute === t2 || !this.$$p_d[n2].attribute && n2.toLowerCase() === t2) || t2;
-  }
-});
-
-class $t2 {
-  constructor() {
-    d3(this, "$$");
-    d3(this, "$$set");
-  }
-  $destroy() {
-    rt2(this, 1), this.$destroy = b2;
-  }
-  $on(t2, n2) {
-    if (!z3(n2))
-      return b2;
-    const i2 = this.$$.callbacks[t2] || (this.$$.callbacks[t2] = []);
-    return i2.push(n2), () => {
-      const c3 = i2.indexOf(n2);
-      c3 !== -1 && i2.splice(c3, 1);
-    };
-  }
-  $set(t2) {
-    this.$$set && !F3(t2) && (this.$$.skip_bound = true, this.$$set(t2), this.$$.skip_bound = false);
-  }
-}
-var lt3 = "4";
-typeof window < "u" && (window.__svelte || (window.__svelte = { v: new Set })).v.add(lt3);
-var m2 = [];
-
-class ht3 extends $t2 {
-  constructor(t2) {
-    super(), ot2(this, t2, at3, dt3, H3, { initialValue: 6 });
-  }
-  get initialValue() {
-    return this.$$.ctx[6];
-  }
-  set initialValue(t2) {
-    this.$$set({ initialValue: t2 }), M3();
-  }
-}
-customElements.define("svelte-counter", ut3(ht3, { initialValue: {} }, [], [], true));
-
 // src/main/resources/META-INF/resources/js/index.js
 var import_hyperscript = __toESM(require__hyperscript_min(), 1);
 
@@ -18363,8 +17929,8 @@ window.disableBtnInsideForm = function() {
   for (let i2 = 0;i2 < forms.length; i2++) {
     const form = forms[i2];
     const buttons = form.getElementsByTagName("button");
-    for (let j4 = 0;j4 < buttons.length; j4++) {
-      const button = buttons[j4];
+    for (let j3 = 0;j3 < buttons.length; j3++) {
+      const button = buttons[j3];
       disableOnHtmxEvents(form, button);
     }
   }
@@ -18387,7 +17953,7 @@ window.redirectTo = function(url) {
 };
 window.initNav = function() {
   let lastUrlSegmentCurrent = getLastUrlSegmentCurrent();
-  if (!lastUrlSegmentCurrent || lastUrlSegmentCurrent === "" || lastUrlSegmentCurrent === "index.html" || lastUrlSegmentCurrent === "index" || lastUrlSegmentCurrent === "/") {
+  if (!lastUrlSegmentCurrent || lastUrlSegmentCurrent === "" || lastUrlSegmentCurrent === "index" || lastUrlSegmentCurrent === "/") {
     let item = localStorage.getItem("current-nav");
     if (item) {
       let elem = document.getElementById(item);
@@ -18489,3 +18055,36 @@ if (sidenav2) {
   }
   window.addEventListener("resize", setMode2);
 }
+window.integerToMonth = function(month) {
+  if (!month) {
+    return "N/A";
+  }
+  switch (month) {
+    case 1:
+      return "Enero";
+    case 2:
+      return "Febrero";
+    case 3:
+      return "Marzo";
+    case 4:
+      return "Abril";
+    case 5:
+      return "Mayo";
+    case 6:
+      return "Junio";
+    case 7:
+      return "Julio";
+    case 8:
+      return "Agosto";
+    case 9:
+      return "Septiembre";
+    case 10:
+      return "Octubre";
+    case 11:
+      return "Noviembre";
+    case 12:
+      return "Diciembre";
+    default:
+      return "N/A";
+  }
+};

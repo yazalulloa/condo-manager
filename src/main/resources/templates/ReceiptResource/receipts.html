@@ -1,0 +1,43 @@
+{@com.yaz.resource.domain.response.ReceiptTableResponse res}
+
+{#include ReceiptResource/counters totalCount=res.totalCount /}
+
+{#for item in res.results}
+
+    <div
+    class="hover:bg-[#00000014] border-solid px-2 p-0.5 flex flex-row flex-wrap gap-2 text-center items-center justify-between "
+    id={item.cardId}>
+  <span>{item.item.buildingId}</span>
+  <span script="init call integerToMonth({item.item.month}) then put it into my.innerHTML"></span>
+  <span>{item.item.year}</span>
+  <span>{item.item.date}</span>
+
+  <div
+    {#if item.item.lastSent}
+        class="tooltip tooltip-bottom"
+        data-tip="{item.item.lastSent.formatDate}"
+    {/if}
+  >
+  <span
+      class="inline-block whitespace-nowrap rounded-full px-[0.65em] pb-[0.25em] pt-[0.35em] text-center align-baseline text-[0.75em] font-bold leading-none
+{item.item.sent ? 'bg-success-100 text-success-700' : 'bg-danger-100 text-danger-700'}
+">
+    {item.item.sent ? 'Enviado' : 'No enviado'}
+  </span>
+  </div>
+
+  <span>{item.item.createdAt.formatDate}</span>
+
+
+<div>
+ <button class="hover:bg-gray-400 py-1 px-1 rounded inline-flex items-center">
+   <img src="/assets/pdf-logo.svg" style="width:25px;height:25px;" alt="view-pdfs">
+ </button>
+</div>
+{#include fragments/delete-btn deleteUrl=item.deleteUrl cardIdRef=item.cardIdRef/}
+
+</div>
+{/for}
+
+{#include fragments/next-page.html url = res.nextPageUrl /}
+

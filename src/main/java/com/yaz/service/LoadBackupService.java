@@ -1,16 +1,22 @@
 package com.yaz.service;
 
-import com.yaz.mongo.MongoApartment;
-import com.yaz.persistence.entities.Apartment;
-import com.yaz.persistence.entities.Building;
+import com.yaz.mongo.MongoReceipt;
+import com.yaz.mongo.MongoReceipt.MongoExtraCharge;
+import com.yaz.persistence.domain.Currency;
+import com.yaz.persistence.entities.Debt;
+import com.yaz.persistence.entities.ExtraCharge;
+import com.yaz.persistence.entities.ExtraCharge.Apt;
+import com.yaz.persistence.entities.ExtraCharge.Type;
+import com.yaz.persistence.entities.Receipt;
 import com.yaz.persistence.repository.ApartmentRepository;
 import com.yaz.persistence.repository.BuildingRepository;
+import com.yaz.persistence.repository.turso.ReceiptRepository;
+import com.yaz.util.DecimalUtil;
 import com.yaz.util.PagingJsonFile;
 import com.yaz.util.RxUtil;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
-import io.vertx.mutiny.core.Vertx;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
@@ -21,9 +27,13 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Month;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
+import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.archivers.ArchiveEntry;
@@ -39,7 +49,9 @@ public class LoadBackupService {
 
   private final Instance<BuildingRepository> buildingRepository;
   private final Instance<ApartmentRepository> apartmentRepository;
+  private final ReceiptRepository receiptRepository;
   private final PagingJsonFile pagingJsonFile = new PagingJsonFile();
+
 
   public Completable load() {
 
@@ -81,49 +93,49 @@ public class LoadBackupService {
 
             switch (name) {
               case "buildings.json.gz": {
-                final var completable = pagingJsonFile.pagingJsonFile(100, fileName, Building.class, list -> {
-
-                      return Observable.fromIterable(list)
-                          .toList()
-                          .map(buildingRepository.get()::insertIgnore)
-                          .flatMap(RxUtil::single)
-                          .doOnSuccess(i -> log.info("BUILDINGS INSERTED: {}", i))
-                          .ignoreElement();
-
-                    })
-                    .doOnComplete(() -> log.info("BUILDINGS COMPLETED"))
-                    .doOnError(throwable -> log.error("ERROR BUILDINGS", throwable));
-                addToList.accept(completable);
+//                final var completable = pagingJsonFile.pagingJsonFile(100, fileName, Building.class, list -> {
+//
+//                      return Observable.fromIterable(list)
+//                          .toList()
+//                          .map(buildingRepository.get()::insertIgnore)
+//                          .flatMap(RxUtil::single)
+//                          .doOnSuccess(i -> log.info("BUILDINGS INSERTED: {}", i))
+//                          .ignoreElement();
+//
+//                    })
+//                    .doOnComplete(() -> log.info("BUILDINGS COMPLETED"))
+//                    .doOnError(throwable -> log.error("ERROR BUILDINGS", throwable));
+//                addToList.accept(completable);
               }
               break;
               case "apartments.json.gz": {
 
-                final var completable = pagingJsonFile.pagingJsonFile(100, fileName, MongoApartment.class, list -> {
-
-                      log.info("INSERTING APARTMENTS SIZE: {}", list.size());
-                      return Observable.fromIterable(list)
-                          .map(apt -> Apartment.builder()
-                              .buildingId(apt.apartmentId().buildingId())
-                              .number(apt.apartmentId().number())
-                              .name(apt.name())
-                              .aliquot(apt.amountToPay())
-                              .emails(apt.emails())
-                              .build())
-                          .toList()
-                          .map(apartmentRepository.get()::insert)
-                          .retry(3)
-                          .flatMap(RxUtil::single)
-                          .doOnSuccess(i -> log.info("APARTMENTS INSERTED: {}", i))
-                          .ignoreElement();
-
-                    })
-                    .doOnComplete(() -> log.info("APARTMENTS COMPLETED"))
-                    .doOnError(throwable -> log.error("ERROR APARTMENTS", throwable));
-
-                addToList.accept(completable);
+//                final var completable = pagingJsonFile.pagingJsonFile(100, fileName, MongoApartment.class, list -> {
+//
+//                      log.info("INSERTING APARTMENTS SIZE: {}", list.size());
+//                      return Observable.fromIterable(list)
+//                          .map(apt -> Apartment.builder()
+//                              .buildingId(apt.apartmentId().buildingId())
+//                              .number(apt.apartmentId().number())
+//                              .name(apt.name())
+//                              .aliquot(apt.amountToPay())
+//                              .emails(apt.emails())
+//                              .build())
+//                          .toList()
+//                          .map(apartmentRepository.get()::insert)
+//                          .retry(3)
+//                          .flatMap(RxUtil::single)
+//                          .doOnSuccess(i -> log.info("APARTMENTS INSERTED: {}", i))
+//                          .ignoreElement();
+//
+//                    })
+//                    .doOnComplete(() -> log.info("APARTMENTS COMPLETED"))
+//                    .doOnError(throwable -> log.error("ERROR APARTMENTS", throwable));
+//
+//                addToList.accept(completable);
               }
               break;
-//              case "rates.json.gz": {
+              case "rates.json.gz": {
 //                final var completable = pagingJsonFile.pagingJsonFile(100, fileName, Rate.class, list -> {
 //
 //                      return RxUtil.single(rateMySqlRepository.replace(list))
@@ -135,8 +147,93 @@ public class LoadBackupService {
 //                    .doOnError(throwable -> log.error("ERROR RATES", throwable));
 //
 //                addToList.accept(completable);
-//              }
-//              break;
+              }
+              break;
+              case "receipts.json.gz": {
+                final var completable = pagingJsonFile.pagingJsonFile(5, fileName, MongoReceipt.class, list -> {
+
+                  final var receipts = list.stream()
+                      .map(mongoReceipt -> {
+
+                        final var expenses = mongoReceipt.expenses().stream()
+                            .map(expense -> expense.toBuilder()
+                                .buildingId(mongoReceipt.buildingId())
+                                .build())
+                            .toList();
+
+                        final var extraCharges = new ArrayList<ExtraCharge>();
+
+                        for (MongoExtraCharge charge : mongoReceipt.extraCharges()) {
+
+                          final var optional = extraCharges.stream()
+                              .filter(extraCharge -> extraCharge.description().equals(charge.description()))
+                              .findFirst();
+
+                          if (optional.isPresent()) {
+                            final var extraCharge = optional.get();
+                            extraCharge.apartments().add(new Apt(charge.aptNumber(), null));
+                          } else {
+                            final var apts = new ArrayList<Apt>();
+                            apts.add(new Apt(charge.aptNumber(), null));
+                            extraCharges.add(ExtraCharge.builder()
+                                .buildingId(mongoReceipt.buildingId())
+                                .type(Type.RECEIPT)
+                                .description(charge.description())
+                                .amount(charge.amount())
+                                .currency(Optional.ofNullable(charge.currency()).orElse(Currency.USD))
+                                .active(true)
+                                .apartments(apts)
+                                .build());
+                          }
+
+                        }
+
+                        final var debts = mongoReceipt.debts().stream()
+                            .filter(debt -> {
+
+                              return debt.receipts() > 0
+                                  || (debt.amount() != null && DecimalUtil.greaterThanZero(debt.amount()))
+                                  || (debt.previousPaymentAmount() != null && DecimalUtil.greaterThanZero(
+                                  debt.previousPaymentAmount()));
+                            })
+                            .map(debt -> Debt.builder()
+                                .buildingId(mongoReceipt.buildingId())
+                                .aptNumber(debt.aptNumber())
+                                .receipts(debt.receipts())
+                                .amount(debt.amount())
+                                .months(Optional.ofNullable(debt.months()).stream().flatMap(Collection::stream).map(
+                                    Month::getValue).collect(Collectors.toSet()))
+                                .previousPaymentAmount(debt.previousPaymentAmount())
+                                .previousPaymentAmountCurrency(debt.previousPaymentAmountCurrency())
+                                .build())
+                            .toList();
+
+                        return Receipt.builder()
+                            .buildingId(mongoReceipt.buildingId())
+                            .year(mongoReceipt.year())
+                            .month(mongoReceipt.month().getValue())
+                            .date(mongoReceipt.date())
+                            .rateId(345)
+                            .sent(mongoReceipt.sent())
+                            .lastSent(mongoReceipt.lastSent())
+                            .expenses(expenses)
+                            .extraCharges(extraCharges)
+                            .createdAt(mongoReceipt.createdAt())
+                            .debts(debts)
+                            .build();
+                      })
+                      .toList();
+
+                  return Observable.fromIterable(receipts)
+                      .map(receiptRepository::insert)
+                      .flatMapSingle(RxUtil::single)
+                      .doOnNext(i -> log.info("RECEIPTS ROWS: {}", i))
+                      .ignoreElements();
+
+                });
+                addToList.accept(completable);
+              }
+              break;
             }
           }
 

@@ -24,7 +24,7 @@ public class ExtraCharge {
 
   private final String buildingId;
   private final String secondaryId;
-  private final String id;
+  private final long id;
   private final Type type;
   private final String description;
   private final double amount;
@@ -64,6 +64,6 @@ public class ExtraCharge {
     @JsonProperty
     private final String secondaryId;
     @JsonProperty
-    private final String id;
+    private final long id;
   }
 }

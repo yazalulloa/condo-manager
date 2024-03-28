@@ -124,7 +124,7 @@ public class ExtraChargeMySqlRepository {
     return ExtraCharge.builder()
         .buildingId(row.getString("building_id"))
         .secondaryId(row.getString("secondary_id"))
-        .id(row.getString("uuid_id"))
+        .id(row.getLong("id"))
         .description(row.getString("description"))
         .amount(row.getDouble("amount"))
         .currency(Currency.valueOf(row.getString("currency")))
@@ -218,7 +218,7 @@ public class ExtraChargeMySqlRepository {
       final var tuple = new ArrayTuple(3 + apartments.size());
       tuple.addString(updateRequest.buildingId());
       tuple.addString(updateRequest.secondaryId());
-      tuple.addString(updateRequest.id());
+      tuple.addLong(updateRequest.id());
 
       apartments.forEach(tuple::addString);
 

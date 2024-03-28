@@ -14,12 +14,18 @@ import {
 
 import './loader.js';
 import './sse.js';
-import './components.js';
+// import './components.js';
 
 import _hyperscript from 'hyperscript.org';
 import './elements.js';
 
 _hyperscript.browserInit();
+
+// import Alpine from 'alpinejs'
+//
+// window.Alpine = Alpine
+//
+// Alpine.start()
 
 window.initComponents = function () {
   // console.log("INIT TW-ELEMENTS")
@@ -178,7 +184,6 @@ window.initNav = function () {
   let lastUrlSegmentCurrent = getLastUrlSegmentCurrent();
 
   if (!lastUrlSegmentCurrent || lastUrlSegmentCurrent === ''
-      || lastUrlSegmentCurrent === 'index.html'
       || lastUrlSegmentCurrent === 'index'
       || lastUrlSegmentCurrent === '/') {
     let item = localStorage.getItem("current-nav");
@@ -342,4 +347,40 @@ if (sidenav2) {
   // Event listeners
   window.addEventListener("resize", setMode2);
 
+}
+
+window.integerToMonth = function (month) {
+
+  if (!month) {
+    return "N/A"
+  }
+
+  switch (month) {
+    case 1:
+      return "Enero";
+    case 2:
+      return "Febrero";
+    case 3:
+      return "Marzo";
+    case 4:
+      return "Abril";
+    case 5:
+      return "Mayo";
+    case 6:
+      return "Junio";
+    case 7:
+      return "Julio";
+    case 8:
+      return "Agosto";
+    case 9:
+      return "Septiembre";
+    case 10:
+      return "Octubre";
+    case 11:
+      return "Noviembre";
+    case 12:
+      return "Diciembre";
+    default:
+      return "N/A"
+  }
 }
