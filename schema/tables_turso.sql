@@ -298,7 +298,7 @@ CREATE TABLE IF NOT EXISTS expenses
 (
     id           INTEGER PRIMARY KEY,
     building_id  CHAR(20)                                      NOT NULL,
-    receipt_id   VARCHAR(50)                                   NOT NULL,
+    receipt_id   INTEGER                                       NOT NULL,
     description  TEXT                                          NOT NULL,
     amount       DECIMAL(16, 2)                                NOT NULL,
     currency     TEXT CHECK ( currency IN ('USD', 'VED') )     NOT NULL,
@@ -311,14 +311,13 @@ CREATE INDEX IF NOT EXISTS expenses_building_id_receipt_id_idx ON expenses (buil
 
 CREATE TABLE IF NOT EXISTS debts
 (
-    id                               INTEGER PRIMARY KEY,
     building_id                      CHAR(20)       NOT NULL,
-    receipt_id                       VARCHAR(50)    NOT NULL,
+    receipt_id                       INTEGER        NOT NULL,
     apt_number                       CHAR(20)       NOT NULL,
     receipts                         SMALLINT       NOT NULL,
     amount                           DECIMAL(16, 2) NOT NULL,
     months                           TEXT,
     previous_payment_amount          DECIMAL(16, 2),
-    previous_payment_amount_currency TEXT CHECK ( previous_payment_amount_currency IN ('USD', 'VED') )
+    previous_payment_amount_currency TEXT CHECK ( previous_payment_amount_currency IN ('USD', 'VED') ),
+    PRIMARY KEY (building_id, receipt_id, apt_number)
 );
-CREATE INDEX IF NOT EXISTS debts_building_id_receipt_id_apt_number_idx ON debts (building_id, receipt_id, apt_number);

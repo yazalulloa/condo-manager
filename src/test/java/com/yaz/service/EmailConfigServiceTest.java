@@ -1,13 +1,9 @@
 package com.yaz.service;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-import com.yaz.persistence.domain.EmailConfigUser;
 import com.yaz.persistence.domain.query.EmailConfigQuery;
-import com.yaz.persistence.entities.EmailConfig;
+import com.yaz.service.entity.EmailConfigService;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
-import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 

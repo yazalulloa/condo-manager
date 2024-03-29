@@ -1,4 +1,4 @@
-package com.yaz.service;
+package com.yaz.service.entity;
 
 import com.yaz.persistence.domain.IdentityProvider;
 import com.yaz.persistence.domain.query.UserQuery;
@@ -6,7 +6,7 @@ import com.yaz.persistence.entities.User;
 import com.yaz.persistence.repository.UserRepository;
 import com.yaz.resource.UserResource;
 import com.yaz.resource.domain.response.UserTableResponse;
-import com.yaz.service.cache.UserCache;
+import com.yaz.service.entity.cache.UserCache;
 import com.yaz.util.Constants;
 import io.quarkus.cache.CacheInvalidateAll;
 import io.quarkus.cache.CacheResult;

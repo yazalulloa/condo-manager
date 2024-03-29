@@ -1,7 +1,7 @@
 package com.yaz.bean;
 
 import com.yaz.persistence.domain.IdentityProvider;
-import com.yaz.service.UserService;
+import com.yaz.service.entity.UserService;
 import io.quarkus.oidc.UserInfo;
 import io.quarkus.oidc.runtime.OidcJwtCallerPrincipal;
 import io.quarkus.security.identity.AuthenticationRequestContext;

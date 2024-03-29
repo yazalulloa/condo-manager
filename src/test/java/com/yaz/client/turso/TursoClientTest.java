@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.yaz.client.turso.request.TursoQuery;
 import com.yaz.persistence.domain.query.SortOrder;
-import com.yaz.service.RateService;
+import com.yaz.service.entity.RateService;
 import com.yaz.util.MutinyUtil;
 import com.yaz.util.RxUtil;
 import com.yaz.util.SqlUtil;

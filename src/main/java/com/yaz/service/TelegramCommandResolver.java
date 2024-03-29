@@ -5,6 +5,8 @@ import com.yaz.client.domain.telegram.TelegramUpdate;
 import com.yaz.client.domain.telegram.TelegramUser;
 import com.yaz.event.domain.TelegramWebhookRequest;
 import com.yaz.persistence.entities.TelegramChat;
+import com.yaz.service.entity.TelegramChatService;
+import com.yaz.service.entity.UserService;
 import com.yaz.util.ConvertUtil;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.json.Json;

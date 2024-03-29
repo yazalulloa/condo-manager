@@ -6,6 +6,7 @@ import com.yaz.service.domain.FileResponse;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import jakarta.enterprise.context.ApplicationScoped;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -49,7 +50,7 @@ public class WriteEntityToFile {
           .doOnTerminate(() -> log.info("END WRITING FILE {} {}ms", fileName, System.currentTimeMillis() - timestamp))
           .toSingleDefault(FileResponse.builder()
               .fileName(fileName)
-              .path(tempFileName)
+              .path(new File(tempFileName))
               .contentType("application/gzip")
               .build());
     });

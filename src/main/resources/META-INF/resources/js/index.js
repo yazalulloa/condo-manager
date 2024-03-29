@@ -10,12 +10,9 @@ import {
   Validation,
 } from "tw-elements";
 
-
-
 import './loader.js';
 import './sse.js';
 // import './components.js';
-
 import _hyperscript from 'hyperscript.org';
 import './elements.js';
 
@@ -156,7 +153,7 @@ window.disableBtnInsideForm = function () {
 }
 
 window.getLastUrlSegmentCurrent = function () {
-  return getLastUrlSegment(window.location.href);
+  return getLastUrlSegment(window.location.href) ?? "";
 }
 
 window.getQueryParam = function (name) {
@@ -383,4 +380,32 @@ window.integerToMonth = function (month) {
     default:
       return "N/A"
   }
+}
+
+window.openTab = function (evt, cityName) {
+
+  let tabcontent = document.getElementsByClassName("tab-cm-content");
+  for (let i = 0; i < tabcontent.length; i++) {
+    tabcontent[i].style.display = "none";
+  }
+  let tablinks = document.getElementsByClassName("tablinks");
+  for (let i = 0; i < tablinks.length; i++) {
+    tablinks[i].className = tablinks[i].className.replace(" active", "");
+  }
+  document.getElementById(cityName).style.display = "block";
+
+  if (evt && evt.currentTarget) {
+    evt.currentTarget.className += " active";
+  }
+}
+
+window.slideTo = function (id, direction) {
+let elem = document.getElementById(id);
+  if (elem) {
+    elem.scrollBy({
+      left: direction === 'left' ? -500 : 500,
+      behavior: 'smooth'
+    });
+  }
+
 }

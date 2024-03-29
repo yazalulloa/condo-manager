@@ -3,10 +3,12 @@ package com.yaz.persistence.repository.turso;
 import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.domain.ExpenseType;
 import com.yaz.persistence.entities.Expense;
+import com.yaz.persistence.repository.turso.client.TursoWsService;
 import com.yaz.persistence.repository.turso.client.ws.request.Stmt;
 import com.yaz.persistence.repository.turso.client.ws.request.Value;
 import com.yaz.persistence.repository.turso.client.ws.response.ExecuteResp.Row;
 import com.yaz.util.SqlUtil;
+import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.util.Collections;
@@ -35,9 +37,14 @@ public class ExpenseRepository {
       INSERT INTO %s (building_id, receipt_id, description, amount, currency, reserve_fund, type) VALUES %s
       """;
 
+  private final TursoWsService tursoWsService;
 
-  public Stmt stmtSelectByReceipt(String buildingId, String receiptId) {
-    return Stmt.stmt(SELECT_BY_RECEIPT, Value.text(buildingId), Value.text(receiptId));
+  public Uni<Long> count() {
+    return tursoWsService.count("id", COLLECTION);
+  }
+
+  public Stmt stmtSelectByReceipt(String buildingId, long receiptId) {
+    return Stmt.stmt(SELECT_BY_RECEIPT, Value.text(buildingId), Value.number(receiptId));
   }
 
   public Stmt stmtDeleteByReceipt(String buildingId, long receiptId) {
@@ -83,5 +90,9 @@ public class ExpenseRepository {
         .reserveFund(row.getBoolean("reserve_fund"))
         .type(row.getEnum("type", ExpenseType::valueOf))
         .build();
+  }
+
+  public Uni<List<Expense>> readByReceipt(String buildingId, long receiptId) {
+    return tursoWsService.selectQuery(stmtSelectByReceipt(buildingId, receiptId), this::from);
   }
 }

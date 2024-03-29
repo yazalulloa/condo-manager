@@ -1,40 +1,5 @@
 package com.yaz.resource;
 
-import com.google.api.client.auth.oauth2.AuthorizationCodeResponseUrl;
-import com.google.api.client.http.GenericUrl;
-import com.google.api.services.gmail.GmailScopes;
-import com.yaz.bean.GmailHelper;
-import com.yaz.persistence.entities.EmailConfig;
-import com.yaz.service.EmailConfigService;
-import com.yaz.util.DateUtil;
-import com.yaz.util.FileUtil;
-import com.yaz.util.MutinyUtil;
-import com.yaz.util.RandomUtil;
-import com.yaz.util.RxUtil;
-import io.quarkus.oidc.UserInfo;
-import io.quarkus.qute.CheckedTemplate;
-import io.quarkus.qute.TemplateInstance;
-import io.quarkus.security.Authenticated;
-import io.quarkus.security.identity.SecurityIdentity;
-import io.reactivex.rxjava3.core.Single;
-import io.smallrye.mutiny.Uni;
-import io.vertx.core.http.HttpServerRequest;
-import io.vertx.core.json.JsonObject;
-import jakarta.inject.Inject;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.UriBuilder;
-import java.io.File;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.List;
-import java.util.Objects;
-import lombok.extern.slf4j.Slf4j;
-
 //@Slf4j
 //@Authenticated
 //@Path(GoogleResource.PATH)

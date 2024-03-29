@@ -4,7 +4,7 @@ import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.domain.query.RateQuery;
 import com.yaz.persistence.entities.Rate;
 import com.yaz.resource.domain.response.RateTableResponse;
-import com.yaz.service.RateService;
+import com.yaz.service.entity.RateService;
 import com.yaz.service.SaveNewBcvRate;
 import com.yaz.util.DateUtil;
 import com.yaz.util.MutinyUtil;
@@ -20,8 +20,6 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.io.File;
-import java.net.URI;
-import java.net.URISyntaxException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jboss.resteasy.reactive.RestPath;
@@ -117,7 +115,7 @@ public class RateResource {
   @Produces(MediaType.MULTIPART_FORM_DATA)
   public Uni<RestResponse<File>> downloadFile() {
     return MutinyUtil.toUni(service.downloadFile())
-        .map(file -> ResponseBuilder.ok(new File(file.path()))
+        .map(file -> ResponseBuilder.ok(file.path())
             .header("Content-Disposition", "attachment; filename=" + file.fileName())
             .build());
   }

@@ -1,4 +1,4 @@
-package com.yaz.service;
+package com.yaz.service.entity;
 
 import com.yaz.persistence.domain.request.ExtraChargeCreateRequest;
 import com.yaz.persistence.domain.request.ExtraChargeUpdateRequest;
@@ -30,6 +30,10 @@ public class ExtraChargeService {
 
   public Uni<List<ExtraCharge>> byBuilding(String buildingId) {
     return repository.select(buildingId, buildingId);
+  }
+
+  public Uni<List<ExtraCharge>> listOnlyByBuilding(String buildingId) {
+    return repository.selectByBuildingId(buildingId);
   }
 
   public Uni<Integer> delete(Keys keys) {

@@ -3,6 +3,7 @@ package com.yaz.service;
 import com.google.api.client.auth.oauth2.TokenResponseException;
 import com.yaz.bean.GmailHelper;
 import com.yaz.persistence.entities.EmailConfig;
+import com.yaz.service.entity.EmailConfigService;
 import com.yaz.util.DateUtil;
 import com.yaz.util.FileUtil;
 import com.yaz.util.RxUtil;

@@ -37,7 +37,7 @@ public class Building {
   /*@JsonProperty
   private final List<ExtraCharge> extraCharges;*/
   @JsonProperty
-  private final Boolean fixedPay;
+  private final boolean fixedPay;
   @JsonProperty
   private final BigDecimal fixedPayAmount;
 

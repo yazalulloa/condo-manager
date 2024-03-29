@@ -1,19 +1,15 @@
 package com.yaz.resource;
 
+import com.yaz.util.StringUtil;
+import io.quarkus.vertx.web.Param;
 import io.quarkus.vertx.web.Route;
 import io.quarkus.vertx.web.RouteFilter;
 import io.vertx.ext.web.RoutingContext;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.Priorities;
-import jakarta.ws.rs.container.ContainerRequestContext;
-import jakarta.ws.rs.container.ContainerResponseContext;
-import java.net.URI;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.jboss.resteasy.reactive.server.ServerRequestFilter;
-import org.jboss.resteasy.reactive.server.ServerResponseFilter;
 
 @Slf4j
 @ApplicationScoped
@@ -33,12 +29,12 @@ public class StaticReactiveRoutes {
     final var path = rc.request().path();
 
     if (path.equals("/") || path.isEmpty()) {
-      rc.reroute("/index");
+      rc.next();
       return;
     }
 
     if (path.equals("/receipts")) {
-     rc.next();
+      rc.next();
       return;
     }
 
@@ -62,7 +58,15 @@ public class StaticReactiveRoutes {
       rc.reroute(newRoute);
       return;
     }
-     //log.info("next route");
+
+    final var hxCurrentUrl = rc.request().getHeader("Hx-Current-Url");
+
+//    if (hxCurrentUrl == null &&
+//        !(path.endsWith(".js") || path.endsWith(".css") || path.endsWith(".svg") || path.endsWith(".png") || path.endsWith(".ico"))) {
+//      rc.reroute("/");
+//      return;
+//    }
+    //log.info("next route");
     /*if (indexOfDot == -1 && !path.startsWith(managementPath)
         && (count == 1 || !path.startsWith("/api"))) {
       rc.reroute(path + ".html");
@@ -79,6 +83,20 @@ public class StaticReactiveRoutes {
   @Route(path = "output.css", methods = Route.HttpMethod.GET)
   void cssFile(RoutingContext routingContext) {
     routingContext.reroute("/out/css/output.css");
+  }
+
+
+  @Route(path = "/receipts/pdfs/:id", methods = Route.HttpMethod.GET)
+  void receiptPdfs(@Param String id, RoutingContext routingContext) {
+    log.info("receipts pdfs {}", id);
+    final var str = StringUtil.trimFilter(id);
+    if (str == null) {
+      routingContext.redirect("/receipts");
+    } else if (id.equals("index.html")) {
+      routingContext.next();
+    } else {
+      routingContext.reroute("/receipts/pdfs/index.html");
+    }
   }
 
 //  @ServerResponseFilter(priority = Priorities.AUTHENTICATION)

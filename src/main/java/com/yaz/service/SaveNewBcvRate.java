@@ -2,6 +2,7 @@ package com.yaz.service;
 
 import com.yaz.domain.BcvUsdRateResult;
 import com.yaz.domain.BcvUsdRateResult.State;
+import com.yaz.service.entity.RateService;
 import com.yaz.util.DateUtil;
 import com.yaz.util.DecimalUtil;
 import com.yaz.util.EventConstants;

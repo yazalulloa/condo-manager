@@ -1,6 +1,7 @@
 package com.yaz.service;
 
 import com.yaz.persistence.domain.query.SortOrder;
+import com.yaz.service.entity.RateService;
 import com.yaz.util.RxUtil;
 import io.quarkus.test.junit.QuarkusTest;
 import io.reactivex.rxjava3.core.Completable;

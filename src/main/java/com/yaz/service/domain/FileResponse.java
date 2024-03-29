@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import java.io.File;
 import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -22,7 +23,7 @@ public class FileResponse {
   private final String fileName;
 
   @JsonProperty
-  private final String path;
+  private final File path;
 
   @JsonProperty
   private final String contentType;

@@ -323,6 +323,11 @@ public class OldApartmentTursoRepository implements ApartmentRepository {
         .map(result -> SqlUtil.toList(result, this::fromApt));
   }
 
+  @Override
+  public Uni<List<Apartment>> apartmentsByBuilding(String buildingId) {
+    return null;
+  }
+
   private Apt fromApt(Row row) {
     return Apt.builder()
         .number(row.getString("number"))

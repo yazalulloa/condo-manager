@@ -3,7 +3,7 @@ package com.yaz.resource.rpc;
 import com.yaz.persistence.domain.query.RateQuery;
 import com.yaz.persistence.entities.Rate;
 import com.yaz.resource.domain.response.RateTableResponse.Item;
-import com.yaz.service.RateService;
+import com.yaz.service.entity.RateService;
 import com.yaz.util.DateUtil;
 import io.smallrye.mutiny.Uni;
 import jakarta.inject.Inject;

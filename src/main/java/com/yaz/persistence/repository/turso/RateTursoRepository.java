@@ -38,6 +38,8 @@ public class RateTursoRepository implements RateRepository {
       INSERT INTO %s (from_currency, to_currency, rate, date_of_rate, source, hash, etag, last_modified) VALUES (%s) returning id
       """.formatted(COLLECTION, SqlUtil.params(8));
 
+  private static final String READ = "SELECT * FROM %s WHERE id = ?".formatted(COLLECTION);
+
   private final TursoWsService tursoWsService;
 
   @Override
@@ -155,5 +157,10 @@ public class RateTursoRepository implements RateRepository {
   public Uni<Boolean> exists(long hash) {
     return tursoWsService.selectOne(Stmt.stmt(HASH_EXISTS, Value.number(hash)), row -> row.getLong("id") != null)
         .map(opt -> opt.orElse(false));
+  }
+
+  @Override
+  public Uni<Optional<Rate>> read(long id) {
+    return tursoWsService.selectOne(Stmt.stmt(READ.formatted(COLLECTION), Value.number(id)), this::from);
   }
 }

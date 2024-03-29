@@ -1,4 +1,4 @@
-package com.yaz.service;
+package com.yaz.service.entity;
 
 
 import com.yaz.event.domain.BuildingDeleted;
@@ -7,7 +7,7 @@ import com.yaz.persistence.entities.Building;
 import com.yaz.persistence.repository.BuildingRepository;
 import com.yaz.resource.BuildingResource;
 import com.yaz.resource.domain.response.BuildingReportResponse;
-import com.yaz.service.cache.BuildingCache;
+import com.yaz.service.entity.cache.BuildingCache;
 import com.yaz.util.Constants;
 import io.quarkus.cache.CacheInvalidate;
 import io.quarkus.cache.CacheInvalidateAll;

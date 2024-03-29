@@ -1,4 +1,4 @@
-package com.yaz.service;
+package com.yaz.service.entity;
 
 import com.yaz.bean.GmailHelper;
 import com.yaz.event.domain.EmailConfigDeleted;
@@ -10,6 +10,8 @@ import com.yaz.resource.EmailConfigResource;
 import com.yaz.resource.domain.response.EmailConfigDto;
 import com.yaz.resource.domain.response.EmailConfigTableItem;
 import com.yaz.resource.domain.response.EmailConfigTableResponse;
+import com.yaz.service.ListService;
+import com.yaz.service.ListServicePagingProcessorImpl;
 import com.yaz.util.PagingProcessor;
 import com.yaz.util.RxUtil;
 import io.reactivex.rxjava3.core.Completable;

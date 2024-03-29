@@ -2,7 +2,7 @@ package com.yaz.resource;
 
 import com.yaz.persistence.domain.OidcDbTokenQueryRequest;
 import com.yaz.resource.domain.response.OidcDbTokenTableResponse;
-import com.yaz.service.OidcDbTokenService;
+import com.yaz.service.entity.OidcDbTokenService;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;

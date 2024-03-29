@@ -8,7 +8,7 @@ import com.yaz.resource.domain.request.ReserveFundRequest;
 import com.yaz.resource.domain.response.ReserveFundFormDto;
 import com.yaz.resource.domain.response.ReserveFundTableItem;
 import com.yaz.service.EncryptionService;
-import com.yaz.service.ReserveFundService;
+import com.yaz.service.entity.ReserveFundService;
 import com.yaz.util.DateUtil;
 import com.yaz.util.DecimalUtil;
 import com.yaz.util.StringUtil;

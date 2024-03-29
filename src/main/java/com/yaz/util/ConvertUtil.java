@@ -1,12 +1,14 @@
 package com.yaz.util;
 
 import com.yaz.persistence.domain.Currency;
+import com.yaz.persistence.entities.Expense;
 import com.yaz.persistence.entities.Rate;
 import io.vertx.core.json.JsonObject;
 import io.vertx.mutiny.core.buffer.Buffer;
 import io.vertx.mutiny.ext.web.client.HttpResponse;
 import jakarta.ws.rs.core.Response;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
@@ -22,9 +24,11 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.zip.CRC32;
 import org.apache.commons.lang3.time.DurationFormatUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jsoup.Jsoup;
 //import org.apache.commons.lang3.time.DurationFormatUtils;
 
@@ -66,6 +70,32 @@ public class ConvertUtil {
         .orElse(BigDecimal.ZERO);
 
     return numberFormat.format(decimal);
+  }
+
+  public static Pair<BigDecimal, Currency> pair(Collection<Expense> collection,
+      Predicate<Expense> predicate, BigDecimal usdRate) {
+
+    final var usdAmount = collection.stream().filter(predicate)
+        .filter(o -> o.currency() == Currency.USD)
+        .map(Expense::amount)
+        .reduce(BigDecimal::add)
+        .orElse(BigDecimal.ZERO);
+
+    final var vedAmount = collection.stream().filter(predicate)
+        .filter(o -> o.currency() == Currency.VED)
+        .map(Expense::amount)
+        .reduce(BigDecimal::add)
+        .orElse(BigDecimal.ZERO);
+
+    if (!DecimalUtil.equalsToZero(vedAmount)) {
+      final var amount = usdAmount.multiply(usdRate)
+          .add(vedAmount)
+          .setScale(2, RoundingMode.HALF_UP);
+
+      return Pair.of(amount, Currency.VED);
+    }
+
+    return Pair.of(usdAmount, Currency.USD);
   }
 
     /*public static <T extends IAmountCurrency> Pair<BigDecimal, Currency> pair(Collection<T> collection, BigDecimal usdRate) {
@@ -151,7 +181,6 @@ public class ConvertUtil {
       return null;
     }
   }
-
 
 
   public static String formatDuration(long time) {

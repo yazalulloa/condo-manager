@@ -3,13 +3,13 @@ package com.yaz.service.domain;
 import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.domain.ExpenseType;
 import com.yaz.persistence.domain.ReserveFundType;
-import com.yaz.persistence.entities.Debt;
+import com.yaz.persistence.entities.Apartment;
+import com.yaz.persistence.entities.Building;
 import com.yaz.persistence.entities.Expense;
 import com.yaz.persistence.entities.ExtraCharge;
 import com.yaz.persistence.entities.Rate;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +18,7 @@ import lombok.Builder;
 
 @Builder(toBuilder = true)
 public record CalculatedReceipt(
+    long id,
     int year,
     Month month,
     LocalDate date,
@@ -26,17 +27,15 @@ public record CalculatedReceipt(
     Currency totalCommonExpensesCurrency,
     BigDecimal totalUnCommonExpenses,
     Currency totalUnCommonExpensesCurrency,
-    List<Debt> debts,
+    List<AptDebt> debts,
     List<AptTotal> aptTotals,
     BigDecimal totalDebt,
     Integer debtReceiptsAmount,
     List<ExtraCharge> extraCharges,
-    LocalDateTime createdAt,
-    LocalDateTime updatedAt,
     Rate rate,
     List<ReserveFundTotal> reserveFundTotals,
-    Boolean sent,
-    LocalDateTime lastSent
+    Building building,
+    List<Apartment> apartments
 ) {
 
   @Builder(toBuilder = true)

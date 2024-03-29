@@ -7,7 +7,7 @@ import com.yaz.persistence.domain.query.EmailConfigQuery;
 import com.yaz.persistence.entities.EmailConfig;
 import com.yaz.resource.domain.response.EmailConfigTableItem;
 import com.yaz.resource.domain.response.EmailConfigTableResponse;
-import com.yaz.service.EmailConfigService;
+import com.yaz.service.entity.EmailConfigService;
 import com.yaz.service.GmailChecker;
 import com.yaz.util.DateUtil;
 import com.yaz.util.FileUtil;

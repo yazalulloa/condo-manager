@@ -1,4 +1,4 @@
-package com.yaz.service;
+package com.yaz.service.entity;
 
 import com.yaz.persistence.entities.ReserveFund;
 import com.yaz.persistence.repository.turso.ReserveFundRepository;

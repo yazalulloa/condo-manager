@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -56,8 +55,8 @@ public class ReceiptRepository {
       """.formatted(COLLECTION, SqlUtil.params(8));
   private static final String UPDATE_LAST_SENT = "UPDATE %s SET sent = true, last_sent = ? WHERE building_id = ? AND id = ?".formatted(
       COLLECTION);
-  private static final String READ = "SELECT * FROM %s WHERE building_id = ? AND id = ?".formatted(COLLECTION);
-  private static final String DELETE = "DELETE FROM %s WHERE building_id = ? AND id = ?".formatted(COLLECTION);
+  private static final String READ = "SELECT * FROM %s WHERE id = ?".formatted(COLLECTION);
+  private static final String DELETE = "DELETE FROM %s WHERE id = ?".formatted(COLLECTION);
 
 
   private final TursoWsService tursoWsService;
@@ -72,7 +71,7 @@ public class ReceiptRepository {
 
   public Uni<Integer> delete(String buildingId, long id) {
     final var stmts = new Stmt[5];
-    stmts[0] = Stmt.stmt(DELETE, Value.text(buildingId), Value.number(id));
+    stmts[0] = Stmt.stmt(DELETE, Value.number(id));
     stmts[1] = expenseRepository.stmtDeleteByReceipt(buildingId, id);
     final var deleteExtraCharges = extraChargeRepository.stmtDeleteByReceipt(buildingId, String.valueOf(id));
     stmts[2] = deleteExtraCharges[0];
@@ -181,19 +180,18 @@ public class ReceiptRepository {
         .map(executeResp -> executeResp.result().rowCount());
   }
 
-  public Uni<Optional<Receipt>> read(String buildingId, String id) {
-    return tursoWsService.selectOne(Stmt.stmt(READ, Value.text(buildingId), Value.text(id)), this::from);
+  public Uni<Optional<Receipt>> read(long id) {
+    return tursoWsService.selectOne(Stmt.stmt(READ, Value.number(id)), this::from);
   }
 
   public Uni<List<Receipt>> select(ReceiptQuery receiptQuery) {
 
     final var lastId = receiptQuery.lastId();
-    final var lastBuildingId = StringUtil.trimFilter(receiptQuery.lastBuildingId());
 
     final var whereClause = new ArrayList<String>();
 
     var valuesSize = 1;
-    if (lastBuildingId != null && lastId != null) {
+    if (lastId != null) {
       whereClause.add(CURSOR_QUERY);
       //valuesSize += 2;
       valuesSize += 1;
@@ -211,7 +209,7 @@ public class ReceiptRepository {
 
     final var values = new Value[valuesSize];
     var currentIndex = 0;
-    if (lastBuildingId != null && lastId != null) {
+    if (lastId != null) {
       values[0] = Value.number(lastId);
       //values[1] = Value.text(lastBuildingId);
       currentIndex = 1;

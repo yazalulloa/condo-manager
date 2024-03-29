@@ -1,6 +1,6 @@
 package com.yaz.bean;
 
-import com.yaz.service.OidcDbTokenService;
+import com.yaz.service.entity.OidcDbTokenService;
 import com.yaz.util.DateUtil;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;

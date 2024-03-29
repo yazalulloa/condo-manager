@@ -2,7 +2,7 @@ package com.yaz.bean;
 
 import static io.quarkus.oidc.runtime.CodeAuthenticationMechanism.SESSION_MAX_AGE_PARAM;
 
-import com.yaz.service.OidcDbTokenService;
+import com.yaz.service.entity.OidcDbTokenService;
 import com.yaz.util.DateUtil;
 import io.quarkus.oidc.AuthorizationCodeTokens;
 import io.quarkus.oidc.OidcRequestContext;
@@ -16,7 +16,6 @@ import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Alternative;
 import jakarta.inject.Inject;
-import java.time.Instant;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

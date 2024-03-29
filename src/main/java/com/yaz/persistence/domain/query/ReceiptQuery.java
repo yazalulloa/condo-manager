@@ -18,7 +18,6 @@ import lombok.extern.jackson.Jacksonized;
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class ReceiptQuery {
 
-  private final String lastBuildingId;
   private final Long lastId;
   @Builder.Default
   private final Set<String> buildings = Collections.emptySet();

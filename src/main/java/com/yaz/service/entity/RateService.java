@@ -1,4 +1,4 @@
-package com.yaz.service;
+package com.yaz.service.entity;
 
 import com.yaz.client.BcvClientService;
 import com.yaz.domain.BcvUsdRateResult;
@@ -10,7 +10,9 @@ import com.yaz.persistence.repository.RateRepository;
 import com.yaz.resource.RateResource;
 import com.yaz.resource.domain.response.RateTableResponse;
 import com.yaz.resource.domain.response.RateTableResponse.Item;
-import com.yaz.service.cache.RateCache;
+import com.yaz.service.ListService;
+import com.yaz.service.ListServicePagingProcessorImpl;
+import com.yaz.service.entity.cache.RateCache;
 import com.yaz.service.domain.FileResponse;
 import com.yaz.util.Constants;
 import com.yaz.util.ConvertUtil;
@@ -25,7 +27,6 @@ import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,9 +35,9 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-  @Slf4j
-  @ApplicationScoped
-  @RequiredArgsConstructor(onConstructor_ = {@Inject})
+@Slf4j
+@ApplicationScoped
+@RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class RateService {
 
 
@@ -149,6 +150,10 @@ public class RateService {
     return bcvClientService.get()
         .map(ConvertUtil::parseRate)
         .map(newRate -> new BcvUsdRateResult(BcvUsdRateResult.State.NEW_RATE, newRate));
+  }
+
+  public Uni<Optional<Rate>> read(long id) {
+    return repository().read(id);
   }
 
   private record BcvCheck(String etag, String lastModified) {

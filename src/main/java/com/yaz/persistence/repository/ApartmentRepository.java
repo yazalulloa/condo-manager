@@ -35,4 +35,6 @@ public interface ApartmentRepository {
   Uni<Integer> insert(Collection<Apartment> apartments);
 
   Uni<List<ExtraCharge.Apt>> aptByBuildings(String buildingId);
+
+  Uni<List<Apartment>> apartmentsByBuilding(String buildingId);
 }

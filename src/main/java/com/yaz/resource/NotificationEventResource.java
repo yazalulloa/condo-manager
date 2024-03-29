@@ -1,7 +1,7 @@
 package com.yaz.resource;
 
 import com.yaz.persistence.entities.NotificationEvent;
-import com.yaz.service.NotificationEventService;
+import com.yaz.service.entity.NotificationEventService;
 import io.quarkus.security.Authenticated;
 import io.smallrye.mutiny.Uni;
 import jakarta.inject.Inject;

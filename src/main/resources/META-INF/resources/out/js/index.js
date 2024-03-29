@@ -17936,7 +17936,7 @@ window.disableBtnInsideForm = function() {
   }
 };
 window.getLastUrlSegmentCurrent = function() {
-  return getLastUrlSegment(window.location.href);
+  return getLastUrlSegment(window.location.href) ?? "";
 };
 window.getQueryParam = function(name) {
   let params = new URL(document.location).searchParams;
@@ -18086,5 +18086,28 @@ window.integerToMonth = function(month) {
       return "Diciembre";
     default:
       return "N/A";
+  }
+};
+window.openTab = function(evt, cityName) {
+  let tabcontent = document.getElementsByClassName("tab-cm-content");
+  for (let i2 = 0;i2 < tabcontent.length; i2++) {
+    tabcontent[i2].style.display = "none";
+  }
+  let tablinks = document.getElementsByClassName("tablinks");
+  for (let i2 = 0;i2 < tablinks.length; i2++) {
+    tablinks[i2].className = tablinks[i2].className.replace(" active", "");
+  }
+  document.getElementById(cityName).style.display = "block";
+  if (evt && evt.currentTarget) {
+    evt.currentTarget.className += " active";
+  }
+};
+window.slideTo = function(id, direction) {
+  let elem = document.getElementById(id);
+  if (elem) {
+    elem.scrollBy({
+      left: direction === "left" ? -500 : 500,
+      behavior: "smooth"
+    });
   }
 };

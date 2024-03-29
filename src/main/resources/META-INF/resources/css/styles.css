@@ -146,9 +146,7 @@
 /*  background-color: #dddddd;*/
 /*}*/
 
-/*.table-row:hover {*/
-/*  background-color: lightgray;*/
-/*}*/
+
 
 .header {
   display: flex;
@@ -350,5 +348,37 @@ details > summary {
   list-style: none;
 }
 details > summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Style the tab */
+.tab-cm {
+  border: 1px solid #ccc;
+}
+
+/* Style the buttons inside the tab */
+.tab-cm button {
+  background-color: inherit;
+  float: left;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 14px 16px;
+  transition: 0.3s;
+  font-size: 17px;
+}
+
+/* Change background color of buttons on hover */
+.tab-cm button:hover {
+  background-color: #ddd;
+}
+
+/* Create an active/current tablink class */
+.tab-cm button.active {
+  background-color: #ccc;
+}
+
+/* Style the tab content */
+.tab-cm-content {
   display: none;
 }

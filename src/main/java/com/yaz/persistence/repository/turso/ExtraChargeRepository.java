@@ -96,7 +96,7 @@ public class ExtraChargeRepository {
 
 
   public Uni<Long> count() {
-    return tursoWsService.count("user_id", COLLECTION);
+    return tursoWsService.count("id", COLLECTION);
   }
 
   private ExtraCharge from(Row row) {
@@ -156,6 +156,14 @@ public class ExtraChargeRepository {
         "WHERE extra_charges.building_id = ? AND extra_charges.secondary_id = ?");
 
     return tursoWsService.selectQuery(Stmt.stmt(query, Value.text(buildingId), Value.text(secondaryId)), this::from);
+  }
+
+  public Uni<List<ExtraCharge>> selectByBuildingId(String buildingId) {
+
+    final var query = SELECT.formatted(sqlConfig.separator().column(), sqlConfig.separator().row(),
+        "WHERE extra_charges.building_id = ?");
+
+    return tursoWsService.selectQuery(Stmt.stmt(query, Value.text(buildingId)), this::from);
   }
 
   public Uni<Integer> delete(String buildingId, String secondaryId, long id) {

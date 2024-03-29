@@ -1,4 +1,4 @@
-package com.yaz.service.cache;
+package com.yaz.service.entity.cache;
 
 public class RateCache {
 

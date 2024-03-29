@@ -1,4 +1,4 @@
-package com.yaz.service;
+package com.yaz.service.entity;
 
 import com.yaz.persistence.domain.query.ApartmentQuery;
 import com.yaz.persistence.entities.Apartment;
@@ -9,7 +9,7 @@ import com.yaz.resource.domain.AptItem;
 import com.yaz.resource.domain.request.ApartmentRequest;
 import com.yaz.resource.domain.response.ApartmentTableResponse;
 import com.yaz.resource.domain.response.AptCountersDto;
-import com.yaz.service.cache.ApartmentCache;
+import com.yaz.service.entity.cache.ApartmentCache;
 import com.yaz.util.Constants;
 import io.quarkus.cache.CacheInvalidate;
 import io.quarkus.cache.CacheInvalidateAll;
@@ -192,5 +192,9 @@ public class ApartmentService {
   @CacheResult(cacheName = ApartmentCache.SELECT_MINIMAL_BY_BUILDINGS, lockTimeout = Constants.CACHE_TIMEOUT)
   public Uni<List<ExtraCharge.Apt>> aptByBuildings(String buildingId) {
     return repository().aptByBuildings(buildingId);
+  }
+
+  public Uni<List<Apartment>> apartmentsByBuilding(String buildingId) {
+    return repository().apartmentsByBuilding(buildingId);
   }
 }

@@ -1,10 +1,11 @@
-package com.yaz.service;
+package com.yaz.service.entity;
 
 import com.yaz.persistence.domain.query.ReceiptQuery;
 import com.yaz.persistence.entities.Receipt;
 import com.yaz.persistence.repository.turso.ReceiptRepository;
 import com.yaz.resource.ReceiptResource;
 import com.yaz.resource.domain.response.ReceiptTableResponse;
+import com.yaz.service.EncryptionService;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -40,8 +41,8 @@ public class ReceiptService {
     return repository.updateLastSent(buildingId, id);
   }
 
-  public Uni<Optional<Receipt>> read(String buildingId, String id) {
-    return repository.read(buildingId, id);
+  public Uni<Optional<Receipt>> read(long id) {
+    return repository.read(id);
   }
 
   public Uni<List<Receipt>> select(ReceiptQuery receiptQuery) {

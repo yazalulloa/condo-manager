@@ -1,4 +1,4 @@
-package com.yaz.service;
+package com.yaz.service.entity;
 
 import com.yaz.persistence.entities.NotificationEvent;
 import com.yaz.persistence.repository.turso.NotificationEventRepository;

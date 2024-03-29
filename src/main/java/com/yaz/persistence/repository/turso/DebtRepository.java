@@ -2,14 +2,19 @@ package com.yaz.persistence.repository.turso;
 
 import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.entities.Debt;
+import com.yaz.persistence.repository.turso.client.TursoWsService;
 import com.yaz.persistence.repository.turso.client.ws.request.Stmt;
 import com.yaz.persistence.repository.turso.client.ws.request.Value;
 import com.yaz.persistence.repository.turso.client.ws.response.ExecuteResp.Row;
 import com.yaz.util.SqlUtil;
+import com.yaz.util.StringUtil;
+import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -28,13 +33,18 @@ public class DebtRepository {
       INSERT INTO %s (building_id, receipt_id, apt_number, receipts, amount, months, previous_payment_amount, 
       previous_payment_amount_currency) VALUES %s
       """;
-  private static final String SELECT_BY_RECEIPT = "SELECT * FROM %s WHERE building_id = ? AND receipt_id = ? ORDER BY id".formatted(
+  private static final String SELECT_BY_RECEIPT = "SELECT * FROM %s WHERE building_id = ? AND receipt_id = ? ORDER BY apt_number".formatted(
       COLLECTION);
   private static final String DELETE_BY_RECEIPT = "DELETE FROM %s WHERE building_id = ? AND receipt_id = ?".formatted(
       COLLECTION);
 
+  private final TursoWsService tursoWsService;
+
   Debt from(Row row) {
-    final var months = Arrays.stream(row.getString("months").split(",")).map(Integer::parseInt)
+    final var months = Arrays.stream(row.getString("months").split(","))
+        .map(StringUtil::trimFilter)
+        .filter(Objects::nonNull)
+        .map(Integer::parseInt)
         .collect(Collectors.toSet());
     return Debt.builder()
         .buildingId(row.getString("building_id"))
@@ -48,8 +58,8 @@ public class DebtRepository {
         .build();
   }
 
-  public Stmt stmtSelectByReceipt(String buildingId, String receiptId) {
-    return Stmt.stmt(SELECT_BY_RECEIPT, Value.text(buildingId), Value.text(receiptId));
+  public Stmt stmtSelectByReceipt(String buildingId, long receiptId) {
+    return Stmt.stmt(SELECT_BY_RECEIPT, Value.text(buildingId), Value.number(receiptId));
   }
 
   public Stmt stmtDeleteByReceipt(String buildingId, long receiptId) {
@@ -84,4 +94,7 @@ public class DebtRepository {
     return Stmt.stmt(sql, values);
   }
 
+  public Uni<List<Debt>> readByReceipt(String buildingId, long receiptId) {
+    return tursoWsService.selectQuery(stmtSelectByReceipt(buildingId, receiptId), this::from);
+  }
 }

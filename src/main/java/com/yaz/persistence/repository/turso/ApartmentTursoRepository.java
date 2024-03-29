@@ -101,9 +101,11 @@ public class ApartmentTursoRepository implements ApartmentRepository {
       COLLECTION);
 
   private static final String SELECT_MINIMAL_BY_BUILDING = """
-      SELECT building_id, number, name FROM %s
-            WHERE building_id = ?
-            ORDER BY number
+      SELECT building_id, number, name FROM %s WHERE building_id = ? ORDER BY number
+            """.formatted(COLLECTION);
+
+  private static final String SELECT_BY_BUILDING = """
+      SELECT * FROM %s WHERE building_id = ? ORDER BY number
             """.formatted(COLLECTION);
   private static final String INSERT_IGNORE = """
       INSERT IGNORE INTO %s (building_id, number, name, aliquot) 
@@ -377,6 +379,11 @@ public class ApartmentTursoRepository implements ApartmentRepository {
             .number(row.getString("number"))
             .name(row.getString("name"))
             .build());
+  }
+
+  @Override
+  public Uni<List<Apartment>> apartmentsByBuilding(String buildingId) {
+    return tursoWsService.selectQuery(Stmt.stmt(SELECT_BY_BUILDING, Value.text(buildingId)), this::from);
   }
 
   private Apartment from(Row row) {

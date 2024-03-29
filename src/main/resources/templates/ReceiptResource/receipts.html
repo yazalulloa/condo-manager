@@ -29,9 +29,23 @@
   <span>{item.item.createdAt.formatDate}</span>
 
 
+  <div>
+    <button class="hover:bg-gray-400 py-1 px-1 rounded inline-flex items-center"
+            hx-get="/receipts/pdfs/{item.key}"
+            hx-push-url="true"
+            hx-indicator=".htmx-indicator"
+            hx-swap="none">
+      <img src="/assets/pdf-logo.svg" style="width:25px;height:25px;" alt="download-zip-pdfs">
+    </button>
+  </div>
+
+
 <div>
- <button class="hover:bg-gray-400 py-1 px-1 rounded inline-flex items-center">
-   <img src="/assets/pdf-logo.svg" style="width:25px;height:25px;" alt="view-pdfs">
+ <button class="hover:bg-gray-400 py-1 px-1 rounded inline-flex items-center"
+         hx-get="/api/receipts/download_zip/{item.key}"
+         hx-indicator=".htmx-indicator"
+         hx-swap="none">
+   <img src="/assets/pdf-logo.svg" style="width:25px;height:25px;" alt="download-zip-pdfs">
  </button>
 </div>
 {#include fragments/delete-btn deleteUrl=item.deleteUrl cardIdRef=item.cardIdRef/}

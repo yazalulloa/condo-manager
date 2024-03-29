@@ -3,6 +3,7 @@ package com.yaz.service;
 
 import com.yaz.persistence.entities.NotificationEvent;
 import com.yaz.persistence.entities.NotificationEvent.Event;
+import com.yaz.service.entity.TelegramChatService;
 import com.yaz.util.EnvParams;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;

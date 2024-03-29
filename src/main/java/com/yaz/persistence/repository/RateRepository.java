@@ -20,4 +20,6 @@ public interface RateRepository {
   Uni<Optional<Rate>> last(Currency fromCurrency, Currency toCurrency);
 
   Uni<Boolean> exists(long hash);
+
+  Uni<Optional<Rate>> read(long id);
 }
