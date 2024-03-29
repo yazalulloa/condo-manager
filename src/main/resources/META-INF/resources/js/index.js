@@ -390,12 +390,12 @@ window.openTab = function (evt, cityName) {
   }
   let tablinks = document.getElementsByClassName("tablinks");
   for (let i = 0; i < tablinks.length; i++) {
-    tablinks[i].className = tablinks[i].className.replace(" active", "");
+    tablinks[i].className = tablinks[i].className.replace(" btn-active", "");
   }
   document.getElementById(cityName).style.display = "block";
 
-  if (evt && evt.currentTarget) {
-    evt.currentTarget.className += " active";
+  if (evt) {
+    evt.className += " btn-active";
   }
 }
 

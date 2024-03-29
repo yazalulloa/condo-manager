@@ -27,10 +27,11 @@
     <div id="pdf_carousel" class="join-item carousel rounded-box">
       {#for tab in res.tabs}
           <button
-          class="carousel-item btn btn-outline join-item tablinks" onclick="openTab(event,'{tab.name}')"
+          class="carousel-item btn btn-outline join-item tablinks" onclick="openTab(this,'{tab.name}')"
       {#if tab.checked}
           script="init call openTab(event,'{tab.name}')
-init remove @script from me"
+                  init add .btn-active to me
+                  init remove @script from me"
       {/if}
     >{tab.name}</button>
       {/for}

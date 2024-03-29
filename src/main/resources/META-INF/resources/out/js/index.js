@@ -18095,11 +18095,11 @@ window.openTab = function(evt, cityName) {
   }
   let tablinks = document.getElementsByClassName("tablinks");
   for (let i2 = 0;i2 < tablinks.length; i2++) {
-    tablinks[i2].className = tablinks[i2].className.replace(" active", "");
+    tablinks[i2].className = tablinks[i2].className.replace(" btn-active", "");
   }
   document.getElementById(cityName).style.display = "block";
-  if (evt && evt.currentTarget) {
-    evt.currentTarget.className += " active";
+  if (evt) {
+    evt.className += " btn-active";
   }
 };
 window.slideTo = function(id, direction) {
