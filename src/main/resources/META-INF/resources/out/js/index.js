@@ -17879,6 +17879,15 @@ window.initComponents = function() {
       validation.init();
     });
   }
+  const scroll_stopper = document.getElementsByClassName("stop-vertical-scroll");
+  for (let ele of scroll_stopper) {
+    ele.onmouseover = () => {
+      document.body.classList.add("noYScroll");
+    };
+    ele.onmouseout = () => {
+      document.body.classList.remove("noYScroll");
+    };
+  }
 };
 initComponents();
 htmx.config.useTemplateFragments = true;

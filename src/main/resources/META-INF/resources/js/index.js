@@ -50,6 +50,17 @@ window.initComponents = function () {
       validation.init();
     });
   }
+
+  const scroll_stopper = document.getElementsByClassName('stop-vertical-scroll')
+
+  for (let ele of scroll_stopper) {
+    ele.onmouseover = () => {
+      document.body.classList.add('noYScroll')
+    }
+    ele.onmouseout = () => {
+      document.body.classList.remove('noYScroll')
+    }
+  }
 }
 
 initComponents();
@@ -400,7 +411,7 @@ window.openTab = function (evt, cityName) {
 }
 
 window.slideTo = function (id, direction) {
-let elem = document.getElementById(id);
+  let elem = document.getElementById(id);
   if (elem) {
     elem.scrollBy({
       left: direction === 'left' ? -500 : 500,
@@ -409,3 +420,4 @@ let elem = document.getElementById(id);
   }
 
 }
+

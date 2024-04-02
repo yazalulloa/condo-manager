@@ -1,6 +1,6 @@
 package com.yaz.job;
 
-import com.yaz.service.GmailChecker;
+import com.yaz.service.gmail.GmailChecker;
 import io.quarkus.scheduler.Scheduled;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;

@@ -88,7 +88,6 @@ public class StaticReactiveRoutes {
 
   @Route(path = "/receipts/pdfs/:id", methods = Route.HttpMethod.GET)
   void receiptPdfs(@Param String id, RoutingContext routingContext) {
-    log.info("receipts pdfs {}", id);
     final var str = StringUtil.trimFilter(id);
     if (str == null) {
       routingContext.redirect("/receipts");

@@ -1,15 +1,22 @@
 {@com.yaz.resource.domain.response.ReceiptTableResponse res}
 
-{#include ReceiptResource/counters totalCount=res.totalCount /}
+{#include ReceiptResource/counters dto=res.countersDto /}
 
 {#for item in res.results}
 
     <div
-    class="hover:bg-[#00000014] border-solid px-2 p-0.5 flex flex-row flex-wrap gap-2 text-center items-center justify-between "
+    class="hover:bg-[#00000014] px-2 p-0.5 flex flex-row gap-2 text-center items-center justify-between"
+
     id={item.cardId}>
+
+<div class="flex-grow receipt-grid-container">
   <span>{item.item.buildingId}</span>
-  <span script="init call integerToMonth({item.item.month}) then put it into my.innerHTML"></span>
-  <span>{item.item.year}</span>
+
+  <div class="flex flex-row gap-2 justify-center">
+    <span script="init call integerToMonth({item.item.month}) then put it into my.innerHTML"></span>
+    <span>{item.item.year}</span>
+  </div>
+
   <span>{item.item.date}</span>
 
   <div
@@ -27,28 +34,66 @@
   </div>
 
   <span>{item.item.createdAt.formatDate}</span>
-
-
-  <div>
-    <button class="hover:bg-gray-400 py-1 px-1 rounded inline-flex items-center"
-            hx-get="/receipts/pdfs/{item.key}"
-            hx-push-url="true"
-            hx-indicator=".htmx-indicator"
-            hx-swap="none">
-      <img src="/assets/pdf-logo.svg" style="width:25px;height:25px;" alt="download-zip-pdfs">
-    </button>
-  </div>
-
-
-<div>
- <button class="hover:bg-gray-400 py-1 px-1 rounded inline-flex items-center"
-         hx-get="/api/receipts/download_zip/{item.key}"
-         hx-indicator=".htmx-indicator"
-         hx-swap="none">
-   <img src="/assets/pdf-logo.svg" style="width:25px;height:25px;" alt="download-zip-pdfs">
- </button>
 </div>
-{#include fragments/delete-btn deleteUrl=item.deleteUrl cardIdRef=item.cardIdRef/}
+
+
+  <div class="dropdown dropdown-left flex-grow-0">
+    <label tabindex="0" class="btn btn-ghost btn-circle">
+      <svg width="25px" height="25px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path
+            d="M13 5C13 4.44772 12.5523 4 12 4C11.4477 4 11 4.44772 11 5C11 5.55228 11.4477 6 12 6C12.5523 6 13 5.55228 13 5Z"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path
+            d="M13 12C13 11.4477 12.5523 11 12 11C11.4477 11 11 11.4477 11 12C11 12.5523 11.4477 13 12 13C12.5523 13 13 12.5523 13 12Z"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path
+            d="M13 19C13 18.4477 12.5523 18 12 18C11.4477 18 11 18.4477 11 19C11 19.5523 11.4477 20 12 20C12.5523 20 13 19.5523 13 19Z"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </label>
+    <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-10 p-2 shadow bg-base-100 rounded-box w-52">
+      <li>
+        <a hx-headers='{"{inject:csrf.headerName}":"{inject:csrf.token}"}'
+           hx-delete="{item.deleteUrl}"
+           hx-include="[name='date_input'],[name='building_input'],[name='month_input']"
+           hx-target="{item.cardIdRef}"
+           hx-indicator=".htmx-indicator"
+           hx-trigger="click"
+           hx-swap="delete">
+          <img src="/assets/trash.svg" alt="delete-item">
+          Borrar
+        </a>
+      </li>
+      <li>
+        <a hx-get="/api/receipts/download_zip/{item.key}"
+           hx-indicator=".htmx-indicator"
+           hx-swap="none">
+          <img src="/assets/pdf-logo.svg" style="width:25px;height:25px;" alt="download-zip-pdfs">
+          Descargar zip
+        </a>
+      </li>
+      <li>
+        <a hx-get="/receipts/pdfs/{item.key}"
+           hx-push-url="true"
+           hx-indicator=".htmx-indicator"
+           hx-swap="none">
+          <img src="/assets/pdf-logo.svg" style="width:25px;height:25px;" alt="download-zip-pdfs">
+          Ver PDFs
+        </a>
+      </li>
+
+      <li>
+        <a hx-post="/api/receipts/send_zip/{item.key}"
+           hx-headers='{"{inject:csrf.headerName}":"{inject:csrf.token}"}'
+           hx-push-url="true"
+           hx-indicator=".htmx-indicator"
+           hx-swap="none">
+          <img src="/assets/pdf-logo.svg" style="width:25px;height:25px;" alt="download-zip-pdfs">
+          Enviar ZIP
+        </a>
+      </li>
+    </ul>
+  </div>
 
 </div>
 {/for}

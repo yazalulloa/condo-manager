@@ -1,6 +1,6 @@
 package com.yaz.service.entity;
 
-import com.yaz.bean.GmailHelper;
+import com.yaz.service.gmail.GmailHelper;
 import com.yaz.event.domain.EmailConfigDeleted;
 import com.yaz.persistence.domain.EmailConfigUser;
 import com.yaz.persistence.domain.query.EmailConfigQuery;
@@ -16,7 +16,6 @@ import com.yaz.util.PagingProcessor;
 import com.yaz.util.RxUtil;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
-import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -25,7 +24,6 @@ import jakarta.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;

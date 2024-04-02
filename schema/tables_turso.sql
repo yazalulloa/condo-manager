@@ -283,6 +283,8 @@ CREATE TABLE IF NOT EXISTS receipts
 
 
 CREATE INDEX IF NOT EXISTS receipts_building_id_idx ON receipts (building_id);
+CREATE INDEX IF NOT EXISTS receipts_month_idx ON receipts (month);
+CREATE INDEX IF NOT EXISTS receipts_date_idx ON receipts (date);
 
 CREATE TRIGGER IF NOT EXISTS receipts_updated_at_trigger
     AFTER UPDATE

@@ -5,8 +5,11 @@ import com.yaz.resource.domain.response.ReceiptPdfResponse.Tab;
 import com.yaz.service.CalculateReceiptService;
 import com.yaz.service.EncryptionService;
 import com.yaz.service.TranslationProvider;
+import com.yaz.service.domain.CalculatedReceipt;
 import com.yaz.service.domain.FileResponse;
 import com.yaz.util.MutinyUtil;
+import com.yaz.util.RxUtil;
+import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -26,23 +29,34 @@ public class ReceiptPdfService {
   private final TranslationProvider translationProvider;
   private final EncryptionService encryptionService;
 
-  public Uni<FileResponse> zipDownload(String buildingId, long receiptId) {
-    final var fileSingle = calculateReceiptService.calculate(buildingId, receiptId)
-        .observeOn(Schedulers.io())
-        .map(getPdfReceipts::zipReceipt);
+  private Single<CalculatedReceipt> calculate(String buildingId, long receiptId) {
+    return RxUtil.single(calculateReceiptService.calculate(buildingId, receiptId));
+  }
 
-    return MutinyUtil.toUni(fileSingle);
+  public Uni<FileResponse> zipDownload(String buildingId, long receiptId) {
+
+    return MutinyUtil.toUni(zipResponse(buildingId, receiptId))
+        .map(ZipResponse::fileResponse);
+  }
+
+  public Single<ZipResponse> zipResponse(String buildingId, long receiptId) {
+    return calculate(buildingId, receiptId)
+        .observeOn(Schedulers.io())
+        .map(receipt -> {
+          final var fileResponse = getPdfReceipts.zipReceipt(receipt);
+          return new ZipResponse(receipt, fileResponse);
+        });
   }
 
   public Uni<Collection<PdfReceiptItem>> pdfs(String buildingId, long receiptId) {
-    final var collectionSingle = calculateReceiptService.calculate(buildingId, receiptId)
+    final var collectionSingle = calculate(buildingId, receiptId)
         .map(getPdfReceipts::pdfItems);
 
     return MutinyUtil.toUni(collectionSingle);
   }
 
   public Uni<ReceiptPdfResponse> pdfResponse(String buildingId, long receiptId) {
-    final var responseSingle = calculateReceiptService.calculate(buildingId, receiptId)
+    final var responseSingle = calculate(buildingId, receiptId)
         .observeOn(Schedulers.io())
         .map(calculatedReceipt -> {
 

@@ -35,7 +35,8 @@ public record CalculatedReceipt(
     Rate rate,
     List<ReserveFundTotal> reserveFundTotals,
     Building building,
-    List<Apartment> apartments
+    List<Apartment> apartments,
+    String emailConfigId
 ) {
 
   @Builder(toBuilder = true)

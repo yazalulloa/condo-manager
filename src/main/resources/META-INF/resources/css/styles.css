@@ -147,7 +147,6 @@
 /*}*/
 
 
-
 .header {
   display: flex;
   flex-wrap: wrap;
@@ -347,6 +346,7 @@
 details > summary {
   list-style: none;
 }
+
 details > summary::-webkit-details-marker {
   display: none;
 }
@@ -381,4 +381,17 @@ details > summary::-webkit-details-marker {
 /* Style the tab content */
 .tab-cm-content {
   display: none;
+}
+
+.receipt-grid-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+  grid-template-rows: auto;
+  grid-gap: 1em;
+  text-align: center;
+  align-items: center;
+}
+
+.noYScroll {
+  overflow-y: hidden !important;
 }

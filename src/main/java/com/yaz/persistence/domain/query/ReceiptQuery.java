@@ -3,6 +3,7 @@ package com.yaz.persistence.domain.query;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.Set;
 import lombok.Builder;
@@ -19,6 +20,9 @@ import lombok.extern.jackson.Jacksonized;
 public class ReceiptQuery {
 
   private final Long lastId;
+  @Builder.Default
+  private final int[] month = new int[0];
+  private final String date;
   @Builder.Default
   private final Set<String> buildings = Collections.emptySet();
   @Builder.Default

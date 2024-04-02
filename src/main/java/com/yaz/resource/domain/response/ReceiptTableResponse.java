@@ -15,7 +15,7 @@ import lombok.experimental.Accessors;
 @Builder
 public class ReceiptTableResponse {
 
-  private final long totalCount;
+  private final ReceiptCountersDto countersDto;
   @JsonIgnore
   private final String nextPageUrl;
   private final Collection<Item> results;

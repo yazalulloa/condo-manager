@@ -21,11 +21,15 @@ import com.yaz.service.entity.ExtraChargeService;
 import com.yaz.service.entity.RateService;
 import com.yaz.service.entity.ReceiptService;
 import com.yaz.service.entity.ReserveFundService;
+import com.yaz.util.Constants;
 import com.yaz.util.ConvertUtil;
 import com.yaz.util.DecimalUtil;
+import com.yaz.util.MutinyUtil;
 import com.yaz.util.RxUtil;
+import io.quarkus.cache.CacheResult;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
+import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.math.BigDecimal;
@@ -38,7 +42,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
@@ -58,7 +62,8 @@ public class CalculateReceiptService {
   private final ExtraChargeService extraChargeService;
   private final RateService rateService;
 
-  public Single<CalculatedReceipt> calculate(String buildingId, long receiptId) {
+  @CacheResult(cacheName = "calculated_receipt", lockTimeout = Constants.CACHE_TIMEOUT)
+  public Uni<CalculatedReceipt> calculate(String buildingId, long receiptId) {
 
     final var receiptSingle = RxUtil.toMaybe(receiptService.read(receiptId))
         .flatMap(Maybe::fromOptional)
@@ -85,7 +90,9 @@ public class CalculateReceiptService {
         .flatMapMaybe(Maybe::fromOptional)
         .switchIfEmpty(Single.error(new IllegalArgumentException("Rate not found")));
 
-    return Single.zip(receiptSingle, buildingSingle, reserveFundsSingle, apartmentsSingle, expensesSingle, debtsSingle,
+    final var calculatedReceiptSingle = Single.zip(receiptSingle, buildingSingle, reserveFundsSingle, apartmentsSingle,
+        expensesSingle,
+        debtsSingle,
         extraChargesSingle, rateSingle,
         (receipt, building, reserveFundList, apartments, expenseList, debtList, extraChargeList, rate) -> {
 
@@ -167,11 +174,11 @@ public class CalculateReceiptService {
 
           final var buildingExtraCharges = extraChargeList.stream()
               .filter(extraCharge -> extraCharge.secondaryId().equals(extraCharge.buildingId()))
-              .collect(Collectors.toList());
+              .toList();
 
           final var receiptExtraCharges = extraChargeList.stream()
               .filter(extraCharge -> extraCharge.secondaryId().equals(String.valueOf(receipt.id())))
-              .collect(Collectors.toList());
+              .toList();
 
           final var aptTotals = apartments.stream()
               .map(apartment -> {
@@ -210,7 +217,7 @@ public class CalculateReceiptService {
                         .orElse(Currency.VED))
                     .build();
               })
-              .collect(Collectors.toList());
+              .toList();
 
           return CalculatedReceipt.builder()
               .id(receipt.id())
@@ -230,10 +237,11 @@ public class CalculateReceiptService {
               .reserveFundTotals(reserveFundTotals)
               .apartments(apartments)
               .building(building)
+              .emailConfigId(building.emailConfigId())
               .build();
         });
 
-
+    return MutinyUtil.toUni(calculatedReceiptSingle);
   }
 
   private BigDecimal aliquotDifference(Collection<Apartment> list, BigDecimal totalCommonExpenses) {
@@ -263,20 +271,15 @@ public class CalculateReceiptService {
       Collection<ExtraCharge> extraCharges) {
 
     final var currency = building.mainCurrency();
-    if (building.fixedPay()) {
+    var preCalculatedPayment = building.fixedPayAmount();
 
-      return totalPayment(building.fixedPay(), building.fixedPayAmount(), currency, rate, extraCharges);
-
-    } else {
-
-      //document.add(new Paragraph("MONTO DE GASTOS NO COMUNES POR C/U: " + currencyType.numberFormat().format(unCommonPay)));
-
+    if (!building.fixedPay()) {
       final var aliquotAmount = DecimalUtil.percentageOf(aptAliquot, totalCommonExpenses);
       // document.add(new Paragraph("MONTO POR ALIQUOTA: " + currencyType.numberFormat().format(aliquotAmount)));
-      final var beforePay = aliquotAmount.add(unCommonPayPerApt);//.setScale(2, RoundingMode.UP);
-      return totalPayment(building.fixedPay(), beforePay, currency, rate, extraCharges);
-
+      preCalculatedPayment = aliquotAmount.add(unCommonPayPerApt);//.setScale(2, RoundingMode.UP);
     }
+
+    return totalPayment(building.fixedPay(), preCalculatedPayment, currency, rate, extraCharges);
   }
 
   private Map<Currency, BigDecimal> totalPayment(boolean fixedPay,
@@ -287,13 +290,9 @@ public class CalculateReceiptService {
     var usdPay = BigDecimal.ZERO;
     var vesPay = BigDecimal.ZERO;
 
-    Function<BigDecimal, BigDecimal> toUsd = ves -> {
-      return ves.divide(usdExchangeRate, 2, RoundingMode.HALF_UP);
-    };
+    UnaryOperator<BigDecimal> toUsd = ves -> ves.divide(usdExchangeRate, 2, RoundingMode.HALF_UP);
 
-    Function<BigDecimal, BigDecimal> toVes = usd -> {
-      return usd.multiply(usdExchangeRate);
-    };
+    UnaryOperator<BigDecimal> toVes = usd -> usd.multiply(usdExchangeRate);
 
     final var vesExtraCharge = extraCharges.stream().filter(c -> c.currency() == Currency.VED)
         .map(ExtraCharge::amount)
@@ -325,7 +324,7 @@ public class CalculateReceiptService {
       usdPay = usdPay.add(toUsd.apply(preCalculatedPayment));
     }
 
-    Function<BigDecimal, BigDecimal> function = bigDecimal -> {
+    UnaryOperator<BigDecimal> function = bigDecimal -> {
             /*if (building.roundUpPayments()) {
                 return bigDecimal.setScale(0, RoundingMode.UP);
             }*/

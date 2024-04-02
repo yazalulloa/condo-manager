@@ -9,34 +9,28 @@ import io.vertx.core.json.JsonObject;
 import java.time.LocalDateTime;
 import java.util.Set;
 import lombok.Builder;
-import lombok.Data;
-import lombok.experimental.Accessors;
-import lombok.extern.jackson.Jacksonized;
 
-@Jacksonized
+
 @Builder(toBuilder = true)
-@Accessors(fluent = true)
-@Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class User {
-
-  private final String id;
-  private final String providerId;
-  private final IdentityProvider provider;
-  private final String email;
-  private final String username;
-  private final String name;
-  private final String picture;
-  private final JsonObject data;
-  private final LocalDateTime createdAt;
-  private final LocalDateTime lastLoginAt;
-  private final TelegramChat telegramChat;
-  private final Set<NotificationEvent.Event> notificationEvents;
+public record User(
+    String id,
+    String providerId,
+    IdentityProvider provider,
+    String email,
+    String username,
+    String name,
+    String picture,
+    JsonObject data,
+    LocalDateTime createdAt,
+    LocalDateTime lastLoginAt,
+    TelegramChat telegramChat,
+    Set<NotificationEvent.Event> notificationEvents
+) {
 
   @Builder
-
   public record TelegramChat(
       Long chatId, String username, String firstName
   ) {

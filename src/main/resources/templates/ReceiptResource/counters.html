@@ -1,4 +1,15 @@
-{@java.lang.Long totalCount}
-<span class="header" id="receipts-total-counter" hx-swap-oob="true">
-	Recibos: {totalCount}
+{@com.yaz.resource.domain.response.ReceiptCountersDto dto}
+
+{#if dto}
+<div id="receipts-counters" hx-swap-oob="true">
+
+<span id="receipts-total-counter">
+  Recibos: {dto.totalCount}
 </span>
+
+{#if dto.queryCount}
+<span id="receipts-query-count">Items: {dto.queryCount}</span>
+{/if}
+</div>
+{/if}
+

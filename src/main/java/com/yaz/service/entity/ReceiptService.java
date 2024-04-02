@@ -4,13 +4,13 @@ import com.yaz.persistence.domain.query.ReceiptQuery;
 import com.yaz.persistence.entities.Receipt;
 import com.yaz.persistence.repository.turso.ReceiptRepository;
 import com.yaz.resource.ReceiptResource;
+import com.yaz.resource.domain.response.ReceiptCountersDto;
 import com.yaz.resource.domain.response.ReceiptTableResponse;
 import com.yaz.service.EncryptionService;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -25,7 +25,7 @@ public class ReceiptService {
   private final ReceiptRepository repository;
   private final EncryptionService encryptionService;
 
-  public Uni<Long> count() {
+  public Uni<Long> totalCount() {
     return repository.count();
   }
 
@@ -49,6 +49,18 @@ public class ReceiptService {
     return repository.select(receiptQuery);
   }
 
+  public Uni<Optional<Long>> queryCount(ReceiptQuery receiptQuery) {
+    return repository.count(receiptQuery);
+  }
+
+  public Uni<ReceiptCountersDto> counters(ReceiptQuery query) {
+    return Uni.combine()
+        .all()
+        .unis(totalCount(), queryCount(query))
+        .with((totalCount, queryCount) -> new ReceiptCountersDto(totalCount, queryCount.orElse(null)));
+
+  }
+
   public Uni<ReceiptTableResponse> table(ReceiptQuery query) {
 
     final var actualLimit = query.limit() + 1;
@@ -59,8 +71,8 @@ public class ReceiptService {
 
     return Uni.combine()
         .all()
-        .unis(count(), select(receiptQuery))
-        .with((totalCount, receipts) -> {
+        .unis(counters(query), select(receiptQuery))
+        .with((counters, receipts) -> {
 
           final var results = receipts.stream()
               .map(receipt -> {
@@ -83,10 +95,18 @@ public class ReceiptService {
             for (String building : receiptQuery.buildings()) {
               nextPageUrl += "&building=" + building;
             }
+
+            for (int month : receiptQuery.month()) {
+              nextPageUrl += "&month=" + month;
+            }
+
+            if (receiptQuery.date() != null) {
+              nextPageUrl += "&date=" + receiptQuery.date();
+            }
           }
 
           return ReceiptTableResponse.builder()
-              .totalCount(totalCount)
+              .countersDto(counters)
               .nextPageUrl(nextPageUrl)
               .results(results)
               .build();

@@ -49,6 +49,8 @@ public class ReceiptRepository {
   private static final String SELECT = """
       SELECT * FROM receipts %s ORDER BY id DESC LIMIT ?
       """;
+
+  private static final String COUNT = "SELECT COUNT(id) FROM receipts %s";
   private static final String CURSOR_QUERY = "receipts.id < ?";
   private static final String INSERT = """
       INSERT INTO %s (building_id, year, month, date, rate_id, sent, last_sent, created_at) VALUES (%s) returning id
@@ -141,39 +143,6 @@ public class ReceiptRepository {
 
   }
 
-//  public Uni<Integer> insert(List<Receipt> receipts) {
-//
-//    final var expenses = receipts.stream().map(Receipt::expenses).flatMap(Collection::stream).toList();
-//    final var extraCharges = receipts.stream().map(Receipt::extraCharges).flatMap(Collection::stream).toList();
-//
-//    final var sql = INSERT.formatted(COLLECTION, SqlUtil.valuesParams(8, receipts.size()));
-//
-//    final var values = new Value[8 * receipts.size()];
-//    var i = 0;
-//    for (var receipt : receipts) {
-//      values[i++] = Value.text(receipt.buildingId());
-//      values[i++] = Value.number(receipt.year());
-//      values[i++] = Value.number(receipt.month());
-//      values[i++] = Value.text(receipt.date());
-//      values[i++] = Value.number(receipt.rateId());
-//      values[i++] = Value.bool(receipt.sent());
-//      values[i++] = Value.text(receipt.lastSent());
-//      values[i++] = Value.text(receipt.createdAt());
-//    }
-//
-//    final var statements = new Stmt[2 + (extraCharges.isEmpty() ? 0 : 2)];
-//    statements[0] = Stmt.stmt(sql, values);
-//    statements[1] = expenseRepository.insert(expenses);
-//    if (!extraCharges.isEmpty()) {
-//      final var insertExtraCharges = extraChargeRepository.insertStmt(extraCharges);
-//      statements[2] = insertExtraCharges[0];
-//      statements[3] = insertExtraCharges[1];
-//    }
-//
-//    return tursoWsService.executeQueries(statements)
-//        .map(SqlUtil::rowCount);
-//  }
-
   public Uni<Integer> updateLastSent(String buildingId, String id) {
     return tursoWsService.executeQuery(
             Stmt.stmt(UPDATE_LAST_SENT, Value.text(DateUtil.utcLocalDateTime()), Value.text(buildingId), Value.text(id)))
@@ -184,17 +153,73 @@ public class ReceiptRepository {
     return tursoWsService.selectOne(Stmt.stmt(READ, Value.number(id)), this::from);
   }
 
+  public Uni<Optional<Long>> count(ReceiptQuery receiptQuery) {
+    final var selectWhereClause = new ArrayList<String>();
+    var selectValuesSize = 0;
+
+    final var buildings = receiptQuery.buildings().stream()
+        .map(StringUtil::trimFilter)
+        .filter(Objects::nonNull)
+        .collect(Collectors.toSet());
+
+    if (!buildings.isEmpty()) {
+      selectWhereClause.add("receipts.building_id IN (" + SqlUtil.params(buildings.size()) + ")");
+      selectValuesSize += buildings.size();
+    }
+
+    if (receiptQuery.month() != null && receiptQuery.month().length > 0) {
+      final var months = receiptQuery.month();
+      selectWhereClause.add("receipts.month IN (" + SqlUtil.params(months.length) + ")");
+      selectValuesSize += months.length;
+    }
+
+    if (receiptQuery.date() != null) {
+      selectWhereClause.add("receipts.date <= ?");
+      selectValuesSize++;
+    }
+
+    final var values = new Value[selectValuesSize];
+    var currentIndex = 0;
+
+    if (!buildings.isEmpty()) {
+
+      for (String building : buildings) {
+        values[currentIndex++] = Value.text(building);
+      }
+    }
+
+    if (receiptQuery.month() != null) {
+      for (int month : receiptQuery.month()) {
+        values[currentIndex++] = Value.number(month);
+      }
+    }
+
+    if (receiptQuery.date() != null) {
+      values[currentIndex++] = Value.text(receiptQuery.date());
+    }
+
+    if (selectWhereClause.isEmpty()) {
+      return Uni.createFrom().item(Optional.empty());
+    }
+
+    final var where = "WHERE " + String.join(SqlUtil.AND, selectWhereClause);
+    final var sql = COUNT.formatted(where);
+
+    return tursoWsService.executeQuery(sql, values)
+        .map(tursoWsService::extractCount)
+        .map(Optional::of);
+  }
+
   public Uni<List<Receipt>> select(ReceiptQuery receiptQuery) {
 
     final var lastId = receiptQuery.lastId();
 
-    final var whereClause = new ArrayList<String>();
+    final var selectWhereClause = new ArrayList<String>();
 
-    var valuesSize = 1;
+    var selectValuesSize = 1;
     if (lastId != null) {
-      whereClause.add(CURSOR_QUERY);
-      //valuesSize += 2;
-      valuesSize += 1;
+      selectWhereClause.add(CURSOR_QUERY);
+      selectValuesSize += 1;
     }
 
     final var buildings = receiptQuery.buildings().stream()
@@ -203,15 +228,25 @@ public class ReceiptRepository {
         .collect(Collectors.toSet());
 
     if (!buildings.isEmpty()) {
-      whereClause.add("receipts.building_id IN (" + SqlUtil.params(buildings.size()) + ")");
-      valuesSize += buildings.size();
+      selectWhereClause.add("receipts.building_id IN (" + SqlUtil.params(buildings.size()) + ")");
+      selectValuesSize += buildings.size();
     }
 
-    final var values = new Value[valuesSize];
+    if (receiptQuery.month() != null && receiptQuery.month().length > 0) {
+      final var months = receiptQuery.month();
+      selectWhereClause.add("receipts.month IN (" + SqlUtil.params(months.length) + ")");
+      selectValuesSize += months.length;
+    }
+
+    if (receiptQuery.date() != null) {
+      selectWhereClause.add("receipts.date <= ?");
+      selectValuesSize++;
+    }
+
+    final var values = new Value[selectValuesSize];
     var currentIndex = 0;
     if (lastId != null) {
       values[0] = Value.number(lastId);
-      //values[1] = Value.text(lastBuildingId);
       currentIndex = 1;
     }
 
@@ -222,9 +257,19 @@ public class ReceiptRepository {
       }
     }
 
+    if (receiptQuery.month() != null) {
+      for (int month : receiptQuery.month()) {
+        values[currentIndex++] = Value.number(month);
+      }
+    }
+
+    if (receiptQuery.date() != null) {
+      values[currentIndex++] = Value.text(receiptQuery.date());
+    }
+
     values[currentIndex] = Value.number(receiptQuery.limit());
 
-    final var where = whereClause.isEmpty() ? "" : "WHERE " + String.join(SqlUtil.AND, whereClause);
+    final var where = selectWhereClause.isEmpty() ? "" : "WHERE " + String.join(SqlUtil.AND, selectWhereClause);
     final var sql = SELECT.formatted(where);
 
     return tursoWsService.selectQuery(Stmt.stmt(sql, values), this::from);

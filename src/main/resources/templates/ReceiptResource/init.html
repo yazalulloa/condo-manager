@@ -1,0 +1,16 @@
+{@com.yaz.resource.domain.response.ReceiptInitDto dto}
+
+<div id="buildings-selector" hx-swap-oob="true" class="p-2">
+<select name="building_input"
+        hx-indicator=".htmx-indicator"
+        hx-get="/api/receipts"
+        hx-include="[name='date_input'],[name='month_input']"
+        hx-target="#receipt-grid"
+        hx-swap="innerHTML"
+        data-te-select-init multiple>
+  {#include BuildingResource/selector.html list=dto.buildings /}
+  </select>
+    <label data-te-select-label-ref>Edificio</label>
+</div>
+
+ {#include ReceiptResource/receipts res=dto.table /}

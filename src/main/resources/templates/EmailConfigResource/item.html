@@ -58,7 +58,9 @@
   </div>
 
   <div class="flex flex-col justify-between text-sm">
+    {#if res.item.emailConfig.expiresIn}
     <span>Expira: {res.item.emailConfig.expiresIn.fromEpochMillis}</span>
+    {/if}
     <span>Creado: {res.item.emailConfig.createdAt.formatDate}</span>
     {#if res.item.emailConfig.updatedAt}
     <span>Actualizado: {res.item.emailConfig.updatedAt.formatDate}</span>

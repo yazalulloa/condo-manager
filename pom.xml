@@ -178,23 +178,28 @@
       <version>1.35.0</version>
     </dependency>
 
-    <!--<dependency>
-      <groupId>com.google.oauth-client</groupId>
-      <artifactId>google-oauth-client-servlet</artifactId>
-      <version>1.35.0</version>
-    </dependency>-->
-
     <dependency>
       <groupId>com.google.apis</groupId>
       <artifactId>google-api-services-gmail</artifactId>
       <version>v1-rev20231218-2.0.0</version>
     </dependency>
 
-    <!-- <dependency>
-       <groupId>com.sun.mail</groupId>
-       <artifactId>jakarta.mail</artifactId>
-       <version>2.0.1</version>
-     </dependency>-->
+    <dependency>
+      <groupId>com.sun.mail</groupId>
+      <artifactId>jakarta.mail</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.eclipse.angus</groupId>
+      <artifactId>jakarta.mail</artifactId>
+      <version>2.0.3</version>
+    </dependency>
+
+    <dependency>
+      <groupId>jakarta.activation</groupId>
+      <artifactId>jakarta.activation-api</artifactId>
+    </dependency>
+
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-compress</artifactId>
@@ -225,7 +230,7 @@
     <dependency>
       <groupId>com.github.luben</groupId>
       <artifactId>zstd-jni</artifactId>
-      <version>1.5.5-11</version>
+      <version>1.5.6-1</version>
     </dependency>
 
     <dependency>
@@ -311,22 +316,28 @@
         </executions>
       </plugin>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
-        <version>3.5.0</version>
+        <version>3.6.0</version>
       </plugin>
-            <plugin>
-              <groupId>io.smallrye</groupId>
-              <artifactId>jandex-maven-plugin</artifactId>
-              <version>3.1.6</version>
-              <executions>
-                <execution>
-                  <id>make-index</id>
-                  <goals>
-                    <goal>jandex</goal>
-                  </goals>
-                </execution>
-              </executions>
-            </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>3.3.1</version>
+      </plugin>
+      <plugin>
+        <groupId>io.smallrye</groupId>
+        <artifactId>jandex-maven-plugin</artifactId>
+        <version>3.1.6</version>
+        <executions>
+          <execution>
+            <id>make-index</id>
+            <goals>
+              <goal>jandex</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
   <profiles>

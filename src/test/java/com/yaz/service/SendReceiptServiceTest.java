@@ -1,20 +1,18 @@
 package com.yaz.service;
 
-import com.yaz.service.gmail.GmailChecker;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
 
-
 @QuarkusTest
-class GmailCheckerTest {
+class SendReceiptServiceTest {
 
   @Inject
-  GmailChecker gmailChecker;
+  SendReceiptService sendReceiptService;
 
   @Test
-  void checkAll() {
-    gmailChecker.checkAll().blockingAwait();
+  void send() {
+    sendReceiptService.sendZip("KORAL", 69).blockingAwait();
   }
 
 }

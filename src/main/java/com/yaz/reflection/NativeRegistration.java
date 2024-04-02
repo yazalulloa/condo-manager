@@ -38,6 +38,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
         com.google.api.services.gmail.model.Label.class,
         com.google.api.services.gmail.model.LabelColor.class,
         com.google.api.services.gmail.model.ListLabelsResponse.class,
+        com.google.api.services.gmail.model.Message.class,
         com.yaz.persistence.repository.turso.client.ws.Listener.class,
         com.yaz.persistence.repository.turso.client.ws.TursoResult.class,
         com.yaz.persistence.repository.turso.client.ws.request.Batch.class,
