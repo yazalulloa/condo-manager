@@ -17,7 +17,7 @@ public class BuildingReactiveRoutes {
     if (str == null) {
       routingContext.redirect("/buildings");
     } else {
-      routingContext.reroute("/buildings/edit.html");
+      routingContext.reroute("/buildings/edit/");
     }
   }
 
@@ -27,8 +27,8 @@ public class BuildingReactiveRoutes {
     if (str == null) {
       routingContext.redirect("/buildings");
     } else {
-      routingContext.reroute("/buildings/edit.html");
+      routingContext.reroute("/buildings/index.html");
     }*//*
-    routingContext.reroute("/buildings/edit.html");
+    routingContext.reroute("/buildings/index.html");
   }*/
 }

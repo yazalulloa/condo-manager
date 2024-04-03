@@ -69,11 +69,11 @@
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-reactive-mysql-client</artifactId>
-    </dependency>
+    </dependency><!--
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-qute</artifactId>
-    </dependency>
+    </dependency>-->
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-resteasy-reactive-qute</artifactId>
@@ -211,21 +211,10 @@
       <!--      <version>3.14.0</version>-->
     </dependency>
 
-    <!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
     <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
     </dependency>
-
-
-    <!-- https://mvnrepository.com/artifact/javax.servlet/servlet-api  DELETE THIS-->
-    <!--<dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>servlet-api</artifactId>
-      <version>2.5</version>
-      <scope>provided</scope>
-    </dependency>
--->
 
     <dependency>
       <groupId>com.github.luben</groupId>
@@ -250,14 +239,18 @@
       <type>pom</type>
     </dependency>
 
-    <!-- https://mvnrepository.com/artifact/org.reflections/reflections -->
+    <dependency>
+      <groupId>com.itextpdf</groupId>
+      <artifactId>bouncy-castle-adapter</artifactId>
+      <version>8.0.3</version>
+    </dependency>
+
     <dependency>
       <groupId>org.reflections</groupId>
       <artifactId>reflections</artifactId>
       <version>0.10.2</version>
       <scope>test</scope>
     </dependency>
-
 
   </dependencies>
   <build>
@@ -351,8 +344,11 @@
       <properties>
         <skipITs>false</skipITs>
         <quarkus.package.type>native</quarkus.package.type>
-        <quarkus.native.additional-build-args>-H:LinkAtBuildTime=true</quarkus.native.additional-build-args>
-        <!--        <quarkus.native.additional-build-args>&#45;&#45;trace-object-instantiation=java.security.SecureRandom</quarkus.native.additional-build-args>-->
+<!--        <quarkus.native.additional-build-args>-H:LinkAtBuildTime=true</quarkus.native.additional-build-args>-->
+        <quarkus.native.additional-build-args>-H:+UnlockExperimentalVMOptions</quarkus.native.additional-build-args>
+<!--        <quarkus.native.additional-build-args>&#45;&#45;trace-object-instantiation=java.security.SecureRandom</quarkus.native.additional-build-args>-->
+<!--        <quarkus.native.additional-build-args>&#45;&#45;initialize-at-run-time=com.itextpdf.kernel.font.FontUtil</quarkus.native.additional-build-args>-->
+<!--        <quarkus.native.additional-build-args>&#45;&#45;initialize-at-run-time=java.security.SecureRandom</quarkus.native.additional-build-args>-->
         <!--        <quarkus.native.builder-image>quay.io/quarkus/ubi-quarkus-mandrel-builder-image:23.1-java21-->
         <!--        </quarkus.native.builder-image>-->
       </properties>

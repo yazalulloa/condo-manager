@@ -26,6 +26,11 @@ public class StaticReactiveRoutes {
   @RouteFilter()
     //  (1)
   void rerouteStatic(RoutingContext rc) {
+    if (false) {
+      rc.next();
+      return;
+    }
+
     final var path = rc.request().path();
 
     if (path.equals("/") || path.isEmpty()) {
