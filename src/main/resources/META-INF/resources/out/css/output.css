@@ -4671,6 +4671,10 @@ details.collapse summary::-webkit-details-marker {
   min-height: auto;
 }
 
+.min-h-full {
+  min-height: 100%;
+}
+
 .\!w-px {
   width: 1px !important;
 }
@@ -7025,7 +7029,7 @@ details.collapse summary::-webkit-details-marker {
   margin-right: auto;
 }
 
-.img-small-size {
+.img-medium-size {
   width: 80px;
   height: 80px;
 }

@@ -15,7 +15,6 @@ import org.jboss.resteasy.reactive.RestPath;
 
 @Path("/api/sse")
 @Slf4j
-@Authenticated
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class SseResource {
 

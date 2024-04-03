@@ -69,7 +69,12 @@
 <div id="container" hx-swap-oob="true" class="overflow-auto">
   <div id="apartment-rows"  hx-get="/api/apartments/init" hx-indicator=".htmx-indicator"
        hx-trigger="load"
-       hx-swap="innerHTML"></div>
+       hx-swap="innerHTML">
+  </div>
+
+  <div>
+    <img class="htmx-indicator white-filter img-medium-size center" src="/assets/bars.svg" alt="spinner">
+  </div>
 
   <div id="apt-form-container"
        class="hidden form-container border-2 border-gray-400   bg-base-100 max-h-90per max-w-3/4 min-w-[310px] w-1/2 overflow-auto rounded-md">

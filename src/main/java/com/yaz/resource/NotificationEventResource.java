@@ -16,7 +16,6 @@ import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.RestPath;
 
 @Slf4j
-@Authenticated
 @Path(NotificationEventResource.PATH)
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class NotificationEventResource {

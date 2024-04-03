@@ -38,9 +38,11 @@ public class SecurityEventListener {
     final var format = String.format("event:%s,tenantId:%s", event.getEventType().name(), tenantId);
     routingContext.put("listener-message", format);
 
-  //  log.info("SecurityEventListener.event {}", format);
+    //  log.info("SecurityEventListener.event {}", format);
 
-    if (event.getEventType() == SecurityEvent.Type.OIDC_LOGIN) {
+    if (event.getEventType() == SecurityEvent.Type.OIDC_LOGIN
+        || event.getEventType() == SecurityEvent.Type.OIDC_SESSION_REFRESHED
+        || event.getEventType() == SecurityEvent.Type.OIDC_SESSION_EXPIRED_AND_REFRESHED) {
       final var userData = GoogleUserData.builder()
           .sub(principal.getSubject())
           .givenName(principal.getClaim(Claims.given_name))
@@ -61,8 +63,6 @@ public class SecurityEventListener {
       routingContext.put("user-data", userData);
 
       //log.info("userData {}", userData);
-
-
 
       final var user = User.builder()
           .provider(IdentityProvider.GOOGLE)

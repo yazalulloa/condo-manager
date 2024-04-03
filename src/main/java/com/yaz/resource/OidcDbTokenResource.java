@@ -19,7 +19,6 @@ import org.jboss.resteasy.reactive.RestPath;
 import org.jboss.resteasy.reactive.RestQuery;
 
 @Slf4j
-@Authenticated
 @Path(OidcDbTokenResource.PATH)
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class OidcDbTokenResource {

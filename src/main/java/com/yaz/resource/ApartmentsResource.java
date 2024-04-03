@@ -43,7 +43,6 @@ import org.jboss.resteasy.reactive.RestQuery;
 
 
 @Slf4j
-@Authenticated
 @Path(ApartmentsResource.PATH)
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class ApartmentsResource {

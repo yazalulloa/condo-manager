@@ -12,13 +12,16 @@
   <h2>Editar Edificio</h2>
 </div>
 
-<div id="container" hx-swap-oob="true">
+<div id="container" hx-swap-oob="true" class="h-full">
   <form
       hx-get="/api/buildings/edit_form"
       hx-indicator=".htmx-indicator"
       hx-trigger="load"
       hx-vals="js:{buildingId: getFromLocalStorage('buildingId')}"
       hx-swap="outerHTML">
+    <div>
+      <img class="htmx-indicator white-filter img-medium-size center" src="/assets/bars.svg" alt="spinner">
+    </div>
   </form>
 </div>
 

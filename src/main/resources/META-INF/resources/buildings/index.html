@@ -15,12 +15,17 @@
     Nuevo Edificio
   </button>
 
-  <img class="htmx-indicator" src="/assets/bars.svg" alt="spinner">
+  <img class="htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">
 </div>
 
-<div id="container" hx-swap-oob="true"
-     class="p-2 gap-1 flex flex-col" hx-get="/api/buildings/report" hx-indicator=".htmx-indicator" hx-trigger="load"
-     hx-swap="innerHTML">
+<div id="container" hx-swap-oob="true">
+  <div class="p-2 gap-1 flex flex-col" hx-get="/api/buildings/report" hx-indicator=".htmx-indicator" hx-trigger="load"
+       hx-swap="innerHTML">
+  </div>
+
+  <div>
+    <img class="htmx-indicator white-filter img-medium-size center" src="/assets/bars.svg" alt="spinner">
+  </div>
 </div>
 
 </body>

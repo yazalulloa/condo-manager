@@ -46,7 +46,6 @@ import org.jboss.resteasy.reactive.RestQuery;
 import org.jboss.resteasy.reactive.server.multipart.MultipartFormDataInput;
 
 @Slf4j
-@Authenticated
 @Path(BuildingResource.PATH)
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class BuildingResource {
