@@ -9,49 +9,53 @@
 <body hx-boost="true">
 
 
-<div class="header bg-base-100" id="header-container" hx-swap-oob="true">
-  <div id="receipts-counters"></div>
-  <label>
-    <div id="buildings-selector"></div>
-  </label>
-
-  <input class="datepicker"
-         type="date"
-         name="date_input"
-         placeholder="YYYY-MM-DD"
-         hx-get="/api/receipts"
-         hx-include="[name='building_input'],[name='month_input']"
-         hx-trigger="change"
-         hx-target="#receipt-grid"
-         hx-swap="innerHTML"
-         hx-indicator=".htmx-indicator">
-
-  <div>
-    <select name="month_input"
-            hx-indicator=".htmx-indicator"
-            hx-get="/api/receipts"
-            hx-include="[name='date_input'],[name='building_input']"
-            hx-target="#receipt-grid"
-            hx-swap="innerHTML"
-            data-te-select-init
-            multiple>
-      <option value="1">Enero</option>
-      <option value="2">Febrero</option>
-      <option value="3">Marzo</option>
-      <option value="4">Abril</option>
-      <option value="5">Mayo</option>
-      <option value="6">Junio</option>
-      <option value="7">Julio</option>
-      <option value="8">Agosto</option>
-      <option value="9">Septiembre</option>
-      <option value="10">Octubre</option>
-      <option value="11">Noviembre</option>
-      <option value="12">Diciembre</option>
-    </select>
-    <label data-te-select-label-ref>Mes</label>
+<div class="bg-base-100 flex flex-col gap-1 p-1" id="header-container" hx-swap-oob="true">
+  <div id="progress-receipts" class="text-center">
   </div>
+  <div class="header">
+    <div id="receipts-counters"></div>
+    <label>
+      <div id="buildings-selector"></div>
+    </label>
 
-  <img class="htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">
+    <input class="datepicker"
+           type="date"
+           name="date_input"
+           placeholder="YYYY-MM-DD"
+           hx-get="/api/receipts"
+           hx-include="[name='building_input'],[name='month_input']"
+           hx-trigger="change"
+           hx-target="#receipt-grid"
+           hx-swap="innerHTML"
+           hx-indicator=".htmx-indicator">
+
+    <div>
+      <select name="month_input"
+              hx-indicator=".htmx-indicator"
+              hx-get="/api/receipts"
+              hx-include="[name='date_input'],[name='building_input']"
+              hx-target="#receipt-grid"
+              hx-swap="innerHTML"
+              data-te-select-init
+              multiple>
+        <option value="1">Enero</option>
+        <option value="2">Febrero</option>
+        <option value="3">Marzo</option>
+        <option value="4">Abril</option>
+        <option value="5">Mayo</option>
+        <option value="6">Junio</option>
+        <option value="7">Julio</option>
+        <option value="8">Agosto</option>
+        <option value="9">Septiembre</option>
+        <option value="10">Octubre</option>
+        <option value="11">Noviembre</option>
+        <option value="12">Diciembre</option>
+      </select>
+      <label data-te-select-label-ref>Mes</label>
+    </div>
+
+    <img class="htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">
+  </div>
 </div>
 
 <div id="container" hx-swap-oob="true" class="p-2 gap-1 flex flex-col">

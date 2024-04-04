@@ -5,10 +5,11 @@ import java.util.Set;
 import lombok.Builder;
 
 @Builder(toBuilder = true)
-public record PdfReceiptItem(Path path,
-                             String fileName,
-                             String id,
-                             String buildingName,
-                             Set<String> emails) {
+public record PdfReceiptItem(
+    Path path,
+    String fileName,
+    String id,
+    String buildingName,
+    Set<String> emails) {
 
 }

@@ -1,6 +1,6 @@
 package com.yaz.resource;
 
-import io.quarkus.security.Authenticated;
+import com.yaz.service.ServerSideEventHelper;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -10,7 +10,6 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.sse.SseEventSink;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import com.yaz.service.ServerSideEventHelper;
 import org.jboss.resteasy.reactive.RestPath;
 
 @Path("/api/sse")
@@ -24,7 +23,6 @@ public class SseResource {
   @Path("/{key}")
   @Produces(MediaType.SERVER_SENT_EVENTS)
   public void consume(@RestPath String key, @Context SseEventSink sseEventSink) {
-    log.info("consume key: {}", key);
     serverSideEventHelper.addSink(key, sseEventSink);
   }
 }

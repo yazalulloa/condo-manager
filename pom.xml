@@ -69,11 +69,7 @@
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-reactive-mysql-client</artifactId>
-    </dependency><!--
-    <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-qute</artifactId>
-    </dependency>-->
+    </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-rest-qute</artifactId>
@@ -252,6 +248,7 @@
     </dependency>
 
   </dependencies>
+
   <build>
     <plugins>
       <plugin>
@@ -343,11 +340,11 @@
       <properties>
         <skipITs>false</skipITs>
         <quarkus.package.type>native</quarkus.package.type>
-<!--        <quarkus.native.additional-build-args>-H:LinkAtBuildTime=true</quarkus.native.additional-build-args>-->
+        <!--        <quarkus.native.additional-build-args>-H:LinkAtBuildTime=true</quarkus.native.additional-build-args>-->
         <quarkus.native.additional-build-args>-H:+UnlockExperimentalVMOptions</quarkus.native.additional-build-args>
-<!--        <quarkus.native.additional-build-args>&#45;&#45;trace-object-instantiation=java.security.SecureRandom</quarkus.native.additional-build-args>-->
-<!--        <quarkus.native.additional-build-args>&#45;&#45;initialize-at-run-time=com.itextpdf.kernel.font.FontUtil</quarkus.native.additional-build-args>-->
-<!--        <quarkus.native.additional-build-args>&#45;&#45;initialize-at-run-time=java.security.SecureRandom</quarkus.native.additional-build-args>-->
+        <!--        <quarkus.native.additional-build-args>&#45;&#45;trace-object-instantiation=java.security.SecureRandom</quarkus.native.additional-build-args>-->
+        <!--        <quarkus.native.additional-build-args>&#45;&#45;initialize-at-run-time=com.itextpdf.kernel.font.FontUtil</quarkus.native.additional-build-args>-->
+        <!--        <quarkus.native.additional-build-args>&#45;&#45;initialize-at-run-time=java.security.SecureRandom</quarkus.native.additional-build-args>-->
         <!--        <quarkus.native.builder-image>quay.io/quarkus/ubi-quarkus-mandrel-builder-image:23.1-java21-->
         <!--        </quarkus.native.builder-image>-->
       </properties>

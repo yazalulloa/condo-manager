@@ -5,6 +5,7 @@ import com.yaz.persistence.entities.Receipt.Keys;
 import com.yaz.resource.domain.response.ReceiptCountersDto;
 import com.yaz.resource.domain.response.ReceiptInitDto;
 import com.yaz.resource.domain.response.ReceiptPdfResponse;
+import com.yaz.resource.domain.response.ReceiptProgressUpdate;
 import com.yaz.resource.domain.response.ReceiptTableResponse;
 import com.yaz.service.EncryptionService;
 import com.yaz.service.SendReceiptService;
@@ -31,6 +32,7 @@ import java.io.File;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jboss.resteasy.reactive.RestForm;
@@ -64,6 +66,10 @@ public class ReceiptResource {
     public static native TemplateInstance pdfs(ReceiptPdfResponse res);
 
     public static native TemplateInstance init(ReceiptInitDto dto);
+
+    public static native TemplateInstance progress(String key);
+
+    public static native TemplateInstance progressUpdate(ReceiptProgressUpdate res);
   }
 
   @GET
@@ -226,9 +232,23 @@ public class ReceiptResource {
     final var key = encryptionService.decryptObj(keys, Keys.class);
 
     final var responseSingle = sendReceiptService.sendZip(key.buildingId(), key.id())
-        .doOnError(t -> log.error("ERROR_SENDING_RECEIPT", t))
+        .doOnError(t -> log.error("ERROR_SENDING_RECEIPT_ZIP", t))
         .toSingleDefault(Response.noContent().build());
 
     return MutinyUtil.toUni(responseSingle);
+  }
+
+  @POST
+  @Path("send/{keys}")
+  public Uni<TemplateInstance> sendReceipts(@NotBlank @RestPath String keys) {
+    final var key = encryptionService.decryptObj(keys, Keys.class);
+
+    final var clientId = UUID.randomUUID().toString();
+
+    sendReceiptService.sendReceipts(key.buildingId(), key.id(), clientId)
+        .subscribe(() -> {
+        }, t -> log.error("ERROR_SENDING_RECEIPTS", t));
+
+    return Uni.createFrom().item(Templates.progress(clientId));
   }
 }

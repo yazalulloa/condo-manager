@@ -1,5 +1,6 @@
 package com.yaz.service;
 
+import com.yaz.util.EventConstants;
 import io.quarkus.vertx.ConsumeEvent;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -12,7 +13,6 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import com.yaz.util.EventConstants;
 
 @Slf4j
 @ApplicationScoped
@@ -51,13 +51,27 @@ public class ServerSideEventHelper {
     }
   }
 
+  public void close(String key) {
+    final var eventSinks = sinks.get(key);
+    if (eventSinks != null && !eventSinks.isEmpty()) {
+      eventSinks.forEach(weakReference -> {
+        final var sseEventSink = weakReference.get();
+        if (sseEventSink != null && !sseEventSink.isClosed()) {
+          sseEventSink.close();
+        }
+      });
+    }
+
+    sinks.remove(key);
+  }
+
   private void sendSseEvent(String key, OutboundSseEvent event) {
     final var eventSinks = sinks.get(key);
     if (eventSinks != null && !eventSinks.isEmpty()) {
       eventSinks.forEach(weakReference -> {
         final var sseEventSink = weakReference.get();
         if (sseEventSink != null && !sseEventSink.isClosed()) {
-          log.info("SENDING_EVENT {}", key);
+          //log.info("SENDING_EVENT {}", key);
           sseEventSink.send(event);
         }
       });
@@ -65,6 +79,7 @@ public class ServerSideEventHelper {
   }
 
   public void sendNotification(String value) {
+
    /*
    OutboundSseEvent sseEvent = sse.newEventBuilder()
         .id(message.getKey())
@@ -76,7 +91,7 @@ public class ServerSideEventHelper {
         .build();
     */
 
-    log.info("SENDING {}", value);
+    // log.info("SENDING {}", value);
     final var outboundSseEvent = sse.newEvent(value, value);
 
     sendSseEvent(value, outboundSseEvent);
@@ -86,5 +101,10 @@ public class ServerSideEventHelper {
   @ConsumeEvent(EventConstants.NEW_RATE)
   public void consumeNewRate(Object obj) {
     sendNotification(EventConstants.NEW_RATE);
+  }
+
+  public void sendEvent(String sinkKey, String eventName, String data) {
+    final var outboundSseEvent = sse.newEvent(eventName, data);
+    sendSseEvent(sinkKey, outboundSseEvent);
   }
 }

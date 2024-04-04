@@ -2,28 +2,36 @@ package com.yaz.event;
 
 import com.yaz.event.domain.BuildingDeleted;
 import com.yaz.event.domain.EmailConfigDeleted;
+import com.yaz.event.domain.ReceiptAptSent;
 import com.yaz.event.domain.TelegramWebhookRequest;
+import com.yaz.resource.ReceiptResource.Templates;
+import com.yaz.resource.domain.response.ReceiptProgressUpdate;
+import com.yaz.service.ServerSideEventHelper;
+import com.yaz.service.TelegramCommandResolver;
 import com.yaz.service.entity.BuildingService;
 import com.yaz.service.entity.ExtraChargeService;
 import com.yaz.service.entity.ReserveFundService;
-import com.yaz.service.TelegramCommandResolver;
 import io.smallrye.mutiny.Uni;
+import io.vertx.core.Vertx;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.ObservesAsync;
 import jakarta.inject.Inject;
+import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jsoup.nodes.Element;
 
 @Slf4j
 @ApplicationScoped
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class EventConsumer {
 
-
+  private final Vertx vertx;
   private final BuildingService buildingService;
   private final ExtraChargeService extraChargeService;
   private final ReserveFundService reserveFundService;
   private final TelegramCommandResolver telegramCommandResolver;
+  private final ServerSideEventHelper serverSideEventHelper;
 
   public void emailConfigDeleted(@ObservesAsync EmailConfigDeleted task) {
     log.info("emailConfigDeleted: {}", task);
@@ -70,5 +78,32 @@ public class EventConsumer {
       log.error("telegramMessageReceived: {}", task, e);
     }
 
+  }
+
+  public void receiptAptSent(@ObservesAsync ReceiptAptSent event) {
+
+    if (event.finished()) {
+      final var div = new Element("div").id("progress-receipts")
+          .attr("hx-swap-oob", "true")
+          .toString();
+      serverSideEventHelper.sendEvent(event.clientId(), "receipt-progress", div);
+      vertx.setTimer(TimeUnit.SECONDS.toMillis(1), l -> serverSideEventHelper.close(event.clientId()));
+    } else {
+
+      var left = "Enviando %s %s %s %s/%s".formatted(event.building(), event.month(), event.date(),
+          event.counter(), event.size());
+      var right = "";
+
+      if (event.from() != null && event.to() != null && !event.to().isEmpty()) {
+        right = "%s %s -> %s".formatted(event.apt(), event.from(), String.join(",", event.to()));
+
+      }
+
+      final var msg = Templates.progressUpdate(
+              new ReceiptProgressUpdate(left, right, event.counter(), event.size()))
+          .render();
+
+      serverSideEventHelper.sendEvent(event.clientId(), "receipt-progress", msg);
+    }
   }
 }

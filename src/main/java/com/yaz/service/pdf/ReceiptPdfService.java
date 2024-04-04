@@ -48,11 +48,19 @@ public class ReceiptPdfService {
         });
   }
 
-  public Uni<Collection<PdfReceiptItem>> pdfs(String buildingId, long receiptId) {
-    final var collectionSingle = calculate(buildingId, receiptId)
-        .map(getPdfReceipts::pdfItems);
+  public Single<PdfReceiptResponse> pdfs(String buildingId, long receiptId) {
+    return calculate(buildingId, receiptId)
+        .map(receipt -> {
+          final var pdfItems = getPdfReceipts.pdfItems(receipt);
+          return new PdfReceiptResponse(receipt, pdfItems);
+        });
+  }
 
-    return MutinyUtil.toUni(collectionSingle);
+  public record PdfReceiptResponse(
+      CalculatedReceipt receipt,
+      Collection<PdfReceiptItem> pdfItems
+  ) {
+
   }
 
   public Uni<ReceiptPdfResponse> pdfResponse(String buildingId, long receiptId) {

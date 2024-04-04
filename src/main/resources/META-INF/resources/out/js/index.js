@@ -17565,16 +17565,16 @@ var loader = __toESM(require_loader(), 1);
       }
     },
     onEvent: function(name, evt) {
+      var parent = evt.target || evt.detail.elt;
       switch (name) {
         case "htmx:beforeCleanupElement":
-          var internalData = api.getInternalData(evt.target);
+          var internalData = api.getInternalData(parent);
           if (internalData.sseEventSource) {
             internalData.sseEventSource.close();
           }
           return;
         case "htmx:afterProcessNode":
-          ensureEventSourceOnElement(evt.target);
-          registerSSE(evt.target);
+          ensureEventSourceOnElement(parent);
       }
     }
   });
@@ -17611,13 +17611,13 @@ var loader = __toESM(require_loader(), 1);
     return returnArr;
   }
   function registerSSE(elt) {
-    var sourceElement = api.getClosestMatch(elt, hasEventSource);
-    if (sourceElement == null) {
-      return null;
-    }
-    var internalData = api.getInternalData(sourceElement);
-    var source = internalData.sseEventSource;
     queryAttributeOnThisOrChildren(elt, "sse-swap").forEach(function(child) {
+      var sourceElement = api.getClosestMatch(child, hasEventSource);
+      if (sourceElement == null) {
+        return null;
+      }
+      var internalData = api.getInternalData(sourceElement);
+      var source = internalData.sseEventSource;
       var sseSwapAttr = api.getAttributeValue(child, "sse-swap");
       if (sseSwapAttr) {
         var sseEventNames = sseSwapAttr.split(",");
@@ -17632,6 +17632,10 @@ var loader = __toESM(require_loader(), 1);
           }
           if (!api.bodyContains(child)) {
             source.removeEventListener(sseEventName, listener);
+            return;
+          }
+          if (!api.triggerEvent(elt, "htmx:sseBeforeMessage", event)) {
+            return;
           }
           swap(child, event.data);
           api.triggerEvent(elt, "htmx:sseMessage", event);
@@ -17641,6 +17645,12 @@ var loader = __toESM(require_loader(), 1);
       }
     });
     queryAttributeOnThisOrChildren(elt, "hx-trigger").forEach(function(child) {
+      var sourceElement = api.getClosestMatch(child, hasEventSource);
+      if (sourceElement == null) {
+        return null;
+      }
+      var internalData = api.getInternalData(sourceElement);
+      var source = internalData.sseEventSource;
       var sseEventName = api.getAttributeValue(child, "hx-trigger");
       if (sseEventName == null) {
         return;
@@ -17677,6 +17687,7 @@ var loader = __toESM(require_loader(), 1);
       }
       ensureEventSource(child, sseURL, retryCount);
     });
+    registerSSE(elt);
   }
   function ensureEventSource(elt, url, retryCount) {
     var source = htmx.createEventSource(url);

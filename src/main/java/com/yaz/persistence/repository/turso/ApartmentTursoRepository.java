@@ -105,7 +105,13 @@ public class ApartmentTursoRepository implements ApartmentRepository {
             """.formatted(COLLECTION);
 
   private static final String SELECT_BY_BUILDING = """
-      SELECT * FROM %s WHERE building_id = ? ORDER BY number
+      SELECT apartments.*,
+             GROUP_CONCAT(apartment_emails.email) AS emails
+      FROM apartments
+      LEFT JOIN apartment_emails ON apartments.building_id = apartment_emails.building_id AND apartments.number = apartment_emails.apt_number
+      WHERE apartments.building_id = ?
+      GROUP BY apartments.building_id, apartments.number
+      ORDER BY apartments.building_id, apartments.number
             """.formatted(COLLECTION);
   private static final String INSERT_IGNORE = """
       INSERT IGNORE INTO %s (building_id, number, name, aliquot) 
