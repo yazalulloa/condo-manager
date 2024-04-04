@@ -54,7 +54,7 @@ bun.lockb
 test.json
 err.txt
 
-gmail
+gmail/
 native-config
 src/main/resources/cv
 db
