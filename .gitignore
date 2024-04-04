@@ -56,5 +56,5 @@ err.txt
 
 gmail
 native-config
-src/main/resources/META-INF/resources/cv
+src/main/resources/cv
 db

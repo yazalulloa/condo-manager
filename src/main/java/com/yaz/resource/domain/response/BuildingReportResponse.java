@@ -1,7 +1,6 @@
 package com.yaz.resource.domain.response;
 
 import com.yaz.persistence.entities.Building;
-import com.yaz.resource.BuildingReactiveRoutes;
 import com.yaz.resource.BuildingResource;
 import java.util.Collection;
 import lombok.Builder;
@@ -17,7 +16,7 @@ public class BuildingReportResponse {
   private final long totalCount;
   private final String nextPageUrl;
   private final Collection<Item> results;
-  private final String buildingEditUrl = BuildingReactiveRoutes.EDIT_PATH;
+  private final String buildingEditUrl = "/buildings/edit";
 
   @Data
   @RequiredArgsConstructor
