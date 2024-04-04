@@ -6,11 +6,11 @@ import io.reactivex.rxjava3.core.Single;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.converters.uni.UniRx3Converters;
 import java.util.Optional;
+import java.util.function.Function;
 
 public class MutinyUtil {
 
   private MutinyUtil() {
-
 
   }
 
@@ -36,5 +36,16 @@ public class MutinyUtil {
 
   public static Uni<Void> toUni(Completable completable) {
     return UniRx3Converters.fromCompletable().from(completable);
+  }
+
+  public static Function<Integer, Uni<? extends Integer>> cacheCall(Uni<?> call) {
+    return i -> {
+
+      if (i > 0) {
+        return call.replaceWith(i);
+      }
+
+      return Uni.createFrom().item(i);
+    };
   }
 }

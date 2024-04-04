@@ -2,16 +2,15 @@ package com.yaz.resource;
 
 import com.google.api.client.auth.oauth2.AuthorizationCodeResponseUrl;
 import com.google.api.client.http.GenericUrl;
+import com.yaz.helper.VertxHelper;
 import com.yaz.persistence.domain.query.EmailConfigQuery;
 import com.yaz.persistence.entities.EmailConfig;
 import com.yaz.resource.domain.response.EmailConfigTableItem;
 import com.yaz.resource.domain.response.EmailConfigTableResponse;
 import com.yaz.service.entity.EmailConfigService;
-import com.yaz.service.gmail.GmailChecker;
 import com.yaz.service.gmail.GmailHelper;
 import com.yaz.service.gmail.GmailService;
 import com.yaz.util.DateUtil;
-import com.yaz.util.FileUtil;
 import com.yaz.util.MutinyUtil;
 import com.yaz.util.RandomUtil;
 import com.yaz.util.RxUtil;
@@ -32,12 +31,9 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriBuilder;
-import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -55,6 +51,7 @@ public class EmailConfigResource {
   private final EmailConfigService service;
   private final GmailHelper gmailHelper;
   private final GmailService gmailService;
+  private final VertxHelper vertxHelper;
 
   @Inject
   SecurityIdentity identity;
@@ -172,17 +169,13 @@ public class EmailConfigResource {
         final var credential = flow.createAndStoreCredential(response, userId);
 
         return RxUtil.completable(gmailHelper.testCredential(credential))
-            .andThen(Single.fromCallable(() -> {
-              final var fileName = GmailHelper.DIR + "/" + userId + "/StoredCredential";
-              final var hash = FileUtil.checksumInputStream(new File(fileName));
-              final var fileSize = FileUtil.fileSize(new File(fileName));
-              final var file = Files.readAllBytes(Paths.get(fileName));
-
+            .andThen(vertxHelper.fileWithHash(GmailHelper.DIR + "/" + userId + "/StoredCredential"))
+            .map(fileWithHash -> {
               final var emailConfig = EmailConfig.builder()
                   .userId(userId)
-                  .file(file)
-                  .fileSize(fileSize)
-                  .hash(hash)
+                  .file(fileWithHash.buffer().getBytes())
+                  .fileSize(fileWithHash.fileSize())
+                  .hash(fileWithHash.crc32())
                   .active(true)
                   .isAvailable(true)
                   .hasRefreshToken(credential.getRefreshToken() != null)
@@ -192,7 +185,7 @@ public class EmailConfigResource {
 
               return service.create(emailConfig)
                   .replaceWith(Response.temporaryRedirect(new URI("/")).build());
-            }))
+            })
             .flatMap(RxUtil::single);
       }
     });

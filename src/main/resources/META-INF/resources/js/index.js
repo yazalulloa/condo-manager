@@ -184,34 +184,74 @@ function getLastUrlSegment(url) {
   return new URL(url).pathname.split('/').filter(Boolean).pop();
 }
 
+window.getPathName = function () {
+  return window.location.pathname;
+}
+
 window.redirectTo = function (url) {
   window.location.href = '.' + url;
 }
 
 window.initNav = function () {
-  let lastUrlSegmentCurrent = getLastUrlSegmentCurrent();
+  let pathname = window.location.pathname;
+  console.log("pathname: {}", pathname);
+  if (pathname.length === 0) {
 
-  if (!lastUrlSegmentCurrent || lastUrlSegmentCurrent === ''
-      || lastUrlSegmentCurrent === 'index'
-      || lastUrlSegmentCurrent === '/') {
-    let item = localStorage.getItem("current-nav");
-    //console.log("current-nav: {}", item);
-    if (item) {
-      let elem = document.getElementById(item);
-      elem?.dispatchEvent(new Event('navigate'));
-      return;
-    }
-    let navbar = document.getElementsByClassName("navbar-start");
-    if (navbar.length > 0) {
-      let nav = navbar[0];
-      let anchors = nav.getElementsByTagName("a");
-      if (anchors.length > 0) {
-        let anchor = anchors[0];
-        localStorage.setItem("current-nav", anchor.id);
-        anchor.dispatchEvent(new Event('navigate'));
+    let lastUrlSegmentCurrent = getLastUrlSegmentCurrent();
+
+    if (!lastUrlSegmentCurrent || lastUrlSegmentCurrent === ''
+        || lastUrlSegmentCurrent === 'index'
+        || lastUrlSegmentCurrent === '/') {
+      let item = localStorage.getItem("current-nav");
+      //console.log("current-nav: {}", item);
+      if (item) {
+        let elem = document.getElementById(item);
+        elem?.dispatchEvent(new Event('navigate'));
+        return;
       }
-    }
+      let navbar = document.getElementsByClassName("navbar-start");
+      if (navbar.length > 0) {
+        let nav = navbar[0];
+        let anchors = nav.getElementsByTagName("a");
+        if (anchors.length > 0) {
+          let anchor = anchors[0];
+          localStorage.setItem("current-nav", anchor.id);
+          anchor.dispatchEvent(new Event('navigate'));
+        }
+      }
 
+    }
+  } else if (pathname === '/') {
+
+    let lastUrlSegmentCurrent = getLastUrlSegmentCurrent();
+
+    if (!lastUrlSegmentCurrent || lastUrlSegmentCurrent === ''
+        || lastUrlSegmentCurrent === 'index'
+        || lastUrlSegmentCurrent === '/') {
+      let item = localStorage.getItem("current-nav");
+      //console.log("current-nav: {}", item);
+      if (item) {
+        let elem = document.getElementById(item);
+        elem?.dispatchEvent(new Event('navigate'));
+        return;
+      }
+      let navbar = document.getElementsByClassName("navbar-start");
+      if (navbar.length > 0) {
+        let nav = navbar[0];
+        let anchors = nav.getElementsByTagName("a");
+        if (anchors.length > 0) {
+          let anchor = anchors[0];
+          localStorage.setItem("current-nav", anchor.id);
+          anchor.dispatchEvent(new Event('navigate'));
+        }
+      }
+
+    }
+  } else {
+    let element = document.getElementById("nav-helper");
+    if (element) {
+      element.dispatchEvent(new Event('navigate'));
+    }
   }
 }
 

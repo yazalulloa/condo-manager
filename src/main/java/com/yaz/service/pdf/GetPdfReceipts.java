@@ -2,7 +2,6 @@ package com.yaz.service.pdf;
 
 import com.yaz.persistence.entities.Apartment;
 import com.yaz.persistence.entities.Building;
-import com.yaz.persistence.entities.Receipt;
 import com.yaz.service.TranslationProvider;
 import com.yaz.service.domain.CalculatedReceipt;
 import com.yaz.service.domain.FileResponse;
@@ -18,7 +17,6 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -67,7 +65,7 @@ public class GetPdfReceipts {
 
     var counter = 0;
 
-   // updateState("Creando archivos ", 0, pdfReceipts.size());
+    // updateState("Creando archivos ", 0, pdfReceipts.size());
     final var items = new ArrayList<PdfReceiptItem>(pdfReceipts.size());
 
     for (CreatePdfReceipt pdfReceipt : pdfReceipts) {
@@ -88,7 +86,7 @@ public class GetPdfReceipts {
           .path(pdfReceipt.path())
           .fileName("%s.pdf".formatted(fileName))
           .id(pdfReceipt.id())
-          . buildingName(pdfReceipt.building().name())
+          .buildingName(pdfReceipt.building().name())
           .emails(Optional.ofNullable(pdfReceipt.apartment()).map(Apartment::emails).orElse(null))
           .build();
 

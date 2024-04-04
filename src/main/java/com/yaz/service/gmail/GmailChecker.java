@@ -1,31 +1,27 @@
 package com.yaz.service.gmail;
 
 import com.google.api.client.auth.oauth2.TokenResponseException;
+import com.yaz.helper.VertxHelper;
 import com.yaz.persistence.entities.EmailConfig;
 import com.yaz.service.entity.EmailConfigService;
 import com.yaz.util.DateUtil;
-import com.yaz.util.FileUtil;
 import com.yaz.util.RxUtil;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.schedulers.Schedulers;
-import io.vertx.core.Vertx;
-import io.vertx.core.file.OpenOptions;
+import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.buffer.Buffer;
 import io.vertx.rxjava3.core.file.FileSystem;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-import java.util.zip.CRC32;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -35,11 +31,12 @@ import lombok.extern.slf4j.Slf4j;
 public class GmailChecker {
 
   private final Vertx vertx;
+  private final VertxHelper vertxHelper;
   private final GmailHelper helper;
   private final EmailConfigService emailConfigService;
 
   private FileSystem fileSystem() {
-    return FileSystem.newInstance(vertx.fileSystem());
+    return vertx.fileSystem();
   }
 
   private Path dirPath(String userId) {
@@ -53,44 +50,33 @@ public class GmailChecker {
   public Completable checkAll() {
     final var ids = new HashSet<String>();
     return RxUtil.paging(emailConfigService.pagingProcessor(1), list -> {
-      return Observable.fromIterable(list)
-          .flatMapCompletable(emailConfigUser -> {
-            ids.add(emailConfigUser.emailConfig().userId());
+          return Observable.fromIterable(list)
+              .flatMapCompletable(emailConfigUser -> {
+                ids.add(emailConfigUser.emailConfig().userId());
 
-            if (emailConfigUser.shouldGetNewOne()) {
-              return Completable.complete();
-            }
+                if (emailConfigUser.shouldGetNewOne()) {
+                  return Completable.complete();
+                }
 
-            final var emailConfig = emailConfigUser.emailConfig();
-            return check(emailConfig.userId(), emailConfig.hash())
-                .doOnError(throwable -> log.error("ERROR with config {}", emailConfig.userId(), throwable))
-                .onErrorComplete();
-          });
-    }).doOnComplete(() -> {
-
-      log.info("CHECK_ALL_DONE {}", ids.size());
-      deleteNotFound(ids);
-    });
+                final var emailConfig = emailConfigUser.emailConfig();
+                return check(emailConfig.userId(), emailConfig.hash())
+                    .doOnError(throwable -> log.error("ERROR with config {}", emailConfig.userId(), throwable))
+                    .onErrorComplete();
+              });
+        })
+        .doOnComplete(() -> log.info("CHECK_ALL_DONE {}", ids.size()))
+        .andThen(Completable.defer(() -> deleteNotFound(ids)));
   }
 
-  private void deleteNotFound(Collection<String> list) {
+  private Completable deleteNotFound(Collection<String> list) {
 
-    try {
-
-      final var dir = new File(GmailHelper.DIR);
-      final var listFiles = dir.listFiles();
-      if (listFiles != null) {
-        for (File file : listFiles) {
-          if (file.isDirectory() && !list.contains(file.getName())) {
-            log.info("DELETE {}", file.getName());
-            helper.clearFlow(file.getName(), true);
-          }
-        }
-      }
-
-    } catch (Exception e) {
-      log.error("Error deleting", e);
-    }
+    return vertx.fileSystem()
+        .readDir(GmailHelper.DIR)
+        .flatMapObservable(Observable::fromIterable)
+        .filter(s -> list.stream().noneMatch(s::endsWith))
+        .doOnNext(s -> log.info("DELETE {}", s))
+        .doOnNext(s -> helper.clearFlow(s, false))
+        .flatMapCompletable(s -> vertx.fileSystem().deleteRecursive(s, true));
 
   }
 
@@ -112,7 +98,7 @@ public class GmailChecker {
               })
               .onErrorReturn(Optional::of)
               .flatMapCompletable(optError -> {
-                return vertxHash(filePath(userId).toString())
+                return vertxHelper.crc32(filePath(userId).toString())
                     .flatMapCompletable(currentHash -> {
                       if (currentHash == hash && optError.isEmpty()) {
                         return emailConfigService.updateLastCheck(userId, credential.getRefreshToken() != null,
@@ -154,7 +140,7 @@ public class GmailChecker {
         .flatMapMaybe(bool -> {
 
           if (bool) {
-            return vertxHash(filePath.toString())
+            return vertxHelper.crc32(filePath.toString())
                 .map(h -> h == hash)
                 .flatMapMaybe(b -> {
                   if (b) {
@@ -175,17 +161,17 @@ public class GmailChecker {
 
           return writeFile(userId, filePath.toString(), dirPath.toString())
               .andThen(fileSystem().exists(filePath.toString()))
-              .doOnSuccess(aBoolean -> {
-                log.info("Vertx File exists {} {}", aBoolean, filePath);
-
-                fileSystem().exists(filePath.toString())
-                    .doOnSuccess(aBoolean1 -> log.info("Vertx File exists 2 {} {}", aBoolean1, filePath))
-                    .subscribe();
-
-                log.info("Files exists {} {}", Files.exists(filePath), filePath);
-
-
-              })
+//              .doOnSuccess(aBoolean -> {
+//                log.info("Vertx File exists {} {}", aBoolean, filePath);
+//
+//                fileSystem().exists(filePath.toString())
+//                    .doOnSuccess(aBoolean1 -> log.info("Vertx File exists 2 {} {}", aBoolean1, filePath))
+//                    .subscribe();
+//
+//                log.info("Files exists {} {}", Files.exists(filePath), filePath);
+//
+//
+//              })
               .ignoreElement()
               //.andThen(vertxHash(filePath.toString()))
               .toSingleDefault(1L)
@@ -200,63 +186,5 @@ public class GmailChecker {
           return fileSystem().mkdirs(dirPath)
               .andThen(fileSystem().writeFile(filePath, Buffer.buffer(file)));
         });
-  }
-
-  public Completable writeFile(String filePath, byte[] file) {
-
-    if (true) {
-      return Completable.fromAction(() -> Files.write(Paths.get(filePath), file));
-    }
-
-    return fileSystem().open(filePath, new OpenOptions().setWrite(true).setSync(true).setDsync(true))
-        .flatMapCompletable(asyncFile -> asyncFile.write(Buffer.buffer(file))
-            .andThen(asyncFile.flush())
-            .andThen(asyncFile.close()))
-        .delay(1, TimeUnit.SECONDS);
-  }
-
-  public Single<Long> vertxHash(String path) {
-
-    if (false) {
-      return Single.fromCallable(() -> FileUtil.checksumInputStream(new File(path)));
-    }
-
-    if (true) {
-      return fileSystem().readFile(path)
-          .map(Buffer::getBytes)
-          .map(bytes -> {
-            final var crc32 = new CRC32();
-            crc32.update(bytes);
-            return crc32.getValue();
-          });
-    }
-
-    return fileSystem().open(path, new OpenOptions().setRead(true))
-        .flatMap(asyncFile -> {
-          return Single.<Long>create(emitter -> {
-
-            final var crc32 = new CRC32();
-
-            asyncFile.handler(b -> {
-                  final var bytes = b.getBytes();
-                  crc32.update(bytes);
-                })
-                .endHandler(v -> {
-                  asyncFile.close()
-                      .subscribe(() -> emitter.onSuccess(crc32.getValue()), emitter::onError);
-
-                })
-                .exceptionHandler(t -> {
-                  asyncFile.close()
-                      .subscribe(() -> {
-                      }, tc -> {
-                      });
-                  emitter.onError(t);
-                });
-          });
-
-
-        })
-        .doOnError(throwable -> log.error("Error while hashing", throwable));
   }
 }

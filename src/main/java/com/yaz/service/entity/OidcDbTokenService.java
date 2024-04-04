@@ -6,9 +6,14 @@ import com.yaz.persistence.entities.OidcDbToken;
 import com.yaz.persistence.repository.OidcDbTokenRepository;
 import com.yaz.resource.OidcDbTokenResource;
 import com.yaz.resource.domain.response.OidcDbTokenTableResponse;
+import com.yaz.service.entity.cache.OidcDbTokenCache;
+import com.yaz.util.Constants;
+import com.yaz.util.MutinyUtil;
+import io.quarkus.cache.CacheInvalidate;
+import io.quarkus.cache.CacheInvalidateAll;
+import io.quarkus.cache.CacheResult;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,21 +35,69 @@ public class OidcDbTokenService {
     return repository;
   }
 
+  @CacheInvalidateAll(cacheName = OidcDbTokenCache.TOTAL_COUNT)
+  @CacheInvalidateAll(cacheName = OidcDbTokenCache.QUERY_COUNT)
+  @CacheInvalidate(cacheName = OidcDbTokenCache.EXISTS)
+  public Uni<Void> invalidateOne(String id) {
+    return invalidateGet(id);
+  }
 
+  @CacheInvalidateAll(cacheName = OidcDbTokenCache.SELECT)
+  @CacheInvalidate(cacheName = OidcDbTokenCache.READ)
+  public Uni<Void> invalidateGet(String id) {
+    return Uni.createFrom().voidItem();
+  }
+
+  @CacheInvalidateAll(cacheName = OidcDbTokenCache.TOTAL_COUNT)
+  @CacheInvalidateAll(cacheName = OidcDbTokenCache.QUERY_COUNT)
+  @CacheInvalidateAll(cacheName = OidcDbTokenCache.EXISTS)
+  @CacheInvalidateAll(cacheName = OidcDbTokenCache.SELECT)
+  @CacheInvalidateAll(cacheName = OidcDbTokenCache.READ)
+  public Uni<Void> invalidateAll() {
+    return Uni.createFrom().voidItem();
+  }
+
+
+  @CacheResult(cacheName = OidcDbTokenCache.TOTAL_COUNT, lockTimeout = Constants.CACHE_TIMEOUT)
   public Uni<Long> count() {
     return repository().count();
   }
 
-  public Uni<Integer> delete(String id) {
-    return repository().delete(id);
+  @CacheResult(cacheName = OidcDbTokenCache.READ, lockTimeout = Constants.CACHE_TIMEOUT)
+  public Uni<Optional<OidcDbToken>> read(String id) {
+    return repository().read(id);
   }
 
-  public Uni<List<OidcDbToken>> list(OidcDbTokenQueryRequest queryRequest) {
-    return repository().select(queryRequest);
+  public Uni<Integer> delete(String id) {
+
+    return repository().delete(id)
+        .flatMap(MutinyUtil.cacheCall(invalidateOne(id)));
+  }
+
+
+  public Uni<Integer> deleteByUser(String id) {
+    return repository().deleteByUser(id)
+        .flatMap(MutinyUtil.cacheCall(invalidateAll()));
+  }
+
+  public Uni<Integer> deleteIfExpired(long expiresIn) {
+    return repository().deleteIfExpired(expiresIn)
+        .flatMap(MutinyUtil.cacheCall(invalidateAll()));
+  }
+
+  public Uni<Integer> insert(String idToken, String accessToken, String refreshToken, long expiresIn, String id) {
+    return repository().insert(idToken, accessToken, refreshToken, expiresIn, id)
+        .flatMap(MutinyUtil.cacheCall(invalidateOne(id)));
   }
 
   public Uni<Integer> updateUserId(String id, String userId) {
-    return repository().updateUserId(id, userId);
+    return repository().updateUserId(id, userId)
+        .flatMap(MutinyUtil.cacheCall(invalidateOne(id)));
+  }
+
+  @CacheResult(cacheName = OidcDbTokenCache.SELECT, lockTimeout = Constants.CACHE_TIMEOUT)
+  public Uni<List<OidcDbToken>> list(OidcDbTokenQueryRequest queryRequest) {
+    return repository().select(queryRequest);
   }
 
   public Uni<OidcDbTokenTableResponse> tableResponse(OidcDbTokenQueryRequest request) {
@@ -76,21 +129,5 @@ public class OidcDbTokenService {
 
       return new OidcDbTokenTableResponse(totalCount, nextPageUrl, results);
     });
-  }
-
-  public Uni<Integer> deleteByUser(String id) {
-    return repository().deleteByUser(id);
-  }
-
-  public Uni<Integer> insert(String idToken, String accessToken, String refreshToken, long expiresIn, String id) {
-    return repository().insert(idToken, accessToken, refreshToken, expiresIn, id);
-  }
-
-  public Uni<Optional<OidcDbToken>> read(String id) {
-    return repository().read(id);
-  }
-
-  public Uni<Integer> deleteIfExpired(long expiresIn) {
-    return repository().deleteIfExpired(expiresIn);
   }
 }

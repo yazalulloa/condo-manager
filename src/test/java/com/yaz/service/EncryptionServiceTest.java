@@ -87,5 +87,13 @@ class EncryptionServiceTest {
     }
   }
 
+  @Test
+  void decrypt() {
+    final var decrypted = service.decrypt(
+        "rsI7-APGjzvHmX2xQkqMDc7Xsyx7qlK7VWcNsr3aHnpqDaVf8QOE4mtWN0_QZB4kn1Y=$*@$&JjM58Dx_YAK16RawbjJjmQ==");
+
+    System.out.println(decrypted);
+  }
+
 
 }

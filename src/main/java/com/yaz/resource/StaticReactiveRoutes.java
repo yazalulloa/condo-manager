@@ -3,10 +3,13 @@ package com.yaz.resource;
 import com.yaz.util.StringUtil;
 import io.quarkus.vertx.web.Param;
 import io.quarkus.vertx.web.Route;
+import io.quarkus.vertx.web.Route.HttpMethod;
 import io.quarkus.vertx.web.RouteFilter;
 import io.vertx.ext.web.RoutingContext;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -42,18 +45,30 @@ public class StaticReactiveRoutes {
         .orElse(false);
 
     if (isNexPath || path.endsWith(".js") || path.endsWith(".css") || path.endsWith(".svg") || path.endsWith(".png")
-        || path.endsWith(".ico")
-        || path.endsWith(".html")) {
+        || path.endsWith(".ico")) {
       //log.info("early_next {}", path);
       rc.next();
       return;
     }
 
+    if (path.endsWith(".html")) {
+      rc.next();
+      return;
+    }
+
+    final var hxCurrentUrl = rc.request().getHeader("Hx-Current-Url");
+    //log.info("hxCurrentUrl {}", hxCurrentUrl);
+    if (hxCurrentUrl == null) {
+      rc.reroute("/index.html");
+      return;
+    }
 
     if (path.endsWith("/")) {
       rc.reroute(path + "index.html");
       return;
     }
+
+
 
 //    final var indexOfDot = path.lastIndexOf(".");
 //    final var count = path.chars().filter(ch -> ch == '/').count();
@@ -64,8 +79,6 @@ public class StaticReactiveRoutes {
 //      rc.reroute(newRoute);
 //      return;
 //    }
-
-    final var hxCurrentUrl = rc.request().getHeader("Hx-Current-Url");
 
 //    if (hxCurrentUrl == null &&
 //        !(path.endsWith(".js") || path.endsWith(".css") || path.endsWith(".svg") || path.endsWith(".png") || path.endsWith(".ico"))) {
@@ -93,13 +106,17 @@ public class StaticReactiveRoutes {
 
   @Route(path = BUILDING_EDIT + "/:building", methods = Route.HttpMethod.GET)
   void edit(@Param String building, RoutingContext routingContext) {
+    final var hxCurrentUrl = routingContext.request().getHeader("Hx-Current-Url");
     final var str = StringUtil.trimFilter(building);
-    //log.info("edit {}", str);
+    //log.info("edit {} hxCurrentUrl {}", str, hxCurrentUrl);
     if (str == null) {
       routingContext.redirect("/buildings");
+    } else if (hxCurrentUrl == null) {
+      routingContext.reroute("/index.html");
     } else if (str.equals("index.html")) {
       routingContext.next();
     } else {
+     // log.info("edit reroute");
       routingContext.reroute("/buildings/edit/index.html");
     }
   }
@@ -116,15 +133,17 @@ public class StaticReactiveRoutes {
     }
   }
 
-//  @ServerResponseFilter(priority = Priorities.AUTHENTICATION)
-//  public void getFilter(ContainerResponseContext responseContext) {
-//    Object entity = responseContext.getEntity();
-//    log.info("response entity {}", entity);
-//
-//    if (responseContext.getLocation() != null) {
-//      URI location = responseContext.getLocation();
-//      log.info("response location {}", location);
-//    }
-//  }
+  @Route(path = "redirect", methods = HttpMethod.GET)
+  void redirect(RoutingContext rc) {
+    final var value = StringUtil.trimFilter(rc.request().getParam("v"));
+    //log.info("redirect {}", value);
+    if (value == null) {
+      rc.response().setStatusCode(404).end();
+    } else {
+
+      rc.response().setStatusCode(Status.PERMANENT_REDIRECT.getStatusCode());
+      rc.redirect(value);
+    }
+  }
 
 }
