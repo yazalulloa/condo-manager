@@ -41,7 +41,6 @@ public class StaticReactiveRoutes {
         .reduce(Boolean::logicalOr)
         .orElse(false);
 
-    log.info("path {}", path);
     if (isNexPath || path.endsWith(".js") || path.endsWith(".css") || path.endsWith(".svg") || path.endsWith(".png")
         || path.endsWith(".ico")
         || path.endsWith(".html")) {
@@ -50,22 +49,21 @@ public class StaticReactiveRoutes {
       return;
     }
 
-    log.info("path {}", path);
 
     if (path.endsWith("/")) {
       rc.reroute(path + "index.html");
       return;
     }
 
-    final var indexOfDot = path.lastIndexOf(".");
-    final var count = path.chars().filter(ch -> ch == '/').count();
-
-    if (indexOfDot == -1 && count == 1) {
-      final var newRoute = path + ".html";
-      //log.info("reroute {}", newRoute);
-      rc.reroute(newRoute);
-      return;
-    }
+//    final var indexOfDot = path.lastIndexOf(".");
+//    final var count = path.chars().filter(ch -> ch == '/').count();
+//
+//    if (indexOfDot == -1 && count == 1) {
+//      final var newRoute = path + ".html";
+//      //log.info("reroute {}", newRoute);
+//      rc.reroute(newRoute);
+//      return;
+//    }
 
     final var hxCurrentUrl = rc.request().getHeader("Hx-Current-Url");
 
@@ -96,7 +94,7 @@ public class StaticReactiveRoutes {
   @Route(path = BUILDING_EDIT + "/:building", methods = Route.HttpMethod.GET)
   void edit(@Param String building, RoutingContext routingContext) {
     final var str = StringUtil.trimFilter(building);
-    log.info("edit {}", str);
+    //log.info("edit {}", str);
     if (str == null) {
       routingContext.redirect("/buildings");
     } else if (str.equals("index.html")) {
