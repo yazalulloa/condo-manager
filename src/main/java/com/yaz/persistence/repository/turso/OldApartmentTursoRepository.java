@@ -1,18 +1,16 @@
 package com.yaz.persistence.repository.turso;
 
-import com.yaz.client.turso.response.TursoResponse;
-import com.yaz.client.turso.response.TursoResponse.Row;
+import com.yaz.core.client.turso.response.TursoResponse;
+import com.yaz.core.client.turso.response.TursoResponse.Row;
 import com.yaz.persistence.domain.query.ApartmentQuery;
 import com.yaz.persistence.entities.Apartment;
 import com.yaz.persistence.entities.ExtraCharge.Apt;
 import com.yaz.persistence.repository.ApartmentRepository;
 import com.yaz.persistence.repository.turso.client.TursoService;
 import com.yaz.persistence.repository.turso.client.TursoWsService;
-import com.yaz.util.SqlUtil;
-import com.yaz.util.StringUtil;
-import io.quarkus.arc.lookup.LookupIfProperty;
+import com.yaz.core.util.SqlUtil;
+import com.yaz.core.util.StringUtil;
 import io.smallrye.mutiny.Uni;
-import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.Arrays;

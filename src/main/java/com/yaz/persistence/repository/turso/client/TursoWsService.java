@@ -18,7 +18,7 @@ import com.yaz.persistence.repository.turso.client.ws.request.Value;
 import com.yaz.persistence.repository.turso.client.ws.response.ExecuteResp;
 import com.yaz.persistence.repository.turso.client.ws.response.ExecuteResp.Row;
 import com.yaz.persistence.repository.turso.client.ws.response.ResponseMsg;
-import com.yaz.util.RandomUtil;
+import com.yaz.core.util.RandomUtil;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.vertx.AsyncResultUni;
 import io.vertx.core.AsyncResult;

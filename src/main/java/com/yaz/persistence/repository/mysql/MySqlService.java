@@ -1,7 +1,6 @@
 package com.yaz.persistence.repository.mysql;
 
 import com.yaz.persistence.domain.MySqlQueryRequest;
-import com.yaz.util.ConvertUtil;
 import io.micrometer.core.annotation.Timed;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
@@ -17,7 +16,6 @@ import jakarta.inject.Inject;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.inject.ConfigProperty;

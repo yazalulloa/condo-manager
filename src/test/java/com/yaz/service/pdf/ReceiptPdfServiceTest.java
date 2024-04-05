@@ -1,7 +1,6 @@
 package com.yaz.service.pdf;
 
-import static org.junit.jupiter.api.Assertions.*;
-
+import com.yaz.core.service.pdf.ReceiptPdfService;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;

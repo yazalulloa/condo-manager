@@ -2,12 +2,13 @@ package com.yaz.client.turso;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.yaz.client.turso.request.TursoQuery;
+import com.yaz.core.client.turso.TursoClient;
+import com.yaz.core.client.turso.request.TursoQuery;
 import com.yaz.persistence.domain.query.SortOrder;
-import com.yaz.service.entity.RateService;
-import com.yaz.util.MutinyUtil;
-import com.yaz.util.RxUtil;
-import com.yaz.util.SqlUtil;
+import com.yaz.core.service.entity.RateService;
+import com.yaz.core.util.MutinyUtil;
+import com.yaz.core.util.RxUtil;
+import com.yaz.core.util.SqlUtil;
 import io.quarkus.test.junit.QuarkusTest;
 import io.reactivex.rxjava3.core.Completable;
 import io.vertx.core.json.Json;

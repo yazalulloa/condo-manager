@@ -1,6 +1,6 @@
 package com.yaz;
 
-import com.yaz.reflection.NativeRegistration;
+import com.yaz.core.reflection.NativeRegistration;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;

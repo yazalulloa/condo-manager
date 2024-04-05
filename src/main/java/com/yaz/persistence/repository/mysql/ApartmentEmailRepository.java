@@ -2,7 +2,7 @@ package com.yaz.persistence.repository.mysql;
 
 import com.yaz.persistence.domain.MySqlQueryRequest;
 import com.yaz.persistence.entities.Apartment;
-import com.yaz.util.SqlUtil;
+import com.yaz.core.util.SqlUtil;
 import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.sqlclient.SqlResult;
 import io.vertx.mutiny.sqlclient.Tuple;

@@ -1,15 +1,12 @@
 package com.yaz;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.yaz.client.domain.telegram.TelegramMessage;
-import com.yaz.client.domain.telegram.TelegramUpdate;
-import com.yaz.persistence.repository.turso.client.ws.request.Stmt;
+import com.yaz.core.client.domain.telegram.TelegramUpdate;
 import com.yaz.persistence.repository.turso.client.ws.request.Value;
 import com.yaz.persistence.repository.turso.client.ws.response.Col;
 import com.yaz.persistence.repository.turso.client.ws.response.StmtResult;
-import com.yaz.util.JacksonUtil;
+import com.yaz.core.util.JacksonUtil;
 import io.vertx.core.json.Json;
 import java.io.IOException;
 import java.nio.file.Files;

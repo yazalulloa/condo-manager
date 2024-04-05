@@ -1,0 +1,35 @@
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+  <soapenv:Header/>
+  <soapenv:Body
+    xmlns:ns1="http://ftth.orquestador.com/ReservaElementos">
+    <ns1:SALIDA>
+      <ID_DOMICILIO>
+        XR150780000000000000000000000009873922
+      </ID_DOMICILIO>
+      <ID_ADMINISTRATIVO>
+        X15904AAA064
+      </ID_ADMINISTRATIVO>
+      <CODIGO_CTO>1507821CT7778</CODIGO_CTO>
+      <TIPO_CTO>
+        CT16
+      </TIPO_CTO>
+      <DIRECCION_CTO>CARBALLAL 3, POSTE</DIRECCION_CTO>
+      <ID_SPLITTER>
+        1507821CT77782
+      </ID_SPLITTER>
+      <TIPO_SPLITTER>1:08</TIPO_SPLITTER>
+      <POSICION_SPLITTER>16</POSICION_SPLITTER>
+      <TIPO_CAJA/>
+      <CODIGO_OLT>RA-15-SANTIAGO-02_OLT</CODIGO_OLT>
+      <MODELO_OLT>C600</MODELO_OLT>
+      <VERSION_SW_OLT>
+        V1.2.1
+      </VERSION_SW_OLT>
+      <TARJETA_OLT>3</TARJETA_OLT>
+      <PUERTO_GPON>15</PUERTO_GPON>
+      <GESTOR_VERTICAL>
+        721
+      </GESTOR_VERTICAL>
+    </ns1:SALIDA>
+  </soapenv:Body>
+</soapenv:Envelope>

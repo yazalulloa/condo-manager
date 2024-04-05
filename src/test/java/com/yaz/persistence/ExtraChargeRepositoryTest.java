@@ -6,7 +6,7 @@ import com.yaz.persistence.domain.request.ExtraChargeUpdateRequest;
 import com.yaz.persistence.entities.ExtraCharge.Apt;
 import com.yaz.persistence.repository.mysql.ApartmentMySqlRepository;
 import com.yaz.persistence.repository.mysql.ExtraChargeMySqlRepository;
-import com.yaz.util.RandomUtil;
+import com.yaz.core.util.RandomUtil;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import java.time.Duration;

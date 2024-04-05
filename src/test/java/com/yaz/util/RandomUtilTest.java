@@ -1,5 +1,6 @@
 package com.yaz.util;
 
+import com.yaz.core.util.RandomUtil;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 

@@ -1,7 +1,7 @@
 package com.yaz.service;
 
 import com.yaz.persistence.domain.query.EmailConfigQuery;
-import com.yaz.service.entity.EmailConfigService;
+import com.yaz.core.service.entity.EmailConfigService;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;

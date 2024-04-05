@@ -1,6 +1,7 @@
 package com.yaz.client;
 
-import com.yaz.service.TelegramRestService;
+import com.yaz.core.client.TelegramClient;
+import com.yaz.core.service.TelegramRestService;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.rest.client.inject.RestClient;

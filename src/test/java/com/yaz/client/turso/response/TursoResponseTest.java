@@ -1,7 +1,6 @@
 package com.yaz.client.turso.response;
 
-import static org.junit.jupiter.api.Assertions.*;
-
+import com.yaz.core.client.turso.response.TursoResponse;
 import io.vertx.core.json.Json;
 import org.junit.jupiter.api.Test;
 

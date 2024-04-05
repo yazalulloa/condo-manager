@@ -1,11 +1,11 @@
 package com.yaz.persistence.repository.turso.client;
 
-import com.yaz.client.turso.TursoClient;
-import com.yaz.client.turso.request.RequestsItem;
-import com.yaz.client.turso.request.Stmt;
-import com.yaz.client.turso.request.TursoQuery;
-import com.yaz.client.turso.response.ResultsItem;
-import com.yaz.client.turso.response.TursoResponse;
+import com.yaz.core.client.turso.TursoClient;
+import com.yaz.core.client.turso.request.RequestsItem;
+import com.yaz.core.client.turso.request.Stmt;
+import com.yaz.core.client.turso.request.TursoQuery;
+import com.yaz.core.client.turso.response.ResultsItem;
+import com.yaz.core.client.turso.response.TursoResponse;
 import io.micrometer.core.annotation.Timed;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;

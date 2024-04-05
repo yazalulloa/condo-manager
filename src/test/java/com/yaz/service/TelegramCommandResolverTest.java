@@ -1,8 +1,7 @@
 package com.yaz.service;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-import com.yaz.event.domain.TelegramWebhookRequest;
+import com.yaz.core.service.TelegramCommandResolver;
+import com.yaz.core.event.domain.TelegramWebhookRequest;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import java.io.IOException;

@@ -1,6 +1,6 @@
 package com.yaz.persistence.repository.turso.client.ws.request;
 
-import com.yaz.util.SqlUtil;
+import com.yaz.core.util.SqlUtil;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;

@@ -1,9 +1,9 @@
 package com.yaz.service;
 
 import com.yaz.persistence.entities.Apartment;
-import com.yaz.resource.domain.request.ApartmentRequest;
-import com.yaz.service.entity.ApartmentService;
-import com.yaz.util.RandomUtil;
+import com.yaz.api.domain.request.ApartmentRequest;
+import com.yaz.core.service.entity.ApartmentService;
+import com.yaz.core.util.RandomUtil;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import java.util.stream.Collectors;

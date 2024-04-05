@@ -1,13 +1,9 @@
 package com.yaz.util;
 
-import io.reactivex.rxjava3.core.Single;
-import io.vertx.core.file.OpenOptions;
+import com.yaz.core.util.FileUtil;
 import io.vertx.rxjava3.core.Vertx;
-import io.vertx.rxjava3.core.buffer.Buffer;
-import io.vertx.rxjava3.core.file.FileProps;
 import java.io.File;
 import java.io.IOException;
-import java.util.zip.CRC32;
 import org.junit.jupiter.api.Test;
 
 class FileUtilTest {

@@ -1,5 +1,6 @@
 package com.yaz.service;
 
+import com.yaz.core.service.SendReceiptService;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
