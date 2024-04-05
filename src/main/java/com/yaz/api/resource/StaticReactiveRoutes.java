@@ -1,15 +1,12 @@
 package com.yaz.api.resource;
 
 import com.yaz.core.util.StringUtil;
-import io.quarkus.vertx.web.Param;
 import io.quarkus.vertx.web.Route;
 import io.quarkus.vertx.web.Route.HttpMethod;
 import io.quarkus.vertx.web.RouteFilter;
 import io.vertx.ext.web.RoutingContext;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.core.Response.Status;
-import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -18,51 +15,80 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 @ApplicationScoped
 public class StaticReactiveRoutes {
 
-  public static final String BUILDING_EDIT = "/buildings/edit";
+  public static final String BUILDING_EDIT = "/buildings/edit/";
+  public static final String RECEIPT_PDF_VIEW = "/receipts/pdfs/";
 
-  private final Set<String> nextPaths;
+  private static final String[] DEEP_LINKING_ROUTES = {BUILDING_EDIT, RECEIPT_PDF_VIEW};
+  private static final String[] FILES_EXTENSIONS = {".js", ".css", ".svg", ".png", ".ico", ".html"};
+
+  private final String[] nextPaths;
 
   @Inject
   public StaticReactiveRoutes(
       @ConfigProperty(name = "app.management.path") String managementPath) {
-    this.nextPaths = Set.of(managementPath, "/api", "/rpc", "/redirect", BUILDING_EDIT);
+    this.nextPaths = new String[]{managementPath, "/api", "/rpc", "/redirect"};
+  }
+
+  private boolean isNextPath(String path) {
+    for (var nextPath : nextPaths) {
+      if (path.startsWith(nextPath)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean isFileExtension(String path) {
+    for (var ext : FILES_EXTENSIONS) {
+      if (path.endsWith(ext)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @RouteFilter()
-    //  (1)
-  void rerouteStatic(RoutingContext rc) {
+  //  (1)
+  public void all(RoutingContext rc) {
 
     final var path = rc.request().path();
 
-    if (path.equals("/") || path.isEmpty()) {
+    if (path.equals("/")
+        || path.isEmpty()) {
       rc.next();
       return;
     }
 
-    final var isNexPath = nextPaths.stream()
-        .map(path::startsWith)
-        .reduce(Boolean::logicalOr)
-        .orElse(false);
-
-    if (isNexPath || path.endsWith(".js") || path.endsWith(".css") || path.endsWith(".svg") || path.endsWith(".png")
-        || path.endsWith(".ico")) {
-      //log.info("early_next {}", path);
+    if (isFileExtension(path)) {
       rc.next();
       return;
     }
 
-    log.info("path {}", path);
-
-    if (path.endsWith(".html")) {
+    if (isNextPath(path)) {
       rc.next();
       return;
     }
+
+    //log.info("path {}", path);
 
     final var hxCurrentUrl = rc.request().getHeader("Hx-Current-Url");
     //log.info("hxCurrentUrl {}", hxCurrentUrl);
+
     if (hxCurrentUrl == null) {
       rc.reroute("/index.html");
       return;
+    }
+
+    for (var route : DEEP_LINKING_ROUTES) {
+      if (path.startsWith(route)) {
+        final var id = path.substring(route.length());
+        if (StringUtils.isEmpty(id)) {
+          rc.response().setStatusCode(404).end();
+          return;
+        }
+        rc.reroute(route + "index.html");
+        return;
+      }
     }
 
     if (path.endsWith("/")) {
@@ -70,27 +96,6 @@ public class StaticReactiveRoutes {
       return;
     }
 
-//    final var indexOfDot = path.lastIndexOf(".");
-//    final var count = path.chars().filter(ch -> ch == '/').count();
-//
-//    if (indexOfDot == -1 && count == 1) {
-//      final var newRoute = path + ".html";
-//      //log.info("reroute {}", newRoute);
-//      rc.reroute(newRoute);
-//      return;
-//    }
-
-//    if (hxCurrentUrl == null &&
-//        !(path.endsWith(".js") || path.endsWith(".css") || path.endsWith(".svg") || path.endsWith(".png") || path.endsWith(".ico"))) {
-//      rc.reroute("/");
-//      return;
-//    }
-    //log.info("next route");
-    /*if (indexOfDot == -1 && !path.startsWith(managementPath)
-        && (count == 1 || !path.startsWith("/api"))) {
-      rc.reroute(path + ".html");
-      return;
-    }*/
     rc.next();
   }
 
@@ -104,35 +109,6 @@ public class StaticReactiveRoutes {
     routingContext.reroute("/out/css/output.css");
   }
 
-  @Route(path = BUILDING_EDIT + "/:building", methods = Route.HttpMethod.GET)
-  void edit(@Param String building, RoutingContext routingContext) {
-    final var hxCurrentUrl = routingContext.request().getHeader("Hx-Current-Url");
-    final var str = StringUtil.trimFilter(building);
-    log.info("edit {} hxCurrentUrl {}", str, hxCurrentUrl);
-    if (str == null) {
-      routingContext.redirect("/buildings");
-    } else if (hxCurrentUrl == null) {
-      routingContext.reroute("/index.html");
-    } else if (str.equals("index.html")) {
-      routingContext.next();
-    } else {
-      log.info("edit reroute");
-      routingContext.reroute("/buildings/edit/index.html");
-    }
-  }
-
-  @Route(path = "/receipts/pdfs/:id", methods = Route.HttpMethod.GET)
-  void receiptPdfs(@Param String id, RoutingContext routingContext) {
-    final var str = StringUtil.trimFilter(id);
-    if (str == null) {
-      routingContext.redirect("/receipts");
-    } else if (id.equals("index.html")) {
-      routingContext.next();
-    } else {
-      routingContext.reroute("/receipts/pdfs/index.html");
-    }
-  }
-
   @Route(path = "redirect", methods = HttpMethod.GET)
   void redirect(RoutingContext rc) {
     final var value = StringUtil.trimFilter(rc.request().getParam("v"));
@@ -140,17 +116,7 @@ public class StaticReactiveRoutes {
     if (value == null) {
       rc.response().setStatusCode(404).end();
     } else {
-      final var count = StringUtils.countMatches(value, "/");
-      log.info("count {}", count);
-      if (count > 1) {
-        rc.redirect(value);
-      } else {
-        rc.reroute(value);
-      }
-
-
-//      rc.response().setStatusCode(Status.PERMANENT_REDIRECT.getStatusCode());
-//      rc.redirect(value);
+      rc.reroute(value);
     }
   }
 

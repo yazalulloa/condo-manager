@@ -16,7 +16,6 @@ public class BuildingReportResponse {
   private final long totalCount;
   private final String nextPageUrl;
   private final Collection<Item> results;
-  private final String buildingEditUrl = "/buildings/edit";
 
   @Data
   @RequiredArgsConstructor
