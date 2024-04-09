@@ -124,6 +124,7 @@ public class ReceiptResource {
       @RestQuery("building_input") Set<String> building,
       @RestQuery("month_input") Set<Integer> months,
       @RestQuery("date_input") String date) {
+    log.info("NextPage {}", nextPage);
 
     final var nextKeys = Optional.ofNullable(nextPage)
         .map(StringUtil::trimFilter)

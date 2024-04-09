@@ -9,6 +9,17 @@ public interface EncryptionConfig {
   @NotBlank
   String secretKey();
 
+  @NotBlank
   String separator();
+
+  @NotBlank
+  String algorithm();
+
+  @NotBlank
+  String transformation();
+
+  int ivSize();
+
+  int parameterSpecLen();
 
 }

@@ -77,7 +77,10 @@ public class TursoWsService {
 
   public Future<Void> heartBeat() {
     return client.start()
-        .onSuccess(v -> client.sendHeartBeat());
+        .onSuccess(v -> {
+          client.sendHeartBeat();
+          sendHello();
+        });
   }
 
   private void handleError(Throwable e) {

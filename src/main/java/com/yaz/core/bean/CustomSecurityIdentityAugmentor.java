@@ -1,7 +1,7 @@
 package com.yaz.core.bean;
 
-import com.yaz.persistence.domain.IdentityProvider;
 import com.yaz.core.service.entity.UserService;
+import com.yaz.persistence.domain.IdentityProvider;
 import io.quarkus.oidc.UserInfo;
 import io.quarkus.oidc.runtime.OidcJwtCallerPrincipal;
 import io.quarkus.security.identity.AuthenticationRequestContext;
@@ -11,7 +11,6 @@ import io.quarkus.security.runtime.QuarkusSecurityIdentity;
 import io.smallrye.mutiny.Uni;
 import io.vertx.ext.web.RoutingContext;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import java.security.Principal;
 import lombok.extern.slf4j.Slf4j;
 
@@ -21,7 +20,6 @@ public class CustomSecurityIdentityAugmentor implements SecurityIdentityAugmento
 
   private final UserService userService;
 
-  @Inject
   public CustomSecurityIdentityAugmentor(UserService userService) {
     this.userService = userService;
   }

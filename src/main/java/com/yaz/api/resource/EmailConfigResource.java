@@ -2,11 +2,9 @@ package com.yaz.api.resource;
 
 import com.google.api.client.auth.oauth2.AuthorizationCodeResponseUrl;
 import com.google.api.client.http.GenericUrl;
-import com.yaz.core.helper.VertxHelper;
-import com.yaz.persistence.domain.query.EmailConfigQuery;
-import com.yaz.persistence.entities.EmailConfig;
 import com.yaz.api.domain.response.EmailConfigTableItem;
 import com.yaz.api.domain.response.EmailConfigTableResponse;
+import com.yaz.core.helper.VertxHelper;
 import com.yaz.core.service.entity.EmailConfigService;
 import com.yaz.core.service.gmail.GmailHelper;
 import com.yaz.core.service.gmail.GmailService;
@@ -15,6 +13,8 @@ import com.yaz.core.util.MutinyUtil;
 import com.yaz.core.util.RandomUtil;
 import com.yaz.core.util.RxUtil;
 import com.yaz.core.util.StringUtil;
+import com.yaz.persistence.domain.query.EmailConfigQuery;
+import com.yaz.persistence.entities.EmailConfig;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.identity.SecurityIdentity;
@@ -28,6 +28,7 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriBuilder;
@@ -40,8 +41,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.jboss.resteasy.reactive.RestPath;
 import org.jboss.resteasy.reactive.RestQuery;
 
-@Path(EmailConfigResource.PATH)
 @Slf4j
+@Path(EmailConfigResource.PATH)
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class EmailConfigResource {
 
@@ -52,9 +53,6 @@ public class EmailConfigResource {
   private final GmailHelper gmailHelper;
   private final GmailService gmailService;
   private final VertxHelper vertxHelper;
-
-  @Inject
-  SecurityIdentity identity;
 
   @CheckedTemplate
   public static class Templates {
@@ -68,8 +66,18 @@ public class EmailConfigResource {
     public static native TemplateInstance item(EmailConfigTableItem res);
   }
 
-  private String getUserId() {
-    final var userId = Objects.requireNonNull(identity.getAttribute("userId")).toString();
+
+  private String getUserId(SecurityIdentity identity) {
+    final var principal = identity.getPrincipal();
+    log.info("principal: {}", principal);
+    final var attribute = identity.getAttribute("userId");
+    log.info("attribute: {}", attribute);
+
+    if (attribute != null) {
+      return attribute.toString();
+    }
+
+    final var userId = Objects.requireNonNull(attribute).toString();
     //log.info("userId: {}", userId);
     return userId;
   }
@@ -93,8 +101,7 @@ public class EmailConfigResource {
   }
 
 
-  private Response responseRedirect(HttpServerRequest request) throws IOException {
-    final var userId = getUserId();
+  private Response responseRedirect(String userId, HttpServerRequest request) throws IOException {
     final var flow = gmailHelper.flow(userId);
     final var authorizationUrl = flow.newAuthorizationUrl();
     authorizationUrl.setState(RandomUtil.randomIntStr(10));
@@ -116,14 +123,16 @@ public class EmailConfigResource {
 
   @GET
   @Path("add")
-  public Uni<?> redirect(HttpServerRequest request) throws URISyntaxException, IOException {
+  public Uni<?> redirect(HttpServerRequest request, @Context SecurityIdentity securityContext)
+      throws URISyntaxException, IOException {
+    log.info("securityContext: {}", securityContext);
 
-    final var userId = getUserId();
+    final var userId = getUserId(securityContext);
     final var single = gmailService.loadItem(userId)
         .map(item -> {
 
           if (item.getItem().shouldGetNewOne() || item.getItem().emailConfig().stacktrace() != null) {
-            return responseRedirect(request);
+            return responseRedirect(userId, request);
           } else {
             final var tableItem = item.toBuilder()
                 .outOfBoundUpdate(true)
@@ -132,7 +141,7 @@ public class EmailConfigResource {
           }
 
         })
-        .switchIfEmpty(Single.fromCallable(() -> responseRedirect(request)));
+        .switchIfEmpty(Single.fromCallable(() -> responseRedirect(userId, request)));
 
     return MutinyUtil.toUni(single);
 
@@ -140,7 +149,7 @@ public class EmailConfigResource {
 
   @GET
   @Path("callback")
-  public Uni<Response> callback(HttpServerRequest request) {
+  public Uni<Response> callback(HttpServerRequest request, @Context SecurityIdentity identity) {
 
     final var single = Single.defer(() -> {
       final var responseUrl = new AuthorizationCodeResponseUrl(request.absoluteURI() + "?" + request.query());
@@ -158,13 +167,13 @@ public class EmailConfigResource {
         return Single.just(Response.status(400).entity("Missing authorization code").build());
       } else {
 
-        final var flow = gmailHelper.flow(getUserId());
+        final var flow = gmailHelper.flow(getUserId(identity));
 
         final var redirectUri = getRedirectUri(request);
         //log.info("callback redirectUri: {}", redirectUri);
 
         final var response = flow.newTokenRequest(code).setRedirectUri(redirectUri).execute();
-        final var userId = getUserId();
+        final var userId = getUserId(identity);
         //log.info("token response: {}", response);
         final var credential = flow.createAndStoreCredential(response, userId);
 
