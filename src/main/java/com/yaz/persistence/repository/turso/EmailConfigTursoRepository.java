@@ -1,5 +1,10 @@
 package com.yaz.persistence.repository.turso;
 
+import com.yaz.api.domain.response.EmailConfigDto;
+import com.yaz.api.domain.response.EmailConfigTableItem;
+import com.yaz.core.util.DateUtil;
+import com.yaz.core.util.SqlUtil;
+import com.yaz.core.util.StringUtil;
 import com.yaz.persistence.domain.EmailConfigUser;
 import com.yaz.persistence.domain.IdentityProvider;
 import com.yaz.persistence.domain.query.EmailConfigQuery;
@@ -9,11 +14,6 @@ import com.yaz.persistence.repository.turso.client.TursoWsService;
 import com.yaz.persistence.repository.turso.client.ws.request.Stmt;
 import com.yaz.persistence.repository.turso.client.ws.request.Value;
 import com.yaz.persistence.repository.turso.client.ws.response.ExecuteResp.Row;
-import com.yaz.api.domain.response.EmailConfigDto;
-import com.yaz.api.domain.response.EmailConfigTableItem;
-import com.yaz.core.util.DateUtil;
-import com.yaz.core.util.SqlUtil;
-import com.yaz.core.util.StringUtil;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -119,7 +119,7 @@ public class EmailConfigTursoRepository implements EmailConfigRepository {
   private EmailConfigUser.User userFrom(Row row) {
     return EmailConfigUser.User.builder()
         .providerId(row.getString("provider_id"))
-        .provider(IdentityProvider.valueOf(row.getString("provider")))
+        .provider(row.getEnum("provider", IdentityProvider::valueOf))
         .email(row.getString("email"))
         .username(row.getString("username"))
         .name(row.getString("name"))
@@ -148,7 +148,7 @@ public class EmailConfigTursoRepository implements EmailConfigRepository {
     final var lastId = StringUtil.trimFilter(query.lastId());
     if (lastId == null) {
 
-      return Stmt.stmt(SELECT_WITH_USER.formatted(COMMON_FIELDS,""), Value.number(query.limit()));
+      return Stmt.stmt(SELECT_WITH_USER.formatted(COMMON_FIELDS, ""), Value.number(query.limit()));
     }
 
     final var sql = SELECT_WITH_USER.formatted(COMMON_FIELDS, "WHERE email_configs.user_id > ?");
@@ -182,7 +182,8 @@ public class EmailConfigTursoRepository implements EmailConfigRepository {
   @Override
   public Uni<Optional<EmailConfigTableItem>> readWithUser(String id) {
 
-    return tursoWsService.selectOne(Stmt.stmt(READ_WITH_USER.formatted(COMMON_FIELDS), Value.text(id)), this::fromWithUser)
+    return tursoWsService.selectOne(Stmt.stmt(READ_WITH_USER.formatted(COMMON_FIELDS), Value.text(id)),
+            this::fromWithUser)
         .map(opt -> opt.map(EmailConfigTableItem::ofItem));
   }
 

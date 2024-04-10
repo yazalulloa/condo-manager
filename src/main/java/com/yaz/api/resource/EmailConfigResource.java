@@ -68,17 +68,8 @@ public class EmailConfigResource {
 
 
   private String getUserId(SecurityIdentity identity) {
-    final var principal = identity.getPrincipal();
-    log.info("principal: {}", principal);
-    final var attribute = identity.getAttribute("userId");
-    log.info("attribute: {}", attribute);
-
-    if (attribute != null) {
-      return attribute.toString();
-    }
-
-    final var userId = Objects.requireNonNull(attribute).toString();
-    //log.info("userId: {}", userId);
+    final var userId = Objects.requireNonNull(identity.getAttribute("userId")).toString();
+    log.info("userId: {}", userId);
     return userId;
   }
 

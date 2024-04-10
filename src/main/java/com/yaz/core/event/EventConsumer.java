@@ -1,16 +1,21 @@
 package com.yaz.core.event;
 
-import com.yaz.core.event.domain.ReceiptAptSent;
-import com.yaz.core.event.domain.TelegramWebhookRequest;
+import com.yaz.api.domain.response.ReceiptProgressUpdate;
+import com.yaz.api.resource.ReceiptResource.Templates;
 import com.yaz.core.event.domain.BuildingDeleted;
 import com.yaz.core.event.domain.EmailConfigDeleted;
-import com.yaz.api.resource.ReceiptResource.Templates;
-import com.yaz.api.domain.response.ReceiptProgressUpdate;
+import com.yaz.core.event.domain.ReceiptAptSent;
+import com.yaz.core.event.domain.TelegramWebhookRequest;
+import com.yaz.core.event.domain.UserDeleted;
 import com.yaz.core.service.ServerSideEventHelper;
 import com.yaz.core.service.TelegramCommandResolver;
 import com.yaz.core.service.entity.BuildingService;
+import com.yaz.core.service.entity.EmailConfigService;
 import com.yaz.core.service.entity.ExtraChargeService;
+import com.yaz.core.service.entity.NotificationEventService;
+import com.yaz.core.service.entity.OidcDbTokenService;
 import com.yaz.core.service.entity.ReserveFundService;
+import com.yaz.core.service.entity.TelegramChatService;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.Vertx;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -32,17 +37,21 @@ public class EventConsumer {
   private final ReserveFundService reserveFundService;
   private final TelegramCommandResolver telegramCommandResolver;
   private final ServerSideEventHelper serverSideEventHelper;
+  private final EmailConfigService emailConfigService;
+  private final OidcDbTokenService tokenService;
+  private final NotificationEventService notificationEventService;
+  private final TelegramChatService telegramChatService;
 
   public void emailConfigDeleted(@ObservesAsync EmailConfigDeleted task) {
-    log.info("emailConfigDeleted: {}", task);
-    buildingService.delete(task.id())
+
+    buildingService.updateEmailConfig(task.id())
         .subscribe()
         .with(
             i -> {
-              log.info("BuildingDeleted: {} deleted: {}", task.id(), i);
+              log.info("Building email config: {} deleted: {}", task.id(), i);
             },
             e -> {
-              log.error("ERROR deleting building BuildingDeleted: {}", task.id(), e);
+              log.error("ERROR deleting building email config: {}", task.id(), e);
             });
 
   }
@@ -105,5 +114,26 @@ public class EventConsumer {
 
       serverSideEventHelper.sendEvent(event.clientId(), "receipt-progress", msg);
     }
+  }
+
+  public void userDeleted(@ObservesAsync UserDeleted task) {
+    final var userId = task.id();
+    log.info("userDeleted: {}", task);
+
+    Uni.join()
+        .all(tokenService.deleteByUser(userId),
+            emailConfigService.delete(userId),
+            notificationEventService.deleteByUser(userId),
+            telegramChatService.deleteByUser(userId))
+        .andCollectFailures()
+        .subscribe()
+        .with(
+            i -> {
+              log.info("Deleting user data: {} deleted: {}", task.id(), i);
+            },
+            e -> {
+              log.error("ERROR deleting user data: {}", task.id(), e);
+            });
+
   }
 }

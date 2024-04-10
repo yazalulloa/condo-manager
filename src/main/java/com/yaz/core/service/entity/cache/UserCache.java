@@ -7,4 +7,5 @@ public class UserCache {
   public static final String EXISTS = "user-exists";
   public static final String GET = "user-get";
   public static final String GET_ID_FROM_PROVIDER = "user-get-id-from-provider";
+  public static final String SELECT = "user-select";
 }

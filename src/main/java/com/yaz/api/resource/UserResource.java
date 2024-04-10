@@ -1,15 +1,12 @@
 package com.yaz.api.resource;
 
-import com.yaz.persistence.domain.IdentityProvider;
-import com.yaz.persistence.domain.query.UserQuery;
 import com.yaz.api.domain.response.UserTableResponse;
-import com.yaz.core.service.entity.EmailConfigService;
-import com.yaz.core.service.entity.NotificationEventService;
-import com.yaz.core.service.entity.OidcDbTokenService;
-import com.yaz.core.service.entity.TelegramChatService;
+import com.yaz.core.service.EncryptionService;
 import com.yaz.core.service.entity.UserService;
 import com.yaz.core.util.ConvertUtil;
 import com.yaz.core.util.StringUtil;
+import com.yaz.persistence.domain.IdentityProvider;
+import com.yaz.persistence.domain.query.UserQuery;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.smallrye.mutiny.Uni;
@@ -33,10 +30,7 @@ public class UserResource {
   public static final String DELETE_PATH = PATH + "/";
 
   private final UserService service;
-  private final EmailConfigService emailConfigService;
-  private final OidcDbTokenService tokenService;
-  private final NotificationEventService notificationEventService;
-  private final TelegramChatService telegramChatService;
+  private final EncryptionService encryptionService;
 
   @CheckedTemplate
   public static class Templates {
@@ -58,13 +52,9 @@ public class UserResource {
   @Path("{id}")
   @Produces
   public Uni<TemplateInstance> delete(@RestPath String id) {
-
-    return service.delete(id)
-        .replaceWith(counters())
-        .eventually(() -> tokenService.deleteByUser(id))
-        .eventually(() -> emailConfigService.delete(id))
-        .eventually(() -> notificationEventService.deleteByUser(id))
-        .eventually(() -> telegramChatService.deleteByUser(id));
+    final var userId = encryptionService.decrypt(id);
+    return service.delete(userId)
+        .replaceWith(counters());
   }
 
   @GET
