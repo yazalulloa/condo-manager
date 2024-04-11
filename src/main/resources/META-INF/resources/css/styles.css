@@ -253,67 +253,35 @@
 }
 
 .apartment-grid-container {
+  grid-template-columns: 8fr 1fr;
+}
+
+.oicd-token-grid {
+  grid-template-columns: repeat(6, 1fr);
+}
+
+.base-grid-cm {
   display: grid;
   border-bottom: 1px solid black;
-  grid-template-columns: 8fr 1fr;
   grid-template-rows: auto;
   grid-gap: 4px;
   width: 100%;
+  text-align: center;
 }
 
-.apartment-grid-container > * {
+.base-grid-cm > * {
   text-align: center;
   margin: auto;
   align-items: center;
   width: 100%;
 }
 
-.oicd-token-grid {
-  display: grid;
-  border-bottom: 1px solid black;
-  grid-template-columns: repeat(6, 1fr);
-  grid-template-rows: auto;
-  grid-gap: 4px;
-  width: 100%;
-  text-align: center;
-}
-
-.oicd-token-grid > * {
-  text-align: center;
-  margin: auto;
-  width: 100%;
-}
-
 .extra-charges-grid {
-  display: grid;
-  border-bottom: 1px solid black;
   grid-template-columns: 2fr 2fr 4fr 2fr;
-  grid-template-rows: auto;
-  grid-gap: 4px;
-  width: 100%;
-  text-align: center;
-}
-
-.extra-charges-grid > * {
-  text-align: center;
-  margin: auto;
-  width: 100%;
 }
 
 .reserve-funds-grid {
-  display: grid;
-  border-bottom: 1px solid black;
   grid-template-columns: 2fr 2fr 2fr 2fr;
-  grid-template-rows: auto;
-  grid-gap: 4px;
-  width: 100%;
-  text-align: center;
-}
-
-.reserve-funds-grid > * {
-  text-align: center;
-  margin: auto;
-  width: 100%;
 }
 
 .std-form-control {

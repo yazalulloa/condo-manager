@@ -1,6 +1,6 @@
 {@com.yaz.api.domain.response.ExtraChargeTableItem item}
 
-<div class="extra-charges-grid hover:bg-[#00000014] p-1"
+<div class="extra-charges-grid base-grid-cm hover:bg-[#00000014] p-1"
      id={item.cardId}
          {#if item.outOfBoundsUpdate}
              hx-swap-oob="true"
@@ -28,7 +28,7 @@
     {/for}
   </div>
 
-<div class="flex flex-item gap-2 justify-center">
+<div class="flex flex-row gap-2 justify-center">
   <div class="block">
     <button class="edit-btn"
             hx-get="{item.editUrl}"

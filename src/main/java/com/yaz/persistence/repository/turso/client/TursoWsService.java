@@ -1,10 +1,9 @@
 package com.yaz.persistence.repository.turso.client;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.yaz.core.bean.qualifier.TursoObjectMapper;
+import com.yaz.core.util.RandomUtil;
 import com.yaz.persistence.repository.turso.client.ws.Listener;
 import com.yaz.persistence.repository.turso.client.ws.TursoResult;
 import com.yaz.persistence.repository.turso.client.ws.request.CloseStreamReq;
@@ -18,7 +17,6 @@ import com.yaz.persistence.repository.turso.client.ws.request.Value;
 import com.yaz.persistence.repository.turso.client.ws.response.ExecuteResp;
 import com.yaz.persistence.repository.turso.client.ws.response.ExecuteResp.Row;
 import com.yaz.persistence.repository.turso.client.ws.response.ResponseMsg;
-import com.yaz.core.util.RandomUtil;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.vertx.AsyncResultUni;
 import io.vertx.core.AsyncResult;
@@ -59,17 +57,16 @@ public class TursoWsService {
   private final ObjectMapper mapper;
 
   @Inject
-  public TursoWsService(TursoWsClient client, @ConfigProperty(name = "app.turso-jwt") String jwt,
-      ObjectMapper objectMapper
+  public TursoWsService(
+      TursoWsClient client,
+      @ConfigProperty(name = "app.turso-jwt") String jwt,
+      @TursoObjectMapper ObjectMapper mapper
       //    @NonNullObjectMapper JsonMapper jsonMapper
   ) {
     this.client = client;
     this.jwt = jwt;
-    this.mapper = objectMapper
-        .copy()
-        .setSerializationInclusion(JsonInclude.Include.NON_NULL)
-        .setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
-        .configure(JsonGenerator.Feature.WRITE_BIGDECIMAL_AS_PLAIN, true);
+    this.mapper = mapper;
+
     client.addMsgHandler(this::handleMessage);
     client.addExceptionHandler(this::handleError);
     client.addCloseHandler(v -> handleCloseClient());

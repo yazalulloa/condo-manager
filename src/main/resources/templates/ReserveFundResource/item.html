@@ -1,7 +1,7 @@
 {@com.yaz.api.domain.response.ReserveFundTableItem item}
 
 <div id="{item.cardId}"
-     class="reserve-funds-grid hover:bg-[#00000014] p-2"
+     class="reserve-funds-grid base-grid-cm hover:bg-[#00000014] p-2"
 
   {#if item.outOfBoundsUpdate}
      hx-swap-oob="true"
@@ -42,7 +42,7 @@
   </div>
 
 
-<div class="flex flex-item gap-2 justify-center">
+<div class="flex flex-row gap-2 justify-center">
   <div class="block">
     <button class="edit-btn"
             hx-get="{item.editUrl}"

@@ -1,6 +1,10 @@
 package com.yaz.core.bean;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.yaz.core.bean.qualifier.TursoObjectMapper;
 import com.yaz.core.util.JacksonUtil;
 import io.quarkus.arc.All;
 import io.quarkus.jackson.ObjectMapperCustomizer;
@@ -25,6 +29,19 @@ public class CustomObjectMapper {
 
     return mapper;
   }
+
+  @Singleton
+  @Produces
+  @TursoObjectMapper
+  ObjectMapper tursoObjectMapper(ObjectMapper objectMapper) {
+
+    return objectMapper
+        .copy()
+        .setSerializationInclusion(JsonInclude.Include.NON_NULL)
+        .setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
+        .configure(JsonGenerator.Feature.WRITE_BIGDECIMAL_AS_PLAIN, true);
+  }
+
 //  @Singleton
 //  @Produces
 //  Vertx rxVertx(io.vertx.mutiny.core.Vertx vertx) {
