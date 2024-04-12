@@ -14,11 +14,11 @@ public class TursoWebsocketInitializer {
   private static volatile Long timerId = null;
 
   void initialize(@Observes StartupEvent event, Vertx vertx, TursoWsService service) {
-    service.heartBeat();
-
-    timerId = vertx.setPeriodic(Duration.ofSeconds(30).toMillis(), id -> {
-      service.heartBeat();
-    });
+//    service.heartBeat();
+//
+//    timerId = vertx.setPeriodic(Duration.ofSeconds(30).toMillis(), id -> {
+//      service.heartBeat();
+//    });
   }
 
   void shutdown(@Observes ShutdownEvent event, Vertx vertx) {

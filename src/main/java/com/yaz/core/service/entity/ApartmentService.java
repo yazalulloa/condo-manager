@@ -159,7 +159,8 @@ public class ApartmentService {
     return Uni.combine()
         .all()
         .unis(totalCount(), queryCount(apartmentQuery))
-        .with((totalCount, queryCount) -> new AptCountersDto(totalCount, queryCount.orElse(null)));
+        .with((totalCount, queryCount) -> new AptCountersDto(totalCount, queryCount.orElse(null)))
+        .invoke(counters -> log.info("Counters: {}", counters));
 
   }
 

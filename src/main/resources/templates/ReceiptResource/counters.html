@@ -7,7 +7,7 @@
   Recibos: {dto.totalCount}
 </span>
 
-{#if dto.queryCount}
+{#if dto.queryCount != null}
 <span id="receipts-query-count">Items: {dto.queryCount}</span>
 {/if}
 </div>

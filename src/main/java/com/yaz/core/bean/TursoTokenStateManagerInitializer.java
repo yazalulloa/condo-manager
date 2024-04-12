@@ -42,7 +42,7 @@ public class TursoTokenStateManagerInitializer {
                         deleteInProgress.set(false);
                       },
                       t -> {
-                        log.error("Failed to expired OIDC token states from database: {}", t.getMessage());
+                        log.error("Failed to expired OIDC token states from database", t);
                         deleteInProgress.set(false);
                       });
             }

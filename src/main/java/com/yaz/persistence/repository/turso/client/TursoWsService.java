@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yaz.core.bean.qualifier.TursoObjectMapper;
 import com.yaz.core.util.RandomUtil;
+import com.yaz.core.util.VertxUtil;
 import com.yaz.persistence.repository.turso.client.ws.Listener;
 import com.yaz.persistence.repository.turso.client.ws.TursoResult;
 import com.yaz.persistence.repository.turso.client.ws.request.CloseStreamReq;
@@ -22,6 +23,8 @@ import io.smallrye.mutiny.vertx.AsyncResultUni;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.mutiny.core.eventbus.EventBus;
+import io.vertx.mutiny.core.eventbus.Message;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.util.ArrayList;
@@ -55,17 +58,19 @@ public class TursoWsService {
   private final TursoWsClient client;
   private final String jwt;
   private final ObjectMapper mapper;
+  private final EventBus bus;
 
   @Inject
   public TursoWsService(
       TursoWsClient client,
       @ConfigProperty(name = "app.turso-jwt") String jwt,
-      @TursoObjectMapper ObjectMapper mapper
+      @TursoObjectMapper ObjectMapper mapper, EventBus bus
       //    @NonNullObjectMapper JsonMapper jsonMapper
   ) {
     this.client = client;
     this.jwt = jwt;
     this.mapper = mapper;
+    this.bus = bus;
 
     client.addMsgHandler(this::handleMessage);
     client.addExceptionHandler(this::handleError);
@@ -218,8 +223,28 @@ public class TursoWsService {
     request(closeStreamReq);
   }
 
-  public Uni<List<TursoResult>> uniSimpleQuery(Stmt... stmt) {
-    return AsyncResultUni.toUni(handler -> executeStatements(handler, stmt));
+  public Uni<List<TursoResult>> uniSimpleQuery(Stmt... stmts) {
+    final var requestMsgs = new RequestMsg[stmts.length + 2];
+    final var streamId = getStreamId();
+    requestMsgs[0] = createRequest(OpenStreamReq.create(streamId));
+
+    for (int i = 0; i < stmts.length; i++) {
+      requestMsgs[i + 1] = createRequest(ExecuteReq.create(streamId, stmts[i]));
+    }
+
+    requestMsgs[requestMsgs.length - 1] = createRequest(CloseStreamReq.create(streamId));
+
+    return bus.request(TursoVerticle.ADDRESS, requestMsgs)
+        .map(Message::body)
+        .flatMap(obj -> {
+          if (obj instanceof Throwable t) {
+            return Uni.createFrom().failure(VertxUtil.removeReply(t));
+          } else {
+            return Uni.createFrom().item((List<TursoResult>) obj);
+          }
+        });
+
+   // return AsyncResultUni.toUni(handler -> executeStatements(handler, stmts));
   }
 
   public Uni<ExecuteResp> executeQuery(String sql, Value... values) {

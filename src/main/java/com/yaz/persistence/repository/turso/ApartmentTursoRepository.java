@@ -279,6 +279,8 @@ public class ApartmentTursoRepository implements ApartmentRepository {
       final var queryParams = params.isEmpty() ? "" : " WHERE " + String.join(SqlUtil.AND, params);
 
       return tursoWsService.count(QUERY_COUNT_WHERE.formatted(queryParams), values)
+          .onItem()
+          .invoke(count -> log.info("Query count: {}", count))
           .map(Optional::of);
     }
 

@@ -6,6 +6,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.WebSocket;
 import io.vertx.core.http.WebSocketClient;
 import io.vertx.core.http.WebSocketClientOptions;
+import io.vertx.core.http.WebSocketConnectOptions;
 import io.vertx.mutiny.core.Vertx;
 import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -92,10 +93,20 @@ public class TursoWsClient {
     //log.info("connecting");
 
     connecting.set(true);
-    return client().connect(443, url, "/")
+
+    final var webSocketConnectOptions = new WebSocketConnectOptions()
+        .setPort(443)
+        .setHost(url)
+        .setURI("/")
+//        .setConnectTimeout(Duration.ofSeconds(10).toMillis())
+//        .setIdleTimeout(Duration.ofSeconds(5).toMillis())
+//        .setTimeout(Duration.ofSeconds(10).toMillis())
+        ;
+
+    return client().connect(webSocketConnectOptions)
         .flatMap(socket -> {
           this.webSocket = socket;
-          log.info("Connected to Turso websocket");
+          log.info("Connected to Turso websocket {}", url);
           return Future.succeededFuture();
         })
         .onSuccess(a -> {
