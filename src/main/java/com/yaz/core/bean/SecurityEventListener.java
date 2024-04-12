@@ -84,13 +84,13 @@ public class SecurityEventListener {
           .subscribe()
           .with(
               userId -> {
-                log.info("User saved {}", userId);
+                log.debug("User saved {}", userId);
 
                 if (sessionId != null && userId != null) {
                   tokenService.updateUserId(sessionId, userId)
                       .subscribe()
                       .with(i -> {
-                        log.info("session updated {} {} {}", sessionId, userId, i);
+                        log.debug("session updated {} {} {}", sessionId, userId, i);
                       }, t -> log.error("Error update oidc token {} {}", sessionId, userId, t));
                 }
               },

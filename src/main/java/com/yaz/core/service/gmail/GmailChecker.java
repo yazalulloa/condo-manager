@@ -63,7 +63,7 @@ public class GmailChecker {
                     .onErrorComplete();
               });
         })
-        .doOnComplete(() -> log.info("CHECK_ALL_DONE {}", ids.size()))
+        .doOnComplete(() -> log.debug("CHECK_ALL_DONE {}", ids.size()))
         .andThen(Completable.defer(() -> deleteNotFound(ids)));
   }
 

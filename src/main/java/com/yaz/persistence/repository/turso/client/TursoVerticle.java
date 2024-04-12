@@ -166,14 +166,14 @@ public class TursoVerticle extends AbstractVerticle {
         .textMessageHandler(this::receivedMsg)
         .exceptionHandler(e -> {
           if (!closing) {
-            log.info("Closed by error", e);
+            log.debug("Closed by error", e);
             handleError(e);
             restart(Duration.ofSeconds(3));
           }
         })
         .closeHandler(v -> {
           if (!closing) {
-            log.info("Closed");
+            log.debug("Closed");
             handleCloseClient();
             restart(Duration.ofSeconds(1));
           }
@@ -271,7 +271,7 @@ public class TursoVerticle extends AbstractVerticle {
     if (!closing) {
       closeSocket()
           .compose(v -> closeClient());
-      log.info("Restarting in {} seconds", duration);
+      log.debug("Restarting in {} seconds", duration);
       vertx.setTimer(duration.toMillis(), l -> startSocket());
     }
   }

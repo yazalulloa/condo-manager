@@ -62,7 +62,7 @@ public class CalculateReceiptService {
   private final ExtraChargeService extraChargeService;
   private final RateService rateService;
 
-  @CacheResult(cacheName = "calculated_receipt", lockTimeout = Constants.CACHE_TIMEOUT)
+  //@CacheResult(cacheName = "calculated_receipt", lockTimeout = Constants.CACHE_TIMEOUT)
   public Uni<CalculatedReceipt> calculate(String buildingId, long receiptId) {
 
     final var receiptSingle = RxUtil.toMaybe(receiptService.read(receiptId))
