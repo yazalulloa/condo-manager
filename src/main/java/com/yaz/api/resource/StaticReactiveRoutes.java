@@ -25,8 +25,9 @@ public class StaticReactiveRoutes {
 
   @Inject
   public StaticReactiveRoutes(
-      @ConfigProperty(name = "app.management.path") String managementPath) {
-    this.nextPaths = new String[]{managementPath, "/api", "/rpc", "/redirect"};
+      @ConfigProperty(name = "app.management.path") String managementPath,
+      @ConfigProperty(name = "app.telegram.webhook.url") String telegramPath) {
+    this.nextPaths = new String[]{managementPath, telegramPath, "/api", "/rpc", "/redirect"};
   }
 
   private boolean isNextPath(String path) {

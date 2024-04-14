@@ -17,13 +17,14 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 public class TelegramWebhookRpc {
 
   private final Event<TelegramWebhookRequest> requestEvent;
+
   @ConfigProperty(name = "app.telegram.webhook.url")
   String path;
 
   public void init(@Observes Router router) {
     if (path != null) {
 
-      router.post("/" + path + "/msg")
+      router.post(path + "/msg")
           .handler(BodyHandler.create())
           .handler(rc -> {
             final var headers = rc.request().headers();

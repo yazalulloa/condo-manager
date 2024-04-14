@@ -9,11 +9,35 @@ services:
       - local.env
     environment:
       - DOCKER_TIMEZONE=America/Caracas
-#  cmy-vx-2nd:
-#    container_name: condo-manager-2nd
-#    image: condo-manager:latest
-#    restart: always
-#    ports:
-#      - "13855:13855"
-#    environment:
-#      - "PORT=13855"
+  #  cmy-vx-2nd:
+  #    container_name: condo-manager-2nd
+  #    image: condo-manager:latest
+  #    restart: always
+  #    ports:
+  #      - "13855:13855"
+  #    environment:
+  #      - "PORT=13855"
+  cmy-prometheus:
+    container_name: cmy-prometheus
+    image: prom/prometheus:latest
+    restart: always
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus:/etc/prometheus
+      - prom_data:/prometheus
+
+  cmy-grafana:
+    image: grafana/grafana
+    container_name: cmy-grafana
+    ports:
+      - 3000:3000
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=grafana
+    volumes:
+      - ./grafana:/etc/grafana/provisioning/datasources
+
+volumes:
+  prom_data:

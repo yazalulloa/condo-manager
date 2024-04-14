@@ -18,8 +18,9 @@ import com.yaz.persistence.repository.turso.client.ws.request.Value;
 import com.yaz.persistence.repository.turso.client.ws.response.ExecuteResp;
 import com.yaz.persistence.repository.turso.client.ws.response.ExecuteResp.Row;
 import com.yaz.persistence.repository.turso.client.ws.response.ResponseMsg;
+import io.micrometer.core.annotation.Counted;
+import io.micrometer.core.annotation.Timed;
 import io.smallrye.mutiny.Uni;
-import io.smallrye.mutiny.vertx.AsyncResultUni;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -223,6 +224,7 @@ public class TursoWsService {
     request(closeStreamReq);
   }
 
+  @Timed(value = "turso.query.request", description = "[Turso] A measure of how long it takes to execute a query")
   public Uni<List<TursoResult>> uniSimpleQuery(Stmt... stmts) {
     final var requestMsgs = new RequestMsg[stmts.length + 2];
     final var streamId = getStreamId();
@@ -244,7 +246,7 @@ public class TursoWsService {
           }
         });
 
-   // return AsyncResultUni.toUni(handler -> executeStatements(handler, stmts));
+    // return AsyncResultUni.toUni(handler -> executeStatements(handler, stmts));
   }
 
   public Uni<ExecuteResp> executeQuery(String sql, Value... values) {
