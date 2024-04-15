@@ -1,7 +1,5 @@
 package com.yaz.api.resource;
 
-import com.yaz.persistence.domain.query.ReceiptQuery;
-import com.yaz.persistence.entities.Receipt.Keys;
 import com.yaz.api.domain.response.ReceiptCountersDto;
 import com.yaz.api.domain.response.ReceiptInitDto;
 import com.yaz.api.domain.response.ReceiptPdfResponse;
@@ -9,6 +7,7 @@ import com.yaz.api.domain.response.ReceiptProgressUpdate;
 import com.yaz.api.domain.response.ReceiptTableResponse;
 import com.yaz.core.service.EncryptionService;
 import com.yaz.core.service.SendReceiptService;
+import com.yaz.core.service.csv.ReceiptParser;
 import com.yaz.core.service.domain.FileResponse;
 import com.yaz.core.service.entity.BuildingService;
 import com.yaz.core.service.entity.ReceiptService;
@@ -16,11 +15,15 @@ import com.yaz.core.service.pdf.ReceiptPdfService;
 import com.yaz.core.util.DateUtil;
 import com.yaz.core.util.MutinyUtil;
 import com.yaz.core.util.StringUtil;
+import com.yaz.persistence.domain.query.ReceiptQuery;
+import com.yaz.persistence.entities.Receipt.Keys;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.smallrye.mutiny.Uni;
+import io.vertx.core.json.Json;
 import jakarta.inject.Inject;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -40,6 +43,7 @@ import org.jboss.resteasy.reactive.RestPath;
 import org.jboss.resteasy.reactive.RestQuery;
 import org.jboss.resteasy.reactive.RestResponse;
 import org.jboss.resteasy.reactive.RestResponse.ResponseBuilder;
+import org.jboss.resteasy.reactive.multipart.FileUpload;
 
 @Path(ReceiptResource.PATH)
 @Slf4j
@@ -55,6 +59,7 @@ public class ReceiptResource {
   private final EncryptionService encryptionService;
   private final ReceiptPdfService receiptPdfService;
   private final SendReceiptService sendReceiptService;
+  private final ReceiptParser receiptParser;
 
   @CheckedTemplate
   public static class Templates {
@@ -124,7 +129,6 @@ public class ReceiptResource {
       @RestQuery("building_input") Set<String> building,
       @RestQuery("month_input") Set<Integer> months,
       @RestQuery("date_input") String date) {
-    log.info("NextPage {}", nextPage);
 
     final var nextKeys = Optional.ofNullable(nextPage)
         .map(StringUtil::trimFilter)
@@ -252,4 +256,22 @@ public class ReceiptResource {
 
     return Uni.createFrom().item(Templates.progress(clientId));
   }
+
+  @POST
+  @Path("file")
+  @Consumes(MediaType.MULTIPART_FORM_DATA)
+  @Produces(MediaType.TEXT_PLAIN)
+  public Uni<Response> upload(@RestForm FileUpload file) {
+
+    final var responseSingle = receiptParser.parse(file.fileName(), file.uploadedFile())
+        .map(csvReceipt -> {
+
+          final var json = Json.encode(csvReceipt);
+          final var body = encryptionService.encrypt(json);
+          return Response.ok(body).build();
+        });
+
+    return MutinyUtil.toUni(responseSingle);
+  }
+
 }

@@ -159,7 +159,7 @@ public class TursoVerticle extends AbstractVerticle {
         })
         //.binaryMessageHandler(b -> log.info("Received binary {}", b.toString()))
         .pongHandler(b -> {
-          log.debug("Received pong {}", b.toString());
+         // log.debug("Received pong {}", b.toString());
           lastPongAt = System.currentTimeMillis();
         })
         .drainHandler(v -> log.info("Drain handler"))
@@ -243,7 +243,7 @@ public class TursoVerticle extends AbstractVerticle {
         return;
       }
 
-      log.debug("Sending ping");
+      //log.debug("Sending ping");
       webSocket.writePing(Buffer.buffer(0x9));
       //webSocket.writeFrame(WebSocketFrame.pingFrame(Buffer.buffer(0x9)));
     }

@@ -93,6 +93,14 @@ public class DecimalUtil {
     }
   }
 
+  public static BigDecimal decimal(String value) {
+    try {
+      return new BigDecimal(value);
+    } catch (Exception e) {
+      throw new RuntimeException("Error in " + value, e);
+    }
+  }
+
   public static boolean validateMinMaxMultiple(BigDecimal value, BigDecimal min, BigDecimal max, BigDecimal multiple) {
     return value.compareTo(min) >= 0 && value.compareTo(max) <= 0 && isMultipleOf(value, multiple);
   }

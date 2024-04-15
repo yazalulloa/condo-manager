@@ -284,6 +284,17 @@
   grid-template-columns: 2fr 2fr 2fr 2fr;
 }
 
+
+
+.receipt-grid-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+  grid-template-rows: auto;
+  grid-gap: 1em;
+  text-align: center;
+  align-items: center;
+}
+
 .std-form-control {
   display: block;
   width: 100%;
@@ -349,15 +360,6 @@ details > summary::-webkit-details-marker {
 /* Style the tab content */
 .tab-cm-content {
   display: none;
-}
-
-.receipt-grid-container {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
-  grid-template-rows: auto;
-  grid-gap: 1em;
-  text-align: center;
-  align-items: center;
 }
 
 .noYScroll {
