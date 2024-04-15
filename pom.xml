@@ -6,6 +6,7 @@
   <groupId>com.yaz</groupId>
   <artifactId>condo-manager</artifactId>
   <version>1.0.0</version>
+
   <properties>
     <compiler-plugin.version>3.11.0</compiler-plugin.version>
     <maven.compiler.release>21</maven.compiler.release>
@@ -19,6 +20,7 @@
     <surefire-plugin.version>3.1.2</surefire-plugin.version>
 
   </properties>
+
   <dependencyManagement>
     <dependencies>
       <dependency>
