@@ -1,6 +1,11 @@
 package com.yaz.core.service.entity;
 
+import com.yaz.api.domain.response.RateTableResponse;
+import com.yaz.api.domain.response.RateTableResponse.Item;
+import com.yaz.api.resource.RateResource;
 import com.yaz.core.client.BcvClientService;
+import com.yaz.core.domain.BcvUsdRateResult;
+import com.yaz.core.service.EncryptionService;
 import com.yaz.core.service.ListService;
 import com.yaz.core.service.ListServicePagingProcessorImpl;
 import com.yaz.core.service.domain.FileResponse;
@@ -10,16 +15,12 @@ import com.yaz.core.util.ConvertUtil;
 import com.yaz.core.util.MutinyUtil;
 import com.yaz.core.util.PagingProcessor;
 import com.yaz.core.util.RxUtil;
-import com.yaz.core.domain.BcvUsdRateResult;
+import com.yaz.core.util.WriteEntityToFile;
 import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.domain.query.RateQuery;
 import com.yaz.persistence.domain.query.SortOrder;
 import com.yaz.persistence.entities.Rate;
 import com.yaz.persistence.repository.RateRepository;
-import com.yaz.api.resource.RateResource;
-import com.yaz.api.domain.response.RateTableResponse;
-import com.yaz.api.domain.response.RateTableResponse.Item;
-import com.yaz.core.util.WriteEntityToFile;
 import io.quarkus.cache.CacheInvalidate;
 import io.quarkus.cache.CacheInvalidateAll;
 import io.quarkus.cache.CacheResult;
@@ -45,6 +46,7 @@ public class RateService {
   private final RateRepository repository;
   private final BcvClientService bcvClientService;
   private final WriteEntityToFile writeEntityToFile;
+  private final EncryptionService encryptionService;
 
   private RateRepository repository() {
     //return repository.get();
@@ -188,7 +190,10 @@ public class RateService {
             .build()))
         .with((totalCount, list) -> {
           final var results = list.stream()
-              .map(Item::new)
+              .map(rate -> Item.builder()
+                  .key(encryptionService.encrypt(String.valueOf(rate.id())))
+                  .rate(rate)
+                  .build())
               .collect(Collectors.toCollection(() -> new ArrayList<>(list.size())));
 
           String nextPageUrl = null;
@@ -199,7 +204,7 @@ public class RateService {
             final var last = results.getLast();
 
             nextPageUrl = RateResource.PATH;
-            nextPageUrl += "?lastId=" + last.getRate().id();
+            nextPageUrl += "?nextPage=" + last.getKey();
 
             if (rateQuery.date() != null) {
               nextPageUrl += "&date=" + rateQuery.date();

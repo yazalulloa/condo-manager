@@ -1,6 +1,8 @@
 package com.yaz.api.resource;
 
 import com.yaz.api.domain.response.RateTableResponse;
+import com.yaz.api.resource.fragments.Fragments;
+import com.yaz.core.service.EncryptionService;
 import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.domain.query.RateQuery;
 import com.yaz.persistence.entities.Rate;
@@ -13,6 +15,7 @@ import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.identity.SecurityIdentity;
 import io.smallrye.mutiny.Uni;
 import jakarta.inject.Inject;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -20,6 +23,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.io.File;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jboss.resteasy.reactive.RestPath;
@@ -39,8 +43,7 @@ public class RateResource {
 
   private final SaveNewBcvRate saveNewBcvRate;
   private final RateService service;
-  @Inject
-  SecurityIdentity identity;
+  private final EncryptionService encryptionService;
 
   @CheckedTemplate
   public static class Templates {
@@ -61,9 +64,17 @@ public class RateResource {
 
   @GET
   @Produces(MediaType.TEXT_HTML)
-  public Uni<TemplateInstance> rates(@RestQuery Long lastId, @RestQuery String date) {
+  public Uni<TemplateInstance> rates(@RestQuery String nextPage, @RestQuery String date) {
+
+    final var lastId = Optional.ofNullable(nextPage)
+        .map(String::trim)
+        .filter(s -> !s.isEmpty())
+        .map(encryptionService::decrypt)
+        .map(Long::parseLong)
+        .orElse(0L);
+
     final var rateQuery = RateQuery.builder()
-        .lastId(lastId == null ? 0 : lastId)
+        .lastId(lastId)
         .date(DateUtil.isValidLocalDate(date) ? date : null)
         .build();
 
@@ -72,15 +83,15 @@ public class RateResource {
   }
 
   @DELETE
-  @Path("{id}")
+  @Path("{str}")
   @Produces
   public Uni<TemplateInstance> delete(
 //      @CookieParam("csrf-token") Cookie csrfCookie, @FormParam("csrf-token") String formCsrfToken,
 //      @HeaderParam("X-Csrf-Token") String headerCsrfToken,
-      @RestPath long id) {
+      @RestPath @NotBlank String str) {
 
     //log.info("headerCsrfToken {} formCsrfToken {} cookie {}", headerCsrfToken, formCsrfToken, csrfCookie);
-
+    final var id = Long.parseLong(encryptionService.decrypt(str));
     return service.delete(id)
         .replaceWith(counters());
   }
@@ -88,10 +99,15 @@ public class RateResource {
   @GET
   @Path("bcv-lookup")
   @Produces(MediaType.APPLICATION_JSON)
-  public Uni<Response> bcvLookup() {
+  public Uni<TemplateInstance> bcvLookup() {
     return MutinyUtil.toUni(saveNewBcvRate.saveNewRate())
         .onItem().invoke(res -> log.info("BCV LOOKUP {}", res))
-        .replaceWith(Response.noContent().build());
+        .map(result -> {
+          return result.state().name();
+        })
+        .map(Fragments::rateInfo)
+        //.replaceWith(Response.noContent().build())
+        ;
   }
 
 

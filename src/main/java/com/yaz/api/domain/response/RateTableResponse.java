@@ -1,29 +1,31 @@
 package com.yaz.api.domain.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.yaz.api.resource.RateResource;
+import com.yaz.persistence.entities.Rate;
 import java.util.Collection;
+import java.util.UUID;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
-import com.yaz.persistence.entities.Rate;
-import com.yaz.api.resource.RateResource;
 
-@Data
 @Builder
-public class RateTableResponse {
-
-  private final long totalCount;
-  @JsonIgnore
-  private final String nextPageUrl;
-  private final Collection<Item> results;
+public record RateTableResponse(
+    long totalCount,
+    String nextPageUrl,
+    Collection<Item> results) {
 
   @Data
+  @Builder
   public static class Item {
 
+
+    private final String key;
     private final Rate rate;
-    @JsonIgnore
-    @Getter(lazy = true)
-    private final String cardId = genCardId();
+
+    @Builder.Default
+    private final String cardId = "rate-card-id-" + UUID.randomUUID();
+
     @JsonIgnore
     @Getter(lazy = true)
     private final String cardIdRef = genCardIdRef();
@@ -34,16 +36,12 @@ public class RateTableResponse {
     @Getter(lazy = true)
     private final Boolean ifHidden = genIfHidden();
 
-    public String genCardId() {
-      return "rate-card-id-" + getRate().id();
-    }
-
     public String genDeleteUrl() {
-      return RateResource.DELETE_PATH + getRate().id();
+      return RateResource.DELETE_PATH + key;
     }
 
     public String genCardIdRef() {
-      return "#" + genCardId();
+      return "#" + cardId;
     }
 
     public boolean genIfHidden() {

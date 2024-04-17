@@ -91,7 +91,7 @@ class EncryptionServiceTest {
   @Test
   void decrypt() {
     final var decrypted = service.decrypt(
-        "1IYESnjEyGkzMsHp2qvijAYLds50fVhR_vM6aH7xczROKMK78CGfj5RGnSHv0bb1OP4F$*@$&dXkZwDg9bbjiay9yiAlbkA==");
+        "Kc2SEj3u5jCB9PoHkevcf4dbZaC4IoX7lh0itsHyWhMlJAODYBLktF20xepyKwqeCdAK3OdUMxyU93mwwYTDHoNG2Pk=@*!:dzv_WRJ7quzjfJdIdI7YRA==");
 
     System.out.println(decrypted);
   }

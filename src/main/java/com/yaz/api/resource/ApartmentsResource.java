@@ -1,7 +1,5 @@
 package com.yaz.api.resource;
 
-import com.yaz.api.msg.ApartmentMessages;
-import com.yaz.persistence.domain.query.ApartmentQuery;
 import com.yaz.api.domain.ApartmentFormDto;
 import com.yaz.api.domain.ApartmentFormDto.EmailForm;
 import com.yaz.api.domain.ApartmentInitDto;
@@ -9,16 +7,21 @@ import com.yaz.api.domain.AptItem;
 import com.yaz.api.domain.request.ApartmentRequest;
 import com.yaz.api.domain.response.ApartmentTableResponse;
 import com.yaz.api.domain.response.AptCountersDto;
+import com.yaz.api.msg.ApartmentMessages;
+import com.yaz.core.service.EncryptionService;
 import com.yaz.core.service.entity.ApartmentService;
 import com.yaz.core.service.entity.BuildingService;
 import com.yaz.core.util.DecimalUtil;
 import com.yaz.core.util.StringUtil;
+import com.yaz.persistence.domain.query.ApartmentQuery;
+import com.yaz.persistence.entities.Apartment.Keys;
 import io.quarkus.oidc.IdToken;
 import io.quarkus.oidc.UserInfo;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.smallrye.mutiny.Uni;
 import jakarta.inject.Inject;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
@@ -77,6 +80,7 @@ public class ApartmentsResource {
 
   private final ApartmentService apartmentService;
   private final BuildingService buildingService;
+  private final EncryptionService encryptionService;
 
   @GET
   @Path("init")
@@ -106,14 +110,17 @@ public class ApartmentsResource {
   @Path("grid")
   @Produces(MediaType.TEXT_HTML)
   public Uni<TemplateInstance> grid(
-      @RestQuery String lastBuildingId,
-      @RestQuery String lastNumber,
+      @RestQuery String nextPage,
       @RestQuery String q,
       @RestQuery Set<String> building) {
 
+    final var keys = Optional.ofNullable(nextPage)
+        .map(StringUtil::trimFilter)
+        .map(str -> encryptionService.decryptObj(str, Keys.class));
+
     final var apartmentQuery = ApartmentQuery.builder()
-        .lastBuildingId(StringUtil.trimFilter(lastBuildingId))
-        .lastNumber(StringUtil.trimFilter(lastNumber))
+        .lastBuildingId(keys.map(Keys::buildingId).orElse(null))
+        .lastNumber(keys.map(Keys::number).orElse(null))
         .q(StringUtil.trimFilter(q))
         .buildings(building)
         .build();
@@ -162,16 +169,17 @@ public class ApartmentsResource {
   }
 
   @DELETE
-  @Path("{buildingId}/{number}")
+  @Path("{key}")
   @Produces(MediaType.TEXT_HTML)
   public Uni<TemplateInstance> delete(
       @RestForm String q,
       @RestForm Set<String> building,
-      @RestPath String buildingId, @RestPath String number) {
+      @RestPath @NotBlank String key) {
 
-    log.info("Deleting apartment {} {}", buildingId, number);
-    return apartmentService.delete(buildingId, number)
-        .invoke(l -> log.info("Apartment delete {} deleted {} {}", l, buildingId, number))
+    final var keys = encryptionService.decryptObj(key, Keys.class);
+
+    return apartmentService.delete(keys.buildingId(), keys.number())
+        //.invoke(l -> log.info("Apartment delete {} deleted {} {}", l, buildingId, number))
         /*.map(l -> {
           log.info("Apartment delete {} deleted {} {}", l, buildingId, number);
           return Response.ok().build();
@@ -281,14 +289,16 @@ public class ApartmentsResource {
   }
 
   @PATCH
-  @Path("/{buildingId}/{number}")
+  @Path("/{key}")
   @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
   @Produces(MediaType.TEXT_HTML)
-  public Uni<TemplateInstance> patch(@RestPath String buildingId, @RestPath String number,
+  public Uni<TemplateInstance> patch(@RestPath @NotBlank String key,
       @BeanParam ApartmentRequest request) {
 
-    request.setBuildingId(buildingId);
-    request.setNumber(number);
+    final var keys = encryptionService.decryptObj(key, Keys.class);
+
+    request.setBuildingId(keys.buildingId());
+    request.setNumber(keys.number());
     return fromRequest(request, true)
         .flatMap(dto -> {
           if (dto.isSuccess()) {
@@ -297,7 +307,11 @@ public class ApartmentsResource {
                 .flatMap(apartment -> baseFormDto()
                     .map(apartmentFormDto -> apartmentFormDto.toBuilder()
                         .hideForm(true)
-                        .item(new AptItem(apartment, true))
+                        .item(AptItem.builder()
+                            .key(encryptionService.encryptObj(apartment.keys()))
+                            .apt(apartment)
+                            .isUpdate(true)
+                            .build())
                         .build()));
           }
 
@@ -307,14 +321,15 @@ public class ApartmentsResource {
   }
 
   @GET
-  @Path("edit_form/{buildingId}/{number}")
+  @Path("edit_form/{key}")
   @Produces(MediaType.TEXT_HTML)
-  public Uni<TemplateInstance> editForm(
-      @RestPath String buildingId, @RestPath String number) {
+  public Uni<TemplateInstance> editForm(@RestPath @NotBlank String key) {
+
+    final var keys = encryptionService.decryptObj(key, Keys.class);
 
     return Uni.combine()
         .all()
-        .unis(apartmentService.get(buildingId, number).map(Optional::get), buildingService.ids())
+        .unis(apartmentService.get(keys.buildingId(), keys.number()).map(Optional::get), buildingService.ids())
         .with((apartment, buildings) -> ApartmentFormDto.builder()
             .buildings(buildings)
             .buildingId(apartment.buildingId())
@@ -331,15 +346,17 @@ public class ApartmentsResource {
   }
 
   @GET
-  @Path("/item/{buildingId}/{number}")
+  @Path("/item/{key}")
   @Produces(MediaType.TEXT_HTML)
-  public Uni<TemplateInstance> item(
-      @RestPath String buildingId, @RestPath String number) {
+  public Uni<TemplateInstance> item(@RestPath @NotBlank String key) {
 
-    log.info("Deleting apartment {} {}", buildingId, number);
-    return apartmentService.get(buildingId, number)
+    final var keys = encryptionService.decryptObj(key, Keys.class);
+    return apartmentService.get(keys.buildingId(), keys.number())
         .map(Optional::get)
-        .map(AptItem::new)
+        .map(apartment -> AptItem.builder()
+            .key(key)
+            .apt(apartment)
+            .build())
         .map(Templates::grid_item);
   }
 }

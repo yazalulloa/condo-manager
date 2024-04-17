@@ -7,23 +7,27 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Set;
 import lombok.Builder;
-import lombok.Data;
-import lombok.experimental.Accessors;
-import lombok.extern.jackson.Jacksonized;
 
-@Jacksonized
-@Builder(toBuilder = true)
-@Accessors(fluent = true)
-@Data
+
+@Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class Apartment {
+public record Apartment(
+    String buildingId,
+    String number,
+    String name,
+    BigDecimal aliquot,
+    Set<String> emails,
+    LocalDateTime createdAt,
+    LocalDateTime updatedAt) {
 
-  private final String buildingId;
-  private final String number;
-  private final String name;
-  private final BigDecimal aliquot;
-  private final Set<String> emails;
-  private final LocalDateTime createdAt;
-  private final LocalDateTime updatedAt;
+  public Keys keys() {
+    return new Keys(buildingId, number);
+  }
+
+  public record Keys(
+      String buildingId,
+      String number) {
+
+  }
 }

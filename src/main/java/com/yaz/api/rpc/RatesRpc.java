@@ -37,12 +37,12 @@ public class RatesRpc {
 
     return service.table(rateQuery)
         .map(table -> {
-          final var results = table.getResults().stream()
+          final var results = table.results().stream()
               .map(Item::getRate)
               .toList();
 
           return RateRes.builder()
-              .totalCount(table.getTotalCount())
+              .totalCount(table.totalCount())
               .results(results)
               .build();
         });

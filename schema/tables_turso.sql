@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS rates
 );
 
 CREATE INDEX IF NOT EXISTS rates_hash_idx ON rates (hash);
+CREATE INDEX IF NOT EXISTS rates_from_currency_to_currency_idx ON rates (from_currency, to_currency);
 
 CREATE TABLE IF NOT EXISTS oidc_db_token_state_manager
 (
@@ -28,6 +29,8 @@ CREATE TABLE IF NOT EXISTS oidc_db_token_state_manager
     updated_at    DATETIME
 );
 
+CREATE INDEX IF NOT EXISTS oidc_db_token_state_manager_expires_in_idx ON oidc_db_token_state_manager (expires_in);
+CREATE INDEX IF NOT EXISTS oidc_db_token_state_manager_user_id_idx ON oidc_db_token_state_manager (user_id);
 
 CREATE TRIGGER IF NOT EXISTS oidc_db_token_state_manager_updated_at_trigger
     AFTER UPDATE
@@ -80,6 +83,8 @@ CREATE TABLE IF NOT EXISTS users
     last_login_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id)
 );
+
+CREATE INDEX IF NOT EXISTS users_provider_id_idx ON users (provider, provider_id);
 
 CREATE TABLE IF NOT EXISTS email_configs
 (

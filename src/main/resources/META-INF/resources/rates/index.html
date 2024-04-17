@@ -12,8 +12,11 @@
 <div class="bg-base-100" id="header-container" hx-swap-oob="true">
   <div class="header">
     <span id="rates-total-counter"></span>
-    <button class="btn btn-primary" hx-get="/api/rates/bcv-lookup"
-            hx-indicator=".htmx-indicator">
+    <button class="btn btn-primary"
+            hx-get="/api/rates/bcv-lookup"
+            hx-indicator=".htmx-indicator"
+            hx-swap="none"
+    >
       GET LAST RATE
     </button>
 

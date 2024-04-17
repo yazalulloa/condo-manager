@@ -1,5 +1,7 @@
 package com.yaz.persistence.repository.turso;
 
+import com.yaz.core.util.SqlUtil;
+import com.yaz.core.util.StringUtil;
 import com.yaz.persistence.domain.query.ApartmentQuery;
 import com.yaz.persistence.entities.Apartment;
 import com.yaz.persistence.entities.ExtraCharge.Apt;
@@ -8,8 +10,6 @@ import com.yaz.persistence.repository.turso.client.TursoWsService;
 import com.yaz.persistence.repository.turso.client.ws.request.Stmt;
 import com.yaz.persistence.repository.turso.client.ws.request.Value;
 import com.yaz.persistence.repository.turso.client.ws.response.ExecuteResp.Row;
-import com.yaz.core.util.SqlUtil;
-import com.yaz.core.util.StringUtil;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -279,8 +279,6 @@ public class ApartmentTursoRepository implements ApartmentRepository {
       final var queryParams = params.isEmpty() ? "" : " WHERE " + String.join(SqlUtil.AND, params);
 
       return tursoWsService.count(QUERY_COUNT_WHERE.formatted(queryParams), values)
-          .onItem()
-          .invoke(count -> log.info("Query count: {}", count))
           .map(Optional::of);
     }
 

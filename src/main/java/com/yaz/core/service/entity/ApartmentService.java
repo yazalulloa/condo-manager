@@ -1,16 +1,17 @@
 package com.yaz.core.service.entity;
 
+import com.yaz.api.domain.AptItem;
+import com.yaz.api.domain.request.ApartmentRequest;
+import com.yaz.api.domain.response.ApartmentTableResponse;
+import com.yaz.api.domain.response.AptCountersDto;
+import com.yaz.api.resource.ApartmentsResource;
+import com.yaz.core.service.EncryptionService;
 import com.yaz.core.service.entity.cache.ApartmentCache;
 import com.yaz.core.util.Constants;
 import com.yaz.persistence.domain.query.ApartmentQuery;
 import com.yaz.persistence.entities.Apartment;
 import com.yaz.persistence.entities.ExtraCharge;
 import com.yaz.persistence.repository.ApartmentRepository;
-import com.yaz.api.resource.ApartmentsResource;
-import com.yaz.api.domain.AptItem;
-import com.yaz.api.domain.request.ApartmentRequest;
-import com.yaz.api.domain.response.ApartmentTableResponse;
-import com.yaz.api.domain.response.AptCountersDto;
 import io.quarkus.cache.CacheInvalidate;
 import io.quarkus.cache.CacheInvalidateAll;
 import io.quarkus.cache.CacheResult;
@@ -32,6 +33,7 @@ public class ApartmentService {
 
   //private final Instance<ApartmentRepository> repository;
   private final ApartmentRepository repository;
+  private final EncryptionService encryptionService;
 
   private ApartmentRepository repository() {
     //return repository.get();
@@ -79,7 +81,10 @@ public class ApartmentService {
         .with((counters, apartments) -> {
 
           final var results = apartments.stream()
-              .map(AptItem::new)
+              .map(apartment -> AptItem.builder()
+                  .key(encryptionService.encryptObj(apartment.keys()))
+                  .apt(apartment)
+                  .build())
               .collect(Collectors.toCollection(() -> new ArrayList<>(apartments.size())));
 
           String nextPageUrl = null;
@@ -87,10 +92,11 @@ public class ApartmentService {
             results.removeLast();
             results.trimToSize();
 
-            final var last = results.getLast().getApt();
+            final var last = results.getLast();
 
             nextPageUrl = ApartmentsResource.TABLE_PATH;
-            nextPageUrl += "?lastBuildingId=" + last.buildingId() + "&lastNumber=" + last.number();
+            nextPageUrl += "?nextPage=" + last.getKey();
+            //nextPageUrl += "?lastBuildingId=" + last.buildingId() + "&lastNumber=" + last.number();
 
             if (apartmentQuery.q() != null) {
               nextPageUrl += "&q=" + apartmentQuery.q();
@@ -159,8 +165,7 @@ public class ApartmentService {
     return Uni.combine()
         .all()
         .unis(totalCount(), queryCount(apartmentQuery))
-        .with((totalCount, queryCount) -> new AptCountersDto(totalCount, queryCount.orElse(null)))
-        .invoke(counters -> log.info("Counters: {}", counters));
+        .with((totalCount, queryCount) -> new AptCountersDto(totalCount, queryCount.orElse(null)));
 
   }
 
