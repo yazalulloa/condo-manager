@@ -10,6 +10,7 @@ import lombok.Data;
 public class ApartmentFormDto {
 
 
+  private final String key;
   private final String generalFieldError;
   private final List<String> buildings;
   private final String buildingId;

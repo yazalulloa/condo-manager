@@ -305,14 +305,17 @@ public class ApartmentsResource {
             log.info("Updating apartment {}", request);
             return apartmentService.update(request)
                 .flatMap(apartment -> baseFormDto()
-                    .map(apartmentFormDto -> apartmentFormDto.toBuilder()
-                        .hideForm(true)
-                        .item(AptItem.builder()
-                            .key(encryptionService.encryptObj(apartment.keys()))
-                            .apt(apartment)
-                            .isUpdate(true)
-                            .build())
-                        .build()));
+                    .map(apartmentFormDto -> {
+                      return apartmentFormDto.toBuilder()
+                          .hideForm(true)
+                          .item(AptItem.builder()
+                              .key(key)
+                              .cardId("apartment-card-id-" + keys.cardId())
+                              .apt(apartment)
+                              .isUpdate(true)
+                              .build())
+                          .build();
+                    }));
           }
 
           return Uni.createFrom().item(dto);
@@ -331,6 +334,7 @@ public class ApartmentsResource {
         .all()
         .unis(apartmentService.get(keys.buildingId(), keys.number()).map(Optional::get), buildingService.ids())
         .with((apartment, buildings) -> ApartmentFormDto.builder()
+            .key(key)
             .buildings(buildings)
             .buildingId(apartment.buildingId())
             .number(apartment.number())
@@ -355,6 +359,7 @@ public class ApartmentsResource {
         .map(Optional::get)
         .map(apartment -> AptItem.builder()
             .key(key)
+            .cardId("apartment-card-id-" + keys.cardId())
             .apt(apartment)
             .build())
         .map(Templates::grid_item);

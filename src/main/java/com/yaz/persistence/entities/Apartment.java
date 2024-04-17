@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Set;
+import java.util.UUID;
 import lombok.Builder;
 
 
@@ -22,12 +23,13 @@ public record Apartment(
     LocalDateTime updatedAt) {
 
   public Keys keys() {
-    return new Keys(buildingId, number);
+    return new Keys(buildingId, number, UUID.randomUUID().toString());
   }
 
   public record Keys(
       String buildingId,
-      String number) {
+      String number,
+      String cardId) {
 
   }
 }

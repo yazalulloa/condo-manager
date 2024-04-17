@@ -16,9 +16,9 @@ public class AptItem {
 
   private final Apartment apt;
   private final boolean isUpdate;
-
-  @Builder.Default
-  private final String cardId = "apartment-card-id-" + UUID.randomUUID();
+  private final String cardId;
+  //@Builder.Default
+  //private final String cardId = "apartment-card-id-" + UUID.randomUUID();
 
 
 //  @Getter(lazy = true)

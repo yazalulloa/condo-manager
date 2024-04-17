@@ -4,7 +4,7 @@
       data-te-validation-init
       id="apartment-form"
 {#if dto.isEdit}
-      hx-patch="/api/apartments/{dto.buildingId}/{dto.number}"
+      hx-patch="/api/apartments/{dto.key}"
 {#else}
       hx-post="/api/apartments"
 {/if}

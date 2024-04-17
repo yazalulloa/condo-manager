@@ -10,6 +10,7 @@ import com.yaz.core.service.entity.cache.ApartmentCache;
 import com.yaz.core.util.Constants;
 import com.yaz.persistence.domain.query.ApartmentQuery;
 import com.yaz.persistence.entities.Apartment;
+import com.yaz.persistence.entities.Apartment.Keys;
 import com.yaz.persistence.entities.ExtraCharge;
 import com.yaz.persistence.repository.ApartmentRepository;
 import io.quarkus.cache.CacheInvalidate;
@@ -80,11 +81,16 @@ public class ApartmentService {
         .unis(counters(apartmentQuery), repository().select(apartmentQuery))
         .with((counters, apartments) -> {
 
+
           final var results = apartments.stream()
-              .map(apartment -> AptItem.builder()
-                  .key(encryptionService.encryptObj(apartment.keys()))
-                  .apt(apartment)
-                  .build())
+              .map(apartment -> {
+                final var keys = apartment.keys();
+                return AptItem.builder()
+                    .key(encryptionService.encryptObj(keys))
+                    .cardId("apartment-card-id-" + keys.cardId())
+                    .apt(apartment)
+                    .build();
+              })
               .collect(Collectors.toCollection(() -> new ArrayList<>(apartments.size())));
 
           String nextPageUrl = null;

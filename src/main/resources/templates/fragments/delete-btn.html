@@ -1,11 +1,11 @@
 <div class="block">
     <button class="delete-btn"
             hx-headers='{"{inject:csrf.headerName}":"{inject:csrf.token}"}'
-            hx-delete={deleteUrl}
-            hx-target={cardIdRef}
+            hx-delete="{deleteUrl}"
+            hx-target="{cardIdRef}"
             hx-indicator=".htmx-indicator"
             hx-trigger="click"
-            hx-swap="delete">
+            hx-swap="delete swap:300ms">
         <img src="/assets/trash.svg" alt="delete-item">
     </button>
 </div>

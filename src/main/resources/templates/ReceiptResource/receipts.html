@@ -5,7 +5,7 @@
 {#for item in res.results}
 
     <div
-    class="hover:bg-[#00000014] px-2 p-0.5 flex flex-row gap-2 text-center items-center justify-between"
+    class="hover:bg-[#00000014] px-2 p-0.5 flex flex-row gap-2 text-center items-center justify-between fade-me-out fade-me-in"
 
     id={item.cardId}>
 
@@ -59,7 +59,7 @@
            hx-target="{item.cardIdRef}"
            hx-indicator=".htmx-indicator"
            hx-trigger="click"
-           hx-swap="delete">
+           hx-swap="delete swap:300ms">
           <img src="/assets/trash.svg" alt="delete-item">
           Borrar
         </a>

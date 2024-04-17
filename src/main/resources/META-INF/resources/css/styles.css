@@ -285,7 +285,6 @@
 }
 
 
-
 .receipt-grid-container {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
@@ -364,4 +363,18 @@ details > summary::-webkit-details-marker {
 
 .noYScroll {
   overflow-y: hidden !important;
+}
+
+.fade-me-out.htmx-swapping {
+  opacity: 0;
+  transition: opacity 300ms ease-out;
+}
+
+.fade-me-in.htmx-added {
+  opacity: 0;
+}
+
+.fade-me-in {
+  opacity: 1;
+  transition: opacity 300ms ease-out;
 }

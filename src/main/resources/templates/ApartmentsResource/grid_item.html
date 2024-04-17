@@ -1,6 +1,6 @@
 {@com.yaz.api.domain.AptItem item}
 
-<div class="break-all hover:bg-[#00000014] apartment-grid-container base-grid-cm p-1"
+<div class="break-all hover:bg-[#00000014] apartment-grid-container base-grid-cm p-1 fade-me-out fade-me-in"
      id="{item.cardId}"
      hx-get="{item.itemUrl}"
      hx-trigger="update_apt"
@@ -12,8 +12,8 @@
   >
 
       <div class="apartment-grid-content"
-      hx-get={item.editUrl}
-    hx-swap=none
+      hx-get="{item.editUrl}"
+           hx-swap="none"
            hx-trigger="click">
   <div>{item.apt.buildingId}</div>
   <div>{item.apt.number}</div>
@@ -29,8 +29,8 @@
   <div class="block">
     <button class="delete-btn"
             hx-headers='{"{inject:csrf.headerName}":"{inject:csrf.token}"}'
-            hx-delete={item.deleteUrl}
-                hx-target={item.cardIdRef}
+            hx-delete="{item.deleteUrl}"
+            hx-target="{item.cardIdRef}"
             hx-vals="js:\{building: document.querySelector('#buildings-selector select').value, q: document.querySelector('#apt-search-input').value\}"
             hx-trigger="click"
             hx-swap="delete">
