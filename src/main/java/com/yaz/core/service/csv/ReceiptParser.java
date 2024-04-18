@@ -10,12 +10,15 @@ import com.yaz.persistence.entities.Debt;
 import com.yaz.persistence.entities.Expense;
 import com.yaz.persistence.entities.ExtraCharge;
 import com.yaz.persistence.entities.ExtraCharge.Type;
+import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.schedulers.Schedulers;
+import io.vertx.rxjava3.core.Vertx;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.math.BigDecimal;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Month;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,6 +45,7 @@ public class ReceiptParser {
 
   private final TranslationProvider translationProvider;
   private final BuildingService buildingService;
+  private final Vertx vertx;
 
   private static final Map<String, Month> monthsMap = new HashMap<>();
 
@@ -60,6 +64,30 @@ public class ReceiptParser {
     monthsMap.put("OCT", Month.OCTOBER);
     monthsMap.put("NOV", Month.NOVEMBER);
     monthsMap.put("DEC", Month.DECEMBER);
+  }
+
+  public Single<List<CsvReceipt>> parseDir(String dir) {
+
+    return vertx.fileSystem().readDir(dir)
+        .flatMapObservable(Observable::fromIterable)
+        .filter(str -> str.endsWith(".xlsx") || str.endsWith(".xls"))
+        .map(str -> {
+          final var path = Paths.get(str);
+          final var fileName = path.getFileName().toString();
+          log.info("Parsing file: {}", fileName);
+
+          return parse(fileName, path)
+              .map(Optional::of)
+              .doOnError(e -> log.error("Error parsing file: {}", fileName, e))
+              .onErrorReturnItem(Optional.empty());
+        })
+
+        .toList()
+        .toFlowable()
+        .flatMap(Single::merge)
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .toList();
   }
 
   public Single<CsvReceipt> parse(String fileName, Path path) {
@@ -285,7 +313,6 @@ public class ReceiptParser {
                 if (!cellIterator.hasNext()) {
                   return;
                 }
-
 
                 final var amountStr = cellIterator.next().value().trim().replace(",", "");
 

@@ -42,7 +42,8 @@ public class PrintNativeRegistration {
                 reflectConfig.stream()
                     .map(JsonObject.class::cast)
                     .map(j -> j.getString("name"))
-                    .filter(str -> str.startsWith("com.google."))
+                    .filter(str -> str.startsWith("com.google.") || str.startsWith("org.openxmlformats.")
+                    || str.startsWith("org.apache."))
             )
         )
         .map(str -> {

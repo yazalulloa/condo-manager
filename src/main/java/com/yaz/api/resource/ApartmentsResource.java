@@ -302,7 +302,7 @@ public class ApartmentsResource {
     return fromRequest(request, true)
         .flatMap(dto -> {
           if (dto.isSuccess()) {
-            log.info("Updating apartment {}", request);
+            //log.info("Updating apartment {}", request);
             return apartmentService.update(request)
                 .flatMap(apartment -> baseFormDto()
                     .map(apartmentFormDto -> {

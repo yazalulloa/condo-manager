@@ -264,7 +264,6 @@ public class TursoVerticle extends AbstractVerticle {
       log.debug("Sending message: %s".formatted(msg));
       webSocket.writeTextMessage(msg);
     }
-
   }
 
   private void restart(Duration duration) {

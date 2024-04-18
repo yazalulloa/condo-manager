@@ -1,15 +1,16 @@
 package com.yaz.persistence.repository.turso;
 
+import com.yaz.core.util.SqlUtil;
 import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.domain.request.ExtraChargeUpdateRequest;
 import com.yaz.persistence.entities.ExtraCharge;
 import com.yaz.persistence.entities.ExtraCharge.Apt;
 import com.yaz.persistence.repository.AppSqlConfig;
 import com.yaz.persistence.repository.turso.client.TursoWsService;
+import com.yaz.persistence.repository.turso.client.ws.request.NamedArg;
 import com.yaz.persistence.repository.turso.client.ws.request.Stmt;
 import com.yaz.persistence.repository.turso.client.ws.request.Value;
 import com.yaz.persistence.repository.turso.client.ws.response.ExecuteResp.Row;
-import com.yaz.core.util.SqlUtil;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -65,8 +66,13 @@ public class ExtraChargeRepository {
       INSERT INTO %s (building_id, secondary_id, id, type, description, amount, currency, active)
       VALUES %s
       """;
+//  private static final String UPDATE = """
+//      UPDATE %s SET description = ?, amount = ?, currency = ?, active = ? WHERE building_id = ? AND secondary_id = ? AND id = ?
+//      """.formatted(COLLECTION);
+
   private static final String UPDATE = """
-      UPDATE %s SET description = ?, amount = ?, currency = ?, active = ? WHERE building_id = ? AND secondary_id = ? AND id = ?
+      UPDATE %s SET description = :description, amount = :amount, currency = :currency, active = :active 
+      WHERE building_id = :building_id AND secondary_id = :secondary_id AND id = :id
       """.formatted(COLLECTION);
 
   private static final String DELETE_BY_BUILDING = "DELETE FROM %s WHERE building_id = ? AND secondary_id = ?".formatted(
@@ -221,11 +227,20 @@ public class ExtraChargeRepository {
     var i = 0;
     final var stmts = new Stmt[apartments.isEmpty() ? 2 : 3];
 
-    stmts[i++] = Stmt.stmt(UPDATE, Value.text(updateRequest.description()),
-        Value.number(updateRequest.amount()),
-        Value.enumV(updateRequest.currency()), Value.bool(updateRequest.active()),
-        Value.text(updateRequest.buildingId()),
-        Value.text(updateRequest.secondaryId()), Value.number(updateRequest.id()));
+    stmts[i++] = Stmt.stmt(UPDATE,
+        NamedArg.text("description", updateRequest.description()),
+        NamedArg.number("amount", updateRequest.amount()),
+        NamedArg.enumV("currency", updateRequest.currency()),
+        NamedArg.bool("active", updateRequest.active()),
+        NamedArg.text("building_id", updateRequest.buildingId()),
+        NamedArg.text("secondary_id", updateRequest.secondaryId()),
+        NamedArg.number("id", updateRequest.id()));
+
+//    stmts[i++] = Stmt.stmt(UPDATE, Value.text(updateRequest.description()),
+//        Value.number(updateRequest.amount()),
+//        Value.enumV(updateRequest.currency()), Value.bool(updateRequest.active()),
+//        Value.text(updateRequest.buildingId()),
+//        Value.text(updateRequest.secondaryId()), Value.number(updateRequest.id()));
 
     if (apartments.isEmpty()) {
 

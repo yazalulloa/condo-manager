@@ -1,11 +1,13 @@
 package com.yaz.core.bean;
 
 import com.yaz.core.service.NotificationService;
+import com.yaz.core.service.csv.ReceiptParser;
 import com.yaz.core.util.EnvParams;
 import com.yaz.core.util.FileUtil;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.Startup;
 import io.quarkus.runtime.StartupEvent;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
@@ -20,6 +22,7 @@ public class StartupBean {
 
   private final NotificationService notificationService;
   private final EnvParams envParams;
+  private final ReceiptParser receiptParser;
 
   @Startup(value = 0)
   void init() {
@@ -38,6 +41,14 @@ public class StartupBean {
 
     log.info("AFTER STARTUP");
     notificationService.sendAppStartup();
+
+    receiptParser.parseDir("/home/yaz/Downloads")
+        .subscribeOn(Schedulers.io())
+        .subscribe(receipts -> {
+          log.info("Recibos: {}", receipts.size());
+        }, e -> {
+          log.error("Error parsing receipts", e);
+        });
   }
 
   void shutdown(@Observes ShutdownEvent event) {

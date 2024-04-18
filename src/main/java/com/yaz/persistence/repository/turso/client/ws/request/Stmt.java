@@ -30,6 +30,14 @@ public final class Stmt {
     return sqlWithArgs(sql, values);
   }
 
+  public static Stmt stmt(String sql, NamedArg... values) {
+    return sqlWithArgs(sql, values);
+  }
+
+  public static Stmt sqlWithArgs(String sql, NamedArg[] args) {
+    return new Stmt(sql, null, new Value[0], args, true);
+  }
+
   public static Stmt sqlWithArgs(String sql, Value[] args) {
     return new Stmt(sql, null, args, new NamedArg[0], true);
   }

@@ -265,6 +265,7 @@ public class ReceiptResource {
 
     final var responseSingle = receiptParser.parse(file.fileName(), file.uploadedFile())
         .map(csvReceipt -> {
+          log.info("Receipt parsed: {}", csvReceipt);
 
           final var json = Json.encode(csvReceipt);
           final var body = encryptionService.encrypt(json);
