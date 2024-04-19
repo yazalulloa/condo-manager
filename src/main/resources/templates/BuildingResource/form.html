@@ -1,7 +1,7 @@
 {@com.yaz.api.domain.response.BuildingFormDto dto}
 
 {#if dto.shouldRedirect}
-<div hx-get="/buildings" hx-indicator=".htmx-indicator" hx-trigger="load"></div>
+<div hx-get="/stc/buildings" hx-indicator=".htmx-indicator" hx-trigger="load"></div>
 
 {#else}
 <form class="flex flex-col w-4/6 align-middle center gap-4 p-12"

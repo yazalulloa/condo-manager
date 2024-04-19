@@ -5,8 +5,9 @@
 {#for item in res.results}
     <div id="{item.cardId}" class="hover:bg-[#00000014] gap-4 rounded-lg bg-neutral flex flex-row justify-between fade-me-out fade-me-in">
   <div script="on click call saveToLocalStorage('buildingId','{item.building.id}')"
-       hx-get="/buildings/edit/{item.building.id}"
+       hx-get="/stc/buildings/edit/{item.building.id}"
        hx-push-url="true"
+       hx-on::after-request="modifyUrl(this)"
        hx-trigger="click"
        class="flex-wrap flex-row flex justify-between gap-2 w-full items-center py-3 pl-3"
   >

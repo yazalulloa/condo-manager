@@ -258,6 +258,15 @@ window.initNav = function () {
 window.saveNavState = function (anchor) {
   //console.log("saving nav state {}", anchor.id);
   localStorage.setItem("current-nav", anchor.id);
+modifyUrl(anchor)
+}
+
+window.modifyUrl = function (elem) {
+  let pathname = document.getElementById(elem.id).getAttribute("hx-get")
+  .replaceAll("/stc", "");
+  //console.log("new_pathname: {}", pathname);
+  window.history.pushState(window.history.state, document.title, pathname);
+  //window.location.pathname = pathname;
 }
 
 window.saveToLocalStorage = function (key, value) {

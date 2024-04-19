@@ -92,6 +92,12 @@ public class StaticReactiveRoutes {
       }
     }
 
+    if (path.startsWith("/stc/")) {
+      final var newPath = path.replace("/stc/", "/");
+      rc.reroute(newPath);
+      return;
+    }
+
     if (path.endsWith("/")) {
       rc.reroute(path + "index.html");
       return;

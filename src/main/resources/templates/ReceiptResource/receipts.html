@@ -73,9 +73,10 @@
         </a>
       </li>
       <li>
-        <a hx-get="/receipts/pdfs/{item.key}"
+        <a hx-get="/stc/receipts/pdfs/{item.key}"
            hx-push-url="true"
            hx-indicator=".htmx-indicator"
+           hx-on::after-request="modifyUrl(this)"
            hx-swap="none">
           <img src="/assets/pdf-logo.svg" style="width:25px;height:25px;" alt="download-zip-pdfs">
           Ver PDFs

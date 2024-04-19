@@ -8,12 +8,9 @@ import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.Startup;
 import io.quarkus.runtime.StartupEvent;
 import io.quarkus.runtime.configuration.ConfigUtils;
-import io.quarkus.runtime.configuration.ProfileManager;
-import io.reactivex.rxjava3.schedulers.Schedulers;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -49,15 +46,6 @@ public class StartupBean {
     log.info("Profiles: {}", profiles);
     final var cloudProvider = System.getenv("CLOUD_PROVIDER");
     log.info("Cloud provider: {}", cloudProvider);
-
-
-//    receiptParser.parseDir("/home/yaz/Downloads")
-//        .subscribeOn(Schedulers.io())
-//        .subscribe(receipts -> {
-//          log.info("Recibos: {}", receipts.size());
-//        }, e -> {
-//          log.error("Error parsing receipts", e);
-//        });
   }
 
   void shutdown(@Observes ShutdownEvent event) {
