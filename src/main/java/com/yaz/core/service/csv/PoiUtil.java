@@ -115,7 +115,7 @@ public class PoiUtil {
     try {
       return new BigDecimal(toAmount(str));
     } catch (Exception e) {
-      final var msg = "FAILED TO PARSE {%s}".formatted(str);
+      final var msg = "FAILED_TO_PARSE_DECIMAL {%s}".formatted(str);
       log.error(msg, str, e);
       throw new RuntimeException(msg, e);
     }

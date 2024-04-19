@@ -4,6 +4,7 @@ import io.quarkus.test.junit.QuarkusTest;
 import io.vertx.core.json.Json;
 import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.xmlbeans.impl.xpath.XPathFactory;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest

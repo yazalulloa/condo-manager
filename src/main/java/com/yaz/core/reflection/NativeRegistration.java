@@ -1,5 +1,6 @@
 package com.yaz.core.reflection;
 
+
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @RegisterForReflection(

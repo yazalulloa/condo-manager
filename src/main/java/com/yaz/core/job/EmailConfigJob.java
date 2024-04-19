@@ -16,6 +16,7 @@ public class EmailConfigJob {
 
   @Scheduled(delay = 1, every = "30M")
   public void runAsStart() {
+    log.info("Checking emails...");
     checkAll();
   }
 
