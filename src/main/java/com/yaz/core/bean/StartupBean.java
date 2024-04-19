@@ -50,20 +50,14 @@ public class StartupBean {
     final var cloudProvider = System.getenv("CLOUD_PROVIDER");
     log.info("Cloud provider: {}", cloudProvider);
 
-    try {
-      final Class<?> aClass = Class.forName("org.apache.xmlbeans.impl.xpath.XPathFactory");
-      log.info("Class loaded: {}", aClass);
-    } catch (ClassNotFoundException e) {
-      log.error("Error loading class", e);
-    }
 
-    receiptParser.parseDir("/home/yaz/Downloads")
-        .subscribeOn(Schedulers.io())
-        .subscribe(receipts -> {
-          log.info("Recibos: {}", receipts.size());
-        }, e -> {
-          log.error("Error parsing receipts", e);
-        });
+//    receiptParser.parseDir("/home/yaz/Downloads")
+//        .subscribeOn(Schedulers.io())
+//        .subscribe(receipts -> {
+//          log.info("Recibos: {}", receipts.size());
+//        }, e -> {
+//          log.error("Error parsing receipts", e);
+//        });
   }
 
   void shutdown(@Observes ShutdownEvent event) {
