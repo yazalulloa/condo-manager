@@ -16,7 +16,7 @@ RUN --mount=type=cache,target=/root/.m2 ./mvnw clean package -DskipTests
 FROM registry.access.redhat.com/ubi8/openjdk-21:1.18
 WORKDIR /app
 ENV LANGUAGE='en_US:en'
-
+COPY local.env /deployments/.env
 COPY --from=build --chown=185 /app/target/quarkus-app/lib/ /deployments/lib/
 COPY --from=build --chown=185 /app/target/quarkus-app/*.jar /deployments/
 COPY --from=build --chown=185 /app/target/quarkus-app/app/ /deployments/app/

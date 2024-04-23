@@ -5,8 +5,8 @@ services:
     restart: always
     ports:
       - "13845:13845"
-    env_file:
-      - local.env
+#    env_file:
+#      - local.env
     environment:
       - DOCKER_TIMEZONE=America/Caracas
   #  cmy-vx-2nd:

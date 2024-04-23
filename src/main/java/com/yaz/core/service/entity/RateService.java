@@ -243,4 +243,8 @@ public class RateService {
   public Single<FileResponse> downloadFile() {
     return writeEntityToFile.downloadFile("rates.json.gz", pagingProcessor(100, SortOrder.ASC));
   }
+
+  public Uni<Integer> insert(List<Rate> rates) {
+    return repository().insert(rates);
+  }
 }

@@ -8,6 +8,8 @@ import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.Startup;
 import io.quarkus.runtime.StartupEvent;
 import io.quarkus.runtime.configuration.ConfigUtils;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
@@ -28,7 +30,10 @@ public class StartupBean {
   void init() {
     envParams.saveAppStartedAt();
     if (envParams.isShowDir()) {
-      FileUtil.showDir();
+      Completable.fromAction(() -> FileUtil.showDir())
+          .subscribeOn(Schedulers.io())
+          .subscribe(() -> {
+          }, t -> log.error("Error showing dir", t));
     }
   }
 

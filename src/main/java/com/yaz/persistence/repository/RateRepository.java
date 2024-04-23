@@ -22,4 +22,6 @@ public interface RateRepository {
   Uni<Boolean> exists(long hash);
 
   Uni<Optional<Rate>> read(long id);
+
+  Uni<Integer> insert(List<Rate> rates);
 }

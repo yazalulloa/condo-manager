@@ -1,5 +1,7 @@
 package com.yaz.persistence.repository.turso;
 
+import com.yaz.core.util.SqlUtil;
+import com.yaz.core.util.StringUtil;
 import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.domain.query.RateQuery;
 import com.yaz.persistence.domain.query.SortOrder;
@@ -9,8 +11,6 @@ import com.yaz.persistence.repository.turso.client.TursoWsService;
 import com.yaz.persistence.repository.turso.client.ws.request.Stmt;
 import com.yaz.persistence.repository.turso.client.ws.request.Value;
 import com.yaz.persistence.repository.turso.client.ws.response.ExecuteResp.Row;
-import com.yaz.core.util.SqlUtil;
-import com.yaz.core.util.StringUtil;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -85,6 +85,12 @@ public class RateTursoRepository implements RateRepository {
     return tursoWsService.selectQuery(sql, values, this::from);
   }
 
+  private Stmt insertStmt(Rate rate) {
+    return Stmt.stmt(INSERT, Value.enumV(rate.fromCurrency()), Value.enumV(rate.toCurrency()),
+        Value.number(rate.rate()), Value.text(rate.dateOfRate()), Value.enumV(rate.source()), Value.number(rate.hash()),
+        Value.text(rate.etag()), Value.text(rate.lastModified()));
+  }
+
   @Override
   public Uni<Optional<Long>> save(Rate rate) {
 
@@ -92,32 +98,27 @@ public class RateTursoRepository implements RateRepository {
         Value.number(rate.rate()), Value.text(rate.dateOfRate()), Value.enumV(rate.source()), Value.number(rate.hash()),
         Value.text(rate.etag()), Value.text(rate.lastModified()));
     return tursoWsService.selectOne(stmt, row -> row.getLong("id"));
+  }
 
-//    final var params = Stream.of(
-//            rate.fromCurrency().name(),
-//            rate.toCurrency().name(),
-//            rate.rate(),
-//            rate.dateOfRate(),
-//            rate.source().name(),
-//            rate.hash(),
-//            rate.etag(),
-//            rate.lastModified()
-//        )
-//        .map(SqlUtil::escape)
-//        .collect(Collectors.joining(","));
-//
-//    final var sql = INSERT.formatted(params);
-//
-//    return tursoService.executeQuery(sql)
-//        .map(TursoResponse::values)
-//        .map(rows -> {
-//          if (rows.isEmpty()) {
-//            return Optional.empty();
-//          } else {
-//            return Optional.ofNullable(rows.getFirst())
-//                .map(row -> row.getLong("id"));
-//          }
-//        });
+
+  @Override
+  public Uni<Integer> insert(List<Rate> rates) {
+    final var values = new Value[rates.size() * 8];
+
+    var i = 0;
+    for (Rate rate : rates) {
+      values[i++] = Value.enumV(rate.fromCurrency());
+      values[i++] = Value.enumV(rate.toCurrency());
+      values[i++] = Value.number(rate.rate());
+      values[i++] = Value.text(rate.dateOfRate());
+      values[i++] = Value.enumV(rate.source());
+      values[i++] = Value.number(rate.hash());
+      values[i++] = Value.text(rate.etag());
+      values[i++] = Value.text(rate.lastModified());
+    }
+
+    return tursoWsService.executeQuery(Stmt.stmt(INSERT, values))
+        .map(executeResp -> executeResp.result().rowCount());
   }
 
   private Rate from(Row row) {
@@ -139,17 +140,6 @@ public class RateTursoRepository implements RateRepository {
   @Override
   public Uni<Optional<Rate>> last(Currency fromCurrency, Currency toCurrency) {
     return tursoWsService.selectOne(Stmt.stmt(LAST, Value.enumV(fromCurrency), Value.enumV(toCurrency)), this::from);
-
-//    return tursoService.executeQuery(LAST.formatted(fromCurrency, toCurrency))
-//        .map(TursoResponse::values)
-//        .map(values -> {
-//
-//          if (values.isEmpty()) {
-//            return Optional.empty();
-//          }
-//
-//          return Optional.ofNullable(from(values.getFirst()));
-//        });
   }
 
   @Override
