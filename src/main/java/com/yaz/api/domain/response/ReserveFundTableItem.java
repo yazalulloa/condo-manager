@@ -7,10 +7,8 @@ import java.util.UUID;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 @Data
-@RequiredArgsConstructor
 @Builder(toBuilder = true)
 public class ReserveFundTableItem {
 
@@ -18,6 +16,7 @@ public class ReserveFundTableItem {
   private final ReserveFund item;
   private final boolean outOfBoundsUpdate;
   private final boolean addAfterEnd;
+
   @Builder.Default
   private final String cardId = "reserve-fund-card-id-" + UUID.randomUUID();
 //  @JsonIgnore

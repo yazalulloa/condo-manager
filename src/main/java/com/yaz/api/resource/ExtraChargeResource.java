@@ -1,20 +1,20 @@
 package com.yaz.api.resource;
 
+import com.yaz.api.domain.request.ExtraChargeRequest;
+import com.yaz.api.domain.response.ExtraChargeFormDto;
+import com.yaz.api.domain.response.ExtraChargeTableItem;
+import com.yaz.core.service.EncryptionService;
+import com.yaz.core.service.entity.ApartmentService;
+import com.yaz.core.service.entity.BuildingService;
+import com.yaz.core.service.entity.ExtraChargeService;
+import com.yaz.core.util.DecimalUtil;
+import com.yaz.core.util.StringUtil;
 import com.yaz.persistence.domain.request.ExtraChargeCreateRequest;
 import com.yaz.persistence.domain.request.ExtraChargeUpdateRequest;
 import com.yaz.persistence.entities.ExtraCharge;
 import com.yaz.persistence.entities.ExtraCharge.Apt;
 import com.yaz.persistence.entities.ExtraCharge.Keys;
 import com.yaz.persistence.entities.ExtraCharge.Type;
-import com.yaz.api.domain.request.ExtraChargeRequest;
-import com.yaz.api.domain.response.ExtraChargeFormDto;
-import com.yaz.api.domain.response.ExtraChargeTableItem;
-import com.yaz.core.service.entity.ApartmentService;
-import com.yaz.core.service.entity.BuildingService;
-import com.yaz.core.service.EncryptionService;
-import com.yaz.core.service.entity.ExtraChargeService;
-import com.yaz.core.util.DecimalUtil;
-import com.yaz.core.util.StringUtil;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.smallrye.mutiny.Uni;
@@ -234,8 +234,10 @@ public class ExtraChargeResource {
         .map(extraCharges -> {
 
           return extraCharges.stream()
-              .map(extraCharge -> new ExtraChargeTableItem(extraCharge,
-                  encryptionService.encryptObj(extraCharge.keys())))
+              .map(extraCharge -> ExtraChargeTableItem.builder()
+                  .item(extraCharge)
+                  .id(encryptionService.encryptObj(extraCharge.keys()))
+                  .build())
               .toList();
         })
         .map(Templates::grid);

@@ -1,9 +1,5 @@
 package com.yaz.api.resource;
 
-import com.yaz.persistence.domain.Currency;
-import com.yaz.persistence.domain.query.BuildingQuery;
-import com.yaz.persistence.entities.Building;
-import com.yaz.persistence.entities.ReserveFund;
 import com.yaz.api.domain.request.BuildingRequest;
 import com.yaz.api.domain.response.BuildingCountersDto;
 import com.yaz.api.domain.response.BuildingEditFormInit;
@@ -13,14 +9,18 @@ import com.yaz.api.domain.response.ExtraChargeFormDto;
 import com.yaz.api.domain.response.ExtraChargeTableItem;
 import com.yaz.api.domain.response.ReserveFundFormDto;
 import com.yaz.api.domain.response.ReserveFundTableItem;
+import com.yaz.core.service.EncryptionService;
 import com.yaz.core.service.entity.ApartmentService;
 import com.yaz.core.service.entity.BuildingService;
 import com.yaz.core.service.entity.EmailConfigService;
-import com.yaz.core.service.EncryptionService;
 import com.yaz.core.service.entity.ExtraChargeService;
 import com.yaz.core.service.entity.ReserveFundService;
 import com.yaz.core.util.DecimalUtil;
 import com.yaz.core.util.StringUtil;
+import com.yaz.persistence.domain.Currency;
+import com.yaz.persistence.domain.query.BuildingQuery;
+import com.yaz.persistence.entities.Building;
+import com.yaz.persistence.entities.ReserveFund;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.smallrye.mutiny.Uni;
@@ -40,7 +40,6 @@ import java.util.Set;
 import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.jboss.resteasy.reactive.RestPath;
 import org.jboss.resteasy.reactive.RestQuery;
 import org.jboss.resteasy.reactive.server.multipart.MultipartFormDataInput;
@@ -162,8 +161,11 @@ public class BuildingResource {
                 .build();
           };
 
-          final var list = extraCharges.stream().map(
-                  extraCharge -> new ExtraChargeTableItem(extraCharge, encryptionService.encryptObj(extraCharge.keys())))
+          final var list = extraCharges.stream()
+              .map(extraCharge -> ExtraChargeTableItem.builder()
+                  .item(extraCharge)
+                  .id(encryptionService.encryptObj(extraCharge.keys()))
+                  .build())
               .toList();
 
           final var reserveFundTableItems = reserveFunds.stream().map(reserveFund -> {
