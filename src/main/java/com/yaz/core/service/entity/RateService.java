@@ -220,24 +220,7 @@ public class RateService {
   }
 
   public PagingProcessor<List<Rate>> pagingProcessor(int pageSize, SortOrder sortOrder) {
-    return new ListServicePagingProcessorImpl<>(new ListService<>() {
-      @Override
-      public Single<List<Rate>> listByQuery(RateQuery query) {
-        return MutinyUtil.single(RateService.this.list(query));
-      }
-
-      @Override
-      public RateQuery nextQuery(List<Rate> list, RateQuery query) {
-
-        if (list.isEmpty()) {
-          return query;
-        }
-
-        return query.toBuilder()
-            .lastId(list.getLast().id())
-            .build();
-      }
-    }, RateQuery.builder().limit(pageSize).sortOrder(sortOrder).build());
+    return new ListServicePagingProcessorImpl<>(new RateListService(this), RateQuery.query(pageSize, sortOrder));
   }
 
   public Single<FileResponse> downloadFile() {
@@ -246,5 +229,24 @@ public class RateService {
 
   public Uni<Integer> insert(List<Rate> rates) {
     return repository().insert(rates);
+  }
+
+  private record RateListService(RateService rateService) implements ListService<Rate, RateQuery> {
+
+    @Override
+    public Single<List<Rate>> listByQuery(RateQuery query) {
+      return MutinyUtil.single(rateService.list(query));
+    }
+
+    @Override
+    public RateQuery nextQuery(List<Rate> list, RateQuery query) {
+      if (list.isEmpty()) {
+        return query;
+      }
+
+      return query.toBuilder()
+          .lastId(list.getLast().id())
+          .build();
+    }
   }
 }

@@ -22,4 +22,11 @@ public class RateQuery {
   private final SortOrder sortOrder = SortOrder.DESC;
   @Builder.Default
   private final int limit = 30;
+
+  public static RateQuery query(int limit, SortOrder sortOrder) {
+    return RateQuery.builder()
+        .limit(limit)
+        .sortOrder(sortOrder)
+        .build();
+  }
 }
