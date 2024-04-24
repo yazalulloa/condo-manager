@@ -367,7 +367,7 @@ details > summary::-webkit-details-marker {
 
 .fade-me-out.htmx-swapping {
   opacity: 0;
-  transition: opacity 300ms ease-out;
+  transition: opacity 500ms ease-out;
 }
 
 .fade-me-in.htmx-added {
@@ -376,5 +376,5 @@ details > summary::-webkit-details-marker {
 
 .fade-me-in {
   opacity: 1;
-  transition: opacity 300ms ease-out;
+  transition: opacity 500ms ease-out;
 }

@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "daisyui": "^4.10.1",
+    "franken-ui": "^0.0.7",
     "htmx.org": "latest",
     "hyperscript.org": "latest",
     "tw-elements": "1.1.0"

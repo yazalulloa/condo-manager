@@ -3,7 +3,9 @@
 
 {#include ApartmentsResource/grid res=dto.tableRes /}
 
-<div id="buildings-selector" hx-swap-oob="true" class="p-2">
+<div id="buildings-selector" hx-swap-oob="true" class="p-2" hidden="hidden"
+     script="init add .fade-me-in then wait 20 then toggle @hidden"
+>
   <select name="building"
           hx-indicator=".htmx-indicator"
           hx-get="/api/apartments/grid"
