@@ -39,28 +39,31 @@
     {/if}
 
 
-  <div class="flex flex-col gap-1 text-center items-center text-sm">
-    {#each GLO_NOTIFICATION_EVENTS}
+    <div class="flex flex-col gap-2 text-sm justify-start">
+      {#each GLO_NOTIFICATION_EVENTS}
 
-    <label class="label cursor-pointer gap-2">
-    <span class="label-text">{it}</span>
-      <input type="checkbox" class="checkbox checkbox-primary"
-             hx-post="/api/notification_events/{item.user.id}/{it}"
-             hx-headers='{"{inject:csrf.headerName}":"{inject:csrf.token}"}'
-             value="true"
-             name="mode"
-    {#if item.user.notificationEvents.contains(it)}
-             checked="checked"
-    {/if}
-    />
-    </label>
-    {/each}
+      <div class="flex flex-row justify-start gap-2 text-center items-center">
+
+          <input type="checkbox" class="checkbox checkbox-primary"
+                 hx-post="/api/notification_events/{item.user.id}/{it}"
+                 hx-headers='{"{inject:csrf.headerName}":"{inject:csrf.token}"}'
+                 hx-swap="none"
+                 value="true"
+                 name="mode"
+      {#if item.user.notificationEvents.contains(it)}
+                 checked="checked"
+      {/if}
+      />
+      <span> {it}</span>
+
+    </div>
+      {/each}
     </div>
 
     <div class="flex flex-col gap-2">
-    <span>Creado: {item.user.createdAt.formatDate}</span>
-    <span>Último acceso {item.user.lastLoginAt.formatDate}</span>
-  </div>
+      <span>Creado: {item.user.createdAt.formatDate}</span>
+      <span>Último acceso {item.user.lastLoginAt.formatDate}</span>
+    </div>
 
     {#include fragments/delete-btn deleteUrl=item.deleteUrl cardIdRef=item.cardIdRef/}
     </div>

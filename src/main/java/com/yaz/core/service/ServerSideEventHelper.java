@@ -33,6 +33,15 @@ public class ServerSideEventHelper {
       list.add(new WeakReference<>(sseEventSink));
       sinks.put(key, list);
     }
+
+    log.info("ADDED_SINK {}", key);
+    printSinks();
+  }
+
+  public void printSinks() {
+    sinks.forEach((key, value) -> {
+      log.info("KEY: {} {}", key, value.size());
+    });
   }
 
   public synchronized void removeClosed() {
@@ -75,6 +84,8 @@ public class ServerSideEventHelper {
           sseEventSink.send(event);
         }
       });
+    } else {
+      log.info("NO_SINKS {}", key);
     }
   }
 

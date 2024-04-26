@@ -13,14 +13,22 @@ public record ReceiptAptSent(
     String date,
     String apt,
     String from,
+    String error,
     Set<String> to,
     boolean finished
 ) {
 
   public static ReceiptAptSent finished(String clientId) {
+    return finished(clientId, null);
+  }
+
+  public static ReceiptAptSent finished(String clientId, String error) {
     return ReceiptAptSent.builder()
         .clientId(clientId)
+        .error(error)
         .finished(true)
         .build();
   }
+
+
 }

@@ -1,8 +1,7 @@
 package com.yaz.core.service;
 
-import com.yaz.core.event.domain.ReceiptAptSent;
-import com.yaz.persistence.domain.EmailConfigUser;
 import com.yaz.api.domain.response.EmailConfigTableItem;
+import com.yaz.core.event.domain.ReceiptAptSent;
 import com.yaz.core.service.entity.UserService;
 import com.yaz.core.service.gmail.GmailHelper;
 import com.yaz.core.service.gmail.GmailHolder;
@@ -12,6 +11,8 @@ import com.yaz.core.service.gmail.MimeMessageUtil;
 import com.yaz.core.service.gmail.domain.ReceiptEmailRequest;
 import com.yaz.core.service.pdf.ReceiptPdfService;
 import com.yaz.core.util.RxUtil;
+import com.yaz.core.util.rx.RetryWithDelay;
+import com.yaz.persistence.domain.EmailConfigUser;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
@@ -20,6 +21,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -89,36 +91,47 @@ public class SendReceiptService {
             return response.pdfItems()
                 .stream()
                 .map(item -> Single.fromCallable(() -> {
-                  if (item.emails() == null || item.emails().isEmpty()) {
-                    return "";
-                  }
-                  final var emailRequest = ReceiptEmailRequest.builder()
-                      .from(user.email())
-                      //.to(item.emails())
-                      .to(Set.of("yzlup2@gmail.com"))
-                      .subject(subject.formatted(month, receipt.year(), receipt.building().name(), item.id()))
-                      .text("AVISO DE COBRO")
-                      .files(Set.of(item.path().toString()))
-                      .build();
+                      if (item.emails() == null || item.emails().isEmpty()) {
+                        return "";
+                      }
+                      final var emailRequest = ReceiptEmailRequest.builder()
+                          .from(user.email())
+                          //.to(item.emails()) TODO
+                          .to(Set.of("yzlup2@gmail.com"))
+                          .subject(subject.formatted(month, receipt.year(), receipt.building().name(), item.id()))
+                          .text("AVISO DE COBRO")
+                          .files(Set.of(item.path().toString()))
+                          .build();
 
-                  final var msg = gmail.sendReceiptEmail(emailRequest).toString();
+                      final var msg = gmail.sendReceiptEmail(emailRequest).toString();
 
-                  receiptAptSentEvent.fireAsync(receiptAptSent.toBuilder()
-                      .counter(counter.incrementAndGet())
-                      .from(emailRequest.from())
-                      .to(emailRequest.to())
-                      .apt(item.id())
-                      .build());
+                      receiptAptSentEvent.fireAsync(receiptAptSent.toBuilder()
+                          .counter(counter.incrementAndGet())
+                          .from(emailRequest.from())
+                          .to(emailRequest.to())
+                          .apt(item.id())
+                          .build());
 
-                  return msg;
-                }).subscribeOn(Schedulers.io()))
+                      return msg;
+                    })
+                    .retryWhen(RetryWithDelay.retry(10, 1, TimeUnit.SECONDS))
+                    .subscribeOn(Schedulers.io()))
                 .toList();
           });
         })
         .toFlowable()
         .flatMap(Single::concat)
         .toList()
-        .doAfterTerminate(() -> receiptAptSentEvent.fireAsync(ReceiptAptSent.finished(clientId)))
+        .doOnSuccess(l -> receiptAptSentEvent.fireAsync(ReceiptAptSent.finished(clientId)))
+        .onErrorResumeNext(throwable -> {
+
+          final var finished = ReceiptAptSent.finished(clientId, throwable.getMessage());
+
+          return Completable.complete()
+              .delay(2, TimeUnit.SECONDS)
+              .andThen(Completable.fromAction(() -> receiptAptSentEvent.fireAsync(finished)))
+              .andThen(Single.error(throwable));
+        })
         .ignoreElement();
 
   }

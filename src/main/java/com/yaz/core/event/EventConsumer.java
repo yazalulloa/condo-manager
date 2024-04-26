@@ -1,7 +1,8 @@
 package com.yaz.core.event;
 
 import com.yaz.api.domain.response.ReceiptProgressUpdate;
-import com.yaz.api.resource.ReceiptResource.Templates;
+import com.yaz.api.resource.ReceiptResource;
+import com.yaz.api.resource.fragments.Fragments;
 import com.yaz.core.event.domain.BuildingDeleted;
 import com.yaz.core.event.domain.EmailConfigDeleted;
 import com.yaz.core.event.domain.ReceiptAptSent;
@@ -92,9 +93,15 @@ public class EventConsumer {
   public void receiptAptSent(@ObservesAsync ReceiptAptSent event) {
 
     if (event.finished()) {
-      final var div = new Element("div").id("progress-receipts")
+      if (event.error() != null) {
+        final var msg = Fragments.rateInfo(event.error()).render();
+        serverSideEventHelper.sendEvent(event.clientId(), "receipt-progress", msg);
+      }
+
+      final var div = new Element("div").id("sse-receipt-progress-bar-" + event.clientId())
           .attr("hx-swap-oob", "true")
           .toString();
+
       serverSideEventHelper.sendEvent(event.clientId(), "receipt-progress", div);
       vertx.setTimer(TimeUnit.SECONDS.toMillis(1), l -> serverSideEventHelper.close(event.clientId()));
     } else {
@@ -108,7 +115,7 @@ public class EventConsumer {
 
       }
 
-      final var msg = Templates.progressUpdate(
+      final var msg = ReceiptResource.Templates.progressUpdate(
               new ReceiptProgressUpdate(left, right, event.counter(), event.size()))
           .render();
 

@@ -1,16 +1,18 @@
 package com.yaz.core.service;
 
+import com.yaz.core.service.entity.RateService;
 import com.yaz.core.util.DecimalUtil;
 import com.yaz.core.util.PagingJsonFile;
 import com.yaz.core.util.RxUtil;
-import com.yaz.persistence.mongo.MongoReceipt;
-import com.yaz.persistence.mongo.MongoReceipt.MongoExtraCharge;
 import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.entities.Debt;
 import com.yaz.persistence.entities.ExtraCharge;
 import com.yaz.persistence.entities.ExtraCharge.Apt;
 import com.yaz.persistence.entities.ExtraCharge.Type;
+import com.yaz.persistence.entities.Rate;
 import com.yaz.persistence.entities.Receipt;
+import com.yaz.persistence.mongo.MongoReceipt;
+import com.yaz.persistence.mongo.MongoReceipt.MongoExtraCharge;
 import com.yaz.persistence.repository.ApartmentRepository;
 import com.yaz.persistence.repository.BuildingRepository;
 import com.yaz.persistence.repository.turso.ReceiptRepository;
@@ -50,6 +52,7 @@ public class LoadBackupService {
   private final Instance<BuildingRepository> buildingRepository;
   private final Instance<ApartmentRepository> apartmentRepository;
   private final ReceiptRepository receiptRepository;
+  private final RateService rateService;
   private final PagingJsonFile pagingJsonFile = new PagingJsonFile();
 
 
@@ -150,87 +153,92 @@ public class LoadBackupService {
               }
               break;
               case "receipts.json.gz": {
-                final var completable = pagingJsonFile.pagingJsonFile(5, fileName, MongoReceipt.class, list -> {
+                final var completable = rateService.last(Currency.USD, Currency.VED)
+                    .map(Rate::id)
+                    .flatMapCompletable(rateId -> {
+                      return pagingJsonFile.pagingJsonFile(5, fileName, MongoReceipt.class, list -> {
 
-                  final var receipts = list.stream()
-                      .map(mongoReceipt -> {
+                        final var receipts = list.stream()
+                            .map(mongoReceipt -> {
 
-                        final var expenses = mongoReceipt.expenses().stream()
-                            .map(expense -> expense.toBuilder()
-                                .buildingId(mongoReceipt.buildingId())
-                                .build())
-                            .toList();
+                              final var expenses = mongoReceipt.expenses().stream()
+                                  .map(expense -> expense.toBuilder()
+                                      .buildingId(mongoReceipt.buildingId())
+                                      .build())
+                                  .toList();
 
-                        final var extraCharges = new ArrayList<ExtraCharge>();
+                              final var extraCharges = new ArrayList<ExtraCharge>();
 
-                        for (MongoExtraCharge charge : mongoReceipt.extraCharges()) {
+                              for (MongoExtraCharge charge : mongoReceipt.extraCharges()) {
 
-                          final var optional = extraCharges.stream()
-                              .filter(extraCharge -> extraCharge.description().equals(charge.description()))
-                              .findFirst();
+                                final var optional = extraCharges.stream()
+                                    .filter(extraCharge -> extraCharge.description().equals(charge.description()))
+                                    .findFirst();
 
-                          if (optional.isPresent()) {
-                            final var extraCharge = optional.get();
-                            extraCharge.apartments().add(new Apt(charge.aptNumber(), null));
-                          } else {
-                            final var apts = new ArrayList<Apt>();
-                            apts.add(new Apt(charge.aptNumber(), null));
-                            extraCharges.add(ExtraCharge.builder()
-                                .buildingId(mongoReceipt.buildingId())
-                                .type(Type.RECEIPT)
-                                .description(charge.description())
-                                .amount(charge.amount())
-                                .currency(Optional.ofNullable(charge.currency()).orElse(Currency.USD))
-                                .active(true)
-                                .apartments(apts)
-                                .build());
-                          }
+                                if (optional.isPresent()) {
+                                  final var extraCharge = optional.get();
+                                  extraCharge.apartments().add(new Apt(charge.aptNumber(), null));
+                                } else {
+                                  final var apts = new ArrayList<Apt>();
+                                  apts.add(new Apt(charge.aptNumber(), null));
+                                  extraCharges.add(ExtraCharge.builder()
+                                      .buildingId(mongoReceipt.buildingId())
+                                      .type(Type.RECEIPT)
+                                      .description(charge.description())
+                                      .amount(charge.amount())
+                                      .currency(Optional.ofNullable(charge.currency()).orElse(Currency.USD))
+                                      .active(true)
+                                      .apartments(apts)
+                                      .build());
+                                }
 
-                        }
+                              }
 
-                        final var debts = mongoReceipt.debts().stream()
-                            .filter(debt -> {
+                              final var debts = mongoReceipt.debts().stream()
+                                  .filter(debt -> {
 
-                              return debt.receipts() > 0
-                                  || (debt.amount() != null && DecimalUtil.greaterThanZero(debt.amount()))
-                                  || (debt.previousPaymentAmount() != null && DecimalUtil.greaterThanZero(
-                                  debt.previousPaymentAmount()));
+                                    return debt.receipts() > 0
+                                        || (debt.amount() != null && DecimalUtil.greaterThanZero(debt.amount()))
+                                        || (debt.previousPaymentAmount() != null && DecimalUtil.greaterThanZero(
+                                        debt.previousPaymentAmount()));
+                                  })
+                                  .map(debt -> Debt.builder()
+                                      .buildingId(mongoReceipt.buildingId())
+                                      .aptNumber(debt.aptNumber())
+                                      .receipts(debt.receipts())
+                                      .amount(debt.amount())
+                                      .months(
+                                          Optional.ofNullable(debt.months()).stream().flatMap(Collection::stream).map(
+                                              Month::getValue).collect(Collectors.toSet()))
+                                      .previousPaymentAmount(debt.previousPaymentAmount())
+                                      .previousPaymentAmountCurrency(debt.previousPaymentAmountCurrency())
+                                      .build())
+                                  .toList();
+
+                              return Receipt.builder()
+                                  .buildingId(mongoReceipt.buildingId())
+                                  .year(mongoReceipt.year())
+                                  .month(mongoReceipt.month().getValue())
+                                  .date(mongoReceipt.date())
+                                  .rateId(rateId)
+                                  .sent(mongoReceipt.sent())
+                                  .lastSent(mongoReceipt.lastSent())
+                                  .expenses(expenses)
+                                  .extraCharges(extraCharges)
+                                  .createdAt(mongoReceipt.createdAt())
+                                  .debts(debts)
+                                  .build();
                             })
-                            .map(debt -> Debt.builder()
-                                .buildingId(mongoReceipt.buildingId())
-                                .aptNumber(debt.aptNumber())
-                                .receipts(debt.receipts())
-                                .amount(debt.amount())
-                                .months(Optional.ofNullable(debt.months()).stream().flatMap(Collection::stream).map(
-                                    Month::getValue).collect(Collectors.toSet()))
-                                .previousPaymentAmount(debt.previousPaymentAmount())
-                                .previousPaymentAmountCurrency(debt.previousPaymentAmountCurrency())
-                                .build())
                             .toList();
 
-                        return Receipt.builder()
-                            .buildingId(mongoReceipt.buildingId())
-                            .year(mongoReceipt.year())
-                            .month(mongoReceipt.month().getValue())
-                            .date(mongoReceipt.date())
-                            .rateId(345)
-                            .sent(mongoReceipt.sent())
-                            .lastSent(mongoReceipt.lastSent())
-                            .expenses(expenses)
-                            .extraCharges(extraCharges)
-                            .createdAt(mongoReceipt.createdAt())
-                            .debts(debts)
-                            .build();
-                      })
-                      .toList();
+                        return Observable.fromIterable(receipts)
+                            .map(receiptRepository::insert)
+                            .flatMapSingle(RxUtil::single)
+                            .doOnNext(i -> log.info("RECEIPTS ROWS: {}", i))
+                            .ignoreElements();
 
-                  return Observable.fromIterable(receipts)
-                      .map(receiptRepository::insert)
-                      .flatMapSingle(RxUtil::single)
-                      .doOnNext(i -> log.info("RECEIPTS ROWS: {}", i))
-                      .ignoreElements();
-
-                });
+                      });
+                    });
                 addToList.accept(completable);
               }
               break;

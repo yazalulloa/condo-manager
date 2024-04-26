@@ -51,7 +51,7 @@
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
     </label>
-    <ul tabindex="0" class="menu menu-sm dropdown-content gap-2 mt-3 z-10 p-2 shadow bg-base-100 rounded-box w-52">
+    <ul tabindex="0" class="menu menu-sm dropdown-content gap-2 mt-3 z-10 p-2 shadow bg-base-100 rounded-box w-52 border-gray-400 border-[1px]">
       <li>
         <a hx-headers='{"{inject:csrf.headerName}":"{inject:csrf.token}"}'
            hx-delete="{item.deleteUrl}"
@@ -93,7 +93,7 @@
         </a>
       </li>
       <li>
-        <a hx-post="/api/receipts/send/{item.key}"
+          <a hx-post="/api/receipts/send/{item.key}"
            hx-headers='{"{inject:csrf.headerName}":"{inject:csrf.token}"}'
            hx-indicator=".htmx-indicator"
            hx-swap="none">
