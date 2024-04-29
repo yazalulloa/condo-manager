@@ -17,8 +17,9 @@ public class StaticReactiveRoutes {
 
   public static final String BUILDING_EDIT = "/buildings/edit/";
   public static final String RECEIPT_PDF_VIEW = "/receipts/pdfs/";
+  public static final String RECEIPT_NEW_FILE = "/receipts/new_file/";
 
-  private static final String[] DEEP_LINKING_ROUTES = {BUILDING_EDIT, RECEIPT_PDF_VIEW};
+  private static final String[] DEEP_LINKING_ROUTES = {BUILDING_EDIT, RECEIPT_PDF_VIEW, RECEIPT_NEW_FILE};
   private static final String[] FILES_EXTENSIONS = {".js", ".css", ".svg", ".png", ".ico", ".html"};
 
   private final String[] nextPaths;

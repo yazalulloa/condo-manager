@@ -12,7 +12,6 @@ import com.yaz.persistence.entities.ExtraCharge;
 import com.yaz.persistence.entities.ExtraCharge.Type;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.rxjava3.core.Vertx;
-import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.math.BigDecimal;
 import java.nio.file.Path;
@@ -39,14 +38,10 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 public class ReceiptParserSheet extends ReceiptParserAbstractImpl {
 
   private final Vertx vertx;
-  private final TranslationProvider translationProvider;
-  private final BuildingService buildingService;
 
   @Inject
-  public ReceiptParserSheet(Vertx vertx, TranslationProvider translationProvider, BuildingService buildingService) {
+  public ReceiptParserSheet(Vertx vertx) {
     this.vertx = vertx;
-    this.translationProvider = translationProvider;
-    this.buildingService = buildingService;
   }
 
   @Override
@@ -55,7 +50,7 @@ public class ReceiptParserSheet extends ReceiptParserAbstractImpl {
   }
 
   @Override
-  public Single<CsvReceipt> parse(String fileName, Path path) {
+  public Single<CsvReceipt> parse(Path path) {
     return Single.fromSupplier(() -> {
       try (final var workbook = new XSSFWorkbook(path.toFile())) {
 
@@ -96,12 +91,12 @@ public class ReceiptParserSheet extends ReceiptParserAbstractImpl {
 
       final var list = PoiUtil.toList(row);
 
-      if (type == ExpenseType.UNCOMMON && list.size() == 0) {
+      if (type == ExpenseType.UNCOMMON && list.isEmpty()) {
         break;
       }
 
-      if (list.size() >= 1) {
-        if (list.get(0).contains("GASTOS NO COMUNES")) {
+      if (!list.isEmpty()) {
+        if (list.getFirst().contains("GASTOS NO COMUNES")) {
           type = ExpenseType.UNCOMMON;
         }
 
@@ -203,7 +198,7 @@ public class ReceiptParserSheet extends ReceiptParserAbstractImpl {
           continue;
         }
 
-        final var apt = PoiUtil.apt(list.get(0).trim());
+        final var apt = PoiUtil.apt(list.getFirst().trim());
         final var description = list.get(1).trim();
         final var amount = list.get(2).trim();
 

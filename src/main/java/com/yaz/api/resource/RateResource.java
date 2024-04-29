@@ -3,16 +3,15 @@ package com.yaz.api.resource;
 import com.yaz.api.domain.response.RateTableResponse;
 import com.yaz.api.resource.fragments.Fragments;
 import com.yaz.core.service.EncryptionService;
+import com.yaz.core.service.SaveNewBcvRate;
+import com.yaz.core.service.entity.RateService;
+import com.yaz.core.util.DateUtil;
+import com.yaz.core.util.MutinyUtil;
 import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.domain.query.RateQuery;
 import com.yaz.persistence.entities.Rate;
-import com.yaz.core.service.entity.RateService;
-import com.yaz.core.service.SaveNewBcvRate;
-import com.yaz.core.util.DateUtil;
-import com.yaz.core.util.MutinyUtil;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
-import io.quarkus.security.identity.SecurityIdentity;
 import io.smallrye.mutiny.Uni;
 import jakarta.inject.Inject;
 import jakarta.validation.constraints.NotBlank;
@@ -51,6 +50,8 @@ public class RateResource {
     public static native TemplateInstance rates(RateTableResponse res);
 
     public static native TemplateInstance counters(long totalCount);
+
+    public static native TemplateInstance options(RateTableResponse res);
   }
 
   @GET
@@ -78,7 +79,7 @@ public class RateResource {
         .date(DateUtil.isValidLocalDate(date) ? date : null)
         .build();
 
-    return service.table(rateQuery)
+    return service.table(rateQuery, RateResource.PATH)
         .map(Templates::rates);
   }
 
@@ -135,4 +136,25 @@ public class RateResource {
             .header("Content-Disposition", "attachment; filename=" + file.fileName())
             .build());
   }
+
+  @GET
+  @Path("options")
+  @Produces(MediaType.TEXT_HTML)
+  public Uni<TemplateInstance> options(@RestQuery String nextPage) {
+
+    final var lastId = Optional.ofNullable(nextPage)
+        .map(String::trim)
+        .filter(s -> !s.isEmpty())
+        .map(encryptionService::decrypt)
+        .map(Long::parseLong)
+        .orElse(0L);
+
+    final var rateQuery = RateQuery.builder()
+        .lastId(lastId)
+        .build();
+
+    return service.table(rateQuery, "/api/rates/options")
+        .map(Templates::options);
+  }
+
 }

@@ -1,0 +1,22 @@
+{@com.yaz.api.domain.response.RateTableResponse res}
+
+
+{#each res.results}
+<option value="{it.key}">
+    {it.rate.rate}
+    {it.rate.dateOfRate}
+</option>
+{/each}
+
+{#if res.nextPageUrl}
+    <option disabled
+            hx-get="{res.nextPageUrl}"
+            hx-trigger="revealed"
+            hx-target="this"
+            hx-indicator=".htmx-indicator"
+            hx-swap="outerHTML">
+        <img class="htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">
+    </option>
+{/if}
+
+

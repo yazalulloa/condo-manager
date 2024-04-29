@@ -33,7 +33,9 @@
   </span>
   </div>
 
-  <span>{item.item.createdAt.formatDate}</span>
+  {#if item.item.createdAt}
+      <span>{item.item.createdAt.formatDate}</span>
+  {/if}
 </div>
 
 

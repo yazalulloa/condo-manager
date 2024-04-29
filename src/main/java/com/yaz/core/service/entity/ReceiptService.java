@@ -33,7 +33,7 @@ public class ReceiptService {
     return repository.delete(buildingId, id);
   }
 
-  public Uni<Integer> insert(Receipt receipt) {
+  public Uni<ReceiptRepository.InsertResult> insert(Receipt receipt) {
     return repository.insert(receipt);
   }
 

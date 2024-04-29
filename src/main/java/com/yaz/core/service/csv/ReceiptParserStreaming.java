@@ -40,15 +40,11 @@ import lombok.extern.slf4j.Slf4j;
 public class ReceiptParserStreaming extends ReceiptParserAbstractImpl {
 
   private final Vertx vertx;
-  private final TranslationProvider translationProvider;
-  private final BuildingService buildingService;
 
 
 //  @Inject
-  public ReceiptParserStreaming(Vertx vertx, TranslationProvider translationProvider, BuildingService buildingService) {
+  public ReceiptParserStreaming(Vertx vertx) {
     this.vertx = vertx;
-    this.translationProvider = translationProvider;
-    this.buildingService = buildingService;
   }
   @Override
   protected Vertx vertx() {
@@ -56,8 +52,7 @@ public class ReceiptParserStreaming extends ReceiptParserAbstractImpl {
   }
 
   @Override
-  public Single<CsvReceipt> parse(String fileName, Path path) {
-    final var finalFileName = fileName.toUpperCase();
+  public Single<CsvReceipt> parse( Path path) {
 
     return Single.fromSupplier(() -> {
           final var expenses = new ArrayList<Expense>();
@@ -87,45 +82,11 @@ public class ReceiptParserStreaming extends ReceiptParserAbstractImpl {
           });
           poiProcessor.streamFile();
 
-          final var months = monthsMap.entrySet()
-              .stream()
-              .map(entry -> {
-                final var month = entry.getValue();
-
-                if (finalFileName.contains(entry.getKey())) {
-                  return month;
-                }
-
-                final var translate = translationProvider.translate(month.name());
-
-                if (finalFileName.contains(translate)) {
-                  return month;
-                }
-
-                return null;
-              })
-              .filter(Objects::nonNull)
-              .map(Month::getValue)
-              .toList();
-
           return CsvReceipt.builder()
-              .month(months.size() == 1 ? months.getFirst() : 0)
               .expenses(expenses)
               .debts(debts)
               .extraCharges(extraCharges)
               .build();
-        }).flatMap(csvReceipt -> {
-          return RxUtil.single(buildingService.ids())
-              .map(list -> {
-
-                final var buildings = list.stream()
-                    .filter(finalFileName::contains)
-                    .toList();
-
-                return csvReceipt.toBuilder()
-                    .buildingName(buildings.size() == 1 ? buildings.getFirst() : null)
-                    .build();
-              });
         })
         .subscribeOn(Schedulers.io());
 

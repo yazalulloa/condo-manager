@@ -1,10 +1,11 @@
 package com.yaz.api.rpc;
 
 import com.yaz.api.domain.response.RateTableResponse.Item;
-import com.yaz.persistence.domain.query.RateQuery;
-import com.yaz.persistence.entities.Rate;
+import com.yaz.api.resource.RateResource;
 import com.yaz.core.service.entity.RateService;
 import com.yaz.core.util.DateUtil;
+import com.yaz.persistence.domain.query.RateQuery;
+import com.yaz.persistence.entities.Rate;
 import io.smallrye.mutiny.Uni;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
@@ -35,7 +36,7 @@ public class RatesRpc {
         .date(DateUtil.isValidLocalDate(date) ? date : null)
         .build();
 
-    return service.table(rateQuery)
+    return service.table(rateQuery, RateResource.PATH)
         .map(table -> {
           final var results = table.results().stream()
               .map(Item::getRate)

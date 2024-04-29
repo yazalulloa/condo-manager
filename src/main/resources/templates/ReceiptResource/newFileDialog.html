@@ -1,0 +1,92 @@
+{@com.yaz.api.domain.response.ReceiptFileFormDto dto}
+
+<dialog id="dialog-cm" hx-swap-oob="true" class="z-30 form-container rounded border-2 border-gray-400 bg-base-100 m-0"
+        open>
+    <div id="receipt-dialog-content" class="p-2">
+        <div class="flex flex-col gap-2 items-center text-center">
+            <h2>Nuevo Recibo</h2>
+            <h3>{dto.fileName}</h3>
+        </div>
+
+        <form class="items-center text-center"
+              hx-post="/api/receipts/new_receipt_file"
+              hx-indicator=".htmx-indicator">
+
+            <input type="hidden" name="{inject:csrf.parameterName}" value="{inject:csrf.token}"/>
+            <input type="hidden" name="data" value="{dto.data}"/>
+
+
+            <label class="label gap-4">
+                <span class="label-text text-start">Edificio</span>
+                <select class="select select-bordered w-full" name="building">
+                    {#each dto.buildings}
+                        <option value="{it}"
+                                {#if dto.buildingName && dto.buildingName == it}
+                                    selected
+                                {/if}
+                        >{it}</option>
+                    {/each}
+                </select>
+            </label>
+
+            <label class="label gap-4">
+                <span class="label-text">Año</span>
+                <select class="select select-bordered w-full" name="year">
+                    {#each dto.years}
+                        <option value="{it}"
+                                {#if dto.year == it}
+                                    selected
+                                {/if}
+                        >{it}</option>
+                    {/each}
+                </select>
+            </label>
+
+            <label class="label gap-4">
+                <span class="label-text">Mes</span>
+                <select class="select select-bordered w-full" name="month">
+                    {#each GLO_MONTH_TYPES}
+                        <option value="{it.month}"
+                                {#if dto.month && dto.month == it.month}
+                                    selected
+                                {/if}
+                        >{it.name}</option>
+
+                    {/each}
+                </select>
+            </label>
+
+            <label class="label gap-4">
+                <span class="label-text">Fecha de recibo</span>
+                <input class="datepicker"
+                       type="date"
+                       name="date"
+                       placeholder="YYYY-MM-DD"
+                       value="{dto.date}"
+                       required>
+            </label>
+
+            <label class="label gap-4">
+                <span class="label-text">Tasa de cambio</span>
+                <select class="select select-bordered w-full" name="rateInput">
+                        {#include RateResource/options res = dto.rates /}
+                </select>
+            </label>
+
+
+            <div class="p-2 flex flex-row gap-4">
+                <button type="submit" class="btn btn-primary">
+                    Crear
+                </button>
+                <button type="button" class="btn btn-secondary"
+                        script="
+                        on click call #dialog-cm.close()
+                        on click remove #receipt-dialog-content"
+                >Cancelar
+                </button>
+                <img class="htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">
+            </div>
+
+        </form>
+    </div>
+</dialog>

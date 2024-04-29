@@ -15,8 +15,7 @@ import lombok.Builder;
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record CsvReceipt(
-    String buildingName,
-    int month,
+    String fileName,
     List<Expense> expenses,
     List<Debt> debts,
     List<ExtraCharge> extraCharges) {

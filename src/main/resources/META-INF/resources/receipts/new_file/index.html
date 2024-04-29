@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Nuevo Recibo</title>
+  <link href="/out/css/output.css" rel="stylesheet"/>
+  <script src="/out/js/index.js" defer></script>
+</head>
+<body hx-boost="true">
+
+<div class="header bg-base-100" id="header-container" hx-swap-oob="true">
+
+</div>
+
+<div id="container" hx-swap-oob="true" class="p-2 gap-1 flex flex-col">
+    <div hx-get="/api/receipts/new_file"
+       hx-indicator=".htmx-indicator"
+       hx-vals="js:{id: getLastUrlSegmentCurrent()}"
+       hx-trigger="load"
+       hx-swap="outerHTML">
+
+    <img class="center htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">
+  </div>
+</div>
+
+</body>
+</html>

@@ -6,10 +6,8 @@ import io.vertx.rxjava3.core.Vertx;
 import java.nio.file.Paths;
 import java.time.Month;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -20,24 +18,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public abstract class ReceiptParserAbstractImpl implements ReceiptParser {
 
-  protected static final Map<String, Month> monthsMap = new HashMap<>();
-
-  static {
-    monthsMap.put("ENE", Month.JANUARY);
-    monthsMap.put("FEB", Month.FEBRUARY);
-    monthsMap.put("MAR", Month.MARCH);
-    monthsMap.put("ABR", Month.APRIL);
-    monthsMap.put("MAY", Month.MAY);
-    monthsMap.put("JUN", Month.JUNE);
-    monthsMap.put("JUL", Month.JULY);
-    monthsMap.put("AUG", Month.AUGUST);
-    monthsMap.put("AGO", Month.AUGUST);
-    monthsMap.put("AGOS", Month.AUGUST);
-    monthsMap.put("SEP", Month.SEPTEMBER);
-    monthsMap.put("OCT", Month.OCTOBER);
-    monthsMap.put("NOV", Month.NOVEMBER);
-    monthsMap.put("DEC", Month.DECEMBER);
-  }
 
   protected abstract Vertx vertx();
 
@@ -51,7 +31,7 @@ public abstract class ReceiptParserAbstractImpl implements ReceiptParser {
           final var fileName = path.getFileName().toString();
           log.info("Parsing file: {}", fileName);
 
-          return parse(fileName, path)
+          return parse(path)
               .map(Optional::of)
               .doOnError(e -> log.error("Error parsing file: {}", fileName, e))
               .onErrorReturnItem(Optional.empty());
@@ -69,14 +49,14 @@ public abstract class ReceiptParserAbstractImpl implements ReceiptParser {
     final var split = str.split("/");
     if (split.length > 1) {
       return Arrays.stream(split)
-          .map(monthsMap::get)
+          .map(MONTHS_MAP::get)
           .filter(Objects::nonNull)
           .map(Month::getValue)
           .collect(Collectors.toCollection(LinkedHashSet::new));
 
     }
 
-    return Optional.ofNullable(monthsMap.get(str))
+    return Optional.ofNullable(MONTHS_MAP.get(str))
         .stream()
         .map(Month::getValue)
         .collect(Collectors.toCollection(LinkedHashSet::new));

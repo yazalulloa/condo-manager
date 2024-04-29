@@ -4,6 +4,7 @@ import io.smallrye.config.common.utils.StringUtil;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.MonthDay;
+import java.time.Year;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -74,7 +75,21 @@ public class DateUtil {
   public static long epochSecond() {
     return Instant.now().getEpochSecond();
   }
+
   public static long epochMilli() {
     return Instant.now().toEpochMilli();
   }
+
+  public static int[] yearsPicker() {
+    return yearsPicker(ZoneId.systemDefault());
+  }
+
+  public static int[] yearsPicker(ZoneId zoneId) {
+    final var now = Year.now(zoneId);
+    final var value = now.getValue();
+
+    return new int[]{value + 2, value + 1, value, value - 1, value - 2, value - 3, value - 4, value - 5, value - 6,
+        value - 7};
+  }
+
 }

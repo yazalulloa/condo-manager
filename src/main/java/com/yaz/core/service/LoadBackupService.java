@@ -234,7 +234,7 @@ public class LoadBackupService {
                         return Observable.fromIterable(receipts)
                             .map(receiptRepository::insert)
                             .flatMapSingle(RxUtil::single)
-                            .doOnNext(i -> log.info("RECEIPTS ROWS: {}", i))
+                            .doOnNext(i -> log.info("RECEIPTS ROWS: {}", i.sum()))
                             .ignoreElements();
 
                       });

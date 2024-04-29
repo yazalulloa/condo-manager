@@ -46,6 +46,8 @@ public class EncryptionService {
     return encrypt(Json.encode(obj));
   }
 
+
+
   @Timed(value = "app.cipher.encryption", description = "Encrypts a string")
   public String encrypt(String original) {
     try {

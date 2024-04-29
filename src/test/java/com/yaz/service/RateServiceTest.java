@@ -43,4 +43,10 @@ class RateServiceTest {
     System.out.println(result);
   }
 
+  @Test
+  void exists() {
+    final var result = rateService.exists(13L).blockingGet();
+    System.out.println(result);
+  }
+
 }

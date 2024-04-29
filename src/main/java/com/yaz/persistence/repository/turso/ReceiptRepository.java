@@ -1,5 +1,8 @@
 package com.yaz.persistence.repository.turso;
 
+import com.yaz.core.util.DateUtil;
+import com.yaz.core.util.SqlUtil;
+import com.yaz.core.util.StringUtil;
 import com.yaz.persistence.domain.query.ReceiptQuery;
 import com.yaz.persistence.entities.ExtraCharge.Apt;
 import com.yaz.persistence.entities.Receipt;
@@ -7,9 +10,6 @@ import com.yaz.persistence.repository.turso.client.TursoWsService;
 import com.yaz.persistence.repository.turso.client.ws.request.Stmt;
 import com.yaz.persistence.repository.turso.client.ws.request.Value;
 import com.yaz.persistence.repository.turso.client.ws.response.ExecuteResp.Row;
-import com.yaz.core.util.DateUtil;
-import com.yaz.core.util.SqlUtil;
-import com.yaz.core.util.StringUtil;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -83,7 +83,11 @@ public class ReceiptRepository {
         .map(SqlUtil::rowCount);
   }
 
-  public Uni<Integer> insert(Receipt receipt) {
+  public record InsertResult(long id, int sum) {
+
+  }
+
+  public Uni<InsertResult> insert(Receipt receipt) {
 
     final var insertReceipt = Stmt.stmt(INSERT, Value.text(receipt.buildingId()), Value.number(receipt.year()),
         Value.number(receipt.month()),
@@ -109,7 +113,7 @@ public class ReceiptRepository {
           }
 
           if (numberOfStmt == 0) {
-            return Uni.createFrom().item(1);
+            return Uni.createFrom().item(new InsertResult(id, 1));
           }
 
           final var statements = new Stmt[numberOfStmt];
@@ -138,7 +142,8 @@ public class ReceiptRepository {
               .map(SqlUtil::rowCount);
 
           return Uni.combine().all().unis(insert, insertExtraCharges)
-              .with(Integer::sum);
+              .with(Integer::sum)
+              .map(sum -> new InsertResult(id, sum));
         });
 
   }

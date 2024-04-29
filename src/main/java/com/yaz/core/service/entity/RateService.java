@@ -2,7 +2,6 @@ package com.yaz.core.service.entity;
 
 import com.yaz.api.domain.response.RateTableResponse;
 import com.yaz.api.domain.response.RateTableResponse.Item;
-import com.yaz.api.resource.RateResource;
 import com.yaz.core.client.BcvClientService;
 import com.yaz.core.domain.BcvUsdRateResult;
 import com.yaz.core.service.EncryptionService;
@@ -182,7 +181,8 @@ public class RateService {
         .switchIfEmpty(Single.defer(this::newRateResult));
   }
 
-  public Uni<RateTableResponse> table(RateQuery rateQuery) {
+
+  public Uni<RateTableResponse> table(RateQuery rateQuery, String nextPagePrefix) {
     final var actualLimit = rateQuery.limit() + 1;
     return Uni.combine().all()
         .unis(count(), list(rateQuery.toBuilder()
@@ -203,7 +203,7 @@ public class RateService {
 
             final var last = results.getLast();
 
-            nextPageUrl = RateResource.PATH;
+            nextPageUrl = nextPagePrefix;
             nextPageUrl += "?nextPage=" + last.getKey();
 
             if (rateQuery.date() != null) {

@@ -1,28 +1,38 @@
 package com.yaz.api.resource;
 
 import com.yaz.api.domain.response.ReceiptCountersDto;
+import com.yaz.api.domain.response.ReceiptFileFormDto;
 import com.yaz.api.domain.response.ReceiptInitDto;
 import com.yaz.api.domain.response.ReceiptPdfResponse;
 import com.yaz.api.domain.response.ReceiptProgressUpdate;
 import com.yaz.api.domain.response.ReceiptTableResponse;
+import com.yaz.api.resource.fragments.Fragments;
 import com.yaz.core.service.EncryptionService;
 import com.yaz.core.service.SendReceiptService;
+import com.yaz.core.service.TranslationProvider;
+import com.yaz.core.service.csv.CsvReceipt;
 import com.yaz.core.service.csv.ReceiptParser;
 import com.yaz.core.service.domain.FileResponse;
 import com.yaz.core.service.entity.BuildingService;
+import com.yaz.core.service.entity.RateService;
 import com.yaz.core.service.entity.ReceiptService;
 import com.yaz.core.service.pdf.ReceiptPdfService;
 import com.yaz.core.util.DateUtil;
 import com.yaz.core.util.MutinyUtil;
 import com.yaz.core.util.StringUtil;
+import com.yaz.persistence.domain.query.RateQuery;
 import com.yaz.persistence.domain.query.ReceiptQuery;
+import com.yaz.persistence.domain.query.SortOrder;
+import com.yaz.persistence.entities.Receipt;
 import com.yaz.persistence.entities.Receipt.Keys;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
+import io.reactivex.rxjava3.core.Single;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.json.Json;
 import jakarta.inject.Inject;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -32,12 +42,17 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.io.File;
+import java.io.IOException;
+import java.time.LocalDate;
+import java.time.Month;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ArrayUtils;
 import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.RestPath;
 import org.jboss.resteasy.reactive.RestQuery;
@@ -60,6 +75,8 @@ public class ReceiptResource {
   private final ReceiptPdfService receiptPdfService;
   private final SendReceiptService sendReceiptService;
   private final ReceiptParser receiptParser;
+  private final TranslationProvider translationProvider;
+  private final RateService rateService;
 
   @CheckedTemplate
   public static class Templates {
@@ -75,6 +92,10 @@ public class ReceiptResource {
     public static native TemplateInstance progress(String key);
 
     public static native TemplateInstance progressUpdate(ReceiptProgressUpdate res);
+
+    public static native TemplateInstance fileReceipt(ReceiptFileFormDto dto);
+
+    public static native TemplateInstance newFileDialog(ReceiptFileFormDto dto);
   }
 
   @GET
@@ -260,19 +281,186 @@ public class ReceiptResource {
   @POST
   @Path("file")
   @Consumes(MediaType.MULTIPART_FORM_DATA)
-  @Produces(MediaType.TEXT_PLAIN)
+  @Produces(MediaType.TEXT_HTML)
   public Uni<Response> upload(@RestForm FileUpload file) {
 
-    final var responseSingle = receiptParser.parse(file.fileName(), file.uploadedFile())
-        .map(csvReceipt -> {
-          log.info("Receipt parsed: {}", csvReceipt);
+    if (file == null) {
+      return Uni.createFrom().item(Response.noContent().build());
+    }
 
-          final var json = Json.encode(csvReceipt);
-          final var body = encryptionService.encrypt(json);
-          return Response.ok(body).build();
+    final var listSingle = MutinyUtil.single(buildingService.ids());
+
+    final var csvReceiptSingle = receiptParser.parse(file.uploadedFile())
+        .map(csvReceipt -> csvReceipt.toBuilder()
+            .fileName(file.fileName())
+            .build());
+
+    final var rateListSingle = MutinyUtil.single(
+        rateService.table(RateQuery.query(10, SortOrder.DESC), "/api/rates/options"));
+
+    final var responseSingle = Single.zip(listSingle, csvReceiptSingle, rateListSingle,
+            (buildings, csvReceipt, rates) -> {
+              //log.info("Receipt parsed: {}", csvReceipt);
+
+              final var json = Json.encode(csvReceipt);
+              final var compressed = StringUtil.compressStr(json);
+              final var body = encryptionService.encrypt(compressed);
+
+              final var fileName = file.fileName();
+
+              final var months = ReceiptParser.MONTHS_MAP.entrySet()
+                  .stream()
+                  .map(entry -> {
+                    final var month = entry.getValue();
+
+                    if (fileName.contains(entry.getKey())) {
+                      return month;
+                    }
+
+                    final var translate = translationProvider.translate(month.name());
+
+                    if (fileName.contains(translate)) {
+                      return month;
+                    }
+
+                    return null;
+                  })
+                  .filter(Objects::nonNull)
+                  .map(Month::getValue)
+                  .toList();
+
+              final var buildingsMatched = buildings.stream().filter(fileName::contains)
+                  .toList();
+
+              final var localDate = LocalDate.now();
+
+              return ReceiptFileFormDto.builder()
+                  .fileName(fileName)
+                  .buildingName(buildingsMatched.size() == 1 ? buildingsMatched.getFirst() : null)
+                  .month(months.size() == 1 ? months.getFirst() : localDate.getMonthValue())
+                  .years(DateUtil.yearsPicker())
+                  .year(localDate.getYear())
+                  .receipt(csvReceipt)
+                  .date(localDate.toString())
+                  .buildings(buildings)
+                  .rates(rates)
+                  .data(body)
+                  .build();
+
+            })
+        .map(Templates::newFileDialog)
+        .map(templateInstance -> Response.ok(templateInstance).build())
+        .onErrorReturn(throwable -> {
+          log.error("ERROR_PARSING_RECEIPT_FILE", throwable);
+          final var templateInstance = Fragments.rateInfo(throwable.getMessage());
+          return Response.ok(templateInstance).build();
         });
 
     return MutinyUtil.toUni(responseSingle);
+  }
+
+  @GET
+  @Path("edit_form")
+  @Produces(MediaType.TEXT_HTML)
+  public Uni<TemplateInstance> editForm(@NotBlank @RestQuery String id) {
+    return null;
+  }
+
+  @Data
+  public static class FileReceiptRequest {
+
+    @NotBlank
+    @RestForm
+    private String data;
+    @NotBlank
+    @RestForm
+    private String building;
+    @RestForm
+    private int year;
+    @RestForm
+    private int month;
+    @NotBlank
+    @RestForm
+    private String date;
+    @NotBlank
+    @RestForm
+    private String rateInput;
+  }
+
+  @POST
+  @Path("new_receipt_file")
+  @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+  @Produces(MediaType.TEXT_HTML)
+  public Uni<Response> create(@BeanParam FileReceiptRequest request) throws IOException {
+
+    final var date = LocalDate.parse(request.date);
+    final var decrypted = encryptionService.decrypt(request.data);
+    final var decompress = StringUtil.decompress(decrypted);
+    final var csvReceipt = Json.decodeValue(decompress, CsvReceipt.class);
+
+    if (!ArrayUtils.contains(DateUtil.yearsPicker(), request.year)) {
+      log.info("INVALID YEAR {}", request);
+      return Uni.createFrom().item(Response.noContent().build());
+    }
+
+    final var rateId = Long.parseLong(encryptionService.decrypt(request.rateInput));
+
+    return Uni.combine().all()
+        .unis(buildingService.exists(request.building), rateService.read(rateId))
+        .withUni((buildingExists, rateOptional) -> {
+          final var noContentUni = Uni.createFrom().item(Response.noContent().build());
+          if (!buildingExists) {
+            log.info("BUILDING_NOT_FOUND {}", request);
+            return noContentUni;
+          }
+
+          if (rateOptional.isEmpty()) {
+            log.info("RATE_NOT_FOUND {}", rateId);
+            return noContentUni;
+          }
+
+          final var expenses = csvReceipt.expenses()
+              .stream()
+              .map(expense -> expense.toBuilder()
+                  .buildingId(request.building)
+                  .build())
+              .toList();
+
+          final var extraCharges = csvReceipt.extraCharges()
+              .stream()
+              .map(extraCharge -> extraCharge.toBuilder()
+                  .buildingId(request.building)
+                  .build())
+              .toList();
+
+          final var debts = csvReceipt.debts().stream()
+              .map(debt -> debt.toBuilder()
+                  .buildingId(request.building)
+                  .build())
+              .toList();
+
+          final var receipt = Receipt.builder()
+              .buildingId(request.building)
+              .year(request.year)
+              .month(request.month)
+              .date(date)
+              .rateId(rateId)
+              .expenses(expenses)
+              .extraCharges(extraCharges)
+              .debts(debts)
+              .createdAt(DateUtil.utcLocalDateTime())
+              .build();
+
+          return service.insert(receipt)
+              .map(res -> {
+                final var id = res.id();
+                final var encrypted = encryptionService.encrypt(String.valueOf(id));
+
+                return Response.ok()
+                    .header("HX-Redirect", "/stc/receipts/edit/" + encrypted)
+                    .build();
+              });
+        });
   }
 
 }

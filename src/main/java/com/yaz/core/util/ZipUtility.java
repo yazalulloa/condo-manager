@@ -149,7 +149,7 @@ public class ZipUtility {
 
   public static void gzip(String tarGzPath, String... directoryPath) throws IOException {
 
-    try (FileOutputStream fOut = new FileOutputStream(new File(tarGzPath))) {
+    try (FileOutputStream fOut = new FileOutputStream(tarGzPath)) {
       try (BufferedOutputStream bOut = new BufferedOutputStream(fOut)) {
         try (GzipCompressorOutputStream gzOut = new GzipCompressorOutputStream(bOut)) {
           try (TarArchiveOutputStream tOut = new TarArchiveOutputStream(gzOut)) {
