@@ -6,6 +6,20 @@
   font-family: arial, sans-serif;
 }
 
+html {
+  font-size: 100%;
+}
+
+select, textarea, input, button {
+  font: inherit;
+}
+
+textarea, input {
+  font: inherit;
+  letter-spacing: inherit;
+  word-spacing: inherit;
+}
+
 .original-state {
   color: blue;
 }
@@ -280,6 +294,10 @@
   grid-template-columns: 2fr 2fr 4fr 2fr;
 }
 
+.expenses-grid {
+  grid-template-columns: 3fr 1fr 1fr 1fr;
+}
+
 .reserve-funds-grid {
   grid-template-columns: 2fr 2fr 2fr 2fr;
 }
@@ -393,4 +411,10 @@ details > summary::-webkit-details-marker {
 .fade-me-in {
   opacity: 1;
   transition: opacity 500ms ease-out;
+}
+
+.expense-form-scroll {
+  position: sticky;
+  top: 50%;
+  transform: translateY(-50%);
 }

@@ -1,0 +1,14 @@
+{@com.yaz.api.domain.response.ExpenseCountersDto dto}
+
+
+{#if dto.count}
+    <span id="expenses-form-counter" hx-swap-oob="true">{dto.count}</span>
+{/if}
+
+{#if dto.commonTotal}
+    <span id="expenses-total-common" hx-swap-oob="true">{dto.commonTotal}</span>
+{/if}
+
+{#if dto.unCommonTotal}
+    <span id="expenses-total-uncommon" hx-swap-oob="true">{dto.unCommonTotal}</span>
+{/if}

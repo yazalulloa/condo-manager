@@ -219,7 +219,6 @@ public class ExtraChargeResource {
                             .isEdit(false)
                             .key(key)
                             .apartments(apartments)
-                            .refreshGrid(false)
                             .tableItem(ExtraChargeTableItem.builder()
                                 .key(encryptionService.encryptObj(keys1))
                                 .item(extraCharge)

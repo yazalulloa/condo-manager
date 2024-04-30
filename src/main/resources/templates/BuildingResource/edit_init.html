@@ -1,9 +1,9 @@
 {@com.yaz.api.domain.response.BuildingEditFormInit res}
 
 {#if res.buildingFormDto.isEdit}
-    <div class="text-center bold underline p-2">
-      {res.buildingFormDto.id}
-    </div>
+<div class="text-center bold underline p-2">
+{res.buildingFormDto.id}
+</div>
 {/if}
 
 {#include BuildingResource/form dto=res.buildingFormDto /}
@@ -17,28 +17,28 @@
 <div class="flex flex-row flex-wrap gap-6 justify-center p-2">
 
 
-  <div id="extra_charges_grid"
-       hx-get="/api/extra_charges/buildings/{res.buildingFormDto.id}"
-       hx-trigger="update_extra_charges"
-       hx-indicator=".htmx-indicator"
-       hx-swap="innerHTML">
+<div id="extra_charges_grid"
+     hx-get="/api/extra_charges/buildings/{res.buildingFormDto.id}"
+     hx-trigger="update_extra_charges"
+     hx-indicator=".htmx-indicator"
+     hx-swap="innerHTML">
 
-    {#include ExtraChargeResource/grid extraCharges=res.extraCharges /}
-  </div>
-  {#include ExtraChargeResource/form dto=res.extraChargeFormDto /}
+{#include ExtraChargeResource/grid extraCharges=res.extraCharges /}
+</div>
+{#include ExtraChargeResource/form dto=res.extraChargeFormDto /}
 
 </div>
 
-    <div class="p-2"></div>
+<div class="p-2"></div>
 
 <hr class="p-3 w-3/4 center">
-    <div class="text-center">Fondos de Reserva: <span id="reserve-funds-form-counter">{res.reserveFunds.size}</span></div>
+<div class="text-center">Fondos de Reserva: <span id="reserve-funds-form-counter">{res.reserveFunds.size}</span></div>
 
-    <div class="flex flex-row flex-wrap gap-6 justify-center p-2">
-
-
-{#include ReserveFundResource/grid items=res.reserveFunds /}
-      {#include ReserveFundResource/form dto=res.reserveFundFormDto /}
+<div class="flex flex-row flex-wrap gap-6 justify-center p-2">
 
 
-</div>
+  {#include ReserveFundResource/grid items=res.reserveFunds /}
+  {#include ReserveFundResource/form dto=res.reserveFundFormDto /}
+
+
+  </div>

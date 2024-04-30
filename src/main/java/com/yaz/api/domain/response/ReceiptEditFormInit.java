@@ -7,7 +7,11 @@ import lombok.Builder;
 public record ReceiptEditFormInit(
     ReceiptFormDto receiptForm,
     ExtraChargeFormDto extraChargeFormDto,
-    List<ExtraChargeTableItem> extraCharges
+    List<ExtraChargeTableItem> extraCharges,
+    String totalUnCommonExpenses,
+    String totalCommonExpenses,
+    ExpenseFormDto expenseFormDto,
+    List<ExpenseTableItem> expenses
 ) {
 
 }

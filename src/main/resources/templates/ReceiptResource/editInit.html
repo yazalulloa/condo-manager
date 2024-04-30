@@ -1,11 +1,31 @@
 {@com.yaz.api.domain.response.ReceiptEditFormInit res}
 
-{#include ReceiptResource/form dto=res.receiptForm /}
-
+    {#include ReceiptResource/form dto = res.receiptForm /}
 
 <div class="p-2"></div>
 
-<hr class="p-3 w-3/4 center">
+<hr class="p-1 center">
+
+<details open>
+    <summary>
+        <div class="flex flex-row flex-wrap gap-6 justify-center p-2 hover:bg-[#00000014]">
+            <div class="text-center">Gastos: <span id="expenses-form-counter">{res.expenses.size}</span></div>
+            <div class="text-center">Gastos comunes totales: <span id="expenses-total-common">{res.totalCommonExpenses}</span></div>
+            <div class="text-center">Gastos no comunes totales: <span id="expenses-total-uncommon">{res.totalUnCommonExpenses}</span></div>
+        </div>
+    </summary>
+    <div class="flex flex-row flex-wrap gap-6 justify-center p-2">
+
+
+            {#include ExpenseResource/grid list = res.expenses /}
+            {#include ExpenseResource/form dto = res.expenseFormDto /}
+
+    </div>
+</details>
+
+<div class="p-2"></div>
+
+<hr class="p-3 center">
 
 <div class="text-center">Cargos Extra: <span id="extra-charges-form-counter">{res.extraCharges.size}</span></div>
 
@@ -18,8 +38,8 @@
          hx-indicator=".htmx-indicator"
          hx-swap="innerHTML">
 
-            {#include ExtraChargeResource/grid extraCharges=res.extraCharges /}
+            {#include ExtraChargeResource/grid extraCharges = res.extraCharges /}
     </div>
-        {#include ExtraChargeResource/form dto=res.extraChargeFormDto /}
+        {#include ExtraChargeResource/form dto = res.extraChargeFormDto /}
 
 </div>

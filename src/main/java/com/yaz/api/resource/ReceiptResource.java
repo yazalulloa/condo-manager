@@ -1,5 +1,8 @@
 package com.yaz.api.resource;
 
+import com.yaz.api.domain.response.ExpenseCountersDto;
+import com.yaz.api.domain.response.ExpenseFormDto;
+import com.yaz.api.domain.response.ExpenseTableItem;
 import com.yaz.api.domain.response.ExtraChargeFormDto;
 import com.yaz.api.domain.response.ExtraChargeTableItem;
 import com.yaz.api.domain.response.ReceiptCountersDto;
@@ -25,6 +28,7 @@ import com.yaz.core.service.entity.ExtraChargeService;
 import com.yaz.core.service.entity.RateService;
 import com.yaz.core.service.entity.ReceiptService;
 import com.yaz.core.service.pdf.ReceiptPdfService;
+import com.yaz.core.util.ConvertUtil;
 import com.yaz.core.util.DateUtil;
 import com.yaz.core.util.MutinyUtil;
 import com.yaz.core.util.StringUtil;
@@ -32,6 +36,7 @@ import com.yaz.persistence.domain.query.RateQuery;
 import com.yaz.persistence.domain.query.ReceiptQuery;
 import com.yaz.persistence.domain.query.SortOrder;
 import com.yaz.persistence.domain.request.ReceiptUpdateRequest;
+import com.yaz.persistence.entities.Expense;
 import com.yaz.persistence.entities.ExtraCharge;
 import com.yaz.persistence.entities.Receipt;
 import com.yaz.persistence.entities.Receipt.Keys;
@@ -423,7 +428,7 @@ public class ReceiptResource {
 //              .debts(debts)
               .build();
 
-          final var list = extraCharges.stream()
+          final var extraChargeTableItems = extraCharges.stream()
               .map(extraCharge -> {
                 final var keys1 = extraCharge.keys();
                 return ExtraChargeTableItem.builder()
@@ -434,14 +439,35 @@ public class ReceiptResource {
               })
               .toList();
 
+          final var expenseTableItems = expenses.stream()
+              .map(expense -> {
+
+                final var keys1 = expense.keys(receipt.rateId());
+                return ExpenseTableItem.builder()
+                    .key(encryptionService.encryptObj(keys1))
+                    .cardId(keys1.cardId())
+                    .item(expense)
+                    .build();
+              })
+              .toList();
+
+          final var expenseTotals = ConvertUtil.expenseTotals(rate.rate(), expenses);
           final var editFormInit = ReceiptEditFormInit.builder()
               .receiptForm(receiptForm)
-              .extraCharges(list)
+              .extraCharges(extraChargeTableItems)
               .extraChargeFormDto(ExtraChargeFormDto.builder()
                   .isEdit(false)
                   .key(encryptionService.encryptObj(ExtraCharge.Keys.newReceipt(receipt.id(), receipt.buildingId())))
                   .apartments(apartments)
                   .build())
+              .expenseFormDto(ExpenseFormDto.builder()
+                  .isEdit(false)
+                  .key(encryptionService.encryptObj(
+                      Expense.Keys.of(receipt.buildingId(), receipt.id(), receipt.rateId())))
+                  .build())
+              .expenses(expenseTableItems)
+              .totalCommonExpenses(expenseTotals.formatCommon())
+              .totalUnCommonExpenses(expenseTotals.formatUnCommon())
               .build();
 
           return Templates.editInit(editFormInit);
@@ -588,8 +614,37 @@ public class ReceiptResource {
               .rateId(rateId)
               .build();
 
-          return service.update(updateRequest)
-              .replaceWith(Response.noContent().build());
+          if (Objects.equals(receipt.year(), request.year)
+              && Objects.equals(receipt.month(), request.month)
+              && Objects.equals(receipt.date(), date)
+              && Objects.equals(receipt.rateId(), rateId)) {
+            return Uni.createFrom().item(Response.noContent().build());
+          }
+
+          final var responseUni = Uni.createFrom()
+              .deferred(() -> {
+                if (Objects.equals(receipt.rateId(), rateId)) {
+                  return Uni.createFrom().item(Response.noContent().build());
+                }
+
+                return expenseService.readByReceipt(keys.id())
+                    .map(expenses -> {
+
+                      final var expenseTotals = ConvertUtil.expenseTotals(rate.rate(), expenses);
+                      final var countersDto = ExpenseCountersDto.builder()
+                          .commonTotal(expenseTotals.formatCommon())
+                          .unCommonTotal(expenseTotals.formatUnCommon())
+                          .build();
+
+                      return ExpenseResource.Templates.counters(countersDto);
+                    })
+                    .map(templateInstance -> Response.ok(templateInstance).build());
+              });
+
+          return Uni.combine()
+              .all()
+              .unis(service.update(updateRequest), responseUni)
+              .with((i, response) -> response);
         });
   }
 

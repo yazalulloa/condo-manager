@@ -1,5 +1,6 @@
 package com.yaz.api.extensions;
 
+import com.yaz.persistence.entities.Expense;
 import com.yaz.persistence.entities.ExtraCharge;
 import com.yaz.persistence.entities.Rate;
 import com.yaz.core.util.DateUtil;
@@ -20,5 +21,9 @@ public class TemplateExtensions {
 
   static String formatAmount(ExtraCharge extraCharge) {
     return extraCharge.currency().numberFormat().format(extraCharge.amount());
+  }
+
+  static String formatAmount(Expense expense) {
+    return expense.currency().numberFormat().format(expense.amount());
   }
 }

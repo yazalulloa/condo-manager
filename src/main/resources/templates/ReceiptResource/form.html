@@ -2,50 +2,58 @@
 
 <form class="items-center text-center"
       hx-patch="/api/receipts/edit/{dto.key}"
+      hx-swap="none"
       hx-indicator=".htmx-indicator">
 
     <div class="pb-4">Edificio: {dto.buildingName}</div>
 
     <input type="hidden" name="{inject:csrf.parameterName}" value="{inject:csrf.token}"/>
 
-    <div class="grid grid-cols-2 gap-6 w-fit items-center m-auto">
+    <div class="flex flex-wrap flex-row gap-4 w-fit items-center m-auto">
+        <div class="grid grid-cols-2 gap-6 w-fit items-center m-auto">
+            <label class="label-text text-end" for="year-input">Año</label>
+            <select id="year-input" class="select select-bordered " name="year">
+                {#each dto.years}
+                    <option value="{it}"
+                            {#if dto.year == it}
+                                selected
+                            {/if}
+                    >{it}</option>
+                {/each}
+            </select>
+        </div>
 
-        <label class="label-text text-end" for="year-input">Año</label>
-        <select id="year-input" class="select select-bordered " name="year">
-            {#each dto.years}
-                <option value="{it}"
-                        {#if dto.year == it}
-                            selected
-                        {/if}
-                >{it}</option>
-            {/each}
-        </select>
+        <div class="grid grid-cols-2 gap-6 w-fit items-center m-auto">
+            <label class="label-text text-end" for="month-input">Mes</label>
+            <select id="month-input" class="select select-bordered " name="month">
+                {#each GLO_MONTH_TYPES}
+                    <option value="{it.month}"
+                            {#if dto.month && dto.month == it.month}
+                                selected
+                            {/if}
+                    >{it.name}</option>
 
-        <label class="label-text text-end" for="month-input">Mes</label>
-        <select id="month-input" class="select select-bordered " name="month">
-            {#each GLO_MONTH_TYPES}
-                <option value="{it.month}"
-                        {#if dto.month && dto.month == it.month}
-                            selected
-                        {/if}
-                >{it.name}</option>
+                {/each}
+            </select>
+        </div>
 
-            {/each}
-        </select>
+        <div class="grid grid-cols-2 gap-6 w-fit items-center m-auto">
+            <label class="label-text text-end" for="receipt-date-input">Fecha de recibo</label>
+            <input id="receipt-date-input"
+                   class="datepicker "
+                   type="date"
+                   name="date"
+                   placeholder="YYYY-MM-DD"
+                   value="{dto.date}"
+                   required>
+        </div>
 
-        <label class="label-text text-end" for="receipt-date-input">Fecha de recibo</label>
-        <input id="receipt-date-input"
-               class="datepicker "
-               type="date"
-               name="date"
-               placeholder="YYYY-MM-DD"
-               value="{dto.date}"
-               required>
-
-        <label class="label-text text-end" for="rate-input">Tasa de cambio</label>
-        <select id="rate-input" class="select select-bordered " name="rateInput">
-                {#include RateResource/options res = dto.rates /}
-        </select>
+        <div class="grid grid-cols-2 gap-6 w-fit items-center m-auto">
+            <label class="label-text text-end" for="rate-input">Tasa de cambio</label>
+            <select id="rate-input" class="select select-bordered " name="rateInput">
+                    {#include RateResource/options res = dto.rates /}
+            </select>
+        </div>
     </div>
 
     <div class="mt-2 p-2 flex flex-row gap-4 justify-center">

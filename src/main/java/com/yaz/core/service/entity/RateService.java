@@ -153,6 +153,7 @@ public class RateService {
         .map(newRate -> new BcvUsdRateResult(BcvUsdRateResult.State.NEW_RATE, newRate));
   }
 
+  @CacheResult(cacheName = RateCache.GET, lockTimeout = Constants.CACHE_TIMEOUT)
   public Uni<Optional<Rate>> read(long id) {
     return repository().read(id);
   }

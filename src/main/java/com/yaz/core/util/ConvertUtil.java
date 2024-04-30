@@ -1,6 +1,9 @@
 package com.yaz.core.util;
 
+import com.yaz.api.domain.ExpenseTotals;
+import com.yaz.api.domain.ExpenseTotals.Total;
 import com.yaz.persistence.domain.Currency;
+import com.yaz.persistence.domain.ExpenseType;
 import com.yaz.persistence.entities.Expense;
 import com.yaz.persistence.entities.Rate;
 import io.vertx.core.json.JsonObject;
@@ -337,5 +340,18 @@ public class ConvertUtil {
     }
 
     return array;
+  }
+
+  public static ExpenseTotals expenseTotals(BigDecimal rate, List<Expense> expenses) {
+    final var totalCommonExpensePair = ConvertUtil.pair(expenses, r -> r.type() == ExpenseType.COMMON,
+        rate);
+
+    final var totalUnCommonExpensePair = ConvertUtil.pair(expenses, r -> r.type() == ExpenseType.UNCOMMON,
+        rate);
+
+    return ExpenseTotals.builder()
+        .common(new Total(totalCommonExpensePair.getKey(), totalCommonExpensePair.getValue()))
+        .unCommon(new Total(totalUnCommonExpensePair.getKey(), totalUnCommonExpensePair.getValue()))
+        .build();
   }
 }

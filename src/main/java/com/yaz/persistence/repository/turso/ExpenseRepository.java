@@ -13,6 +13,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
@@ -33,9 +34,17 @@ public class ExpenseRepository {
   private static final String DELETE_BY_RECEIPT = "DELETE FROM %s WHERE building_id = ? AND receipt_id = ?".formatted(
       COLLECTION);
 
+  private static final String DELETE = "DELETE FROM %s WHERE id = ?".formatted(COLLECTION);
+  private static final String COUNT_BY_RECEIPT = "SELECT COUNT(id) AS query_count FROM %s WHERE receipt_id = ?".formatted(
+      COLLECTION);
+
   private static final String INSERT = """
-      INSERT INTO %s (building_id, receipt_id, description, amount, currency, reserve_fund, type) VALUES %s
+      INSERT INTO %s (building_id, receipt_id, description, amount, currency, reserve_fund, type) VALUES %s %s
       """;
+
+  private static final String READ = "SELECT * FROM %s WHERE id = ?".formatted(COLLECTION);
+  private static final String UPDATE = "UPDATE %s SET description = ?, amount = ?, currency = ?, reserve_fund = ?, type = ? WHERE id = ?".formatted(
+      COLLECTION);
 
   private final TursoWsService tursoWsService;
 
@@ -74,7 +83,7 @@ public class ExpenseRepository {
         .map("(%s)"::formatted)
         .collect(Collectors.joining(", "));
 
-    final var sql = INSERT.formatted(COLLECTION, params);
+    final var sql = INSERT.formatted(COLLECTION, params, "");
     return Stmt.stmt(sql, values);
   }
 
@@ -94,5 +103,35 @@ public class ExpenseRepository {
 
   public Uni<List<Expense>> readByReceipt(long receiptId) {
     return tursoWsService.selectQuery(stmtSelectByReceipt(receiptId), this::from);
+  }
+
+  public Uni<Integer> delete(long id) {
+    return tursoWsService.executeQuery(DELETE, Value.number(id))
+        .map(executeResp -> executeResp.result().rowCount());
+  }
+
+  public Uni<Long> countByReceipt(long receiptId) {
+    return tursoWsService.count(COUNT_BY_RECEIPT, Value.number(receiptId));
+  }
+
+  public Uni<Optional<Expense>> read(long id) {
+    return tursoWsService.selectOne(Stmt.stmt(READ, Value.number(id)), this::from);
+  }
+
+  public Uni<Long> insert(Expense expense) {
+    final var sql = INSERT.formatted(COLLECTION, "(" + SqlUtil.params(7) + ")", "returning id");
+
+    return tursoWsService.selectOne(Stmt.stmt(sql, Value.text(expense.buildingId()), Value.number(expense.receiptId()),
+            Value.text(expense.description()), Value.number(expense.amount()), Value.enumV(expense.currency()),
+            Value.bool(expense.reserveFund()), Value.enumV(expense.type())), row -> row.getLong("id"))
+        .map(opt -> opt.orElseThrow(() -> new IllegalStateException("Insert failed")));
+  }
+
+  public Uni<Integer> update(Expense expense) {
+
+    return tursoWsService.executeQuery(UPDATE, Value.text(expense.description()), Value.number(expense.amount()),
+            Value.enumV(expense.currency()), Value.bool(expense.reserveFund()), Value.enumV(expense.type()),
+            Value.number(expense.id()))
+        .map(executeResp -> executeResp.result().rowCount());
   }
 }
