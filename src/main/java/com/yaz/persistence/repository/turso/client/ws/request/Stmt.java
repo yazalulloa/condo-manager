@@ -35,11 +35,11 @@ public final class Stmt {
   }
 
   public static Stmt sqlWithArgs(String sql, NamedArg[] args) {
-    return new Stmt(sql, null, new Value[0], args, true);
+    return new Stmt(sql.replace("\n", " "), null, new Value[0], args, true);
   }
 
   public static Stmt sqlWithArgs(String sql, Value[] args) {
-    return new Stmt(sql, null, args, new NamedArg[0], true);
+    return new Stmt(sql.replace("\n", " "), null, args, new NamedArg[0], true);
   }
 
   public static Stmt fromID(int sqlId) {

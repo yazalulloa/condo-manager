@@ -4,9 +4,12 @@ import com.yaz.core.util.DateUtil;
 import com.yaz.core.util.SqlUtil;
 import com.yaz.core.util.StringUtil;
 import com.yaz.persistence.domain.query.ReceiptQuery;
+import com.yaz.persistence.domain.request.ReceiptUpdateRequest;
 import com.yaz.persistence.entities.ExtraCharge.Apt;
 import com.yaz.persistence.entities.Receipt;
+import com.yaz.persistence.repository.turso.ExtraChargeRepository.InsertResult;
 import com.yaz.persistence.repository.turso.client.TursoWsService;
+import com.yaz.persistence.repository.turso.client.ws.request.NamedArg;
 import com.yaz.persistence.repository.turso.client.ws.request.Stmt;
 import com.yaz.persistence.repository.turso.client.ws.request.Value;
 import com.yaz.persistence.repository.turso.client.ws.response.ExecuteResp.Row;
@@ -55,10 +58,14 @@ public class ReceiptRepository {
   private static final String INSERT = """
       INSERT INTO %s (building_id, year, month, date, rate_id, sent, last_sent, created_at) VALUES (%s) returning id
       """.formatted(COLLECTION, SqlUtil.params(8));
-  private static final String UPDATE_LAST_SENT = "UPDATE %s SET sent = true, last_sent = ? WHERE building_id = ? AND id = ?".formatted(
+  private static final String UPDATE_LAST_SENT = "UPDATE %s SET sent = true, last_sent = ? WHERE id = ?".formatted(
       COLLECTION);
   private static final String READ = "SELECT * FROM %s WHERE id = ?".formatted(COLLECTION);
   private static final String DELETE = "DELETE FROM %s WHERE id = ?".formatted(COLLECTION);
+
+  private static final String UPDATE = (
+      "UPDATE %s SET year = :year, month = :month, date = :date, rate_id = :rate_id "
+          + "WHERE id = :id").formatted(COLLECTION);
 
 
   private final TursoWsService tursoWsService;
@@ -124,14 +131,15 @@ public class ReceiptRepository {
           final var extraCharges = receipt.extraCharges()
               .stream()
               .map(extraCharge -> extraCharge.toBuilder()
-                  .secondaryId(String.valueOf(id))
+                  .parentReference(String.valueOf(id))
                   .build())
               .toList();
 
           final var insertExtraCharges = Multi.createFrom().iterable(extraCharges)
               .onItem().transformToUni(extraCharge -> {
                 final var apartments = extraCharge.apartments().stream().map(Apt::number).collect(Collectors.toSet());
-                return extraChargeRepository.insert(extraCharge, apartments);
+                return extraChargeRepository.insert(extraCharge, apartments)
+                    .map(ExtraChargeRepository.InsertResult::count);
               })
               .merge()
               .collect()
@@ -148,9 +156,9 @@ public class ReceiptRepository {
 
   }
 
-  public Uni<Integer> updateLastSent(String buildingId, String id) {
+  public Uni<Integer> updateLastSent(long id) {
     return tursoWsService.executeQuery(
-            Stmt.stmt(UPDATE_LAST_SENT, Value.text(DateUtil.utcLocalDateTime()), Value.text(buildingId), Value.text(id)))
+            Stmt.stmt(UPDATE_LAST_SENT, Value.text(DateUtil.utcLocalDateTime()), Value.number(id)))
         .map(executeResp -> executeResp.result().rowCount());
   }
 
@@ -293,5 +301,15 @@ public class ReceiptRepository {
         .createdAt(row.getLocalDateTime("created_at"))
         .updatedAt(row.getLocalDateTime("updated_at"))
         .build();
+  }
+
+  public Uni<Integer> update(ReceiptUpdateRequest updateRequest) {
+    final var stmt = Stmt.stmt(UPDATE,
+        NamedArg.number("year", updateRequest.year()), NamedArg.number("month", updateRequest.month()),
+        NamedArg.text("date", updateRequest.date()), NamedArg.number("rate_id", updateRequest.rateId()),
+        NamedArg.number("id", updateRequest.id()));
+
+    return tursoWsService.executeQuery(stmt)
+        .map(r -> r.result().rowCount());
   }
 }

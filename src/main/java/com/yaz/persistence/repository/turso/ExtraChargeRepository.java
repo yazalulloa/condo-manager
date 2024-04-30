@@ -35,64 +35,64 @@ public class ExtraChargeRepository {
       SELECT extra_charges.*, GROUP_CONCAT(extra_charges_apartments.apt_number || '%s' || apartments.name, '%s') as apt_numbers
       FROM extra_charges
                LEFT JOIN extra_charges_apartments ON extra_charges.building_id = extra_charges_apartments.building_id AND
-                                       extra_charges.secondary_id = extra_charges_apartments.secondary_id AND
+                                       extra_charges.parent_reference = extra_charges_apartments.parent_reference AND
                                        extra_charges.id = extra_charges_apartments.id
                LEFT JOIN apartments ON extra_charges_apartments.building_id = apartments.building_id AND
                                        extra_charges_apartments.apt_number = apartments.number
       %s
-      GROUP BY extra_charges.building_id, extra_charges.secondary_id, extra_charges.id
-      ORDER BY extra_charges.building_id, extra_charges.secondary_id, extra_charges.id;
+      GROUP BY extra_charges.building_id, extra_charges.parent_reference, extra_charges.id
+      ORDER BY extra_charges.building_id, extra_charges.parent_reference, extra_charges.id;
       """;
-  private static final String DELETE = "DELETE FROM %s WHERE building_id = ? AND secondary_id = ? AND  id = ?".formatted(
+  private static final String DELETE = "DELETE FROM %s WHERE id = ?".formatted(
       COLLECTION);
   private static final String READ = """
       SELECT extra_charges.*, GROUP_CONCAT(extra_charges_apartments.apt_number || '%s' || apartments.name, '%s') as apt_numbers
           FROM extra_charges
                    LEFT JOIN extra_charges_apartments ON extra_charges.building_id = extra_charges_apartments.building_id AND
-                                           extra_charges.secondary_id = extra_charges_apartments.secondary_id AND
+                                           extra_charges.parent_reference = extra_charges_apartments.parent_reference AND
                                            extra_charges.id = extra_charges_apartments.id
                    LEFT JOIN apartments ON extra_charges_apartments.building_id = apartments.building_id AND
                                            extra_charges_apartments.apt_number = apartments.number
-      WHERE extra_charges.building_id = ? AND extra_charges.secondary_id = ? AND extra_charges.id = ?
-          GROUP BY extra_charges.building_id, extra_charges.secondary_id, extra_charges.id
-          ORDER BY extra_charges.building_id, extra_charges.secondary_id, extra_charges.id;
+      WHERE extra_charges.building_id = ? AND extra_charges.parent_reference = ? AND extra_charges.id = ?
+          GROUP BY extra_charges.building_id, extra_charges.parent_reference, extra_charges.id
+          ORDER BY extra_charges.building_id, extra_charges.parent_reference, extra_charges.id;
       """;
   private static final String INSERT = """
-      INSERT INTO %s (building_id, secondary_id,  type, description, amount, currency, active)
+      INSERT INTO %s (parent_reference, building_id, type, description, amount, currency, active)
       VALUES (%s) returning id
       """.formatted(COLLECTION, SqlUtil.params(7));
 
   private static final String INSERT_BULK = """
-      INSERT INTO %s (building_id, secondary_id, id, type, description, amount, currency, active)
+      INSERT INTO %s (parent_reference, id, type, description, amount, currency, active)
       VALUES %s
       """;
 //  private static final String UPDATE = """
-//      UPDATE %s SET description = ?, amount = ?, currency = ?, active = ? WHERE building_id = ? AND secondary_id = ? AND id = ?
+//      UPDATE %s SET description = ?, amount = ?, currency = ?, active = ? WHERE parent_reference = ? AND id = ?
 //      """.formatted(COLLECTION);
 
   private static final String UPDATE = """
       UPDATE %s SET description = :description, amount = :amount, currency = :currency, active = :active 
-      WHERE building_id = :building_id AND secondary_id = :secondary_id AND id = :id
+      WHERE parent_reference = :parent_reference AND id = :id
       """.formatted(COLLECTION);
 
-  private static final String DELETE_BY_BUILDING = "DELETE FROM %s WHERE building_id = ? AND secondary_id = ?".formatted(
+  private static final String DELETE_BY = "DELETE FROM %s WHERE building_id = ? AND parent_reference = ?".formatted(
       COLLECTION);
   private static final String COLLECTION_APT = "extra_charges_apartments";
   private static final String INSERT_APT = """
-      INSERT INTO %s (building_id, secondary_id, id, apt_number) VALUES %s ON CONFLICT DO NOTHING;
+      INSERT INTO %s (parent_reference, building_id, id, apt_number) VALUES %s ON CONFLICT DO NOTHING;
       """;
   private static final String INSERT_APT_IGNORE = """
-      INSERT INTO %s (building_id, secondary_id, id, apt_number) VALUES %s ON CONFLICT DO NOTHING;
+      INSERT INTO %s (parent_reference, building_id, id, apt_number) VALUES %s ON CONFLICT DO NOTHING;
       """;
 
   private static final String DELETE_APT_WHERE = """
-       DELETE FROM %s WHERE building_id = ? AND secondary_id = ? AND id = ? AND apt_number NOT IN (
+       DELETE FROM %s WHERE parent_reference = ? AND building_id = ? AND id = ? AND apt_number NOT IN (
       """.formatted(COLLECTION_APT);
 
-  private static final String DELETE_APT = "DELETE FROM %s WHERE building_id = ? AND secondary_id = ? AND  id = ?".formatted(
+  private static final String DELETE_APT = "DELETE FROM %s WHERE parent_reference = ? AND building_id = ? AND  id = ?".formatted(
       COLLECTION_APT);
 
-  private static final String DELETE_APT_BY_BUILDING = "DELETE FROM %s WHERE building_id = ? AND secondary_id = ?".formatted(
+  private static final String DELETE_APT_BY = "DELETE FROM %s WHERE building_id = ? AND parent_reference = ?".formatted(
       COLLECTION_APT);
 
   private final TursoWsService tursoWsService;
@@ -110,9 +110,10 @@ public class ExtraChargeRepository {
     final var apartments = apartments(row);
 
     return ExtraCharge.builder()
+        .parentReference(row.getString("parent_reference"))
         .buildingId(row.getString("building_id"))
-        .secondaryId(row.getString("secondary_id"))
         .id(row.getLong("id"))
+        .type(row.getEnum("type", ExtraCharge.Type::valueOf))
         .description(row.getString("description"))
         .amount(row.getDouble("amount"))
         .currency(row.getEnum("currency", Currency::valueOf))
@@ -149,37 +150,26 @@ public class ExtraChargeRepository {
     return apts;
   }
 
-  public Uni<Optional<ExtraCharge>> read(String buildingId, String secondaryId, long id) {
+  public Uni<Optional<ExtraCharge>> read(String buildingId, String parentReference, long id) {
     final var query = READ.formatted(sqlConfig.separator().column(), sqlConfig.separator().row());
+    final var stmt = Stmt.stmt(query, Value.text(buildingId), Value.text(parentReference), Value.number(id));
+    return tursoWsService.selectOne(stmt, this::from);
+  }
 
-    return tursoWsService.selectOne(Stmt.stmt(query, Value.text(buildingId), Value.text(secondaryId), Value.number(id)),
+  public Uni<List<ExtraCharge>> select(String buildingId, String parentReference) {
+
+    final var query = SELECT.formatted(sqlConfig.separator().column(), sqlConfig.separator().row(),
+        "WHERE extra_charges.building_id = ? AND extra_charges.parent_reference = ?");
+
+    return tursoWsService.selectQuery(Stmt.stmt(query, Value.text(buildingId), Value.text(parentReference)),
         this::from);
   }
 
-  public Uni<List<ExtraCharge>> select(String buildingId, String secondaryId) {
+  public Uni<Integer> delete(String parentReference, String buildingId, long id) {
 
-    final var query = SELECT.formatted(sqlConfig.separator().column(), sqlConfig.separator().row(),
-        "WHERE extra_charges.building_id = ? AND extra_charges.secondary_id = ?");
-
-    return tursoWsService.selectQuery(Stmt.stmt(query, Value.text(buildingId), Value.text(secondaryId)), this::from);
-  }
-
-  public Uni<List<ExtraCharge>> selectByBuildingId(String buildingId) {
-
-    final var query = SELECT.formatted(sqlConfig.separator().column(), sqlConfig.separator().row(),
-        "WHERE extra_charges.building_id = ?");
-
-    return tursoWsService.selectQuery(Stmt.stmt(query, Value.text(buildingId)), this::from);
-  }
-
-  public Uni<Integer> delete(String buildingId, String secondaryId, long id) {
-
-    final var values = new Value[]{Value.text(buildingId), Value.text(secondaryId),
-        Value.number(id)};
-    final var deleteStm = Stmt.stmt(DELETE, values);
-    final var deleteApts = Stmt.stmt(DELETE_APT, values);
-
-    return tursoWsService.executeQueries(deleteStm, deleteApts)
+    return tursoWsService.executeQueries(
+            Stmt.stmt(DELETE, Value.number(id)),
+            Stmt.stmt(DELETE_APT, Value.text(parentReference), Value.text(buildingId), Value.number(id)))
         .map(resps -> {
           int affected = 0;
           for (var resp : resps) {
@@ -189,22 +179,26 @@ public class ExtraChargeRepository {
         });
   }
 
-  public Uni<Integer> insert(ExtraCharge extraCharge, Set<String> apartments) {
+  public record InsertResult(long id, int count) {
 
-    final var insertStmt = Stmt.stmt(INSERT, Value.text(extraCharge.buildingId()),
-        Value.text(extraCharge.secondaryId()), Value.enumV(extraCharge.type()), Value.text(extraCharge.description()),
-        Value.number(extraCharge.amount()),
-        Value.enumV(extraCharge.currency()), Value.bool(extraCharge.active()));
+  }
+
+  public Uni<InsertResult> insert(ExtraCharge extraCharge, Set<String> apartments) {
+
+    final var insertStmt = Stmt.stmt(INSERT, Value.text(extraCharge.parentReference()),
+        Value.text(extraCharge.buildingId()),
+        Value.enumV(extraCharge.type()), Value.text(extraCharge.description()),
+        Value.number(extraCharge.amount()), Value.enumV(extraCharge.currency()), Value.bool(extraCharge.active()));
 
     return tursoWsService.selectOne(insertStmt, row -> row.getLong("id"))
         .map(opt -> opt.orElseThrow(() -> new IllegalStateException("Insert failed")))
-        .map(id -> {
+        .flatMap(id -> {
           final var aptValues = new Value[apartments.size() * 4];
 
           var i = 0;
           for (var apartment : apartments) {
+            aptValues[i++] = Value.text(extraCharge.parentReference());
             aptValues[i++] = Value.text(extraCharge.buildingId());
-            aptValues[i++] = Value.text(extraCharge.secondaryId());
             aptValues[i++] = Value.number(id);
             aptValues[i++] = Value.text(apartment);
           }
@@ -214,10 +208,11 @@ public class ExtraChargeRepository {
               .limit(apartments.size())
               .collect(Collectors.joining(","));
 
-          return Stmt.stmt(INSERT_APT.formatted(COLLECTION_APT, aptValuesParam), aptValues);
-        })
-        .flatMap(tursoWsService::executeQuery)
-        .map(executeResp -> executeResp.result().rowCount() + 1);
+          final var stmt = Stmt.stmt(INSERT_APT.formatted(COLLECTION_APT, aptValuesParam), aptValues);
+          return tursoWsService.executeQuery(stmt)
+              .map(executeResp -> executeResp.result().rowCount() + 1)
+              .map(count -> new InsertResult(id, count));
+        });
   }
 
 
@@ -232,33 +227,25 @@ public class ExtraChargeRepository {
         NamedArg.number("amount", updateRequest.amount()),
         NamedArg.enumV("currency", updateRequest.currency()),
         NamedArg.bool("active", updateRequest.active()),
-        NamedArg.text("building_id", updateRequest.buildingId()),
-        NamedArg.text("secondary_id", updateRequest.secondaryId()),
+        NamedArg.text("parent_reference", updateRequest.parentReference()),
         NamedArg.number("id", updateRequest.id()));
-
-//    stmts[i++] = Stmt.stmt(UPDATE, Value.text(updateRequest.description()),
-//        Value.number(updateRequest.amount()),
-//        Value.enumV(updateRequest.currency()), Value.bool(updateRequest.active()),
-//        Value.text(updateRequest.buildingId()),
-//        Value.text(updateRequest.secondaryId()), Value.number(updateRequest.id()));
 
     if (apartments.isEmpty()) {
 
-      stmts[i] = Stmt.stmt(DELETE_APT, Value.text(updateRequest.buildingId()),
-          Value.text(updateRequest.secondaryId()), Value.number(updateRequest.id()));
+      stmts[i] = Stmt.stmt(DELETE_APT, Value.text(updateRequest.parentReference()), Value.number(updateRequest.id()));
 
     } else {
       final var deleteAptValues = new Value[apartments.size() + 3];
-      deleteAptValues[0] = Value.text(updateRequest.buildingId());
-      deleteAptValues[1] = Value.text(updateRequest.secondaryId());
+      deleteAptValues[0] = Value.text(updateRequest.parentReference());
+      deleteAptValues[1] = Value.text(updateRequest.buildingId());
       deleteAptValues[2] = Value.number(updateRequest.id());
 
       final var insertAptValues = new Value[apartments.size() * 4];
       var insertAptIndex = 0;
       var deleteAptIndex = 3;
       for (var apartment : apartments) {
+        insertAptValues[insertAptIndex++] = Value.text(updateRequest.parentReference());
         insertAptValues[insertAptIndex++] = Value.text(updateRequest.buildingId());
-        insertAptValues[insertAptIndex++] = Value.text(updateRequest.secondaryId());
         insertAptValues[insertAptIndex++] = Value.number(updateRequest.id());
         insertAptValues[insertAptIndex++] = Value.text(apartment);
 
@@ -282,17 +269,17 @@ public class ExtraChargeRepository {
   public Uni<Integer> deleteByBuilding(String id) {
     final var value = Value.text(id);
     final var values = new Value[]{value, value};
-    final var delete = Stmt.stmt(DELETE_BY_BUILDING, values);
-    final var deleteApt = Stmt.stmt(DELETE_APT_BY_BUILDING, values);
+    final var delete = Stmt.stmt(DELETE_BY, values);
+    final var deleteApt = Stmt.stmt(DELETE_APT_BY, values);
 
     return tursoWsService.executeQueries(delete, deleteApt)
         .map(SqlUtil::rowCount);
   }
 
-  public Stmt[] stmtDeleteByReceipt(String buildingId, String secondaryId) {
-    final var values = new Value[]{Value.text(buildingId), Value.text(secondaryId)};
-    final var delete = Stmt.stmt(DELETE_BY_BUILDING, values);
-    final var deleteApt = Stmt.stmt(DELETE_APT_BY_BUILDING, values);
+  public Stmt[] stmtDeleteByReceipt(String buildingId, String parentReference) {
+    final var values = new Value[]{Value.text(buildingId), Value.text(parentReference)};
+    final var delete = Stmt.stmt(DELETE_BY, values);
+    final var deleteApt = Stmt.stmt(DELETE_APT_BY, values);
 
     return new Stmt[]{delete, deleteApt};
   }

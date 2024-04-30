@@ -24,27 +24,28 @@ public class ExtraChargeService {
     return repository.count();
   }
 
-  public Uni<Optional<ExtraCharge>> read(String buildingId, String secondaryId, long id) {
-    return repository.read(buildingId, secondaryId, id);
+  public Uni<Optional<ExtraCharge>> read(ExtraCharge.Keys keys) {
+    return read(keys.buildingId(), keys.parentReference(), keys.id());
   }
 
-  public Uni<List<ExtraCharge>> byBuilding(String buildingId) {
-    return repository.select(buildingId, buildingId);
+  public Uni<Optional<ExtraCharge>> read(String buildingId, String parentReference, long id) {
+    return repository.read(buildingId, parentReference, id);
   }
 
-  public Uni<List<ExtraCharge>> listOnlyByBuilding(String buildingId) {
-    return repository.selectByBuildingId(buildingId);
+  public Uni<List<ExtraCharge>> by(String buildingId, String parentReference) {
+    return repository.select(buildingId, parentReference);
   }
+
 
   public Uni<Integer> delete(Keys keys) {
-    return repository.delete(keys.buildingId(), keys.secondaryId(), keys.id());
+    return repository.delete(keys.parentReference(), keys.buildingId(), keys.id());
   }
 
   public Uni<ExtraCharge> create(ExtraChargeCreateRequest createRequest) {
 
     final var extraCharge = ExtraCharge.builder()
+        .parentReference(createRequest.parentReference())
         .buildingId(createRequest.buildingId())
-        .secondaryId(createRequest.secondaryId())
         .type(createRequest.type())
         .description(createRequest.description())
         .amount(createRequest.amount())
@@ -53,7 +54,9 @@ public class ExtraChargeService {
         .build();
 
     return repository.insert(extraCharge, createRequest.apartments())
-        .replaceWith(extraCharge);
+        .map(res -> extraCharge.toBuilder()
+            .id(res.id())
+            .build());
   }
 
   public Uni<Integer> update(ExtraChargeUpdateRequest updateRequest) {

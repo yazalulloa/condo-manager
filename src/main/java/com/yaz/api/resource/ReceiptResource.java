@@ -1,7 +1,11 @@
 package com.yaz.api.resource;
 
+import com.yaz.api.domain.response.ExtraChargeFormDto;
+import com.yaz.api.domain.response.ExtraChargeTableItem;
 import com.yaz.api.domain.response.ReceiptCountersDto;
+import com.yaz.api.domain.response.ReceiptEditFormInit;
 import com.yaz.api.domain.response.ReceiptFileFormDto;
+import com.yaz.api.domain.response.ReceiptFormDto;
 import com.yaz.api.domain.response.ReceiptInitDto;
 import com.yaz.api.domain.response.ReceiptPdfResponse;
 import com.yaz.api.domain.response.ReceiptProgressUpdate;
@@ -13,7 +17,11 @@ import com.yaz.core.service.TranslationProvider;
 import com.yaz.core.service.csv.CsvReceipt;
 import com.yaz.core.service.csv.ReceiptParser;
 import com.yaz.core.service.domain.FileResponse;
+import com.yaz.core.service.entity.ApartmentService;
 import com.yaz.core.service.entity.BuildingService;
+import com.yaz.core.service.entity.DebtService;
+import com.yaz.core.service.entity.ExpenseService;
+import com.yaz.core.service.entity.ExtraChargeService;
 import com.yaz.core.service.entity.RateService;
 import com.yaz.core.service.entity.ReceiptService;
 import com.yaz.core.service.pdf.ReceiptPdfService;
@@ -23,6 +31,8 @@ import com.yaz.core.util.StringUtil;
 import com.yaz.persistence.domain.query.RateQuery;
 import com.yaz.persistence.domain.query.ReceiptQuery;
 import com.yaz.persistence.domain.query.SortOrder;
+import com.yaz.persistence.domain.request.ReceiptUpdateRequest;
+import com.yaz.persistence.entities.ExtraCharge;
 import com.yaz.persistence.entities.Receipt;
 import com.yaz.persistence.entities.Receipt.Keys;
 import io.quarkus.qute.CheckedTemplate;
@@ -36,6 +46,7 @@ import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -43,6 +54,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.Objects;
@@ -77,6 +89,10 @@ public class ReceiptResource {
   private final ReceiptParser receiptParser;
   private final TranslationProvider translationProvider;
   private final RateService rateService;
+  private final ExpenseService expenseService;
+  private final ExtraChargeService extraChargeService;
+  private final DebtService debtService;
+  private final ApartmentService apartmentService;
 
   @CheckedTemplate
   public static class Templates {
@@ -96,6 +112,10 @@ public class ReceiptResource {
     public static native TemplateInstance fileReceipt(ReceiptFileFormDto dto);
 
     public static native TemplateInstance newFileDialog(ReceiptFileFormDto dto);
+
+    public static native TemplateInstance form(ReceiptFormDto dto);
+
+    public static native TemplateInstance editInit(ReceiptEditFormInit res);
   }
 
   @GET
@@ -363,7 +383,69 @@ public class ReceiptResource {
   @Path("edit_form")
   @Produces(MediaType.TEXT_HTML)
   public Uni<TemplateInstance> editForm(@NotBlank @RestQuery String id) {
-    return null;
+
+    final var keys = encryptionService.decryptObj(id, Keys.class);
+
+    final var receiptUni = service.read(keys.id())
+        .map(optional -> optional.orElseThrow(() -> new IllegalArgumentException("RECEIPT_NOT_FOUND")))
+        .memoize()
+        .forFixedDuration(Duration.ofSeconds(3));
+
+    final var rateUni = receiptUni.flatMap(receipt -> rateService.read(receipt.rateId()))
+        .map(optional -> optional.orElseThrow(() -> new IllegalArgumentException("RATE_NOT_FOUND")));
+
+    final var expensesListUni = expenseService.readByReceipt(keys.id());
+
+    final var extraChargesListUni = extraChargeService.by(keys.buildingId(), String.valueOf(keys.id()));
+
+    final var debtListUni = receiptUni.flatMap(
+        receipt -> debtService.readByReceipt(receipt.buildingId(), receipt.id()));
+
+    final var rateListUni = rateService.table(RateQuery.query(10, SortOrder.DESC), "/api/rates/options");
+
+    return Uni.combine().all()
+        .unis(receiptUni, rateUni, expensesListUni, extraChargesListUni, debtListUni, rateListUni,
+            apartmentService.aptByBuildings(keys.buildingId()))
+        .with((receipt, rate, expenses, extraCharges, debts, rates, apartments) -> {
+
+          final var receiptForm = ReceiptFormDto.builder()
+              .key(id)
+              .buildingName(receipt.buildingId())
+              .month(receipt.month())
+              .year(receipt.year())
+              .years(DateUtil.yearsPicker())
+              .date(receipt.date().toString())
+              .rates(rates.toBuilder()
+                  .selected(rate.id())
+                  .build())
+//              .expenses(expenses)
+//              .extraCharges(extraCharges)
+//              .debts(debts)
+              .build();
+
+          final var list = extraCharges.stream()
+              .map(extraCharge -> {
+                final var keys1 = extraCharge.keys();
+                return ExtraChargeTableItem.builder()
+                    .item(extraCharge)
+                    .key(encryptionService.encryptObj(keys1))
+                    .cardId(keys1.cardId())
+                    .build();
+              })
+              .toList();
+
+          final var editFormInit = ReceiptEditFormInit.builder()
+              .receiptForm(receiptForm)
+              .extraCharges(list)
+              .extraChargeFormDto(ExtraChargeFormDto.builder()
+                  .isEdit(false)
+                  .key(encryptionService.encryptObj(ExtraCharge.Keys.newReceipt(receipt.id(), receipt.buildingId())))
+                  .apartments(apartments)
+                  .build())
+              .build();
+
+          return Templates.editInit(editFormInit);
+        });
   }
 
   @Data
@@ -393,6 +475,7 @@ public class ReceiptResource {
   @Produces(MediaType.TEXT_HTML)
   public Uni<Response> create(@BeanParam FileReceiptRequest request) throws IOException {
 
+    final var month = Month.of(request.month);
     final var date = LocalDate.parse(request.date);
     final var decrypted = encryptionService.decrypt(request.data);
     final var decompress = StringUtil.decompress(decrypted);
@@ -426,15 +509,14 @@ public class ReceiptResource {
                   .build())
               .toList();
 
-          final var extraCharges = csvReceipt.extraCharges()
-              .stream()
-              .map(extraCharge -> extraCharge.toBuilder()
+          final var debts = csvReceipt.debts().stream()
+              .map(debt -> debt.toBuilder()
                   .buildingId(request.building)
                   .build())
               .toList();
 
-          final var debts = csvReceipt.debts().stream()
-              .map(debt -> debt.toBuilder()
+          final var extraCharges = csvReceipt.extraCharges().stream()
+              .map(extraCharge -> extraCharge.toBuilder()
                   .buildingId(request.building)
                   .build())
               .toList();
@@ -454,12 +536,60 @@ public class ReceiptResource {
           return service.insert(receipt)
               .map(res -> {
                 final var id = res.id();
-                final var encrypted = encryptionService.encrypt(String.valueOf(id));
+                final var keys = new Keys(receipt.buildingId(), id);
+                final var encrypted = encryptionService.encryptObj(keys);
 
                 return Response.ok()
                     .header("HX-Redirect", "/stc/receipts/edit/" + encrypted)
                     .build();
               });
+        });
+  }
+
+  @Data
+  public static class ReceiptEditRequest {
+
+    @RestForm
+    private int year;
+    @RestForm
+    private int month;
+    @NotBlank
+    @RestForm
+    private String date;
+    @NotBlank
+    @RestForm
+    private String rateInput;
+  }
+
+  @PATCH
+  @Path("edit/{key}")
+  @Produces(MediaType.TEXT_HTML)
+  public Uni<Response> edit(@RestPath String key, @BeanParam ReceiptEditRequest request) {
+
+    final var month = Month.of(request.month);
+    final var keys = encryptionService.decryptObj(key, Receipt.Keys.class);
+    final var date = LocalDate.parse(request.date);
+    final var rateId = Long.parseLong(encryptionService.decrypt(request.rateInput));
+
+    if (!ArrayUtils.contains(DateUtil.yearsPicker(), request.year)) {
+      log.info("EDIT_RECEIPT_INVALID_YEAR {}", request);
+      return Uni.createFrom().item(Response.noContent().build());
+    }
+
+    return Uni.combine().all()
+        .unis(buildingService.get(keys.buildingId()), rateService.get(rateId), service.get(keys.id()))
+        .withUni((building, rate, receipt) -> {
+
+          final var updateRequest = ReceiptUpdateRequest.builder()
+              .id(keys.id())
+              .year(request.year)
+              .month(request.month)
+              .date(date)
+              .rateId(rateId)
+              .build();
+
+          return service.update(updateRequest)
+              .replaceWith(Response.noContent().build());
         });
   }
 

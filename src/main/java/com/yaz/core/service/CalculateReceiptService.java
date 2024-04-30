@@ -4,13 +4,18 @@ import com.yaz.core.service.domain.CalculatedReceipt;
 import com.yaz.core.service.domain.CalculatedReceipt.AptDebt;
 import com.yaz.core.service.domain.CalculatedReceipt.AptTotal;
 import com.yaz.core.service.domain.CalculatedReceipt.ReserveFundTotal;
+import com.yaz.core.service.entity.ApartmentService;
+import com.yaz.core.service.entity.BuildingService;
 import com.yaz.core.service.entity.DebtService;
 import com.yaz.core.service.entity.ExpenseService;
+import com.yaz.core.service.entity.ExtraChargeService;
+import com.yaz.core.service.entity.RateService;
 import com.yaz.core.service.entity.ReceiptService;
 import com.yaz.core.service.entity.ReserveFundService;
 import com.yaz.core.util.ConvertUtil;
 import com.yaz.core.util.DecimalUtil;
 import com.yaz.core.util.MutinyUtil;
+import com.yaz.core.util.RxUtil;
 import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.domain.ExpenseType;
 import com.yaz.persistence.domain.ReserveFundType;
@@ -20,13 +25,6 @@ import com.yaz.persistence.entities.Debt;
 import com.yaz.persistence.entities.Expense;
 import com.yaz.persistence.entities.ExtraCharge;
 import com.yaz.persistence.entities.Receipt;
-import com.yaz.core.service.entity.ApartmentService;
-import com.yaz.core.service.entity.BuildingService;
-import com.yaz.core.service.entity.ExtraChargeService;
-import com.yaz.core.service.entity.RateService;
-import com.yaz.core.util.Constants;
-import com.yaz.core.util.RxUtil;
-import io.quarkus.cache.CacheResult;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import io.smallrye.mutiny.Uni;
@@ -70,7 +68,7 @@ public class CalculateReceiptService {
         .switchIfEmpty(Single.error(new IllegalArgumentException("Receipt not found")))
         .cache();
 
-    final var buildingSingle = RxUtil.toMaybe(buildingService.get(buildingId))
+    final var buildingSingle = RxUtil.toMaybe(buildingService.read(buildingId))
         .flatMap(Maybe::fromOptional)
         .switchIfEmpty(Single.error(new IllegalArgumentException("Building not found")));
 
@@ -78,11 +76,11 @@ public class CalculateReceiptService {
 
     final var apartmentsSingle = RxUtil.single(apartmentService.apartmentsByBuilding(buildingId));
 
-    final var expensesSingle = RxUtil.single(expenseService.readByReceipt(buildingId, receiptId));
+    final var expensesSingle = RxUtil.single(expenseService.readByReceipt(receiptId));
 
     final var debtsSingle = RxUtil.single(debtService.readByReceipt(buildingId, receiptId));
 
-    final var extraChargesSingle = RxUtil.single(extraChargeService.listOnlyByBuilding(buildingId));
+    final var extraChargesSingle = RxUtil.single(extraChargeService.by(buildingId, String.valueOf(receiptId)));
 
     final var rateSingle = receiptSingle.map(Receipt::rateId)
         .map(rateService::read)
@@ -173,11 +171,11 @@ public class CalculateReceiptService {
                   .divide(BigDecimal.valueOf(apartments.size()), MathContext.DECIMAL128);
 
           final var buildingExtraCharges = extraChargeList.stream()
-              .filter(extraCharge -> extraCharge.secondaryId().equals(extraCharge.buildingId()))
+              .filter(extraCharge -> extraCharge.parentReference().equals(receipt.buildingId()))
               .toList();
 
           final var receiptExtraCharges = extraChargeList.stream()
-              .filter(extraCharge -> extraCharge.secondaryId().equals(String.valueOf(receipt.id())))
+              .filter(extraCharge -> extraCharge.parentReference().equals(String.valueOf(receipt.id())))
               .toList();
 
           final var aptTotals = apartments.stream()

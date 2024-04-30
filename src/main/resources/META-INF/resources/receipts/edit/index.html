@@ -2,19 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Ver PDFs</title>
+  <title>Editar Recibo</title>
   <link href="/out/css/output.css" rel="stylesheet"/>
   <script src="/out/js/index.js" defer></script>
 </head>
 <body hx-boost="true">
 
-<div class="header bg-base-100" id="header-container" hx-swap-oob="true">
-  <div id="receipt-pdf-viewer-header"></div>
+<div class="bg-base-100 text-center" id="header-container" hx-swap-oob="true" script="init call removeStc()">
+  <h2>Editar Recibo</h2>
 </div>
 
-<div id="container" hx-swap-oob="true" class="p-2 gap-1 flex flex-col">
+<div id="container" hx-swap-oob="true" class="h-full p-4">
   <div
-      hx-get="/api/receipts/pdfs"
+      hx-get="/api/receipts/edit_form"
       hx-indicator=".htmx-indicator"
       hx-vals="js:{id: getLastUrlSegmentCurrent()}"
       hx-trigger="load"

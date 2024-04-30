@@ -21,7 +21,7 @@ public class ExpenseService {
   }
 
 
-  public Uni<List<Expense>> readByReceipt(String buildingId, long receiptId) {
-    return repository.readByReceipt(buildingId, receiptId);
+  public Uni<List<Expense>> readByReceipt(long receiptId) {
+    return repository.readByReceipt(receiptId);
   }
 }

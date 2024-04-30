@@ -13,7 +13,9 @@ import java.util.concurrent.TimeUnit;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
 import com.yaz.core.util.ReflectionUtil;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class RetryWithDelay implements Function<Flowable<? extends Throwable>, Flowable<?>> {
 
   private final int maxRetryCount;
@@ -61,11 +63,20 @@ public class RetryWithDelay implements Function<Flowable<? extends Throwable>, F
 
   public static RetryWithDelay retryIfFailedNetwork(int maxRetryCount, int retryDelay, TimeUnit timeUnit) {
     return retry(maxRetryCount, retryDelay, timeUnit,
-        t -> ReflectionUtil.isInstanceOf(t, DnsNameResolverTimeoutException.class, UnknownHostException.class,
-            SSLException.class, SSLHandshakeException.class,
-            ProxyConnectException.class, NoRouteToHostException.class
-            //        , ConnectException.class
-        ));
+        t -> {
+          final var shouldRetry = ReflectionUtil.isInstanceOf(t, DnsNameResolverTimeoutException.class,
+              UnknownHostException.class,
+              SSLException.class, SSLHandshakeException.class,
+              ProxyConnectException.class, NoRouteToHostException.class
+              //        , ConnectException.class
+          );
+
+          if (shouldRetry) {
+           log.info("Retrying due to network error: {}", t.getMessage());
+          }
+
+          return shouldRetry;
+        });
   }
 
   @Override

@@ -2,11 +2,11 @@ package com.yaz.persistence;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import com.yaz.core.util.RandomUtil;
 import com.yaz.persistence.domain.request.ExtraChargeUpdateRequest;
 import com.yaz.persistence.entities.ExtraCharge.Apt;
 import com.yaz.persistence.repository.mysql.ApartmentMySqlRepository;
 import com.yaz.persistence.repository.mysql.ExtraChargeMySqlRepository;
-import com.yaz.core.util.RandomUtil;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import java.time.Duration;
@@ -50,8 +50,7 @@ class ExtraChargeRepositoryTest {
 
     final var random = RandomUtil.getInstance();
     final var updateRequest = ExtraChargeUpdateRequest.builder()
-        .buildingId(extraCharge.buildingId())
-        .secondaryId(extraCharge.secondaryId())
+        .parentReference(extraCharge.parentReference())
         .id(extraCharge.id())
         .description(extraCharge.description())
         .amount(extraCharge.amount())

@@ -172,20 +172,22 @@ END;
 
 CREATE TABLE IF NOT EXISTS extra_charges
 (
-    id           INTEGER PRIMARY KEY,
-    building_id  CHAR(20)                                       NOT NULL,
-    secondary_id CHAR(40)                                       NOT NULL,
-    type         TEXT CHECK ( type IN ('BUILDING', 'RECEIPT') ) NOT NULL,
-    description  VARCHAR(100)                                   NOT NULL,
-    amount       DECIMAL(16, 2)                                 NOT NULL,
-    currency     TEXT CHECK ( currency IN ('USD', 'VED') )      NOT NULL,
-    active       BOOL                                           NOT NULL,
-    created_at   DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at   DATETIME
+    id               INTEGER PRIMARY KEY,
+    building_id      CHAR(20)                                       NOT NULL,
+    parent_reference CHAR(20)                                       NOT NULL,
+    type             TEXT CHECK ( type IN ('BUILDING', 'RECEIPT') ) NOT NULL,
+    description      VARCHAR(100)                                   NOT NULL,
+    amount           DECIMAL(16, 2)                                 NOT NULL,
+    currency         TEXT CHECK ( currency IN ('USD', 'VED') )      NOT NULL,
+    active           BOOL                                           NOT NULL,
+    created_at       DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at       DATETIME
 );
 
 
-CREATE INDEX IF NOT EXISTS extra_charges_building_id_secondary_id_idx ON extra_charges (building_id, secondary_id);
+CREATE INDEX IF NOT EXISTS extra_charges_parent_reference_idx ON extra_charges (parent_reference);
+CREATE INDEX IF NOT EXISTS extra_charges_building_id_idx ON extra_charges (building_id);
+CREATE INDEX IF NOT EXISTS extra_charges_parent_reference_building_id_idx ON extra_charges (parent_reference, building_id);
 CREATE INDEX IF NOT EXISTS extra_charges_type_idx ON extra_charges (type);
 
 CREATE TRIGGER IF NOT EXISTS extra_charges_updated_at_trigger
@@ -195,19 +197,17 @@ CREATE TRIGGER IF NOT EXISTS extra_charges_updated_at_trigger
 BEGIN
     UPDATE extra_charges
     SET updated_at = CURRENT_TIMESTAMP
-    WHERE building_id = OLD.building_id
-      AND secondary_id = OLD.secondary_id
-      AND id = OLD.id;
+    WHERE id = OLD.id;
 END;
 
 CREATE TABLE IF NOT EXISTS extra_charges_apartments
 (
-    building_id  CHAR(20)    NOT NULL,
-    secondary_id CHAR(40)    NOT NULL,
-    id           VARCHAR(50) NOT NULL,
-    apt_number   CHAR(20)    NOT NULL,
-    created_at   DATETIME DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (building_id, secondary_id, id, apt_number)
+    building_id      CHAR(20)    NOT NULL,
+    parent_reference CHAR(20)    NOT NULL,
+    id               VARCHAR(50) NOT NULL,
+    apt_number       CHAR(20)    NOT NULL,
+    created_at       DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (building_id, parent_reference, id, apt_number)
 );
 
 CREATE TABLE IF NOT EXISTS telegram_chats
@@ -314,7 +314,8 @@ CREATE TABLE IF NOT EXISTS expenses
 );
 
 
-CREATE INDEX IF NOT EXISTS expenses_building_id_receipt_id_idx ON expenses (building_id, receipt_id);
+CREATE INDEX IF NOT EXISTS expenses_building_id_idx ON expenses (building_id);
+CREATE INDEX IF NOT EXISTS expenses_receipt_id_idx ON expenses (receipt_id);
 
 CREATE TABLE IF NOT EXISTS debts
 (

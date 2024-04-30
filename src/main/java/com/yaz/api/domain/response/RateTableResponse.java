@@ -9,8 +9,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
 
-@Builder
+@Builder(toBuilder = true)
 public record RateTableResponse(
+    Long selected,
     long totalCount,
     String nextPageUrl,
     Collection<Item> results) {

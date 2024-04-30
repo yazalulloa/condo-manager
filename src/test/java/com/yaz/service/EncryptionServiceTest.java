@@ -21,8 +21,7 @@ class EncryptionServiceTest {
   void checkAll() {
 
     final var keys = Keys.builder()
-        .buildingId("ANTONIETA")
-        .secondaryId("ANTONIETA")
+        .parentReference("ANTONIETA")
         .id(1)
         .build();
 

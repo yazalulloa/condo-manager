@@ -182,6 +182,7 @@ public class LoadBackupService {
                                   final var apts = new ArrayList<Apt>();
                                   apts.add(new Apt(charge.aptNumber(), null));
                                   extraCharges.add(ExtraCharge.builder()
+                                      .parentReference(mongoReceipt.buildingId())
                                       .buildingId(mongoReceipt.buildingId())
                                       .type(Type.RECEIPT)
                                       .description(charge.description())

@@ -1,13 +1,13 @@
 package com.yaz.persistence.repository.mysql;
 
-import com.yaz.persistence.repository.mysql.MySqlService.TrxMode;
+import com.yaz.core.util.SqlUtil;
 import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.domain.MySqlQueryRequest;
 import com.yaz.persistence.domain.request.ExtraChargeCreateRequest;
 import com.yaz.persistence.domain.request.ExtraChargeUpdateRequest;
 import com.yaz.persistence.entities.ExtraCharge;
 import com.yaz.persistence.entities.ExtraCharge.Apt;
-import com.yaz.core.util.SqlUtil;
+import com.yaz.persistence.repository.mysql.MySqlService.TrxMode;
 import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.sqlclient.Row;
 import io.vertx.mutiny.sqlclient.SqlResult;
@@ -122,8 +122,7 @@ public class ExtraChargeMySqlRepository {
     final var apartments = apartments(row);
 
     return ExtraCharge.builder()
-        .buildingId(row.getString("building_id"))
-        .secondaryId(row.getString("secondary_id"))
+        .parentReference(row.getString("parent_reference"))
         .id(row.getLong("id"))
         .description(row.getString("description"))
         .amount(row.getDouble("amount"))
@@ -148,13 +147,13 @@ public class ExtraChargeMySqlRepository {
     return mySqlService.getUUID()
         .flatMap(uuid -> {
 
-            final var insert = """
-                INSERT INTO %s (building_id, secondary_id, id, description, amount, currency, active)
-                VALUES (?, ?, UUID_TO_BIN(?, true), ?, ?, ?, ?)
-                """.formatted(COLLECTION);
+          final var insert = """
+              INSERT INTO %s (building_id, secondary_id, id, description, amount, currency, active)
+              VALUES (?, ?, UUID_TO_BIN(?, true), ?, ?, ?, ?)
+              """.formatted(COLLECTION);
 
           final var tuple = Tuple.from(List.of(
-              createRequest.buildingId(), createRequest.secondaryId(), uuid,
+              createRequest.parentReference(), uuid,
               createRequest.description(), createRequest.amount(), createRequest.currency().name(),
               createRequest.active()
           ));
@@ -165,7 +164,7 @@ public class ExtraChargeMySqlRepository {
           }
 
           final var normal = MySqlQueryRequest.normal(insert, tuple);
-          final var batch = insertApts(createRequest.buildingId(), createRequest.secondaryId(), uuid,
+          final var batch = insertApts(createRequest.parentReference(), uuid,
               createRequest.apartments());
 
           return mySqlService.transaction(TrxMode.PARALLEL, normal, batch)
@@ -174,10 +173,10 @@ public class ExtraChargeMySqlRepository {
         });
   }
 
-  private MySqlQueryRequest insertApts(String buildingId, String secondaryId, String id, Set<String> apartments) {
-    log.info("insertApts {} {} {} {}", buildingId, secondaryId, id, apartments);
+  private MySqlQueryRequest insertApts(String parentReference, String id, Set<String> apartments) {
+    log.info("insertApts {} {} {}", parentReference, id, apartments);
     final var tuples = apartments.stream()
-        .map(apt -> Tuple.of(buildingId, secondaryId, id, apt))
+        .map(apt -> Tuple.of(parentReference, id, apt))
         .toList();
     return MySqlQueryRequest.batch(INSERT_APT, tuples);
   }
@@ -195,7 +194,7 @@ public class ExtraChargeMySqlRepository {
 
     final var updateParams = List.<Object>of(
         updateRequest.description(), updateRequest.amount(), updateRequest.currency().name(),
-        updateRequest.active(), updateRequest.buildingId(), updateRequest.secondaryId(), updateRequest.id()
+        updateRequest.active(), updateRequest.parentReference(), updateRequest.id()
     );
 
     queryRequests.add(MySqlQueryRequest.normal(update, Tuple.tuple(updateParams)));
@@ -203,7 +202,7 @@ public class ExtraChargeMySqlRepository {
     final var apartments = updateRequest.apartments();
 
     if (!apartments.isEmpty()) {
-      log.info("update apartments  {} {} {} {}", updateRequest.buildingId(), updateRequest.secondaryId(),
+      log.info("update apartments  {} {} {}", updateRequest.parentReference(),
           updateRequest.id(), apartments);
       String INSERT_APT = """
           INSERT IGNORE INTO %s (building_id, secondary_id, id, apt_number)
@@ -211,13 +210,12 @@ public class ExtraChargeMySqlRepository {
           """.formatted(COLLECTION_APT);
 
       final var tuples = apartments.stream()
-          .map(apt -> Tuple.of(updateRequest.buildingId(), updateRequest.secondaryId(), updateRequest.id(), apt))
+          .map(apt -> Tuple.of(updateRequest.parentReference(), updateRequest.id(), apt))
           .toList();
       queryRequests.add(MySqlQueryRequest.batch(INSERT_APT, tuples));
 
       final var tuple = new ArrayTuple(3 + apartments.size());
-      tuple.addString(updateRequest.buildingId());
-      tuple.addString(updateRequest.secondaryId());
+      tuple.addString(updateRequest.parentReference());
       tuple.addLong(updateRequest.id());
 
       apartments.forEach(tuple::addString);
@@ -227,7 +225,7 @@ public class ExtraChargeMySqlRepository {
 
     } else {
       queryRequests.add(MySqlQueryRequest.normal(DELETE.formatted(COLLECTION_APT),
-          Tuple.of(updateRequest.buildingId(), updateRequest.secondaryId(), updateRequest.id())));
+          Tuple.of(updateRequest.parentReference(), updateRequest.id())));
     }
 
     return mySqlService.transaction(TrxMode.PARALLEL, queryRequests)

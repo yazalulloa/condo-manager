@@ -121,8 +121,13 @@ public class BuildingService {
   }
 
   @CacheResult(cacheName = BuildingCache.GET, lockTimeout = Constants.CACHE_TIMEOUT)
-  public Uni<Optional<Building>> get(String buildingId) {
+  public Uni<Optional<Building>> read(String buildingId) {
     return repository().read(buildingId);
+  }
+
+  public Uni<Building> get(String buildingId) {
+    return read(buildingId)
+        .map(optional -> optional.orElseThrow(() -> new IllegalArgumentException("Building not found: " + buildingId)));
   }
 
 

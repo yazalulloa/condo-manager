@@ -21,10 +21,11 @@ import lombok.extern.jackson.Jacksonized;
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class ExtraChargeFormDto {
 
+  private final String key;
   private final boolean isEdit;
   private final boolean clearForm;
-  private final String buildingId;
-  private final String id;
+  //private final String buildingId;
+  //private final String id;
   private final String description;
   private final String descriptionFieldError;
   @Builder.Default

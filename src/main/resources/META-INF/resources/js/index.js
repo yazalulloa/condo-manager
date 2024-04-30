@@ -258,7 +258,7 @@ window.initNav = function () {
 window.saveNavState = function (anchor) {
   //console.log("saving nav state {}", anchor.id);
   localStorage.setItem("current-nav", anchor.id);
-modifyUrl(anchor)
+  modifyUrl(anchor);
 }
 
 window.modifyUrl = function (elem) {
@@ -267,6 +267,12 @@ window.modifyUrl = function (elem) {
   //console.log("new_pathname: {}", pathname);
   window.history.pushState(window.history.state, document.title, pathname);
   //window.location.pathname = pathname;
+}
+
+window.removeStc = function (elem) {
+  let href = window.location.href;
+  let newHref = href.replaceAll("/stc", "");
+  window.history.pushState(window.history.state, document.title, newHref);
 }
 
 window.saveToLocalStorage = function (key, value) {

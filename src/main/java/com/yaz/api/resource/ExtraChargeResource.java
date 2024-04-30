@@ -74,13 +74,14 @@ public class ExtraChargeResource {
 
   @GET
   @Cache(maxAge = 10)
-  @Path("/form/new/{buildingId}")
+  @Path("/form/new/{key}")
   @Produces(MediaType.TEXT_HTML)
-  public Uni<Response> newForm(@NotBlank @RestPath String buildingId) {
+  public Uni<Response> newForm(@NotBlank @RestPath String key) {
+    final var keys = encryptionService.decryptObj(key, Keys.class);
 
     return Uni.combine()
         .all()
-        .unis(buildingService.get(buildingId), apartmentService.aptByBuildings(buildingId))
+        .unis(buildingService.read(keys.buildingId()), apartmentService.aptByBuildings(keys.buildingId()))
         .with((building, apartments) -> {
           if (building.isEmpty()) {
             return Response.status(Status.NOT_FOUND).entity("Building Not Found").build();
@@ -88,7 +89,7 @@ public class ExtraChargeResource {
 
           final var formDto = ExtraChargeFormDto.builder()
               .clearForm(true)
-              .buildingId(buildingId)
+              .key(key)
               .apartments(apartments)
               .build();
 
@@ -98,19 +99,20 @@ public class ExtraChargeResource {
   }
 
   @GET
-  @Path("/form/{id}")
+  @Path("/form/{key}")
   @Produces(MediaType.TEXT_HTML)
-  public Uni<Response> form(@NotBlank @RestPath String id) {
+  public Uni<Response> form(@NotBlank @RestPath String key) {
 
-    final var json = encryptionService.decrypt(id);
+    final var json = encryptionService.decrypt(key);
     final var keys = Json.decodeValue(json, Keys.class);
 
     return Uni.combine()
         .all()
-        .unis(service.read(keys.buildingId(), keys.secondaryId(), keys.id()),
+        .unis(service.read(keys),
             apartmentService.aptByBuildings(keys.buildingId()))
         .with((optional, apartments) -> {
           if (optional.isEmpty()) {
+            log.info("Extra Charge Not Found {}", keys);
             return Response.status(Status.NOT_FOUND).entity("Extra Charge Not Found").build();
           }
 
@@ -123,8 +125,8 @@ public class ExtraChargeResource {
 
           final var formDto = ExtraChargeFormDto.builder()
               .isEdit(true)
-              .buildingId(extraCharge.buildingId())
-              .id(id)
+              .clearForm(true)
+              .key(key)
               .description(extraCharge.description())
               .amount(BigDecimal.valueOf(extraCharge.amount()))
               .currency(extraCharge.currency())
@@ -137,7 +139,7 @@ public class ExtraChargeResource {
         });
   }
 
-  private ExtraChargeFormDto formDto(String buildingId, ExtraChargeRequest request,
+  private ExtraChargeFormDto formDto(String key, ExtraChargeRequest request,
       List<ExtraCharge.Apt> apartments) {
     final var amount = Optional.ofNullable(request.getAmount())
         .map(StringUtil::trimFilter)
@@ -150,7 +152,7 @@ public class ExtraChargeResource {
 
     return ExtraChargeFormDto.builder()
         .isEdit(false)
-        .buildingId(buildingId)
+        .key(key)
         .description(request.getDescription())
         .descriptionFieldError(
             StringUtil.trimFilter(request.getDescription()) == null ? "No puede estar vacio" : null)
@@ -166,25 +168,26 @@ public class ExtraChargeResource {
   }
 
   @POST
-  @Path("buildings/{buildingId}")
+  @Path("{key}")
   @Produces(MediaType.TEXT_HTML)
-  public Uni<Response> createByBuilding(@NotBlank @RestPath String buildingId, @BeanParam ExtraChargeRequest request) {
+  public Uni<Response> create(@NotBlank @RestPath String key, @BeanParam ExtraChargeRequest request) {
+    final var keys = encryptionService.decryptObj(key, Keys.class);
 
     return Uni.combine()
         .all()
-        .unis(buildingService.exists(buildingId), apartmentService.aptByBuildings(buildingId))
+        .unis(buildingService.exists(keys.buildingId()), apartmentService.aptByBuildings(keys.buildingId()))
         .withUni((buildingExists, apartments) -> {
           if (!buildingExists) {
             return Uni.createFrom().item(Response.status(404).build());
           }
 
-          final var formDto = formDto(buildingId, request, apartments);
+          final var formDto = formDto(key, request, apartments);
 
           if (formDto.isSuccess()) {
             final var createRequest = ExtraChargeCreateRequest.builder()
-                .buildingId(buildingId)
-                .secondaryId(buildingId)
-                .type(Type.BUILDING)
+                .parentReference(keys.parentReference())
+                .buildingId(keys.buildingId())
+                .type(keys.type())
                 .description(formDto.getDescription())
                 .amount(formDto.getAmount().doubleValue())
                 .currency(formDto.getCurrency())
@@ -203,15 +206,16 @@ public class ExtraChargeResource {
                       .build();
                 })
                 .map(extraCharge -> {
-
+                  final var keys1 = extraCharge.keys();
                   return ExtraChargeFormDto.builder()
                       .isEdit(false)
-                      .buildingId(buildingId)
+                      .key(key)
                       .apartments(apartments)
                       .refreshGrid(false)
                       .tableItem(ExtraChargeTableItem.builder()
-                          .id(encryptionService.encryptObj(extraCharge.keys()))
+                          .key(encryptionService.encryptObj(keys1))
                           .item(extraCharge)
+                          .cardId(keys1.cardId())
                           .outOfBoundsUpdate(false)
                           .addAfterEnd(true)
                           .build())
@@ -230,14 +234,18 @@ public class ExtraChargeResource {
   @Path("buildings/{buildingId}")
   @Produces(MediaType.TEXT_HTML)
   public Uni<TemplateInstance> getByBuilding(@NotBlank @RestPath String buildingId) {
-    return service.byBuilding(buildingId)
+    return service.by(buildingId, buildingId)
         .map(extraCharges -> {
 
           return extraCharges.stream()
-              .map(extraCharge -> ExtraChargeTableItem.builder()
-                  .item(extraCharge)
-                  .id(encryptionService.encryptObj(extraCharge.keys()))
-                  .build())
+              .map(extraCharge -> {
+                final var keys = extraCharge.keys();
+                return ExtraChargeTableItem.builder()
+                    .item(extraCharge)
+                    .key(encryptionService.encryptObj(keys))
+                    .cardId(keys.cardId())
+                    .build();
+              })
               .toList();
         })
         .map(Templates::grid);
@@ -245,31 +253,30 @@ public class ExtraChargeResource {
   }
 
   @PATCH
-  @Path("{id}")
+  @Path("{key}")
   @Produces(MediaType.TEXT_HTML)
-  public Uni<Response> update(@NotBlank @RestPath String id, @BeanParam ExtraChargeRequest request) {
+  public Uni<Response> update(@NotBlank @RestPath String key, @BeanParam ExtraChargeRequest request) {
 
-    final var json = encryptionService.decrypt(id);
+    final var json = encryptionService.decrypt(key);
     final var keys = Json.decodeValue(json, Keys.class);
 
     return Uni.combine()
         .all()
-        .unis(service.read(keys.buildingId(), keys.secondaryId(), keys.id()),
+        .unis(service.read(keys),
             apartmentService.aptByBuildings(keys.buildingId()))
         .withUni((optional, apartments) -> {
           if (optional.isEmpty()) {
             return Uni.createFrom().item(Response.status(Status.NOT_FOUND).entity("Extra Charge Not Found").build());
           }
-          final var formDto = formDto(keys.buildingId(), request, apartments).toBuilder()
+          final var formDto = formDto(key, request, apartments).toBuilder()
               .isEdit(true)
-              .id(id)
               .apartments(apartments)
               .build();
 
           if (formDto.isSuccess()) {
             final var updateRequest = ExtraChargeUpdateRequest.builder()
+                .parentReference(keys.parentReference())
                 .buildingId(keys.buildingId())
-                .secondaryId(keys.secondaryId())
                 .id(keys.id())
                 .description(formDto.getDescription())
                 .amount(formDto.getAmount().doubleValue())
@@ -282,8 +289,8 @@ public class ExtraChargeResource {
                 .toList();
 
             final var extraCharge = ExtraCharge.builder()
+                .parentReference(keys.parentReference())
                 .buildingId(keys.buildingId())
-                .secondaryId(keys.secondaryId())
                 .id(keys.id())
                 .type(Type.BUILDING)
                 .description(formDto.getDescription())
@@ -295,10 +302,11 @@ public class ExtraChargeResource {
 
             final var extraChargeFormDto = ExtraChargeFormDto.builder()
                 .isEdit(false)
-                .buildingId(keys.buildingId())
+                .key(key)
                 .apartments(apartments)
                 .tableItem(ExtraChargeTableItem.builder()
-                    .id(id)
+                    .key(key)
+                    .cardId(keys.cardId())
                     .item(extraCharge)
                     .outOfBoundsUpdate(true)
                     .addAfterEnd(false)

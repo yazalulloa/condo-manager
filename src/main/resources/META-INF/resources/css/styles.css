@@ -294,6 +294,22 @@
   align-items: center;
 }
 
+.receipt-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 4fr;
+  grid-template-rows: auto;
+  grid-gap: 4px;
+  width: 100%;
+  text-align: center;
+}
+
+.receipt-form-grid > * {
+  text-align: center;
+  margin: auto;
+  align-items: center;
+  width: 100%;
+}
+
 .std-form-control {
   display: block;
   width: 100%;

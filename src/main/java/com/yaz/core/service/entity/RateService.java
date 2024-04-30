@@ -157,6 +157,11 @@ public class RateService {
     return repository().read(id);
   }
 
+  public Uni<Rate> get(long id) {
+    return read(id)
+        .map(optional -> optional.orElseThrow(() -> new IllegalArgumentException("Rate not found: " + id)));
+  }
+
   private record BcvCheck(String etag, String lastModified) {
 
   }

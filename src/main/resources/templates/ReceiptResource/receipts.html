@@ -9,7 +9,11 @@
 
     id={item.cardId}>
 
-<div class="flex-grow receipt-grid-container">
+<div class="flex-grow receipt-grid-container"
+     hx-get="/stc/receipts/edit/{item.key}"
+     hx-push-url="true"
+     hx-trigger="click"
+     hx-on::after-request="modifyUrl(this)">
   <span>{item.item.buildingId}</span>
 
   <div class="flex flex-row gap-2 justify-center">

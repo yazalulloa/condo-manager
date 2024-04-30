@@ -1,5 +1,6 @@
 package com.yaz.persistence.repository.turso;
 
+import com.yaz.core.util.SqlUtil;
 import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.domain.ExpenseType;
 import com.yaz.persistence.entities.Expense;
@@ -7,7 +8,6 @@ import com.yaz.persistence.repository.turso.client.TursoWsService;
 import com.yaz.persistence.repository.turso.client.ws.request.Stmt;
 import com.yaz.persistence.repository.turso.client.ws.request.Value;
 import com.yaz.persistence.repository.turso.client.ws.response.ExecuteResp.Row;
-import com.yaz.core.util.SqlUtil;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -27,7 +27,7 @@ public class ExpenseRepository {
 
   private static final String COLLECTION = "expenses";
 
-  private static final String SELECT_BY_RECEIPT = "SELECT * FROM %s WHERE building_id = ? AND receipt_id = ? ORDER BY id".formatted(
+  private static final String SELECT_BY_RECEIPT = "SELECT * FROM %s WHERE receipt_id = ? ORDER BY id".formatted(
       COLLECTION);
 
   private static final String DELETE_BY_RECEIPT = "DELETE FROM %s WHERE building_id = ? AND receipt_id = ?".formatted(
@@ -43,8 +43,8 @@ public class ExpenseRepository {
     return tursoWsService.count("id", COLLECTION);
   }
 
-  public Stmt stmtSelectByReceipt(String buildingId, long receiptId) {
-    return Stmt.stmt(SELECT_BY_RECEIPT, Value.text(buildingId), Value.number(receiptId));
+  public Stmt stmtSelectByReceipt(long receiptId) {
+    return Stmt.stmt(SELECT_BY_RECEIPT, Value.number(receiptId));
   }
 
   public Stmt stmtDeleteByReceipt(String buildingId, long receiptId) {
@@ -92,7 +92,7 @@ public class ExpenseRepository {
         .build();
   }
 
-  public Uni<List<Expense>> readByReceipt(String buildingId, long receiptId) {
-    return tursoWsService.selectQuery(stmtSelectByReceipt(buildingId, receiptId), this::from);
+  public Uni<List<Expense>> readByReceipt(long receiptId) {
+    return tursoWsService.selectQuery(stmtSelectByReceipt(receiptId), this::from);
   }
 }

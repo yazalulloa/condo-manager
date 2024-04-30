@@ -21,8 +21,8 @@ import lombok.extern.jackson.Jacksonized;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ExtraChargeCreateRequest {
 
+  private final String parentReference;
   private final String buildingId;
-  private final String secondaryId;
   private final ExtraCharge.Type type;
   private final String description;
   private final double amount;

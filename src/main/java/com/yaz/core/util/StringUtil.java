@@ -112,14 +112,22 @@ public class StringUtil {
     return os.toByteArray();
   }
 
-  public static String compressStr(String str) throws IOException {
-    final var bytes = compress(str.getBytes(StandardCharsets.UTF_8));
-    return Base64.getUrlEncoder().encodeToString(bytes);
+  public static String compressStr(String str) {
+    try {
+      final var bytes = compress(str.getBytes(StandardCharsets.UTF_8));
+      return Base64.getUrlEncoder().encodeToString(bytes);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 
-  public static String decompress(String str) throws IOException {
-    final var decode = Base64.getUrlDecoder().decode(str);
-    final var decompress = decompress(decode);
-    return new String(decompress, StandardCharsets.UTF_8);
+  public static String decompress(String str) {
+    try {
+      final var decode = Base64.getUrlDecoder().decode(str);
+      final var decompress = decompress(decode);
+      return new String(decompress, StandardCharsets.UTF_8);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 }

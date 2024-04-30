@@ -2,6 +2,7 @@ package com.yaz.core.service;
 
 import com.yaz.core.service.domain.EncryptionConfig;
 import com.yaz.core.util.RandomUtil;
+import com.yaz.core.util.StringUtil;
 import io.micrometer.core.annotation.Timed;
 import io.vertx.core.json.Json;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -43,7 +44,9 @@ public class EncryptionService {
   }
 
   public String encryptObj(Object obj) {
-    return encrypt(Json.encode(obj));
+    final var json = Json.encode(obj);
+    //final var compressed = StringUtil.compressStr(json);
+    return encrypt(json);
   }
 
 
@@ -83,6 +86,8 @@ public class EncryptionService {
   }
 
   public <T> T decryptObj(String json, Class<T> clazz) {
-    return Json.decodeValue(decrypt(json), clazz);
+    final var decrypt = decrypt(json);
+    //final var decompressed = StringUtil.decompress(decrypt);
+    return Json.decodeValue(decrypt, clazz);
   }
 }

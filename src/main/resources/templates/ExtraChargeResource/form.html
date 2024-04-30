@@ -5,18 +5,17 @@
       hx-swap="outerHTML"
       hx-indicator=".htmx-indicator"
   {#if dto.isEdit}
-      hx-swap-oob="true"
-      hx-patch="/api/extra_charges/{dto.id}"
+      hx-patch="/api/extra_charges/{dto.key}"
   {#else}
-      hx-post="/api/extra_charges/buildings/{dto.buildingId}"
+      hx-post="/api/extra_charges/{dto.key}"
+  {/if}
   {#if dto.clearForm}
       hx-swap-oob="true"
-  {/if}
   {/if}
       data-te-validation-init
     script="
   {#if dto.isRefreshGrid}
-        init send 'update_extra_charges' to #extra_charges_buildings_grid
+        init send 'update_extra_charges' to #extra_charges_grid
   {#else}
         init set @data-te-validated to 'true'
   {/if}
@@ -113,7 +112,7 @@
     </button>
 
     <button class="btn btn-neutral" type="button"
-         hx-get="/api/extra_charges/form/new/{dto.buildingId}"
+         hx-get="/api/extra_charges/form/new/{dto.key}"
             hx-swap="none"
             >
       Limpiar

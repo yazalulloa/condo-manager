@@ -2,7 +2,11 @@
 
 
 {#each res.results}
-<option value="{it.key}">
+<option value="{it.key}"
+        {#if res.selected && res.selected == it.rate.id}
+            selected
+        {/if}
+>
     {it.rate.rate}
     {it.rate.dateOfRate}
 </option>

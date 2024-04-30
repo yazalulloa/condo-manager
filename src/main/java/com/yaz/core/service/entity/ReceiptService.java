@@ -1,12 +1,13 @@
 package com.yaz.core.service.entity;
 
-import com.yaz.persistence.domain.query.ReceiptQuery;
-import com.yaz.persistence.entities.Receipt;
-import com.yaz.persistence.repository.turso.ReceiptRepository;
-import com.yaz.api.resource.ReceiptResource;
 import com.yaz.api.domain.response.ReceiptCountersDto;
 import com.yaz.api.domain.response.ReceiptTableResponse;
+import com.yaz.api.resource.ReceiptResource;
 import com.yaz.core.service.EncryptionService;
+import com.yaz.persistence.domain.query.ReceiptQuery;
+import com.yaz.persistence.domain.request.ReceiptUpdateRequest;
+import com.yaz.persistence.entities.Receipt;
+import com.yaz.persistence.repository.turso.ReceiptRepository;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -37,12 +38,17 @@ public class ReceiptService {
     return repository.insert(receipt);
   }
 
-  public Uni<Integer> updateLastSent(String buildingId, String id) {
-    return repository.updateLastSent(buildingId, id);
+  public Uni<Integer> updateLastSent(long id) {
+    return repository.updateLastSent(id);
   }
 
   public Uni<Optional<Receipt>> read(long id) {
     return repository.read(id);
+  }
+
+  public Uni<Receipt> get(long id) {
+    return read(id)
+        .map(optional -> optional.orElseThrow(() -> new IllegalArgumentException("Receipt not found: " + id)));
   }
 
   public Uni<List<Receipt>> select(ReceiptQuery receiptQuery) {
@@ -111,5 +117,9 @@ public class ReceiptService {
               .results(results)
               .build();
         });
+  }
+
+  public Uni<Integer> update(ReceiptUpdateRequest updateRequest) {
+    return repository.update(updateRequest);
   }
 }

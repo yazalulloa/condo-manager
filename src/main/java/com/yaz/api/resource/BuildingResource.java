@@ -20,6 +20,7 @@ import com.yaz.core.util.StringUtil;
 import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.domain.query.BuildingQuery;
 import com.yaz.persistence.entities.Building;
+import com.yaz.persistence.entities.ExtraCharge;
 import com.yaz.persistence.entities.ReserveFund;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
@@ -132,8 +133,8 @@ public class BuildingResource {
   public Uni<TemplateInstance> editForm(@RestQuery String buildingId) {
 
     return Uni.combine().all()
-        .unis(service.get(buildingId), emailConfigService.displayList(), apartmentService.aptByBuildings(buildingId),
-            extraChargeService.byBuilding(buildingId), reserveFundService.listByBuilding(buildingId))
+        .unis(service.read(buildingId), emailConfigService.displayList(), apartmentService.aptByBuildings(buildingId),
+            extraChargeService.by(buildingId, buildingId), reserveFundService.listByBuilding(buildingId))
         .with((optional, emailConfigs, apartments, extraCharges, reserveFunds) -> {
 
           Supplier<BuildingFormDto> supplier = () -> {
@@ -162,10 +163,15 @@ public class BuildingResource {
           };
 
           final var list = extraCharges.stream()
-              .map(extraCharge -> ExtraChargeTableItem.builder()
-                  .item(extraCharge)
-                  .id(encryptionService.encryptObj(extraCharge.keys()))
-                  .build())
+              .map(extraCharge -> {
+                final var keys = extraCharge.keys();
+
+                return ExtraChargeTableItem.builder()
+                    .item(extraCharge)
+                    .key(encryptionService.encryptObj(keys))
+                    .cardId(keys.cardId())
+                    .build();
+              })
               .toList();
 
           final var reserveFundTableItems = reserveFunds.stream().map(reserveFund -> {
@@ -181,7 +187,7 @@ public class BuildingResource {
               .extraCharges(list)
               .extraChargeFormDto(ExtraChargeFormDto.builder()
                   .isEdit(false)
-                  .buildingId(buildingId)
+                  .key(encryptionService.encryptObj(ExtraCharge.Keys.newBuilding(buildingId)))
                   .apartments(apartments)
                   .build())
               .reserveFundFormDto(ReserveFundFormDto.builder()
