@@ -25,6 +25,7 @@ import io.quarkus.cache.CacheInvalidateAll;
 import io.quarkus.cache.CacheResult;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -150,7 +151,8 @@ public class RateService {
   private Single<BcvUsdRateResult> newRateResult() {
     return bcvClientService.get()
         .map(ConvertUtil::parseRate)
-        .map(newRate -> new BcvUsdRateResult(BcvUsdRateResult.State.NEW_RATE, newRate));
+        .map(newRate -> new BcvUsdRateResult(BcvUsdRateResult.State.NEW_RATE, newRate))
+        .subscribeOn(Schedulers.io());
   }
 
   @CacheResult(cacheName = RateCache.GET, lockTimeout = Constants.CACHE_TIMEOUT)
