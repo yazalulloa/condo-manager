@@ -26,7 +26,7 @@ public class TelegramChatResource {
   SecurityIdentity identity;
 
   @GET
-  @Path("start_url")
+  @Path("link")
   public Response startUrl() {
     final var userId = identity.getAttribute("userId");
     if (userId == null || !(userId instanceof String)) {
