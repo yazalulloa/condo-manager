@@ -37,6 +37,8 @@ public class ExtraChargeFormDto {
   private final boolean active = true;
   private final List<Apt> apartments;
 
+  private final Long count;
+
   @Builder.Default
   private final Set<String> aptChecked = Collections.emptySet();
   private final String apartmentFieldError;

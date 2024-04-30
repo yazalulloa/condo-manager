@@ -1,5 +1,6 @@
 package com.yaz.core.service.entity;
 
+import com.yaz.core.util.monad.Result;
 import com.yaz.persistence.domain.request.ExtraChargeCreateRequest;
 import com.yaz.persistence.domain.request.ExtraChargeUpdateRequest;
 import com.yaz.persistence.entities.ExtraCharge;
@@ -65,5 +66,9 @@ public class ExtraChargeService {
 
   public Uni<Integer> deleteByBuilding(String id) {
     return repository.deleteByBuilding(id);
+  }
+
+  public Uni<Long> count(Keys keys) {
+    return repository.count(keys.buildingId(), keys.parentReference());
   }
 }

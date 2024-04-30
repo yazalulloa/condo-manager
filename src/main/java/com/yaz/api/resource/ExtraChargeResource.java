@@ -57,6 +57,8 @@ public class ExtraChargeResource {
   @CheckedTemplate
   public static class Templates {
 
+    public static native TemplateInstance counters(long count);
+
     public static native TemplateInstance form(ExtraChargeFormDto dto);
 
     public static native TemplateInstance grid(List<ExtraChargeTableItem> extraCharges);
@@ -64,12 +66,15 @@ public class ExtraChargeResource {
 
   @DELETE
   @Path("{id}")
-  public Uni<Response> delete(@NotBlank @RestPath String id) {
+  @Produces(MediaType.TEXT_HTML)
+  public Uni<TemplateInstance> delete(@NotBlank @RestPath String id) {
 
     final var json = encryptionService.decrypt(id);
     final var keys = Json.decodeValue(json, Keys.class);
+
     return service.delete(keys)
-        .replaceWith(Response.ok().build());
+        .replaceWith(service.count(keys))
+        .map(Templates::counters);
   }
 
   @GET
@@ -205,22 +210,26 @@ public class ExtraChargeResource {
                       .apartments(apts)
                       .build();
                 })
-                .map(extraCharge -> {
-                  final var keys1 = extraCharge.keys();
-                  return ExtraChargeFormDto.builder()
-                      .isEdit(false)
-                      .key(key)
-                      .apartments(apartments)
-                      .refreshGrid(false)
-                      .tableItem(ExtraChargeTableItem.builder()
-                          .key(encryptionService.encryptObj(keys1))
-                          .item(extraCharge)
-                          .cardId(keys1.cardId())
-                          .outOfBoundsUpdate(false)
-                          .addAfterEnd(true)
-                          .build())
-                      .build();
+                .flatMap(extraCharge -> {
 
+                  return service.count(keys)
+                      .map(count -> {
+                        final var keys1 = extraCharge.keys();
+                        return ExtraChargeFormDto.builder()
+                            .isEdit(false)
+                            .key(key)
+                            .apartments(apartments)
+                            .refreshGrid(false)
+                            .tableItem(ExtraChargeTableItem.builder()
+                                .key(encryptionService.encryptObj(keys1))
+                                .item(extraCharge)
+                                .cardId(keys1.cardId())
+                                .outOfBoundsUpdate(false)
+                                .addAfterEnd(true)
+                                .build())
+                            .count(count)
+                            .build();
+                      });
                 })
                 .map(Templates::form)
                 .map(templateInstance -> Response.ok(templateInstance).build());
@@ -249,7 +258,6 @@ public class ExtraChargeResource {
               .toList();
         })
         .map(Templates::grid);
-
   }
 
   @PATCH

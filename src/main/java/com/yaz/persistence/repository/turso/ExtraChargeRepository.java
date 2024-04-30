@@ -95,6 +95,9 @@ public class ExtraChargeRepository {
   private static final String DELETE_APT_BY = "DELETE FROM %s WHERE building_id = ? AND parent_reference = ?".formatted(
       COLLECTION_APT);
 
+  private static final String COUNT_BY = "SELECT COUNT(id) AS query_count FROM %s WHERE building_id = ? AND parent_reference = ?".formatted(
+      COLLECTION);
+
   private final TursoWsService tursoWsService;
 
   @Inject
@@ -282,5 +285,9 @@ public class ExtraChargeRepository {
     final var deleteApt = Stmt.stmt(DELETE_APT_BY, values);
 
     return new Stmt[]{delete, deleteApt};
+  }
+
+  public Uni<Long> count(String buildingId, String parentReference) {
+    return tursoWsService.count(COUNT_BY, Value.text(buildingId), Value.text(parentReference));
   }
 }
