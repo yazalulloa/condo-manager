@@ -9,6 +9,8 @@ services:
 #      - local.env
     environment:
       - DOCKER_TIMEZONE=America/Caracas
+    volumes:
+      - /home/yaz/Downloads:/home/yaz/Downloads
   #  cmy-vx-2nd:
   #    container_name: condo-manager-2nd
   #    image: condo-manager:latest

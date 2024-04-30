@@ -278,7 +278,7 @@ textarea, input {
   display: grid;
   border-bottom: 1px solid black;
   grid-template-rows: auto;
-  grid-gap: 4px;
+  grid-gap: 1rem;
   width: 100%;
   text-align: center;
 }
