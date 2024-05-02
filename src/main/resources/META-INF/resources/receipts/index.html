@@ -18,7 +18,14 @@
       <div id="buildings-selector"></div>
     </label>
 
-    <div hidden="hidden"
+    <div id="receipts-updater"
+        hidden="hidden"
+         hx-get="/api/receipts"
+         hx-include="[name='building_input'],[name='month_input'],[name='date_input']"
+         hx-trigger="update_receipts delay:500ms"
+         hx-target="#receipt-grid"
+         hx-swap="innerHTML"
+         hx-indicator=".htmx-indicator"
     >
 
     </div>
@@ -27,20 +34,12 @@
            type="date"
            name="date_input"
            placeholder="YYYY-MM-DD"
-           hx-get="/api/receipts"
-           hx-include="[name='building_input'],[name='month_input']"
-           hx-trigger="change"
-           hx-target="#receipt-grid"
-           hx-swap="innerHTML"
-           hx-indicator=".htmx-indicator">
+           script="on change send 'update_receipts' to #receipts-updater">
 
     <div>
+
       <select name="month_input"
-              hx-indicator=".htmx-indicator"
-              hx-get="/api/receipts"
-              hx-include="[name='date_input'],[name='building_input']"
-              hx-target="#receipt-grid"
-              hx-swap="innerHTML"
+              script="on change send 'update_receipts' to #receipts-updater"
               data-te-select-init
               multiple>
         <option value="1">Enero</option>

@@ -4,11 +4,7 @@
      script="init add .fade-me-in then wait 20 then toggle @hidden"
 >
 <select name="building_input"
-        hx-indicator=".htmx-indicator"
-        hx-get="/api/receipts"
-        hx-include="[name='date_input'],[name='month_input']"
-        hx-target="#receipt-grid"
-        hx-swap="innerHTML"
+        script="on change send 'update_receipts' to #receipts-updater"
         data-te-select-init multiple>
 {#include BuildingResource/selector.html list=dto.buildings /}
 </select>
