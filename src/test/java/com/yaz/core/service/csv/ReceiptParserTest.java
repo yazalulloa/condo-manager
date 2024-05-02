@@ -3,8 +3,9 @@ package com.yaz.core.service.csv;
 import io.quarkus.test.junit.QuarkusTest;
 import io.vertx.core.json.Json;
 import jakarta.inject.Inject;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.xmlbeans.impl.xpath.XPathFactory;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
@@ -15,7 +16,7 @@ class ReceiptParserTest {
   ReceiptParser receiptParser;
 
   @Test
-  void parse() {
+  void parseDir() {
 
     final var receipts = receiptParser.parseDir("/home/yaz/Downloads")
         .blockingGet();
@@ -38,6 +39,14 @@ class ReceiptParserTest {
 //      }
 //
 //    }
+  }
+
+  @Test
+  void parse() {
+    final var receipt = receiptParser.parse(Paths.get("/home/yaz/Downloads/TULIPANES FACTURA  SEP23 YAZAL.xlsx"))
+        .blockingGet();
+
+    log.info("{}", Json.encodePrettily(receipt));
   }
 
 }

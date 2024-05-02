@@ -1,9 +1,6 @@
 package com.yaz.core.service.csv;
 
-import com.yaz.core.service.TranslationProvider;
-import com.yaz.core.service.entity.BuildingService;
 import com.yaz.core.util.DecimalUtil;
-import com.yaz.core.util.RxUtil;
 import com.yaz.core.util.StringUtil;
 import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.domain.ExpenseType;
@@ -11,21 +8,16 @@ import com.yaz.persistence.entities.Debt;
 import com.yaz.persistence.entities.Expense;
 import com.yaz.persistence.entities.ExtraCharge;
 import com.yaz.persistence.entities.ExtraCharge.Type;
-import io.quarkus.arc.lookup.LookupIfProperty;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.vertx.rxjava3.core.Vertx;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
 import java.math.BigDecimal;
 import java.nio.file.Path;
-import java.time.Month;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -42,17 +34,18 @@ public class ReceiptParserStreaming extends ReceiptParserAbstractImpl {
   private final Vertx vertx;
 
 
-//  @Inject
+  //  @Inject
   public ReceiptParserStreaming(Vertx vertx) {
     this.vertx = vertx;
   }
+
   @Override
   protected Vertx vertx() {
     return vertx;
   }
 
   @Override
-  public Single<CsvReceipt> parse( Path path) {
+  public Single<CsvReceipt> parse(Path path) {
 
     return Single.fromSupplier(() -> {
           final var expenses = new ArrayList<Expense>();
@@ -107,12 +100,12 @@ public class ReceiptParserStreaming extends ReceiptParserAbstractImpl {
         final var values = cells.values();
         final var iterator = values.iterator();
         final var description = iterator.next().value().replaceAll("\\s{2,}", " ").trim();
-        if (description.contains("GASTOS NO COMUNES")) {
+        if (description.contains("GASTOS NO COMUNES") || description.contains("TOTAL GASTOS COMUNES")) {
           type = ExpenseType.UNCOMMON;
           continue;
         }
 
-        if (description.contains("FONDOS DE")) {
+        if (description.contains("FONDOS DE") || description.contains("TOTAL GASTOS DEL MES")) {
           break;
         }
 
