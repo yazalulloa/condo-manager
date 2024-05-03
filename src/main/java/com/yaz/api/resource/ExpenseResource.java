@@ -136,15 +136,15 @@ public class ExpenseResource {
     final var amount = Optional.ofNullable(request.getAmount())
         .map(StringUtil::trimFilter)
         .map(DecimalUtil::ofString)
-        .orElse(null);
+        .orElse(BigDecimal.ZERO);
 
     return ExpenseFormDto.builder()
         .key(key)
         .description(request.getDescription())
         .descriptionFieldError(
             StringUtil.trimFilter(request.getDescription()) == null ? "No puede estar vacio" : null)
-        .amount(Optional.ofNullable(amount).orElse(BigDecimal.ONE))
-        .amountFieldError(amount == null || DecimalUtil.zeroOrLess(amount) ? "Debe ser mayor a 0" : null)
+        .amount(amount)
+        .amountFieldError(null)
         .currency(request.getCurrency())
         .type(request.getType())
         .build();
@@ -218,7 +218,7 @@ public class ExpenseResource {
                 .build());
           }
 
-          expenses.removeIf(expense -> expense.id() == keys.id());
+            expenses.removeIf(expense -> expense.id() == keys.id());
 
           return expenseService.update(keys, formDto)
               .map(expense -> {

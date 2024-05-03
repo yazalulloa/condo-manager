@@ -19,7 +19,7 @@
     </label>
 
     <div id="receipts-updater"
-        hidden="hidden"
+         hidden="hidden"
          hx-get="/api/receipts"
          hx-include="[name='building_input'],[name='month_input'],[name='date_input']"
          hx-trigger="update_receipts delay:500ms"
@@ -42,6 +42,7 @@
               script="on change send 'update_receipts' to #receipts-updater"
               data-te-select-init
               multiple>
+
         <option value="1">Enero</option>
         <option value="2">Febrero</option>
         <option value="3">Marzo</option>

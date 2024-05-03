@@ -1,0 +1,13 @@
+{@com.yaz.api.domain.response.DebtCountersDto dto}
+
+{#if dto.count}
+    <span id="debts-form-counter" hx-swap-oob="true">{dto.count}</span>
+{/if}
+
+{#if dto.receipts}
+    <span id="debt-receipts-counter" hx-swap-oob="true">{dto.receipts}</span>
+{/if}
+
+{#if dto.total}
+    <span id="debts-total" hx-swap-oob="true">{dto.total}</span>
+{/if}

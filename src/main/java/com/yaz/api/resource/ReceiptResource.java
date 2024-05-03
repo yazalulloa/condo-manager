@@ -1,5 +1,6 @@
 package com.yaz.api.resource;
 
+import com.yaz.api.domain.response.DebtTableItem;
 import com.yaz.api.domain.response.ExpenseCountersDto;
 import com.yaz.api.domain.response.ExpenseFormDto;
 import com.yaz.api.domain.response.ExpenseTableItem;
@@ -36,6 +37,7 @@ import com.yaz.persistence.domain.query.RateQuery;
 import com.yaz.persistence.domain.query.ReceiptQuery;
 import com.yaz.persistence.domain.query.SortOrder;
 import com.yaz.persistence.domain.request.ReceiptUpdateRequest;
+import com.yaz.persistence.entities.Debt;
 import com.yaz.persistence.entities.Expense;
 import com.yaz.persistence.entities.ExtraCharge;
 import com.yaz.persistence.entities.Receipt;
@@ -59,9 +61,11 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.Month;
+import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -329,7 +333,9 @@ public class ReceiptResource {
 
               final var json = Json.encode(csvReceipt);
               final var compressed = StringUtil.compressStr(json);
-              final var body = encryptionService.encrypt(compressed);
+              //final var body = encryptionService.encrypt(compressed);
+
+              //log.info("Original {} Compressed {} Encrypted {}", json.length(), compressed.length(), body.length());
 
               final var fileName = file.fileName();
 
@@ -369,7 +375,7 @@ public class ReceiptResource {
                   .date(localDate.toString())
                   .buildings(buildings)
                   .rates(rates)
-                  .data(body)
+                  .data(compressed)
                   .build();
 
             })
@@ -396,6 +402,8 @@ public class ReceiptResource {
         .memoize()
         .forFixedDuration(Duration.ofSeconds(3));
 
+    final var buildingUni = buildingService.get(keys.buildingId());
+
     final var rateUni = receiptUni.flatMap(receipt -> rateService.read(receipt.rateId()))
         .map(optional -> optional.orElseThrow(() -> new IllegalArgumentException("RATE_NOT_FOUND")));
 
@@ -410,8 +418,8 @@ public class ReceiptResource {
 
     return Uni.combine().all()
         .unis(receiptUni, rateUni, expensesListUni, extraChargesListUni, debtListUni, rateListUni,
-            apartmentService.aptByBuildings(keys.buildingId()))
-        .with((receipt, rate, expenses, extraCharges, debts, rates, apartments) -> {
+            apartmentService.aptByBuildings(keys.buildingId()), buildingUni)
+        .with((receipt, rate, expenses, extraCharges, debts, rates, apartments, building) -> {
 
           final var receiptForm = ReceiptFormDto.builder()
               .key(id)
@@ -451,6 +459,25 @@ public class ReceiptResource {
               })
               .toList();
 
+          var debtReceiptsTotal = 0;
+          var debtTotal = BigDecimal.ZERO;
+
+          final var debtTableItems = new ArrayList<DebtTableItem>();
+          for (Debt debt : debts) {
+            final var keys1 = debt.keys();
+            final var item = DebtTableItem.builder()
+                .key(encryptionService.encryptObj(keys1))
+                .item(debt)
+                .currency(building.debtCurrency())
+                .cardId(keys1.cardId())
+                .build();
+
+            debtReceiptsTotal += debt.receipts();
+            debtTotal = debtTotal.add(debt.amount());
+
+            debtTableItems.add(item);
+          }
+
           final var expenseTotals = ConvertUtil.expenseTotals(rate.rate(), expenses);
           final var editFormInit = ReceiptEditFormInit.builder()
               .receiptForm(receiptForm)
@@ -466,8 +493,11 @@ public class ReceiptResource {
                       Expense.Keys.of(receipt.buildingId(), receipt.id(), receipt.rateId())))
                   .build())
               .expenses(expenseTableItems)
+              .debts(debtTableItems)
               .totalCommonExpenses(expenseTotals.formatCommon())
               .totalUnCommonExpenses(expenseTotals.formatUnCommon())
+              .debtReceiptsTotal(debtReceiptsTotal)
+              .debtTotal(building.debtCurrency().format(debtTotal))
               .build();
 
           return Templates.editInit(editFormInit);
@@ -503,8 +533,9 @@ public class ReceiptResource {
 
     final var month = Month.of(request.month);
     final var date = LocalDate.parse(request.date);
-    final var decrypted = encryptionService.decrypt(request.data);
-    final var decompress = StringUtil.decompress(decrypted);
+    //final var decrypted = encryptionService.decrypt(request.data);
+    final var decompress = StringUtil.decompress(request.data);
+    //final var decompress = StringUtil.decompress(decrypted);
     final var csvReceipt = Json.decodeValue(decompress, CsvReceipt.class);
 
     if (!ArrayUtils.contains(DateUtil.yearsPicker(), request.year)) {
@@ -515,8 +546,9 @@ public class ReceiptResource {
     final var rateId = Long.parseLong(encryptionService.decrypt(request.rateInput));
 
     return Uni.combine().all()
-        .unis(buildingService.exists(request.building), rateService.read(rateId))
-        .withUni((buildingExists, rateOptional) -> {
+        .unis(buildingService.exists(request.building), rateService.read(rateId),
+            apartmentService.aptByBuildings(request.building))
+        .withUni((buildingExists, rateOptional, apartments) -> {
           final var noContentUni = Uni.createFrom().item(Response.noContent().build());
           if (!buildingExists) {
             log.info("BUILDING_NOT_FOUND {}", request);
@@ -535,10 +567,21 @@ public class ReceiptResource {
                   .build())
               .toList();
 
-          final var debts = csvReceipt.debts().stream()
-              .map(debt -> debt.toBuilder()
-                  .buildingId(request.building)
-                  .build())
+          final var debts = apartments.stream()
+              .map(apt -> {
+                return csvReceipt.debts()
+                    .stream().filter(debt -> debt.aptNumber().contains(apt.number()))
+                    .findFirst()
+                    .map(debt -> debt.toBuilder()
+                        .buildingId(request.building)
+                        .aptNumber(apt.number())
+                        .build())
+                    .orElseGet(() -> Debt.builder()
+                        .buildingId(request.building)
+                        .aptNumber(apt.number())
+                        .amount(BigDecimal.ZERO)
+                        .build());
+              })
               .toList();
 
           final var extraCharges = csvReceipt.extraCharges().stream()

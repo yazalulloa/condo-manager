@@ -302,6 +302,9 @@ textarea, input {
   grid-template-columns: 2fr 2fr 2fr 2fr;
 }
 
+.debt-grid {
+  grid-template-columns: 2fr 1fr 1fr 2fr 1fr 1fr;
+}
 
 .receipt-grid-container {
   display: grid;

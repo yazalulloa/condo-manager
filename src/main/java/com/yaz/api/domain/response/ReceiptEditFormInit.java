@@ -11,7 +11,10 @@ public record ReceiptEditFormInit(
     String totalUnCommonExpenses,
     String totalCommonExpenses,
     ExpenseFormDto expenseFormDto,
-    List<ExpenseTableItem> expenses
+    List<ExpenseTableItem> expenses,
+    List<DebtTableItem> debts,
+    int debtReceiptsTotal,
+    String debtTotal
 ) {
 
 }

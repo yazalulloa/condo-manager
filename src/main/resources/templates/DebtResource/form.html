@@ -1,0 +1,131 @@
+{@com.yaz.api.domain.response.DebtFormDto dto}
+
+{#if dto.isUpdate == false}
+    <form id="debt-form"
+          class="min-w-1/4 flex flex-col gap-2"
+          hx-swap="outerHTML"
+          hx-indicator=".htmx-indicator"
+            {#if dto.isEdit}
+                hx-patch="/api/debts/{dto.key}"
+            {#else}
+                hx-post="/api/debts/{dto.key}"
+            {/if}
+            {#if dto.clearForm}
+                hx-swap-oob="true"
+            {/if}
+          data-te-validation-init
+          script="init set @data-te-validated to 'true'"
+    >
+
+        <input type="hidden" name="{inject:csrf.parameterName}" value="{inject:csrf.token}"
+               script="init set @data-te-validation-state to invalid"/>
+
+        <div class="p-2">
+            <p>{dto.apt}</p>
+        </div>
+
+        <cm-form-input
+                class=""
+                id="debtReceiptsField"
+                name="receipts"
+                type="number"
+                maxlength="5"
+                placeholder="Recibos"
+                value="{dto.receipts}"
+                input-error="{dto.receiptsFieldError}"
+        >
+        </cm-form-input>
+
+        <cm-form-input
+                class=""
+                id="debtAmountField"
+                name="amount"
+                type="number"
+                maxlength="10"
+                step=".01"
+                maxlength="100"
+                placeholder="Monto"
+                value="{dto.amount}"
+        >
+
+        </cm-form-input>
+
+        <div>
+            <select id="debt-form-month-input"
+                    name="months"
+                    data-te-select-init
+                    multiple>
+                {#each GLO_MONTH_TYPES}
+                    <option value="{it.month}"
+                            {#if dto.months && dto.months.contains(it.month)}
+                                selected
+                            {/if}
+                    >{it.name}</option>
+
+                {/each}
+            </select>
+            <label data-te-select-label-ref for="debt-form-month-input">Mes</label>
+        </div>
+
+        <cm-form-input
+                class="pt-2"
+                id="previousPaymentAmountField"
+                name="previousPaymentAmount"
+                type="number"
+                step=".01"
+                maxlength="100"
+                placeholder="Abono"
+                value="{dto.previousPaymentAmount}"
+        >
+
+        </cm-form-input>
+
+        <label class="label gap-4 w-full">
+            <span class="label-text">Abono Moneda</span>
+            <select class="select select-bordered w-full" name="previousPaymentAmountCurrency">
+                {#each GLO_CURRENCIES}
+                    <option value="{it}"
+                            {#if dto.previousPaymentAmountCurrency && dto.previousPaymentAmountCurrency == it}
+                                selected
+                            {/if}
+                    >{it}</option>
+
+                {/each}
+            </select>
+        </label>
+
+        {#if dto.generalError}
+            <span class="text-red-500 text-xs">{dto.generalError}</span>
+        {/if}
+
+        <div class="p-2 flex flex-row gap-4">
+            <button class="btn btn-primary">
+                {#if dto.isEdit}
+                    Editar
+                {#else}
+                    Agregar
+                {/if}
+            </button>
+
+            <button class="btn btn-neutral" type="button"
+                    script="on click add .hidden to #debt-form"
+            >
+                Limpiar
+            </button>
+
+            <img class="htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">
+        </div>
+    </form>
+{#else}
+    <form id="debt-form" hidden="hidden">
+
+    </form>
+{/if}
+
+{#if dto.tableItem}
+        {#include DebtResource/item item = dto.tableItem /}
+{/if}
+
+{#if dto.counters}
+        {#include DebtResource/counters dto = dto.counters /}
+{/if}

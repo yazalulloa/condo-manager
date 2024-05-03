@@ -1,13 +1,13 @@
 package com.yaz.persistence.repository.turso;
 
+import com.yaz.core.util.SqlUtil;
+import com.yaz.core.util.StringUtil;
 import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.entities.Debt;
 import com.yaz.persistence.repository.turso.client.TursoWsService;
 import com.yaz.persistence.repository.turso.client.ws.request.Stmt;
 import com.yaz.persistence.repository.turso.client.ws.request.Value;
 import com.yaz.persistence.repository.turso.client.ws.response.ExecuteResp.Row;
-import com.yaz.core.util.SqlUtil;
-import com.yaz.core.util.StringUtil;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -33,10 +33,26 @@ public class DebtRepository {
       INSERT INTO %s (building_id, receipt_id, apt_number, receipts, amount, months, previous_payment_amount, 
       previous_payment_amount_currency) VALUES %s
       """;
-  private static final String SELECT_BY_RECEIPT = "SELECT * FROM %s WHERE building_id = ? AND receipt_id = ? ORDER BY apt_number".formatted(
-      COLLECTION);
+//  private static final String SELECT_BY_RECEIPT = "SELECT * FROM %s WHERE building_id = ? AND receipt_id = ? ORDER BY apt_number".formatted(
+//      COLLECTION);
+
+  private static final String SELECT_BY_RECEIPT = """
+      SELECT debts.*, apartments.name as apt_name FROM debts 
+      LEFT JOIN apartments ON debts.apt_number = apartments.number
+      WHERE debts.building_id = ? AND debts.receipt_id = ? 
+      GROUP BY debts.building_id, debts.receipt_id, debts.apt_number
+      ORDER BY debts.apt_number
+      """.formatted(COLLECTION);
+
   private static final String DELETE_BY_RECEIPT = "DELETE FROM %s WHERE building_id = ? AND receipt_id = ?".formatted(
       COLLECTION);
+
+  private static final String READ = """
+      SELECT debts.*, apartments.name as apt_name 
+      FROM debts
+      LEFT JOIN apartments ON debts.apt_number = apartments.number
+      WHERE debts.building_id = ? AND debts.receipt_id = ? AND debts.apt_number = ?
+      """;
 
   private final TursoWsService tursoWsService;
 
@@ -50,6 +66,7 @@ public class DebtRepository {
         .buildingId(row.getString("building_id"))
         .receiptId(row.getLong("receipt_id"))
         .aptNumber(row.getString("apt_number"))
+        .aptName(row.getString("apt_name"))
         .receipts(row.getInt("receipts"))
         .amount(row.getBigDecimal("amount"))
         .months(months)
@@ -96,5 +113,26 @@ public class DebtRepository {
 
   public Uni<List<Debt>> readByReceipt(String buildingId, long receiptId) {
     return tursoWsService.selectQuery(stmtSelectByReceipt(buildingId, receiptId), this::from);
+  }
+
+  public Uni<Optional<Debt>> read(String buildingId, long receiptId, String aptNumber) {
+    return tursoWsService.selectOne(
+        Stmt.stmt(READ, Value.text(buildingId), Value.number(receiptId), Value.text(aptNumber)), this::from);
+  }
+
+  public Uni<Integer> update(Debt debt) {
+    return tursoWsService.executeQuery(
+            Stmt.stmt(
+                "UPDATE %s SET receipts = ?, amount = ?, months = ?, previous_payment_amount = ?, previous_payment_amount_currency = ? WHERE building_id = ? AND receipt_id = ? AND apt_number = ?"
+                    .formatted(COLLECTION),
+                Value.number(debt.receipts()),
+                Value.number(debt.amount()),
+                Value.text(debt.months().stream().map(String::valueOf).collect(Collectors.joining(","))),
+                Value.number(debt.previousPaymentAmount()),
+                Value.enumV(debt.previousPaymentAmountCurrency()),
+                Value.text(debt.buildingId()),
+                Value.number(debt.receiptId()),
+                Value.text(debt.aptNumber())))
+        .map(executeResp -> executeResp.result().rowCount());
   }
 }

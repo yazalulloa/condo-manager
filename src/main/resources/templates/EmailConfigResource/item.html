@@ -33,7 +33,7 @@ class="fade-me-out fade-me-in"
   </span>
   </div>
 
-  <div hidden="hidden">{res.item.emailConfig.stacktrace}</div>
+  {!<div hidden="hidden">{res.item.emailConfig.stacktrace}</div>!}
 
   <div
     {#if res.item.emailConfig.stacktrace}

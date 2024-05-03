@@ -10,8 +10,10 @@
     <summary class="hover:bg-[#00000014]">
         <div class="flex flex-row flex-wrap gap-6 justify-center p-2">
             <div class="text-center">Gastos: <span id="expenses-form-counter">{res.expenses.size}</span></div>
-            <div class="text-center">Gastos comunes totales: <span id="expenses-total-common">{res.totalCommonExpenses}</span></div>
-            <div class="text-center">Gastos no comunes totales: <span id="expenses-total-uncommon">{res.totalUnCommonExpenses}</span></div>
+            <div class="text-center">Gastos comunes totales: <span
+                        id="expenses-total-common">{res.totalCommonExpenses}</span></div>
+            <div class="text-center">Gastos no comunes totales: <span
+                        id="expenses-total-uncommon">{res.totalUnCommonExpenses}</span></div>
         </div>
     </summary>
     <div class="flex flex-row flex-wrap gap-6 justify-center p-2">
@@ -29,7 +31,8 @@
 
 <details open>
     <summary class="hover:bg-[#00000014]">
-        <div class="text-center">Cargos Extra: <span id="extra-charges-form-counter">{res.extraCharges.size}</span></div>
+        <div class="text-center">Cargos Extra: <span id="extra-charges-form-counter">{res.extraCharges.size}</span>
+        </div>
     </summary>
     <div class="flex flex-row flex-wrap gap-6 justify-center p-2">
 
@@ -43,6 +46,29 @@
                 {#include ExtraChargeResource/grid extraCharges = res.extraCharges /}
         </div>
             {#include ExtraChargeResource/form dto = res.extraChargeFormDto /}
+
+    </div>
+</details>
+
+<div class="p-2"></div>
+
+<hr class="p-3 center">
+
+<details open>
+    <summary class="hover:bg-[#00000014]">
+        <div class="flex flex-row flex-wrap gap-6 justify-center p-2">
+            <div class="text-center">Deudas: <span id="debts-form-counter">{res.debts.size}</span></div>
+            <div class="text-center">Recibos: <span id="debt-receipts-counter">{res.debtReceiptsTotal}</span></div>
+            <div class="text-center">Total: <span id="debts-total">{res.debtTotal}</span></div>
+        </div>
+    </summary>
+    <div class="flex flex-row flex-wrap gap-4 justify-center p-2">
+
+
+            {#include DebtResource/grid list = res.debts /}
+        <form id="debt-form" hidden="hidden">
+
+        </form>
 
     </div>
 </details>

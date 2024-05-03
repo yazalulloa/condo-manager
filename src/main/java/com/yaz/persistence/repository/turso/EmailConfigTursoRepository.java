@@ -68,7 +68,6 @@ public class EmailConfigTursoRepository implements EmailConfigRepository {
       SELECT email_configs.user_id,users.email, users.username, users.name, users.picture
            FROM email_configs
            LEFT JOIN users ON email_configs.user_id = users.id
-           WHERE email_configs.is_available = true AND email_configs.active = true
       ORDER BY users.email DESC;
       """;
 

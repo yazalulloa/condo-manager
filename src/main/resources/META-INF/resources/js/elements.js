@@ -48,8 +48,10 @@ class FormInput extends HTMLElement {
     input.disabled = this.getAttribute("disabled") != null;
     input.readOnly = this.getAttribute("readOnly") != null;
 
+
+
     if (input.maxLength) {
-      input.oninput = limitInputToMaxLength(input);
+      input.oninput = () => this.onInput(input);
     }
 
     inputClasses.split(" ").forEach((element) => input.classList.add(element));
@@ -75,6 +77,14 @@ class FormInput extends HTMLElement {
 
     this.input = input;
     this.formDiv = div;
+  }
+
+  onInput(input) {
+    limitInputToMaxLength(input);
+
+    if (!(input.step)) {
+      
+    }
   }
 
   connectedCallback() {

@@ -412,6 +412,19 @@ if (sidenav2) {
 
 }
 
+window.monthsToStr  = function (months) {
+  let str = "";
+  for (let i = 0; i < months.length; i++) {
+    let month = months[i];
+    str += integerToMonth(month);
+    if (i < months.length - 1) {
+      str += ", ";
+    }
+  }
+  return str;
+
+}
+
 window.integerToMonth = function (month) {
 
   if (!month) {

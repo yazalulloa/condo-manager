@@ -1,0 +1,29 @@
+{@com.yaz.api.domain.response.DebtTableItem item}
+
+<div class="debt-grid base-grid-cm hover:bg-[#00000014] p-1 fade-me-out fade-me-in"
+     id="{item.cardId}"
+     {#if item.outOfBoundsUpdate}
+     hx-swap-oob="true"
+        {/if}
+>
+
+    <div class="flex"><span>{item.item.aptNumber} {item.item.aptName}</span></div>
+    <div><span>{item.item.receipts}</span></div>
+    <div class="flex justify-end"><span class="text-end">{item.formatAmount}</span></div>
+    <span script="init call monthsToStr({item.item.months}) then put it into my.innerHTML"></span>
+    <div>{item.item.formatPreviousPaymentAmount}</div>
+
+    <div class="flex flex-row gap-2 justify-center">
+        <div class="block">
+            <button class="edit-btn"
+                    hx-get="{item.editUrl}"
+                    hx-indicator=".htmx-indicator"
+                    hx-trigger="click"
+                    hx-swap="none">
+
+                <img src="/assets/edit_icon.svg" alt="edit-debt">
+            </button>
+        </div>
+    </div>
+
+</div>
