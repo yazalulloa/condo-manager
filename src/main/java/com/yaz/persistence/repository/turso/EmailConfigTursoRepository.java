@@ -71,6 +71,11 @@ public class EmailConfigTursoRepository implements EmailConfigRepository {
       ORDER BY users.email DESC;
       """;
 
+  private static final String UPDATE_LAST_CHECK = """
+      UPDATE %s
+      SET has_refresh_token = ?, expires_in = ?, last_check_at = ?, is_available = true, stacktrace = null
+      WHERE user_id = ?;
+      """.formatted(COLLECTION);
 
   private final TursoWsService tursoWsService;
 
@@ -153,8 +158,6 @@ public class EmailConfigTursoRepository implements EmailConfigRepository {
     final var sql = SELECT_WITH_USER.formatted(COMMON_FIELDS, "WHERE email_configs.user_id > ?");
 
     return Stmt.stmt(sql, Value.text(lastId), Value.number(query.limit()));
-
-
   }
 
   @Override
@@ -200,11 +203,7 @@ public class EmailConfigTursoRepository implements EmailConfigRepository {
   @Override
   public Uni<Integer> updateLastCheck(String userId, boolean hasRefreshToken, Long expiresIn) {
 
-    final var stmt = Stmt.stmt("""
-            UPDATE %s
-            SET has_refresh_token = ?, expires_in = ?, last_check_at = ?, is_available = true, stacktrace = null
-            WHERE user_id = ?;
-            """.formatted(COLLECTION),
+    final var stmt = Stmt.stmt(UPDATE_LAST_CHECK,
         Value.bool(hasRefreshToken), Value.number(expiresIn), Value.text(DateUtil.utcLocalDateTime()),
         Value.text(userId)
     );

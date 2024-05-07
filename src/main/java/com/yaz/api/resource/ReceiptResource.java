@@ -14,6 +14,8 @@ import com.yaz.api.domain.response.ReceiptInitDto;
 import com.yaz.api.domain.response.ReceiptPdfResponse;
 import com.yaz.api.domain.response.ReceiptProgressUpdate;
 import com.yaz.api.domain.response.ReceiptTableResponse;
+import com.yaz.api.domain.response.ReserveFundFormDto;
+import com.yaz.api.domain.response.ReserveFundTableItem;
 import com.yaz.api.resource.fragments.Fragments;
 import com.yaz.core.service.EncryptionService;
 import com.yaz.core.service.SendReceiptService;
@@ -28,6 +30,7 @@ import com.yaz.core.service.entity.ExpenseService;
 import com.yaz.core.service.entity.ExtraChargeService;
 import com.yaz.core.service.entity.RateService;
 import com.yaz.core.service.entity.ReceiptService;
+import com.yaz.core.service.entity.ReserveFundService;
 import com.yaz.core.service.pdf.ReceiptPdfService;
 import com.yaz.core.util.ConvertUtil;
 import com.yaz.core.util.DateUtil;
@@ -42,6 +45,7 @@ import com.yaz.persistence.entities.Expense;
 import com.yaz.persistence.entities.ExtraCharge;
 import com.yaz.persistence.entities.Receipt;
 import com.yaz.persistence.entities.Receipt.Keys;
+import com.yaz.persistence.entities.ReserveFund;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.reactivex.rxjava3.core.Single;
@@ -90,7 +94,7 @@ public class ReceiptResource {
   public static final String PATH = "/api/receipts";
   public static final String DELETE_PATH = PATH + "/";
 
-  private final ReceiptService service;
+  private final ReceiptService receiptService;
   private final BuildingService buildingService;
   private final EncryptionService encryptionService;
   private final ReceiptPdfService receiptPdfService;
@@ -102,6 +106,7 @@ public class ReceiptResource {
   private final ExtraChargeService extraChargeService;
   private final DebtService debtService;
   private final ApartmentService apartmentService;
+  private final ReserveFundService reserveFundService;
 
   @CheckedTemplate
   public static class Templates {
@@ -132,7 +137,7 @@ public class ReceiptResource {
   @Produces(MediaType.TEXT_HTML)
   public Uni<TemplateInstance> init() {
     final var buildingsUni = buildingService.ids();
-    final var tableResponseUni = service.table(ReceiptQuery.builder().build());
+    final var tableResponseUni = receiptService.table(ReceiptQuery.builder().build());
 
     return Uni.combine().all()
         .unis(buildingsUni, tableResponseUni)
@@ -158,7 +163,7 @@ public class ReceiptResource {
 //    return apartmentService.counters(apartmentQuery)
 //        .map(ApartmentsResource.Templates::counters);
 
-    return service.counters(ReceiptQuery.builder()
+    return receiptService.counters(ReceiptQuery.builder()
             .buildings(building)
             .month(Optional.ofNullable(months)
                 .stream()
@@ -199,7 +204,7 @@ public class ReceiptResource {
         .date(DateUtil.isValidLocalDate(date) ? date : null)
         .build();
 
-    return service.table(receiptQuery)
+    return receiptService.table(receiptQuery)
         .map(Templates::receipts);
   }
 
@@ -212,7 +217,7 @@ public class ReceiptResource {
       @RestForm("date_input") String date) {
     final var key = encryptionService.decryptObj(keys, Keys.class);
 
-    return service.delete(key.buildingId(), key.id())
+    return receiptService.delete(key.buildingId(), key.id())
         .replaceWith(counters(building, months, date));
   }
 
@@ -332,7 +337,7 @@ public class ReceiptResource {
               //log.info("Receipt parsed: {}", csvReceipt);
 
               final var json = Json.encode(csvReceipt);
-              final var compressed = StringUtil.compressStr(json);
+              final var compressed = StringUtil.deflate(json);
               //final var body = encryptionService.encrypt(compressed);
 
               //log.info("Original {} Compressed {} Encrypted {}", json.length(), compressed.length(), body.length());
@@ -397,7 +402,7 @@ public class ReceiptResource {
 
     final var keys = encryptionService.decryptObj(id, Keys.class);
 
-    final var receiptUni = service.read(keys.id())
+    final var receiptUni = receiptService.read(keys.id())
         .map(optional -> optional.orElseThrow(() -> new IllegalArgumentException("RECEIPT_NOT_FOUND")))
         .memoize()
         .forFixedDuration(Duration.ofSeconds(3));
@@ -416,10 +421,12 @@ public class ReceiptResource {
 
     final var rateListUni = rateService.table(RateQuery.query(10, SortOrder.DESC), "/api/rates/options");
 
+    final var reserveFundUni = reserveFundService.listByBuilding(keys.buildingId());
+
     return Uni.combine().all()
         .unis(receiptUni, rateUni, expensesListUni, extraChargesListUni, debtListUni, rateListUni,
-            apartmentService.aptByBuildings(keys.buildingId()), buildingUni)
-        .with((receipt, rate, expenses, extraCharges, debts, rates, apartments, building) -> {
+            apartmentService.aptByBuildings(keys.buildingId()), buildingUni, reserveFundUni)
+        .with((receipt, rate, expenses, extraCharges, debts, rates, apartments, building, reserveFunds) -> {
 
           final var receiptForm = ReceiptFormDto.builder()
               .key(id)
@@ -478,6 +485,19 @@ public class ReceiptResource {
             debtTableItems.add(item);
           }
 
+          final var reserveFundTableItems = reserveFunds.stream()
+              .map(reserveFund -> {
+                final var keys1 = reserveFund.keys();
+                return ReserveFundTableItem.builder()
+                    .key(encryptionService.encryptObj(keys1))
+                    .item(reserveFund)
+                    .cardId(keys1.cardId())
+                    .build();
+              })
+              .toList();
+
+
+
           final var expenseTotals = ConvertUtil.expenseTotals(rate.rate(), expenses);
           final var editFormInit = ReceiptEditFormInit.builder()
               .receiptForm(receiptForm)
@@ -498,6 +518,11 @@ public class ReceiptResource {
               .totalUnCommonExpenses(expenseTotals.formatUnCommon())
               .debtReceiptsTotal(debtReceiptsTotal)
               .debtTotal(building.debtCurrency().format(debtTotal))
+              .reserveFunds(reserveFundTableItems)
+              .reserveFundFormDto(ReserveFundFormDto.builder()
+                  .isEdit(false)
+                  .key(encryptionService.encryptObj(ReserveFund.Keys.newReceipt(receipt.id(), receipt.buildingId())))
+                  .build())
               .build();
 
           return Templates.editInit(editFormInit);
@@ -534,7 +559,7 @@ public class ReceiptResource {
     final var month = Month.of(request.month);
     final var date = LocalDate.parse(request.date);
     //final var decrypted = encryptionService.decrypt(request.data);
-    final var decompress = StringUtil.decompress(request.data);
+    final var decompress = StringUtil.inflate(request.data);
     //final var decompress = StringUtil.decompress(decrypted);
     final var csvReceipt = Json.decodeValue(decompress, CsvReceipt.class);
 
@@ -602,7 +627,7 @@ public class ReceiptResource {
               .createdAt(DateUtil.utcLocalDateTime())
               .build();
 
-          return service.insert(receipt)
+          return receiptService.insert(receipt)
               .map(res -> {
                 final var id = res.id();
                 final var keys = new Keys(receipt.buildingId(), id);
@@ -646,7 +671,7 @@ public class ReceiptResource {
     }
 
     return Uni.combine().all()
-        .unis(buildingService.get(keys.buildingId()), rateService.get(rateId), service.get(keys.id()))
+        .unis(buildingService.get(keys.buildingId()), rateService.get(rateId), receiptService.get(keys.id()))
         .withUni((building, rate, receipt) -> {
 
           final var updateRequest = ReceiptUpdateRequest.builder()
@@ -686,7 +711,7 @@ public class ReceiptResource {
 
           return Uni.combine()
               .all()
-              .unis(service.update(updateRequest), responseUni)
+              .unis(receiptService.update(updateRequest), responseUni)
               .with((i, response) -> response);
         });
   }

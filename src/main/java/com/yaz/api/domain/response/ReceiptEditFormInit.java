@@ -14,7 +14,9 @@ public record ReceiptEditFormInit(
     List<ExpenseTableItem> expenses,
     List<DebtTableItem> debts,
     int debtReceiptsTotal,
-    String debtTotal
+    String debtTotal,
+    List<ReserveFundTableItem> reserveFunds,
+    ReserveFundFormDto reserveFundFormDto
 ) {
 
 }

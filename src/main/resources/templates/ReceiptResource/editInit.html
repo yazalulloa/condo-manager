@@ -72,3 +72,22 @@
 
     </div>
 </details>
+
+
+<div class="p-2"></div>
+
+<hr class="p-3 center">
+
+<details open>
+    <summary class="hover:bg-[#00000014]">
+        <div class="text-center">Fondos de reserva: <span id="reserve-funds-form-counter">{res.reserveFunds.size}</span>
+        </div>
+    </summary>
+    <div class="flex flex-row flex-wrap gap-4 justify-center p-2">
+
+
+            {#include ReserveFundResource/grid items = res.reserveFunds /}
+            {#include ReserveFundResource/form dto = res.reserveFundFormDto /}
+
+    </div>
+</details>

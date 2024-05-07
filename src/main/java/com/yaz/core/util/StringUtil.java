@@ -94,7 +94,7 @@ public class StringUtil {
     return true;
   }
 
-  public static byte[] compress(byte[] bytes) throws IOException {
+  public static byte[] deflate(byte[] bytes) throws IOException {
 
     ByteArrayOutputStream os = new ByteArrayOutputStream();
     try (DeflaterOutputStream dos = new DeflaterOutputStream(os)) {
@@ -103,7 +103,7 @@ public class StringUtil {
     return os.toByteArray();
   }
 
-  public static byte[] decompress(byte[] bytes) throws IOException {
+  public static byte[] inflate(byte[] bytes) throws IOException {
     ByteArrayOutputStream os = new ByteArrayOutputStream();
     try (OutputStream ios = new InflaterOutputStream(os)) {
       ios.write(bytes);
@@ -112,19 +112,19 @@ public class StringUtil {
     return os.toByteArray();
   }
 
-  public static String compressStr(String str) {
+  public static String deflate(String str) {
     try {
-      final var bytes = compress(str.getBytes(StandardCharsets.UTF_8));
+      final var bytes = deflate(str.getBytes(StandardCharsets.UTF_8));
       return Base64.getUrlEncoder().encodeToString(bytes);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
 
-  public static String decompress(String str) {
+  public static String inflate(String str) {
     try {
       final var decode = Base64.getUrlDecoder().decode(str);
-      final var decompress = decompress(decode);
+      final var decompress = inflate(decode);
       return new String(decompress, StandardCharsets.UTF_8);
     } catch (Exception e) {
       throw new RuntimeException(e);

@@ -175,10 +175,11 @@ public class BuildingResource {
               .toList();
 
           final var reserveFundTableItems = reserveFunds.stream().map(reserveFund -> {
-            final var key = encryptionService.encryptObj(reserveFund.keys());
+            final var keys = reserveFund.keys();
             return ReserveFundTableItem.builder()
-                .key(key)
+                .key(encryptionService.encryptObj(keys))
                 .item(reserveFund)
+                .cardId(keys.cardId())
                 .build();
           }).toList();
 
@@ -192,7 +193,7 @@ public class BuildingResource {
                   .build())
               .reserveFundFormDto(ReserveFundFormDto.builder()
                   .isEdit(false)
-                  .key(encryptionService.encryptObj(new ReserveFund.Keys(buildingId, null)))
+                  .key(encryptionService.encryptObj(ReserveFund.Keys.ofBuilding(buildingId)))
                   .build())
               .reserveFunds(reserveFundTableItems)
               .build();
@@ -242,8 +243,8 @@ public class BuildingResource {
     final var buildingFormDto = formDto(request).toBuilder()
         .build();
 
-    if (buildingFormDto.getId() != null) {
-      return service.exists(buildingFormDto.getId())
+    if (buildingFormDto.id() != null) {
+      return service.exists(buildingFormDto.id())
           .map(bool -> {
             if (bool) {
               return buildingFormDto.toBuilder()
@@ -262,14 +263,14 @@ public class BuildingResource {
             }
 
             final var building = Building.builder()
-                .id(dto.getId())
-                .name(dto.getName())
+                .id(dto.id())
+                .name(dto.name())
                 .rif(request.getRif())
                 .mainCurrency(request.getMainCurrency())
                 .debtCurrency(request.getDebtCurrency())
                 .currenciesToShowAmountToPay(request.getCurrenciesToShowAmountToPay())
                 .fixedPay(request.isFixedPay())
-                .fixedPayAmount(dto.getFixedPayAmount())
+                .fixedPayAmount(dto.fixedPayAmount())
                 .roundUpPayments(request.isRoundUpPayments())
                 .emailConfigId(request.getEmailConfig())
                 .build();
@@ -317,14 +318,14 @@ public class BuildingResource {
     }
 
     final var building = Building.builder()
-        .id(buildingFormDto.getId())
-        .name(buildingFormDto.getName())
+        .id(buildingFormDto.id())
+        .name(buildingFormDto.name())
         .rif(request.getRif())
         .mainCurrency(request.getMainCurrency())
         .debtCurrency(request.getDebtCurrency())
         .currenciesToShowAmountToPay(request.getCurrenciesToShowAmountToPay())
         .fixedPay(request.isFixedPay())
-        .fixedPayAmount(buildingFormDto.getFixedPayAmount())
+        .fixedPayAmount(buildingFormDto.fixedPayAmount())
         .roundUpPayments(request.isRoundUpPayments())
         .emailConfigId(request.getEmailConfig())
         .build();

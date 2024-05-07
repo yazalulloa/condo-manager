@@ -16,16 +16,7 @@ public class ReserveFundTableItem {
   private final ReserveFund item;
   private final boolean outOfBoundsUpdate;
   private final boolean addAfterEnd;
-
-  @Builder.Default
-  private final String cardId = "reserve-fund-card-id-" + UUID.randomUUID();
-//  @JsonIgnore
-//  @Getter(lazy = true)
-//  private final String cardId = genCardId();
-//
-//  public String genCardId() {
-//    return "extra-charge-card-id-" + key;
-//  }
+  private final String cardId;
 
   @JsonIgnore
   @Getter(lazy = true)

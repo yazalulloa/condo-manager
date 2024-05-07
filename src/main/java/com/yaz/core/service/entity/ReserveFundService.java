@@ -49,4 +49,8 @@ public class ReserveFundService {
   public Uni<Integer> create(ReserveFund reserveFund) {
     return repository.insert(reserveFund);
   }
+
+  public Uni<Long> count(String buildingId) {
+    return repository.count(buildingId);
+  }
 }

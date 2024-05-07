@@ -8,11 +8,13 @@ import com.yaz.persistence.domain.ReserveFundType;
 import java.math.BigDecimal;
 import lombok.Builder;
 import lombok.Data;
+import lombok.experimental.Accessors;
 import lombok.extern.jackson.Jacksonized;
 
 @Jacksonized
 @Builder(toBuilder = true)
 @Data
+@Accessors(fluent = true)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class ReserveFundFormDto {
@@ -20,14 +22,16 @@ public class ReserveFundFormDto {
   private final boolean isEdit;
   private final boolean clearForm;
   private final String key;
-  private final String cardId;
   private final String name;
   private final String nameFieldError;
-  private final BigDecimal fund;
+  @Builder.Default
+  private final BigDecimal fund = BigDecimal.ZERO;
   private final String fundFieldError;
-  private final BigDecimal expense;
+  @Builder.Default
+  private final BigDecimal expense = BigDecimal.ZERO;
   private final String expenseFieldError;
-  private final BigDecimal pay;
+  @Builder.Default
+  private final BigDecimal pay = BigDecimal.ONE;
   private final String payFieldError;
   @Builder.Default
   private final boolean active = true;
@@ -40,6 +44,7 @@ public class ReserveFundFormDto {
 
 
   private final ReserveFundTableItem tableItem;
+  private final ReserveFundCountersDto counters;
 
   public boolean isSuccess() {
     return nameFieldError == null && fundFieldError == null && expenseFieldError == null && payFieldError == null;

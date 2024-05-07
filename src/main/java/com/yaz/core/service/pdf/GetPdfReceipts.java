@@ -1,11 +1,11 @@
 package com.yaz.core.service.pdf;
 
+import com.yaz.core.service.TranslationProvider;
 import com.yaz.core.service.domain.CalculatedReceipt;
 import com.yaz.core.service.domain.FileResponse;
 import com.yaz.core.util.ZipUtility;
 import com.yaz.persistence.entities.Apartment;
 import com.yaz.persistence.entities.Building;
-import com.yaz.core.service.TranslationProvider;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.io.IOException;
@@ -27,9 +27,6 @@ public class GetPdfReceipts {
 
   private final TranslationProvider translationProvider;
 
-  public String zipFileName(CalculatedReceipt receipt) {
-    return fileName(receipt) + ".zip";
-  }
 
   public String fileName(CalculatedReceipt receipt) {
     final var month = translationProvider.translate(receipt.month().name());
@@ -40,7 +37,7 @@ public class GetPdfReceipts {
     // asyncSubject.onNext(ReceiptPdfProgressState.ofIndeterminate("Creando zip..."));
 
     final var dirPath = Paths.get("tmp", "receipts", receipt.building().id(), String.valueOf(receipt.id()));
-    final var fileName = zipFileName(receipt);
+    final var fileName = fileName(receipt) + ".zip";
     final var zipPath = dirPath.resolve(fileName);
     Files.createDirectories(dirPath);
     final var files = list.stream().map(PdfReceiptItem::path)

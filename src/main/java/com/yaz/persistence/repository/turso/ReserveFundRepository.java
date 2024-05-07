@@ -1,5 +1,6 @@
 package com.yaz.persistence.repository.turso;
 
+import com.yaz.core.util.SqlUtil;
 import com.yaz.persistence.domain.ExpenseType;
 import com.yaz.persistence.domain.ReserveFundType;
 import com.yaz.persistence.entities.ReserveFund;
@@ -7,7 +8,6 @@ import com.yaz.persistence.repository.turso.client.TursoWsService;
 import com.yaz.persistence.repository.turso.client.ws.request.Stmt;
 import com.yaz.persistence.repository.turso.client.ws.request.Value;
 import com.yaz.persistence.repository.turso.client.ws.response.ExecuteResp.Row;
-import com.yaz.core.util.SqlUtil;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -39,6 +39,8 @@ public class ReserveFundRepository {
   private static final String DELETE = "DELETE FROM %s WHERE building_id = ? AND id = ?".formatted(COLLECTION);
   private static final String DELETE_BY_BUILDING = "DELETE FROM %s WHERE building_id = ?".formatted(COLLECTION);
   private static final String READ = "SELECT * FROM %s WHERE building_id = ? AND id = ?".formatted(COLLECTION);
+  private static final String COUNT_BY_BUILDING = "SELECT COUNT(id) AS query_count FROM %s WHERE building_id = ?".formatted(
+      COLLECTION);
 
   private final TursoWsService tursoWsService;
 
@@ -94,5 +96,9 @@ public class ReserveFundRepository {
 
   public Uni<Optional<ReserveFund>> read(String buildingId, String id) {
     return tursoWsService.selectOne(Stmt.stmt(READ, Value.text(buildingId), Value.text(id)), this::from);
+  }
+
+  public Uni<Long> count(String buildingId) {
+    return tursoWsService.count(COUNT_BY_BUILDING, Value.text(buildingId));
   }
 }
