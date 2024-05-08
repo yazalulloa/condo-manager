@@ -45,7 +45,6 @@ public class EncryptionService {
 
   public String encryptObj(Object obj) {
     final var json = Json.encode(obj);
-    //final var compressed = StringUtil.compressStr(json);
     return encrypt(json);
   }
 
@@ -58,7 +57,8 @@ public class EncryptionService {
       RandomUtil.getInstance().nextBytes(iv); // Generate a random IV
       final var cipher = cipher();
       cipher.init(Cipher.ENCRYPT_MODE, secretKey, new GCMParameterSpec(parameterSpecLen, iv));
-      final var encryptedData = cipher.doFinal(original.getBytes());
+      final var bytes = original.getBytes();
+      final var encryptedData = cipher.doFinal(bytes);
       final var encoder = Base64.getUrlEncoder();
       final var encrypt64 = encoder.encode(encryptedData);
       final var iv64 = encoder.encode(iv);
@@ -87,7 +87,6 @@ public class EncryptionService {
 
   public <T> T decryptObj(String json, Class<T> clazz) {
     final var decrypt = decrypt(json);
-    //final var decompressed = StringUtil.decompress(decrypt);
     return Json.decodeValue(decrypt, clazz);
   }
 }

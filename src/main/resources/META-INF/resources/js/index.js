@@ -69,23 +69,39 @@ htmx.config.useTemplateFragments = true;
 // htmx.logAll();
 
 window.onload = function () {
-  const inputs = document.getElementsByTagName('input');
-  // console.log("inputs: {}", inputs.length);
-  for (let i = 0; i < inputs.length; i++) {
-    // console.log("input type: {}", inputs[i].type);
-    if (inputs[i].type === 'search') {
-      // console.log("setting trim")
-      inputs[i].onchange = function () {
-        let value = this.value;
-        // console.log("trimming {}", value);
-        this.value = this.value.replace(/^\s+/, '').replace(/\s+$/, '').trim();
-        let val2 = this.value;
-        // console.log("trimmed {}", val2);
-      };
+  if (false) {
+    const inputs = document.getElementsByTagName('input');
+    // console.log("inputs: {}", inputs.length);
+    for (let i = 0; i < inputs.length; i++) {
+      // console.log("input type: {}", inputs[i].type);
+      if (inputs[i].type === 'search') {
+        // console.log("setting trim")
+        inputs[i].onchange = function () {
+          let value = this.value;
+          // console.log("trimming {}", value);
+          this.value = this.value.replace(/^\s+/, '').replace(/\s+$/, '').trim();
+          let val2 = this.value;
+          // console.log("trimmed {}", val2);
+        };
+      }
     }
   }
 
   addDisableEventToButtons();
+}
+
+window.trimInput = function (input) {
+  if (input && input.value) {
+    console.log("trimming {}", input.value);
+    input.value = input.value.replace(/^\s+/, '').replace(/\s+$/, '').trim();
+    console.log("trimmed {}", input.value);
+  }
+}
+
+window.isInputEmpty = function (input) {
+  trimInput(input);
+  console.log("isInputEmpty: {}", input);
+  return !input || !input.value || input.value === '';
 }
 
 document.body.addEventListener("htmx:afterProcessNode", function (configEvent) {
@@ -173,7 +189,6 @@ window.getQueryParam = function (name) {
 }
 
 window.limitInputToMaxLength = function (input) {
-  input.value = input.value.trim();
   if (input.value.length > input.maxLength) {
     input.value = input.value.slice(0,
         input.maxLength);
@@ -281,12 +296,6 @@ window.saveToLocalStorage = function (key, value) {
 
 window.getFromLocalStorage = function (key) {
   return localStorage.getItem(key);
-}
-
-function trimInput(el) {
-  // console.log("trimming {}", el.value)
-  el.value = el.value.trim();
-  // console.log("trimmed {} | ", el.value)
 }
 
 function getCookie(name) {

@@ -61,7 +61,7 @@ public class UserService {
 
           if (optional.isPresent()) {
             final var userId = optional.get();
-            log.info("User already exists {} {}", userId, user.providerId());
+            log.debug("User already exists {} {}", userId, user.providerId());
             return repository().updateLastLoginAt(userId)
                 .replaceWith(userId);
           }
@@ -74,7 +74,7 @@ public class UserService {
   public Uni<String> save(User user) {
     return repository().save(user)
         .flatMap(id -> invalidateGetIdFromProvider(user.provider(), user.providerId()).replaceWith(id))
-        .invoke(id -> log.info("User inserted {}", id));
+        .invoke(id -> log.debug("User inserted {}", id));
   }
 
   public Uni<List<User>> list(UserQuery userQuery) {

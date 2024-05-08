@@ -42,11 +42,13 @@ public class ReserveFundFormDto {
   @Builder.Default
   private final boolean addToExpenses = true;
 
+  private final String generalError;
+
 
   private final ReserveFundTableItem tableItem;
   private final ReserveFundCountersDto counters;
 
   public boolean isSuccess() {
-    return nameFieldError == null && fundFieldError == null && expenseFieldError == null && payFieldError == null;
+    return nameFieldError == null && fundFieldError == null && expenseFieldError == null && payFieldError == null && generalError == null;
   }
 }

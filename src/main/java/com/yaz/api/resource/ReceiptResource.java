@@ -34,8 +34,11 @@ import com.yaz.core.service.entity.ReserveFundService;
 import com.yaz.core.service.pdf.ReceiptPdfService;
 import com.yaz.core.util.ConvertUtil;
 import com.yaz.core.util.DateUtil;
+import com.yaz.core.util.DecimalUtil;
 import com.yaz.core.util.MutinyUtil;
 import com.yaz.core.util.StringUtil;
+import com.yaz.persistence.domain.ExpenseType;
+import com.yaz.persistence.domain.ReserveFundType;
 import com.yaz.persistence.domain.query.RateQuery;
 import com.yaz.persistence.domain.query.ReceiptQuery;
 import com.yaz.persistence.domain.query.SortOrder;
@@ -454,18 +457,6 @@ public class ReceiptResource {
               })
               .toList();
 
-          final var expenseTableItems = expenses.stream()
-              .map(expense -> {
-
-                final var keys1 = expense.keys(receipt.rateId());
-                return ExpenseTableItem.builder()
-                    .key(encryptionService.encryptObj(keys1))
-                    .cardId(keys1.cardId())
-                    .item(expense)
-                    .build();
-              })
-              .toList();
-
           var debtReceiptsTotal = 0;
           var debtTotal = BigDecimal.ZERO;
 
@@ -485,9 +476,35 @@ public class ReceiptResource {
             debtTableItems.add(item);
           }
 
+          final var expenseTotalsBeforeReserveFunds = ConvertUtil.expenseTotals(rate.rate(), expenses);
+
           final var reserveFundTableItems = reserveFunds.stream()
               .map(reserveFund -> {
-                final var keys1 = reserveFund.keys();
+
+                if (reserveFund.active() && reserveFund.addToExpenses()) {
+
+                  final var expenseTotal =
+                      reserveFund.expenseType() == ExpenseType.COMMON ? expenseTotalsBeforeReserveFunds.common() :
+                          expenseTotalsBeforeReserveFunds.unCommon();
+
+                  final var amount = reserveFund.type() == ReserveFundType.PERCENTAGE ?
+                      DecimalUtil.percentageOf(reserveFund.pay(), expenseTotal.amount()) : reserveFund.pay();
+
+                  final var expense = Expense.builder()
+                      .buildingId(receipt.buildingId())
+                      .receiptId(receipt.id())
+                      .id(0)
+                      .description(reserveFund.name())
+                      .amount(amount)
+                      .currency(expenseTotal.currency())
+                      .reserveFund(true)
+                      .type(reserveFund.expenseType())
+                      .build();
+
+                  expenses.add(expense);
+                }
+
+                final var keys1 = reserveFund.keys(receipt.id());
                 return ReserveFundTableItem.builder()
                     .key(encryptionService.encryptObj(keys1))
                     .item(reserveFund)
@@ -496,9 +513,20 @@ public class ReceiptResource {
               })
               .toList();
 
-
-
           final var expenseTotals = ConvertUtil.expenseTotals(rate.rate(), expenses);
+
+          final var expenseTableItems = expenses.stream()
+              .map(expense -> {
+
+                final var keys1 = expense.keys();
+                return ExpenseTableItem.builder()
+                    .key(encryptionService.encryptObj(keys1))
+                    .cardId(keys1.cardId())
+                    .item(expense)
+                    .build();
+              })
+              .toList();
+
           final var editFormInit = ReceiptEditFormInit.builder()
               .receiptForm(receiptForm)
               .extraCharges(extraChargeTableItems)
@@ -509,13 +537,14 @@ public class ReceiptResource {
                   .build())
               .expenseFormDto(ExpenseFormDto.builder()
                   .isEdit(false)
-                  .key(encryptionService.encryptObj(
-                      Expense.Keys.of(receipt.buildingId(), receipt.id(), receipt.rateId())))
+                  .key(encryptionService.encryptObj(Expense.Keys.of(receipt.buildingId(), receipt.id())))
                   .build())
               .expenses(expenseTableItems)
               .debts(debtTableItems)
-              .totalCommonExpenses(expenseTotals.formatCommon())
-              .totalUnCommonExpenses(expenseTotals.formatUnCommon())
+              .totalCommonExpenses(expenseTotalsBeforeReserveFunds.formatCommon())
+              .totalUnCommonExpenses(expenseTotalsBeforeReserveFunds.formatUnCommon())
+              .totalCommonExpensesPlusReserveFunds(expenseTotals.formatCommon())
+              .totalUnCommonExpensesPlusReserveFunds(expenseTotals.formatUnCommon())
               .debtReceiptsTotal(debtReceiptsTotal)
               .debtTotal(building.debtCurrency().format(debtTotal))
               .reserveFunds(reserveFundTableItems)

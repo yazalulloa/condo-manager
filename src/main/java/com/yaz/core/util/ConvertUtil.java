@@ -5,15 +5,9 @@ import com.yaz.api.domain.ExpenseTotals.Total;
 import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.domain.ExpenseType;
 import com.yaz.persistence.entities.Expense;
-import com.yaz.persistence.entities.Rate;
 import io.vertx.core.json.JsonObject;
-import io.vertx.mutiny.core.buffer.Buffer;
-import io.vertx.mutiny.ext.web.client.HttpResponse;
-import jakarta.ws.rs.core.Response;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
@@ -29,10 +23,8 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.zip.CRC32;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.jsoup.Jsoup;
 //import org.apache.commons.lang3.time.DurationFormatUtils;
 
 public class ConvertUtil {
@@ -196,70 +188,6 @@ public class ConvertUtil {
         .map(localDateTime -> ZonedDateTime.of(localDateTime, DateUtil.VE_ZONE))
         .map(DateUtil::formatVe)
         .ifPresent(str -> jsonObject.put(field, str));
-  }
-
-  public static Rate parseRate(HttpResponse<Buffer> httpResponse) {
-
-    final var etag = httpResponse.headers().get("etag");
-    final var lastModified = httpResponse.headers().get("last-modified");
-
-    return parseRate(httpResponse.bodyAsString()).toBuilder()
-        .etag(etag)
-        .lastModified(lastModified)
-
-        .build();
-  }
-
-  public static Rate parseRate(String html) {
-
-    final var crc32 = new CRC32();
-    crc32.update(ByteBuffer.wrap(html.getBytes(StandardCharsets.UTF_8)));
-    final var hash = crc32.getValue();
-
-    final var document = Jsoup.parse(html);
-
-    final var dolar = document.getElementById("dolar");
-
-    final var valDolar = dolar
-        .childNode(1)
-        .childNode(1)
-        .childNode(3)
-        .childNode(0)
-        .childNode(0)
-        .toString()
-        .replaceAll("\\.", "")
-        .replaceAll(",", ".")
-        .trim();
-
-    final var elementsByClass = document.getElementsByClass("pull-right dinpro center");
-
-    final var date = elementsByClass.get(0)
-        .childNode(1)
-        .attr("content")
-        .trim();
-
-    final var rate = new BigDecimal(valDolar);
-    final var dateOfRate = ZonedDateTime.parse(date).toLocalDate();
-
-    return Rate.builder()
-        .fromCurrency(Currency.USD)
-        .toCurrency(Currency.VED)
-        .rate(rate)
-        .dateOfRate(dateOfRate)
-        .source(Rate.Source.BCV)
-        .hash(hash)
-        .build();
-  }
-
-
-  public static Rate parseRate(Response response) {
-    final var etag = response.getHeaderString("etag");
-    final var lastModified = response.getHeaderString("last-modified");
-
-    return parseRate(response.readEntity(String.class)).toBuilder()
-        .etag(etag)
-        .lastModified(lastModified)
-        .build();
   }
 
   public static <T extends Enum<T>> T valueOfEnum(Class<T> enumType, String name) {

@@ -10,10 +10,10 @@ import com.yaz.core.service.ListServicePagingProcessorImpl;
 import com.yaz.core.service.domain.FileResponse;
 import com.yaz.core.service.entity.cache.RateCache;
 import com.yaz.core.util.Constants;
-import com.yaz.core.util.ConvertUtil;
 import com.yaz.core.util.MutinyUtil;
 import com.yaz.core.util.PagingProcessor;
 import com.yaz.core.util.RxUtil;
+import com.yaz.core.util.StringUtil;
 import com.yaz.core.util.WriteEntityToFile;
 import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.domain.query.RateQuery;
@@ -29,12 +29,15 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import java.math.BigDecimal;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jsoup.Jsoup;
 
 @Slf4j
 @ApplicationScoped
@@ -84,23 +87,6 @@ public class RateService {
     return Uni.createFrom().voidItem();
   }
 
-  /* public Single<Paging<Rate>> paging(RateQuery rateQuery) {
-
-     return Single.zip(RxUtil.single(count()), RxUtil.single(list(rateQuery)),
-         (totalCount, list) -> new Paging<>(totalCount, null, list));
-   }
-
-
-   public Single<Paging<JsonObject>> pagingJson(RateQuery rateQuery) {
-     return Single.zip(RxUtil.single(count()), RxUtil.single(listJson(rateQuery)),
-         (totalCount, list) -> new Paging<>(totalCount, null, list));
-   }
-
-   public Uni<List<JsonObject>> listJson(RateQuery rateQuery) {
-
-     return raterepository().listRows(rateQuery)
-         .map(SqlUtil::toJsonObject);
-   }*/
   @CacheResult(cacheName = RateCache.SELECT, lockTimeout = Constants.CACHE_TIMEOUT)
   public Uni<List<Rate>> list(RateQuery rateQuery) {
     return repository().listRows(rateQuery);
@@ -150,7 +136,49 @@ public class RateService {
 
   private Single<BcvUsdRateResult> newRateResult() {
     return bcvClientService.get()
-        .map(ConvertUtil::parseRate)
+        .map(response -> {
+          final var etag = response.getHeaderString("etag");
+          final var lastModified = response.getHeaderString("last-modified");
+
+          final var html = response.readEntity(String.class);
+          final var hash = StringUtil.crc32(html);
+
+          final var document = Jsoup.parse(html);
+
+          final var dolar = document.getElementById("dolar");
+
+          final var valDolar = dolar
+              .childNode(1)
+              .childNode(1)
+              .childNode(3)
+              .childNode(0)
+              .childNode(0)
+              .toString()
+              .replaceAll("\\.", "")
+              .replaceAll(",", ".")
+              .trim();
+
+          final var elementsByClass = document.getElementsByClass("pull-right dinpro center");
+
+          final var date = elementsByClass.get(0)
+              .childNode(1)
+              .attr("content")
+              .trim();
+
+          final var rate = new BigDecimal(valDolar);
+          final var dateOfRate = ZonedDateTime.parse(date).toLocalDate();
+
+          return Rate.builder()
+              .fromCurrency(Currency.USD)
+              .toCurrency(Currency.VED)
+              .rate(rate)
+              .dateOfRate(dateOfRate)
+              .source(Rate.Source.BCV)
+              .hash(hash)
+              .etag(etag)
+              .lastModified(lastModified)
+              .build();
+        })
         .map(newRate -> new BcvUsdRateResult(BcvUsdRateResult.State.NEW_RATE, newRate))
         .subscribeOn(Schedulers.io());
   }

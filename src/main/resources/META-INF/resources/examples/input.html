@@ -36,3 +36,22 @@
 
 </body>
 </html>
+
+<div>
+  <div hx-get="/load_data" hx-indicator=".htmx-indicator" hx-trigger="load" hx-swap="outerHTML"></div>
+  <div>
+    <img class="htmx-indicator white-filter img-medium-size center" src="/assets/bars.svg" alt="spinner">
+  </div>
+</div>
+
+<div>row 1</div>
+<div>row 2</div>
+<div>row 3</div>
+<div>row 4</div>
+
+<button hx-get="/load_data?params_to_load_next_page=some_params"
+        hx-indicator=".htmx-indicator"
+        hx-swap="outerHTML">
+  LOAD NEXT PAGE
+  <img class="htmx-indicator white-filter img-medium-size center" src="/assets/bars.svg" alt="spinner">
+</button>

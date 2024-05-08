@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import com.yaz.core.util.StringUtil;
 import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.domain.ExpenseType;
 import java.math.BigDecimal;
@@ -33,19 +34,21 @@ public record Expense(
     return CARD_ID_PREFIX + UUID.randomUUID();
   }
 
-  public Keys keys(long rateId) {
-    return new Keys(buildingId, receiptId, id, rateId, cardId());
+  public Keys keys() {
+    return new Keys(buildingId, receiptId, id, cardId(), StringUtil.objHash(this));
   }
 
+
+  @Builder(toBuilder = true)
   public record Keys(
       String buildingId,
       long receiptId,
       long id,
-      long rateId,
-      String cardId) {
+      String cardId,
+      long hash) {
 
-    public static Keys of(String buildingId, long receiptId, long rateId) {
-      return new Keys(buildingId, receiptId, 0, rateId, Expense.cardId());
+    public static Keys of(String buildingId, long receiptId) {
+      return new Keys(buildingId, receiptId, 0, Expense.cardId(), 0);
     }
   }
 }

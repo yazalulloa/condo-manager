@@ -8,12 +8,20 @@
 
 <details open>
     <summary class="hover:bg-[#00000014]">
-        <div class="flex flex-row flex-wrap gap-6 justify-center p-2">
-            <div class="text-center">Gastos: <span id="expenses-form-counter">{res.expenses.size}</span></div>
-            <div class="text-center">Gastos comunes totales: <span
-                        id="expenses-total-common">{res.totalCommonExpenses}</span></div>
-            <div class="text-center">Gastos no comunes totales: <span
-                        id="expenses-total-uncommon">{res.totalUnCommonExpenses}</span></div>
+        <div>
+            <div class="flex flex-row flex-wrap gap-6 justify-center p-2">
+                <div class="text-center">Gastos: <span id="expenses-form-counter">{res.expenses.size}</span></div>
+                <div class="text-center">Gastos comunes totales: <span
+                            id="expenses-total-common">{res.totalCommonExpenses}</span></div>
+                <div class="text-center">Gastos no comunes totales: <span
+                            id="expenses-total-uncommon">{res.totalUnCommonExpenses}</span></div>
+            </div>
+            <div class="flex flex-row flex-wrap gap-6 justify-center p-2">
+                <div class="text-center">Gastos comunes totales + fondos de reserva: <span
+                            id="expenses-total-common-plus-reserve-funds">{res.totalCommonExpensesPlusReserveFunds}</span></div>
+                <div class="text-center">Gastos no comunes totales + fondos de reserva: <span
+                            id="expenses-total-uncommon-plus-reserve-funds">{res.totalUnCommonExpensesPlusReserveFunds}</span></div>
+            </div>
         </div>
     </summary>
     <div class="flex flex-row flex-wrap gap-6 justify-center p-2">
@@ -21,6 +29,24 @@
 
             {#include ExpenseResource/grid list = res.expenses /}
             {#include ExpenseResource/form dto = res.expenseFormDto /}
+
+    </div>
+</details>
+
+<div class="p-2"></div>
+
+<hr class="center">
+
+<details open class="p-2 mt-2">
+    <summary class="hover:bg-[#00000014]">
+        <div class="text-center">Fondos de reserva: <span id="reserve-funds-form-counter">{res.reserveFunds.size}</span>
+        </div>
+    </summary>
+    <div class="flex flex-row flex-wrap gap-4 justify-center p-2">
+
+
+            {#include ReserveFundResource/grid items = res.reserveFunds /}
+            {#include ReserveFundResource/form dto = res.reserveFundFormDto /}
 
     </div>
 </details>
@@ -74,20 +100,3 @@
 </details>
 
 
-<div class="p-2"></div>
-
-<hr class="p-3 center">
-
-<details open>
-    <summary class="hover:bg-[#00000014]">
-        <div class="text-center">Fondos de reserva: <span id="reserve-funds-form-counter">{res.reserveFunds.size}</span>
-        </div>
-    </summary>
-    <div class="flex flex-row flex-wrap gap-4 justify-center p-2">
-
-
-            {#include ReserveFundResource/grid items = res.reserveFunds /}
-            {#include ReserveFundResource/form dto = res.reserveFundFormDto /}
-
-    </div>
-</details>

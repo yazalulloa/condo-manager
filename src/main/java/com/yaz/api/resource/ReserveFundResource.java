@@ -5,6 +5,7 @@ import com.yaz.api.domain.response.ReserveFundCountersDto;
 import com.yaz.api.domain.response.ReserveFundFormDto;
 import com.yaz.api.domain.response.ReserveFundTableItem;
 import com.yaz.core.service.EncryptionService;
+import com.yaz.core.service.entity.ExpenseService;
 import com.yaz.core.service.entity.ReserveFundService;
 import com.yaz.core.util.DateUtil;
 import com.yaz.core.util.DecimalUtil;
@@ -32,7 +33,6 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jboss.resteasy.reactive.Cache;
-import org.jboss.resteasy.reactive.RestHeader;
 import org.jboss.resteasy.reactive.RestPath;
 
 @Path(ReserveFundResource.PATH)
@@ -46,6 +46,7 @@ public class ReserveFundResource {
 
   private final ReserveFundService service;
   private final EncryptionService encryptionService;
+  private final ExpenseService expenseService;
 
   @CheckedTemplate
   public static class Templates {
@@ -133,11 +134,9 @@ public class ReserveFundResource {
       return Uni.createFrom().item(Response.status(Response.Status.BAD_REQUEST).build());
     }
 
-    final var formDto = formDto(request);
-
-    if (!formDto.isSuccess()) {
-      return Uni.createFrom().item(Response.ok(Templates.form(formDto)).build());
-    }
+    var formDto = formDto(request).toBuilder()
+        .isEdit(true)
+        .build();
 
     final var reserveFund = ReserveFund.builder()
         .buildingId(keys.buildingId())
@@ -152,18 +151,33 @@ public class ReserveFundResource {
         .addToExpenses(formDto.addToExpenses())
         .build();
 
-    final var dto = ReserveFundFormDto.builder()
-        .key(request.getKeys())
-        .tableItem(ReserveFundTableItem.builder()
-            .key(request.getKeys())
-            .item(reserveFund)
-            .outOfBoundsUpdate(true)
-            .cardId(keys.cardId())
-            .build())
-        .build();
+    final var newKeys = reserveFund.keys(keys.receiptId(), keys.cardId());
+
+    if (newKeys.hash() == keys.hash()) {
+      formDto = formDto.toBuilder()
+          .generalError("No hay cambios para guardar")
+          .build();
+    }
+
+    if (!formDto.isSuccess()) {
+      return Uni.createFrom().item(Response.ok(Templates.form(formDto)).build());
+    }
 
     return service.update(reserveFund)
-        .replaceWith(Response.ok(Templates.form(dto)).build());
+        .map(i -> {
+          final var newKey = encryptionService.encryptObj(newKeys);
+          return ReserveFundFormDto.builder()
+              .key(newKey)
+              .tableItem(ReserveFundTableItem.builder()
+                  .key(newKey)
+                  .item(reserveFund)
+                  .outOfBoundsUpdate(true)
+                  .cardId(newKeys.cardId())
+                  .build())
+              .build();
+        })
+        .map(Templates::form)
+        .map(t -> Response.ok(t).build());
   }
 
   @POST

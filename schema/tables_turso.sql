@@ -153,6 +153,7 @@ CREATE TABLE IF NOT EXISTS apartments
     PRIMARY KEY (building_id, number)
 );
 CREATE INDEX IF NOT EXISTS apartments_name_idx ON apartments (name);
+CREATE INDEX IF NOT EXISTS apartments_building_id_number_name_idx ON apartments (building_id, number, name);
 
 CREATE TABLE IF NOT EXISTS apartment_emails
 (

@@ -34,13 +34,13 @@ public class ServerSideEventHelper {
       sinks.put(key, list);
     }
 
-    log.info("ADDED_SINK {}", key);
+    log.debug("ADDED_SINK {}", key);
     printSinks();
   }
 
   public void printSinks() {
     sinks.forEach((key, value) -> {
-      log.info("KEY: {} {}", key, value.size());
+      log.debug("KEY: {} {}", key, value.size());
     });
   }
 
@@ -80,12 +80,12 @@ public class ServerSideEventHelper {
       eventSinks.forEach(weakReference -> {
         final var sseEventSink = weakReference.get();
         if (sseEventSink != null && !sseEventSink.isClosed()) {
-          //log.info("SENDING_EVENT {}", key);
+          //log.debug("SENDING_EVENT {}", key);
           sseEventSink.send(event);
         }
       });
     } else {
-      log.info("NO_SINKS {}", key);
+      log.debug("NO_SINKS {}", key);
     }
   }
 
@@ -102,7 +102,7 @@ public class ServerSideEventHelper {
         .build();
     */
 
-    // log.info("SENDING {}", value);
+    // log.debug("SENDING {}", value);
     final var outboundSseEvent = sse.newEvent(value, value);
 
     sendSseEvent(value, outboundSseEvent);

@@ -131,6 +131,10 @@
         </label>
     </div>
 
+    {#if dto.generalError}
+        <span class="text-red-500 text-xs">{dto.generalError}</span>
+    {/if}
+
     <div class="p-2 flex flex-row gap-4">
         <button class="btn btn-primary">
             {#if dto.isEdit}

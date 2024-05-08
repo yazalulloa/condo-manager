@@ -1,7 +1,7 @@
 {@com.yaz.api.domain.response.ExpenseTableItem item}
 
 <div class="expenses-grid base-grid-cm hover:bg-[#00000014] p-1 fade-me-out fade-me-in"
-     id={item.cardId}
+     id="{item.cardId}"
      {#if item.outOfBoundsUpdate}
      hx-swap-oob="true"
         {/if}
@@ -12,17 +12,24 @@
     <div>{item.item.type}</div>
 
     <div class="flex flex-row gap-2 justify-center">
-        <div class="block">
-            <button class="edit-btn"
-                    hx-get="{item.editUrl}"
-                    hx-indicator=".htmx-indicator"
-                    hx-trigger="click"
-                    hx-swap="none">
+        {#if item.item.reserveFund == false}
+            <div class="block">
+                <button class="edit-btn"
+                        hx-get="{item.editUrl}"
+                        hx-indicator=".htmx-indicator"
+                        hx-trigger="click"
+                        hx-swap="none">
 
-                <img src="/assets/edit_icon.svg" alt="edit-expense">
-            </button>
-        </div>
-            {#include fragments/delete-btn deleteUrl = item.deleteUrl cardIdRef = item.cardIdRef/}
+                    <img src="/assets/edit_icon.svg" alt="edit-expense">
+                </button>
+            </div>
+                {#include fragments/delete-btn deleteUrl = item.deleteUrl cardIdRef = item.cardIdRef/}
+        {#else}
+            <div style="height: 34px">
+
+            </div>
+        {/if}
+
     </div>
 
 </div>

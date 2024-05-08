@@ -10,6 +10,8 @@ public record ReceiptEditFormInit(
     List<ExtraChargeTableItem> extraCharges,
     String totalUnCommonExpenses,
     String totalCommonExpenses,
+    String totalUnCommonExpensesPlusReserveFunds,
+    String totalCommonExpensesPlusReserveFunds,
     ExpenseFormDto expenseFormDto,
     List<ExpenseTableItem> expenses,
     List<DebtTableItem> debts,

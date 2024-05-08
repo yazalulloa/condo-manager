@@ -1,18 +1,26 @@
 package com.yaz.api.resource;
 
 
+import com.yaz.api.domain.ExpenseTotals;
 import com.yaz.api.domain.response.ExpenseCountersDto;
 import com.yaz.api.domain.response.ExpenseFormDto;
 import com.yaz.api.domain.response.ExpenseTableItem;
 import com.yaz.core.service.EncryptionService;
 import com.yaz.core.service.entity.ExpenseService;
 import com.yaz.core.service.entity.RateService;
+import com.yaz.core.service.entity.ReceiptService;
+import com.yaz.core.service.entity.ReserveFundService;
 import com.yaz.core.util.ConvertUtil;
 import com.yaz.core.util.DecimalUtil;
 import com.yaz.core.util.StringUtil;
 import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.domain.ExpenseType;
+import com.yaz.persistence.domain.ReserveFundType;
+import com.yaz.persistence.entities.Expense;
 import com.yaz.persistence.entities.Expense.Keys;
+import com.yaz.persistence.entities.Rate;
+import com.yaz.persistence.entities.Receipt;
+import com.yaz.persistence.entities.ReserveFund;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.smallrye.mutiny.Uni;
@@ -28,9 +36,10 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -49,6 +58,8 @@ public class ExpenseResource {
   private final EncryptionService encryptionService;
   private final ExpenseService expenseService;
   private final RateService rateService;
+  private final ReserveFundService reserveFundService;
+  private final ReceiptService receiptService;
 
   @CheckedTemplate
   public static class Templates {
@@ -60,6 +71,12 @@ public class ExpenseResource {
     public static native TemplateInstance grid(List<ExpenseTableItem> list);
   }
 
+  private Uni<Rate> rateUni(long receiptId) {
+    return receiptService.get(receiptId)
+        .map(Receipt::rateId)
+        .flatMap(rateService::get);
+  }
+
   @DELETE
   @Path("{id}")
   @Produces(MediaType.TEXT_HTML)
@@ -68,23 +85,30 @@ public class ExpenseResource {
     final var json = encryptionService.decrypt(id);
     final var keys = Json.decodeValue(json, Keys.class);
 
-    final var templateInstanceUni = Uni.combine().all()
-        .unis(expenseService.countByReceipt(keys.receiptId()), rateService.get(keys.rateId()),
-            expenseService.readByReceipt(keys.receiptId()), expenseService.delete(keys))
-        .with((count, rate, expenses, i) -> {
+    return Uni.combine().all()
+        .unis(expenseService.countByReceipt(keys.receiptId()), rateUni(keys.receiptId()),
+            expenseService.readByReceipt(keys.receiptId()), expenseService.delete(keys),
+            reserveFundService.listByBuilding(keys.buildingId()))
+        .with((count, rate, expenses, i, reserveFunds) -> {
           expenses.removeIf(expense -> expense.id() == keys.id());
+
+          final var expenseTotalsBeforeReserveFunds = ConvertUtil.expenseTotals(rate.rate(), expenses);
+
+          final var reserveFundExpenses = reserveFundExpenses(expenseTotalsBeforeReserveFunds, reserveFunds, expenses);
+
           final var expenseTotals = ConvertUtil.expenseTotals(rate.rate(), expenses);
+
           final var countersDto = ExpenseCountersDto.builder()
               .count(count - i)
-              .commonTotal(expenseTotals.formatCommon())
-              .unCommonTotal(expenseTotals.formatUnCommon())
+              .commonTotal(expenseTotalsBeforeReserveFunds.formatCommon())
+              .unCommonTotal(expenseTotalsBeforeReserveFunds.formatUnCommon())
+              .commonTotalPlusReserveFunds(expenseTotals.formatCommon())
+              .unCommonTotalPlusReserveFunds(expenseTotals.formatUnCommon())
+              .reserveFundExpenses(reserveFundExpenses)
               .build();
 
           return Templates.counters(countersDto);
         });
-
-    return expenseService.delete(keys)
-        .replaceWith(templateInstanceUni);
   }
 
   @GET
@@ -151,6 +175,40 @@ public class ExpenseResource {
 
   }
 
+  private List<ExpenseTableItem> reserveFundExpenses(ExpenseTotals expenseTotalsBeforeReserveFunds,
+      List<ReserveFund> reserveFunds, List<Expense> expenses) {
+    final var reserveFundExpenses = new ArrayList<ExpenseTableItem>();
+
+    for (ReserveFund reserveFund : reserveFunds) {
+      final var expenseTotal =
+          reserveFund.expenseType() == ExpenseType.COMMON ? expenseTotalsBeforeReserveFunds.common() :
+              expenseTotalsBeforeReserveFunds.unCommon();
+
+      final var amount = reserveFund.type() == ReserveFundType.PERCENTAGE ?
+          DecimalUtil.percentageOf(reserveFund.pay(), expenseTotal.amount()) : reserveFund.pay();
+
+      final var expenseReserveFund = Expense.builder()
+          .buildingId(reserveFund.buildingId())
+          .receiptId(0)
+          .id(0)
+          .description(reserveFund.name())
+          .amount(amount)
+          .currency(expenseTotal.currency())
+          .reserveFund(true)
+          .type(reserveFund.expenseType())
+          .build();
+
+      expenses.add(expenseReserveFund);
+      reserveFundExpenses.add(ExpenseTableItem.builder()
+          .key("")
+          .item(expenseReserveFund)
+          .cardId(UUID.randomUUID().toString())
+          .build());
+    }
+
+    return reserveFundExpenses;
+  }
+
   @POST
   @Path("{key}")
   @Produces(MediaType.TEXT_HTML)
@@ -158,38 +216,45 @@ public class ExpenseResource {
     final var keys = encryptionService.decryptObj(key, Keys.class);
     final var formDto = formDto(key, request);
 
-    if (formDto.isSuccess()) {
-
-      return Uni.combine().all()
-          .unis(expenseService.countByReceipt(keys.receiptId()), rateService.get(keys.rateId()),
-              expenseService.readByReceipt(keys.receiptId()), expenseService.create(keys, formDto))
-          .with((count, rate, expenses, expense) -> {
-            expenses.add(expense);
-
-            final var keys1 = expense.keys(keys.rateId());
-            final var tableItem = ExpenseTableItem.builder()
-                .key(encryptionService.encryptObj(keys1))
-                .item(expense)
-                .cardId(keys1.cardId())
-                .addAfterEnd(true)
-                .build();
-
-            final var expenseTotals = ConvertUtil.expenseTotals(rate.rate(), expenses);
-
-            return ExpenseFormDto.builder()
-                .key(key)
-                .tableItem(tableItem)
-                .counters(ExpenseCountersDto.builder()
-                    .count(count + 1)
-                    .commonTotal(expenseTotals.formatCommon())
-                    .unCommonTotal(expenseTotals.formatUnCommon())
-                    .build())
-                .build();
-          })
-          .map(Templates::form);
-    } else {
+    if (!formDto.isSuccess()) {
       return Uni.createFrom().item(Templates.form(formDto));
     }
+
+    return Uni.combine().all()
+        .unis(expenseService.countByReceipt(keys.receiptId()), rateUni(keys.receiptId()),
+            expenseService.readByReceipt(keys.receiptId()), expenseService.create(keys, formDto),
+            reserveFundService.listByBuilding(keys.buildingId()))
+        .with((count, rate, expenses, expense, reserveFunds) -> {
+          expenses.add(expense);
+
+          final var keys1 = expense.keys();
+          final var tableItem = ExpenseTableItem.builder()
+              .key(encryptionService.encryptObj(keys1))
+              .item(expense)
+              .cardId(keys1.cardId())
+              .addAfterEnd(true)
+              .build();
+
+          final var expenseTotalsBeforeReserveFunds = ConvertUtil.expenseTotals(rate.rate(), expenses);
+
+          final var reserveFundExpenses = reserveFundExpenses(expenseTotalsBeforeReserveFunds, reserveFunds, expenses);
+
+          final var expenseTotals = ConvertUtil.expenseTotals(rate.rate(), expenses);
+
+          return ExpenseFormDto.builder()
+              .key(key)
+              .tableItem(tableItem)
+              .counters(ExpenseCountersDto.builder()
+                  .count(count + 1)
+                  .commonTotal(expenseTotalsBeforeReserveFunds.formatCommon())
+                  .unCommonTotal(expenseTotalsBeforeReserveFunds.formatUnCommon())
+                  .commonTotalPlusReserveFunds(expenseTotals.formatCommon())
+                  .unCommonTotalPlusReserveFunds(expenseTotals.formatUnCommon())
+                  .reserveFundExpenses(reserveFundExpenses)
+                  .build())
+              .build();
+        })
+        .map(Templates::form);
   }
 
   @PATCH
@@ -205,44 +270,60 @@ public class ExpenseResource {
       return Uni.createFrom().item(Templates.form(formDto));
     }
 
+    final var update = Expense.builder()
+        .buildingId(keys.buildingId())
+        .receiptId(keys.receiptId())
+        .id(keys.id())
+        .description(formDto.description())
+        .amount(formDto.amount())
+        .currency(formDto.currency())
+        .type(formDto.type())
+        .build();
+
+    if (StringUtil.objHash(update) == keys.hash()) {
+      return Uni.createFrom().item(Templates.form(formDto.toBuilder()
+          .generalError("HASH No hay cambios para guardar")
+          .build()));
+    }
+
     return Uni.combine().all()
-        .unis(rateService.get(keys.rateId()),
-            expenseService.readByReceipt(keys.receiptId()), expenseService.get(keys))
-        .withUni((rate, expenses, e) -> {
-          if (Objects.equals(e.description(), formDto.description())
-              && Objects.equals(e.amount(), formDto.amount())
-              && Objects.equals(e.currency(), formDto.currency())
-              && Objects.equals(e.type(), formDto.type())) {
-            return Uni.createFrom().item(formDto.toBuilder()
-                .generalError("No hay cambios para guardar")
-                .build());
-          }
+        .unis(rateUni(keys.receiptId()),
+            expenseService.readByReceipt(keys.receiptId()), expenseService.update(keys, formDto),
+            reserveFundService.listByBuilding(keys.buildingId()))
+        .with((rate, expenses, expense, reserveFunds) -> {
+          expenses.removeIf(e -> e.id() == keys.id());
 
-            expenses.removeIf(expense -> expense.id() == keys.id());
+          expenses.add(expense);
 
-          return expenseService.update(keys, formDto)
-              .map(expense -> {
-                expenses.add(expense);
+          final var newKeys = expense.keys().toBuilder()
+              .cardId(keys.cardId())
+              .build();
 
-                final var tableItem = ExpenseTableItem.builder()
-                    .key(key)
-                    .item(expense)
-                    .cardId(keys.cardId())
-                    .outOfBoundsUpdate(true)
-                    .build();
+          final var tableItem = ExpenseTableItem.builder()
+              .key(encryptionService.encryptObj(newKeys))
+              .item(expense)
+              .cardId(newKeys.cardId())
+              .outOfBoundsUpdate(true)
+              .build();
 
-                final var expenseTotals = ConvertUtil.expenseTotals(rate.rate(), expenses);
+          final var expenseTotalsBeforeReserveFunds = ConvertUtil.expenseTotals(rate.rate(), expenses);
 
-                return ExpenseFormDto.builder()
-                    .key(
-                        encryptionService.encryptObj(Keys.of(keys.buildingId(), keys.receiptId(), keys.rateId())))
-                    .tableItem(tableItem)
-                    .counters(ExpenseCountersDto.builder()
-                        .commonTotal(expenseTotals.formatCommon())
-                        .unCommonTotal(expenseTotals.formatUnCommon())
-                        .build())
-                    .build();
-              });
+          final var reserveFundExpenses = reserveFundExpenses(expenseTotalsBeforeReserveFunds, reserveFunds,
+              expenses);
+
+          final var expenseTotals = ConvertUtil.expenseTotals(rate.rate(), expenses);
+
+          return ExpenseFormDto.builder()
+              .key(key)
+              .tableItem(tableItem)
+              .counters(ExpenseCountersDto.builder()
+                  .commonTotal(expenseTotalsBeforeReserveFunds.formatCommon())
+                  .unCommonTotal(expenseTotalsBeforeReserveFunds.formatUnCommon())
+                  .commonTotalPlusReserveFunds(expenseTotals.formatCommon())
+                  .unCommonTotalPlusReserveFunds(expenseTotals.formatUnCommon())
+                  .reserveFundExpenses(reserveFundExpenses)
+                  .build())
+              .build();
         })
         .map(Templates::form);
   }

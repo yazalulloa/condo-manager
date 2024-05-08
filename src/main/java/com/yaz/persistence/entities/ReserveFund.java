@@ -1,5 +1,6 @@
 package com.yaz.persistence.entities;
 
+import com.yaz.core.util.StringUtil;
 import com.yaz.persistence.domain.ExpenseType;
 import com.yaz.persistence.domain.ReserveFundType;
 import java.math.BigDecimal;
@@ -27,20 +28,29 @@ public record ReserveFund(
   }
 
   public Keys keys() {
-    return new Keys(buildingId, id, 0, cardId());
+    return keys(0);
+  }
+
+  public Keys keys(long receiptId, String cardId) {
+    return new Keys(buildingId, id, receiptId, cardId, StringUtil.objHash(this));
+  }
+
+  public Keys keys(long receiptId) {
+    return keys(receiptId, cardId());
   }
 
   public record Keys(String buildingId,
                      String id,
                      long receiptId,
-                     String cardId) {
+                     String cardId,
+                     long hash) {
 
     public static Keys ofBuilding(String buildingId) {
-      return new Keys(buildingId, buildingId, 0, ReserveFund.cardId());
+      return new Keys(buildingId, buildingId, 0, ReserveFund.cardId(), 0);
     }
 
     public static Keys newReceipt(long receiptId, String buildingId) {
-      return new Keys(buildingId, buildingId, receiptId, ReserveFund.cardId());
+      return new Keys(buildingId, buildingId, receiptId, ReserveFund.cardId(), 0);
     }
   }
 }

@@ -1,14 +1,18 @@
 package com.yaz.core.util;
 
+import io.vertx.core.json.Json;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.zip.CRC32;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterOutputStream;
+import org.apache.commons.codec.digest.XXHash32;
 
 public class StringUtil {
 
@@ -129,5 +133,22 @@ public class StringUtil {
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
+  }
+
+  public static long crc32(String str) {
+    final var crc32 = new CRC32();
+    crc32.update(ByteBuffer.wrap(str.getBytes(StandardCharsets.UTF_8)));
+    return crc32.getValue();
+  }
+
+  public static long objHash(Object obj) {
+    final var encode = Json.encode(obj);
+    return xxHash32(encode);
+  }
+
+  public static long xxHash32(String str) {
+    final var xxHash32 = new XXHash32();
+    xxHash32.update(ByteBuffer.wrap(str.getBytes(StandardCharsets.UTF_8)));
+    return xxHash32.getValue();
   }
 }

@@ -3,7 +3,8 @@
 <span id="buildings-total-counter" hx-swap-oob="true">Edificios: {res.totalCount}</span>
 
 {#for item in res.results}
-    <div id="{item.cardId}" class="hover:bg-[#00000014] gap-4 rounded-lg bg-neutral flex flex-row justify-between fade-me-out fade-me-in">
+    <div id="{item.cardId}"
+    class="hover:bg-[#00000014] gap-4 rounded-lg bg-neutral flex flex-row justify-between fade-me-out fade-me-in">
   <div script="on click call saveToLocalStorage('buildingId','{item.building.id}')"
        hx-get="/stc/buildings/edit/{item.building.id}"
        hx-push-url="true"
@@ -43,8 +44,8 @@
   <div class="flex justify-center items-center min-h-10 min-w-10 py-3 pr-3">
     <button class="delete-btn"
             hx-headers='{"{inject:csrf.headerName}":"{inject:csrf.token}"}'
-            hx-delete={item.deleteUrl}
-                hx-target={item.cardIdRef}
+            hx-delete="{item.deleteUrl}"
+            hx-target="{item.cardIdRef}"
             hx-trigger="click"
             hx-swap="delete">
       <img src="/assets/trash.svg" alt="delete-item">

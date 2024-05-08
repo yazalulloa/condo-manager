@@ -1,15 +1,28 @@
 {@java.util.List<com.yaz.api.domain.response.ExpenseTableItem> list}
 
-<div id="expenses-table-item-grid" class="min-w-3/5">
+<div class="min-w-3/5">
+
     <div class="expenses-grid base-grid-cm p-2 font-bold">
         <span>Descripción</span>
         <span>Monto</span>
         <span>Tipo</span>
         <span>Acciones</span>
     </div>
+    <div id="reserve-funds-expenses-table-item-grid">
+        {#for item in list}
+            {#if item.item.reserveFund == true}
+                    {#include ExpenseResource/item item = item /}
+            {/if}
+        {/for}
+    </div>
 
-    {#for item in list}
+    <div id="expenses-table-item-grid">
 
-            {#include ExpenseResource/item item=item /}
-    {/for}
+
+        {#for item in list}
+            {#if item.item.reserveFund == false}
+                    {#include ExpenseResource/item item = item /}
+            {/if}
+        {/for}
+    </div>
 </div>

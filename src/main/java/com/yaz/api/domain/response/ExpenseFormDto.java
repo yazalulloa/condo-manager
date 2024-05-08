@@ -3,6 +3,7 @@ package com.yaz.api.domain.response;
 import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.domain.ExpenseType;
 import java.math.BigDecimal;
+import java.util.List;
 import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.Accessors;

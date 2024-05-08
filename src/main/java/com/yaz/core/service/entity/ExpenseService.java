@@ -1,6 +1,7 @@
 package com.yaz.core.service.entity;
 
 import com.yaz.api.domain.response.ExpenseFormDto;
+import com.yaz.core.util.MutinyUtil;
 import com.yaz.persistence.entities.Expense;
 import com.yaz.persistence.entities.Expense.Keys;
 import com.yaz.persistence.repository.turso.ExpenseRepository;
@@ -29,7 +30,9 @@ public class ExpenseService {
   }
 
   public Uni<Integer> delete(Keys keys) {
-    return repository.delete(keys.id());
+    return MutinyUtil.measure(repository.delete(keys.id()), duration -> {
+      log.info("Expense deleted in {} ms", duration);
+    });
   }
 
   public Uni<Long> countByReceipt(long receiptId) {

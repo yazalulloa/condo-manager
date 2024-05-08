@@ -6,7 +6,9 @@ import io.reactivex.rxjava3.core.Single;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.converters.uni.UniRx3Converters;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
+import java.util.function.LongConsumer;
 
 public class MutinyUtil {
 
@@ -47,5 +49,18 @@ public class MutinyUtil {
 
       return Uni.createFrom().item(i);
     };
+  }
+
+  public static <T> Uni<T> measure(Uni<T> uni, LongConsumer consumer) {
+
+    final var atomicLong = new AtomicLong(0);
+    return uni
+        .onSubscription().invoke(() -> {
+          atomicLong.set(System.currentTimeMillis());
+        })
+        .onTermination().invoke(() -> {
+          final var duration = System.currentTimeMillis() - atomicLong.get();
+          consumer.accept(duration);
+        });
   }
 }

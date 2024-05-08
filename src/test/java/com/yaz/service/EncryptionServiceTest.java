@@ -3,15 +3,22 @@ package com.yaz.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.yaz.core.service.EncryptionService;
-import com.yaz.persistence.entities.ExtraCharge.Keys;
 import com.yaz.core.util.DateUtil;
+import com.yaz.core.util.StringUtil;
+import com.yaz.persistence.entities.ExtraCharge.Keys;
 import io.quarkus.test.junit.QuarkusTest;
 import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonObject;
 import jakarta.inject.Inject;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.UUID;
+import java.util.stream.IntStream;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
+@Slf4j
 class EncryptionServiceTest {
 
   @Inject
@@ -95,5 +102,38 @@ class EncryptionServiceTest {
     System.out.println(decrypted);
   }
 
+  @Test
+  void stream() {
+    IntStream.range(1, 200)
+        .forEach(i -> {
+
+          var j = 0;
+          final var jsonObject = new JsonObject();
+
+          while (j < i) {
+            j++;
+            jsonObject.put("key" + j, "value" + j + "-" + UUID.randomUUID());
+          }
+
+          final var str = jsonObject.encode();
+
+          printV(i, str.length(), service.encryptObj(str).length());
+          printV(i, str.length(), StringUtil.deflate(str).length());
+          log.info("-".repeat(10));
+        });
+
+
+  }
+
+  private void printV(int keys, int startValue, int endValue) {
+    final var diff = endValue - startValue;
+
+    final var percent = BigDecimal.valueOf(diff)
+        .divide(BigDecimal.valueOf(startValue), 2, RoundingMode.HALF_UP)
+        .multiply(BigDecimal.valueOf(100));
+
+    log.info("keys {} start {} end {} diff {} percent {}", keys, startValue, endValue, diff,
+        percent);
+  }
 
 }
