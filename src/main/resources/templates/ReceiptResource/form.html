@@ -50,15 +50,15 @@
                    required>
         </div>
 
-        <div hx-get="/api/intersect_once"
-             hx-trigger="intersect once">
-
-        </div>
-
-        <div hx-get="/api/intersect"
-             hx-trigger="intersect">
-
-        </div>
+        {!<div hx-get="/api/intersect_once"!}
+             {!hx-trigger="intersect once">!}
+{!!}
+        {!</div>!}
+{!!}
+        {!<div hx-get="/api/intersect"!}
+             {!hx-trigger="intersect">!}
+{!!}
+        {!</div>!}
 
         <div class="grid grid-cols-2 gap-6 w-fit items-center m-auto">
             <label class="label-text text-end" for="rate-input">Tasa de cambio</label>

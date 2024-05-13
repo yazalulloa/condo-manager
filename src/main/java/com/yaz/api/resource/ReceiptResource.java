@@ -6,7 +6,6 @@ import com.yaz.api.domain.response.ExpenseFormDto;
 import com.yaz.api.domain.response.ExpenseTableItem;
 import com.yaz.api.domain.response.ExtraChargeFormDto;
 import com.yaz.api.domain.response.ExtraChargeTableItem;
-import com.yaz.api.domain.response.RateTableResponse.Item;
 import com.yaz.api.domain.response.ReceiptCountersDto;
 import com.yaz.api.domain.response.ReceiptEditFormInit;
 import com.yaz.api.domain.response.ReceiptFileFormDto;
@@ -44,7 +43,6 @@ import com.yaz.persistence.domain.request.ReceiptCreateRequest;
 import com.yaz.persistence.entities.Debt;
 import com.yaz.persistence.entities.Expense;
 import com.yaz.persistence.entities.ExtraCharge;
-import com.yaz.persistence.entities.Rate;
 import com.yaz.persistence.entities.Receipt;
 import com.yaz.persistence.entities.Receipt.Keys;
 import com.yaz.persistence.entities.ReserveFund;
@@ -334,7 +332,7 @@ public class ReceiptResource {
     final var localDate = LocalDate.now(DateUtil.VE_ZONE);
 
     final var rateListSingle = MutinyUtil.single(
-        rateService.table(RateQuery.query(10, SortOrder.DESC), "/api/rates/options"))
+            rateService.table(RateQuery.query(10, SortOrder.DESC), "/api/rates/options"))
         .map(res -> {
 
 //          LocalDate last; TODO
@@ -344,7 +342,6 @@ public class ReceiptResource {
 //            final var dateOfRate = rate.dateOfRate();
 //
 //          }
-
 
           return res;
         });
@@ -384,8 +381,6 @@ public class ReceiptResource {
 
               final var buildingsMatched = buildings.stream().filter(fileName::contains)
                   .toList();
-
-
 
               return ReceiptFileFormDto.builder()
                   .fileName(fileName)
@@ -671,6 +666,7 @@ public class ReceiptResource {
 
   @Data
   public static class ReceiptEditRequest {
+
     @RestForm
     @NotBlank
     private String keys;
@@ -716,42 +712,42 @@ public class ReceiptResource {
     }
 
     return Uni.combine().all()
-        .unis(buildingService.get(keys.buildingId()), rateService.get(rateId), receiptService.get(keys.id()))
-        .withUni((building, rate, receipt) -> {
+        .unis(buildingService.get(keys.buildingId()), rateService.get(rateId), receiptService.get(keys.id()),
+            receiptService.update(update))
+        .withUni((building, rate, receipt, i) -> {
 
-
-
-          if (Objects.equals(receipt.year(), request.year)
-              && Objects.equals(receipt.month(), request.month)
-              && Objects.equals(receipt.date(), date)
-              && Objects.equals(receipt.rateId(), rateId)) {
+          if (Objects.equals(receipt.rateId(), rateId)) {
             return Uni.createFrom().item(Response.noContent().build());
           }
 
-          final var responseUni = Uni.createFrom()
-              .deferred(() -> {
-                if (Objects.equals(receipt.rateId(), rateId)) {
-                  return Uni.createFrom().item(Response.noContent().build());
+          return Uni.combine().all()
+              .unis(expenseService.readByReceipt(keys.id()), reserveFundService.listByBuilding(keys.buildingId()))
+              .with((expenses, reserveFunds) -> {
+
+                final var isRateNeeded = expenses.stream().map(Expense::currency)
+                    .anyMatch(currency -> rate.fromCurrency() == currency);
+
+                if (!isRateNeeded) {
+                  return Response.noContent().build();
                 }
 
-                return expenseService.readByReceipt(keys.id())
-                    .map(expenses -> {
+                final var expenseTotalsBeforeReserveFunds = ConvertUtil.expenseTotals(rate.rate(), expenses);
 
-                      final var expenseTotals = ConvertUtil.expenseTotals(rate.rate(), expenses);
-                      final var countersDto = ExpenseCountersDto.builder()
-                          .commonTotal(expenseTotals.formatCommon())
-                          .unCommonTotal(expenseTotals.formatUnCommon())
-                          .build();
+                final var reserveFundExpenses = ConvertUtil.reserveFundExpenses(expenseTotalsBeforeReserveFunds,
+                    reserveFunds, expenses);
 
-                      return ExpenseResource.Templates.counters(countersDto);
-                    })
-                    .map(templateInstance -> Response.ok(templateInstance).build());
+                final var expenseTotals = ConvertUtil.expenseTotals(rate.rate(), expenses);
+
+                final var countersDto = ExpenseCountersDto.builder()
+                    .commonTotal(expenseTotalsBeforeReserveFunds.formatCommon())
+                    .unCommonTotal(expenseTotalsBeforeReserveFunds.formatUnCommon())
+                    .commonTotalPlusReserveFunds(expenseTotals.formatCommon())
+                    .unCommonTotalPlusReserveFunds(expenseTotals.formatUnCommon())
+                    .reserveFundExpenses(reserveFundExpenses)
+                    .build();
+                final var templateInstance = ExpenseResource.Templates.counters(countersDto);
+                return Response.ok(templateInstance).build();
               });
-
-          return Uni.combine()
-              .all()
-              .unis(receiptService.update(update), responseUni)
-              .with((i, response) -> response);
         });
   }
 
