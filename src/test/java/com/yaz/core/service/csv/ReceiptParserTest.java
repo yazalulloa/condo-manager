@@ -1,9 +1,9 @@
 package com.yaz.core.service.csv;
 
+import com.yaz.persistence.entities.Expense;
 import io.quarkus.test.junit.QuarkusTest;
 import io.vertx.core.json.Json;
 import jakarta.inject.Inject;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -21,7 +21,16 @@ class ReceiptParserTest {
     final var receipts = receiptParser.parseDir("/home/yaz/Downloads")
         .blockingGet();
 
-    log.info("Recibos: {}", Json.encode(receipts));
+    receipts.forEach(csvReceipt -> {
+      for (Expense expense : csvReceipt.expenses()) {
+        if (expense.reserveFund()) {
+          log.info("Recibos con reserva: {}", csvReceipt);
+          break;
+        }
+      }
+    });
+
+    //log.info("Recibos: {}", Json.encode(receipts));
     log.info("Recibos: {}", receipts.size());
 
 //    final var path = Paths.get("/home/yaz/Downloads");

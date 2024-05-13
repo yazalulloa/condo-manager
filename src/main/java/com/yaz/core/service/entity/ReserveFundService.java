@@ -22,7 +22,7 @@ public class ReserveFundService {
     return repository.count();
   }
 
-  public Uni<Integer> delete(String buildingId, String id) {
+  public Uni<Integer> delete(String buildingId, long id) {
     return repository.delete(buildingId, id);
   }
 
@@ -30,7 +30,7 @@ public class ReserveFundService {
     return repository.deleteByBuilding(buildingId);
   }
 
-  public Uni<Integer> insert(ReserveFund reserveFund) {
+  public Uni<Long> insert(ReserveFund reserveFund) {
     return repository.insert(reserveFund);
   }
 
@@ -42,12 +42,8 @@ public class ReserveFundService {
     return repository.selectByBuilding(buildingId);
   }
 
-  public Uni<Optional<ReserveFund>> read(String buildingId, String id) {
+  public Uni<Optional<ReserveFund>> read(String buildingId, long id) {
     return repository.read(buildingId, id);
-  }
-
-  public Uni<Integer> create(ReserveFund reserveFund) {
-    return repository.insert(reserveFund);
   }
 
   public Uni<Long> count(String buildingId) {

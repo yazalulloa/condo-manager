@@ -4,9 +4,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import com.yaz.core.util.StringUtil;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 import lombok.Builder;
 import lombok.extern.jackson.Jacksonized;
 
@@ -26,20 +26,29 @@ public record Receipt(
     boolean sent,
     LocalDateTime lastSent,
     LocalDateTime createdAt,
-    LocalDateTime updatedAt,
-    List<Expense> expenses,
-    List<ExtraCharge> extraCharges,
-    List<Debt> debts
+    LocalDateTime updatedAt
 ) {
 
 
   public Keys keys() {
-    return new Keys(buildingId, id);
+    return new Keys(buildingId, id, 0);
+  }
+
+  public Keys keysWithHash() {
+    final var receipt = this.toBuilder()
+        .sent(false)
+        .lastSent(null)
+        .createdAt(null)
+        .updatedAt(null)
+        .build();
+
+    return new Keys(buildingId, id, StringUtil.objHash(receipt));
   }
 
   public record Keys(
       String buildingId,
-      long id
+      long id,
+      long hash
   ) {
 
   }

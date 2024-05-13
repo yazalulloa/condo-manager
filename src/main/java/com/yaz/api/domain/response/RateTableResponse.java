@@ -4,19 +4,22 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yaz.api.resource.RateResource;
 import com.yaz.persistence.entities.Rate;
 import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
+import lombok.experimental.Accessors;
 
 @Builder(toBuilder = true)
 public record RateTableResponse(
     Long selected,
     long totalCount,
     String nextPageUrl,
-    Collection<Item> results) {
+    List<Item> results) {
 
   @Data
+  @Accessors(fluent = true)
   @Builder
   public static class Item {
 
@@ -46,7 +49,7 @@ public record RateTableResponse(
     }
 
     public boolean genIfHidden() {
-      return getRate().etag() != null || getRate().hash() != null || getRate().lastModified() != null;
+      return rate().etag() != null || rate().hash() != null || rate().lastModified() != null;
     }
   }
 }

@@ -6,6 +6,7 @@ import com.yaz.api.domain.response.ExpenseFormDto;
 import com.yaz.api.domain.response.ExpenseTableItem;
 import com.yaz.api.domain.response.ExtraChargeFormDto;
 import com.yaz.api.domain.response.ExtraChargeTableItem;
+import com.yaz.api.domain.response.RateTableResponse.Item;
 import com.yaz.api.domain.response.ReceiptCountersDto;
 import com.yaz.api.domain.response.ReceiptEditFormInit;
 import com.yaz.api.domain.response.ReceiptFileFormDto;
@@ -34,18 +35,16 @@ import com.yaz.core.service.entity.ReserveFundService;
 import com.yaz.core.service.pdf.ReceiptPdfService;
 import com.yaz.core.util.ConvertUtil;
 import com.yaz.core.util.DateUtil;
-import com.yaz.core.util.DecimalUtil;
 import com.yaz.core.util.MutinyUtil;
 import com.yaz.core.util.StringUtil;
-import com.yaz.persistence.domain.ExpenseType;
-import com.yaz.persistence.domain.ReserveFundType;
 import com.yaz.persistence.domain.query.RateQuery;
 import com.yaz.persistence.domain.query.ReceiptQuery;
 import com.yaz.persistence.domain.query.SortOrder;
-import com.yaz.persistence.domain.request.ReceiptUpdateRequest;
+import com.yaz.persistence.domain.request.ReceiptCreateRequest;
 import com.yaz.persistence.entities.Debt;
 import com.yaz.persistence.entities.Expense;
 import com.yaz.persistence.entities.ExtraCharge;
+import com.yaz.persistence.entities.Rate;
 import com.yaz.persistence.entities.Receipt;
 import com.yaz.persistence.entities.Receipt.Keys;
 import com.yaz.persistence.entities.ReserveFund;
@@ -332,8 +331,23 @@ public class ReceiptResource {
             .fileName(file.fileName())
             .build());
 
+    final var localDate = LocalDate.now(DateUtil.VE_ZONE);
+
     final var rateListSingle = MutinyUtil.single(
-        rateService.table(RateQuery.query(10, SortOrder.DESC), "/api/rates/options"));
+        rateService.table(RateQuery.query(10, SortOrder.DESC), "/api/rates/options"))
+        .map(res -> {
+
+//          LocalDate last; TODO
+//
+//          for (Item item : res.results()) {
+//            final var rate = item.rate();
+//            final var dateOfRate = rate.dateOfRate();
+//
+//          }
+
+
+          return res;
+        });
 
     final var responseSingle = Single.zip(listSingle, csvReceiptSingle, rateListSingle,
             (buildings, csvReceipt, rates) -> {
@@ -371,7 +385,7 @@ public class ReceiptResource {
               final var buildingsMatched = buildings.stream().filter(fileName::contains)
                   .toList();
 
-              final var localDate = LocalDate.now();
+
 
               return ReceiptFileFormDto.builder()
                   .fileName(fileName)
@@ -422,7 +436,7 @@ public class ReceiptResource {
     final var debtListUni = receiptUni.flatMap(
         receipt -> debtService.readByReceipt(receipt.buildingId(), receipt.id()));
 
-    final var rateListUni = rateService.table(RateQuery.query(10, SortOrder.DESC), "/api/rates/options");
+    final var rateListUni = rateService.table(RateQuery.query(30, SortOrder.DESC), "/api/rates/options");
 
     final var reserveFundUni = reserveFundService.listByBuilding(keys.buildingId());
 
@@ -430,9 +444,9 @@ public class ReceiptResource {
         .unis(receiptUni, rateUni, expensesListUni, extraChargesListUni, debtListUni, rateListUni,
             apartmentService.aptByBuildings(keys.buildingId()), buildingUni, reserveFundUni)
         .with((receipt, rate, expenses, extraCharges, debts, rates, apartments, building, reserveFunds) -> {
-
+          final var expensesCount = expenses.size();
           final var receiptForm = ReceiptFormDto.builder()
-              .key(id)
+              .key(encryptionService.encryptObj(receipt.keysWithHash()))
               .buildingName(receipt.buildingId())
               .month(receipt.month())
               .year(receipt.year())
@@ -441,9 +455,6 @@ public class ReceiptResource {
               .rates(rates.toBuilder()
                   .selected(rate.id())
                   .build())
-//              .expenses(expenses)
-//              .extraCharges(extraCharges)
-//              .debts(debts)
               .build();
 
           final var extraChargeTableItems = extraCharges.stream()
@@ -481,27 +492,11 @@ public class ReceiptResource {
           final var reserveFundTableItems = reserveFunds.stream()
               .map(reserveFund -> {
 
-                if (reserveFund.active() && reserveFund.addToExpenses()) {
+                final var reserveFundExpense = ConvertUtil.reserveFundExpense(expenseTotalsBeforeReserveFunds,
+                    reserveFund);
 
-                  final var expenseTotal =
-                      reserveFund.expenseType() == ExpenseType.COMMON ? expenseTotalsBeforeReserveFunds.common() :
-                          expenseTotalsBeforeReserveFunds.unCommon();
-
-                  final var amount = reserveFund.type() == ReserveFundType.PERCENTAGE ?
-                      DecimalUtil.percentageOf(reserveFund.pay(), expenseTotal.amount()) : reserveFund.pay();
-
-                  final var expense = Expense.builder()
-                      .buildingId(receipt.buildingId())
-                      .receiptId(receipt.id())
-                      .id(0)
-                      .description(reserveFund.name())
-                      .amount(amount)
-                      .currency(expenseTotal.currency())
-                      .reserveFund(true)
-                      .type(reserveFund.expenseType())
-                      .build();
-
-                  expenses.add(expense);
+                if (reserveFundExpense != null) {
+                  expenses.add(reserveFundExpense.item());
                 }
 
                 final var keys1 = reserveFund.keys(receipt.id());
@@ -540,6 +535,7 @@ public class ReceiptResource {
                   .key(encryptionService.encryptObj(Expense.Keys.of(receipt.buildingId(), receipt.id())))
                   .build())
               .expenses(expenseTableItems)
+              .expensesCount(expensesCount)
               .debts(debtTableItems)
               .totalCommonExpenses(expenseTotalsBeforeReserveFunds.formatCommon())
               .totalUnCommonExpenses(expenseTotalsBeforeReserveFunds.formatUnCommon())
@@ -650,16 +646,20 @@ public class ReceiptResource {
               .month(request.month)
               .date(date)
               .rateId(rateId)
-              .expenses(expenses)
-              .extraCharges(extraCharges)
-              .debts(debts)
               .createdAt(DateUtil.utcLocalDateTime())
               .build();
 
-          return receiptService.insert(receipt)
+          final var createRequest = ReceiptCreateRequest.builder()
+              .receipt(receipt)
+              .expenses(expenses)
+              .extraCharges(extraCharges)
+              .debts(debts)
+              .build();
+
+          return receiptService.insert(createRequest)
               .map(res -> {
                 final var id = res.id();
-                final var keys = new Keys(receipt.buildingId(), id);
+                final var keys = new Keys(receipt.buildingId(), id, 0);
                 final var encrypted = encryptionService.encryptObj(keys);
 
                 return Response.ok()
@@ -671,7 +671,9 @@ public class ReceiptResource {
 
   @Data
   public static class ReceiptEditRequest {
-
+    @RestForm
+    @NotBlank
+    private String keys;
     @RestForm
     private int year;
     @RestForm
@@ -685,12 +687,12 @@ public class ReceiptResource {
   }
 
   @PATCH
-  @Path("edit/{key}")
+  @Path("edit")
   @Produces(MediaType.TEXT_HTML)
-  public Uni<Response> edit(@RestPath String key, @BeanParam ReceiptEditRequest request) {
+  public Uni<Response> edit(@BeanParam ReceiptEditRequest request) {
 
     final var month = Month.of(request.month);
-    final var keys = encryptionService.decryptObj(key, Receipt.Keys.class);
+    final var keys = encryptionService.decryptObj(request.getKeys(), Receipt.Keys.class);
     final var date = LocalDate.parse(request.date);
     final var rateId = Long.parseLong(encryptionService.decrypt(request.rateInput));
 
@@ -699,17 +701,25 @@ public class ReceiptResource {
       return Uni.createFrom().item(Response.noContent().build());
     }
 
+    final var update = Receipt.builder()
+        .buildingId(keys.buildingId())
+        .id(keys.id())
+        .year(request.year)
+        .month(request.month)
+        .date(date)
+        .rateId(rateId)
+        .build();
+
+    if (update.keysWithHash().hash() == keys.hash()) {
+      log.info("EDIT_RECEIPT_NO_CHANGE {}", request);
+      return Uni.createFrom().item(Response.noContent().build());
+    }
+
     return Uni.combine().all()
         .unis(buildingService.get(keys.buildingId()), rateService.get(rateId), receiptService.get(keys.id()))
         .withUni((building, rate, receipt) -> {
 
-          final var updateRequest = ReceiptUpdateRequest.builder()
-              .id(keys.id())
-              .year(request.year)
-              .month(request.month)
-              .date(date)
-              .rateId(rateId)
-              .build();
+
 
           if (Objects.equals(receipt.year(), request.year)
               && Objects.equals(receipt.month(), request.month)
@@ -740,7 +750,7 @@ public class ReceiptResource {
 
           return Uni.combine()
               .all()
-              .unis(receiptService.update(updateRequest), responseUni)
+              .unis(receiptService.update(update), responseUni)
               .with((i, response) -> response);
         });
   }

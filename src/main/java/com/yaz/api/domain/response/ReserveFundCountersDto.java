@@ -4,8 +4,15 @@ import lombok.Builder;
 
 @Builder(toBuilder = true)
 public record ReserveFundCountersDto(
-    long count
+    long count,
+    ExpenseCountersDto expenseCountersDto
 
 ) {
+
+public static ReserveFundCountersDto count(long count) {
+    return ReserveFundCountersDto.builder()
+        .count(count)
+        .build();
+}
 
 }

@@ -24,7 +24,6 @@ class ReserveFundServiceTest {
   void insert() {
     final var stream = Stream.generate(() -> ReserveFund.builder()
             .buildingId("TEST")
-            .id(DateUtil.epochSecond() + UUID.randomUUID().toString())
             .name("Test " + RandomUtil.randomIntStr(6))
             .fund(RandomUtil.randomBigDecimal(4, 2))
             .expense(RandomUtil.randomBigDecimal(4, 2))
@@ -44,8 +43,7 @@ class ReserveFundServiceTest {
         .asList()
         .await().indefinitely();
 
-    final var rows = list.stream().reduce(Integer::sum).orElse(0);
-    System.out.println(rows);
+    System.out.println(list);
 
   }
 

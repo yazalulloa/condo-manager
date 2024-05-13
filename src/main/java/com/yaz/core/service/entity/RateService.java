@@ -32,6 +32,7 @@ import jakarta.inject.Inject;
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -240,7 +241,7 @@ public class RateService {
             final var last = results.getLast();
 
             nextPageUrl = nextPagePrefix;
-            nextPageUrl += "?nextPage=" + last.getKey();
+            nextPageUrl += "?nextPage=" + last.key();
 
             if (rateQuery.date() != null) {
               nextPageUrl += "&date=" + rateQuery.date();
@@ -263,7 +264,7 @@ public class RateService {
     return writeEntityToFile.downloadFile("rates.json.gz", pagingProcessor(100, SortOrder.ASC));
   }
 
-  public Uni<Integer> insert(List<Rate> rates) {
+  public Uni<Integer> insert(Collection<Rate> rates) {
     return repository().insert(rates);
   }
 

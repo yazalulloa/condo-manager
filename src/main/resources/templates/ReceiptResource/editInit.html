@@ -10,7 +10,7 @@
     <summary class="hover:bg-[#00000014]">
         <div>
             <div class="flex flex-row flex-wrap gap-6 justify-center p-2">
-                <div class="text-center">Gastos: <span id="expenses-form-counter">{res.expenses.size}</span></div>
+                <div class="text-center">Gastos: <span id="expenses-form-counter">{res.expensesCount}</span></div>
                 <div class="text-center">Gastos comunes totales: <span
                             id="expenses-total-common">{res.totalCommonExpenses}</span></div>
                 <div class="text-center">Gastos no comunes totales: <span
@@ -18,9 +18,11 @@
             </div>
             <div class="flex flex-row flex-wrap gap-6 justify-center p-2">
                 <div class="text-center">Gastos comunes totales + fondos de reserva: <span
-                            id="expenses-total-common-plus-reserve-funds">{res.totalCommonExpensesPlusReserveFunds}</span></div>
+                            id="expenses-total-common-plus-reserve-funds">{res.totalCommonExpensesPlusReserveFunds}</span>
+                </div>
                 <div class="text-center">Gastos no comunes totales + fondos de reserva: <span
-                            id="expenses-total-uncommon-plus-reserve-funds">{res.totalUnCommonExpensesPlusReserveFunds}</span></div>
+                            id="expenses-total-uncommon-plus-reserve-funds">{res.totalUnCommonExpensesPlusReserveFunds}</span>
+                </div>
             </div>
         </div>
     </summary>

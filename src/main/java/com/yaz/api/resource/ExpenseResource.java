@@ -94,7 +94,7 @@ public class ExpenseResource {
 
           final var expenseTotalsBeforeReserveFunds = ConvertUtil.expenseTotals(rate.rate(), expenses);
 
-          final var reserveFundExpenses = reserveFundExpenses(expenseTotalsBeforeReserveFunds, reserveFunds, expenses);
+          final var reserveFundExpenses = ConvertUtil.reserveFundExpenses(expenseTotalsBeforeReserveFunds, reserveFunds, expenses);
 
           final var expenseTotals = ConvertUtil.expenseTotals(rate.rate(), expenses);
 
@@ -175,39 +175,7 @@ public class ExpenseResource {
 
   }
 
-  private List<ExpenseTableItem> reserveFundExpenses(ExpenseTotals expenseTotalsBeforeReserveFunds,
-      List<ReserveFund> reserveFunds, List<Expense> expenses) {
-    final var reserveFundExpenses = new ArrayList<ExpenseTableItem>();
-
-    for (ReserveFund reserveFund : reserveFunds) {
-      final var expenseTotal =
-          reserveFund.expenseType() == ExpenseType.COMMON ? expenseTotalsBeforeReserveFunds.common() :
-              expenseTotalsBeforeReserveFunds.unCommon();
-
-      final var amount = reserveFund.type() == ReserveFundType.PERCENTAGE ?
-          DecimalUtil.percentageOf(reserveFund.pay(), expenseTotal.amount()) : reserveFund.pay();
-
-      final var expenseReserveFund = Expense.builder()
-          .buildingId(reserveFund.buildingId())
-          .receiptId(0)
-          .id(0)
-          .description(reserveFund.name())
-          .amount(amount)
-          .currency(expenseTotal.currency())
-          .reserveFund(true)
-          .type(reserveFund.expenseType())
-          .build();
-
-      expenses.add(expenseReserveFund);
-      reserveFundExpenses.add(ExpenseTableItem.builder()
-          .key("")
-          .item(expenseReserveFund)
-          .cardId(UUID.randomUUID().toString())
-          .build());
-    }
-
-    return reserveFundExpenses;
-  }
+  
 
   @POST
   @Path("{key}")
@@ -237,7 +205,7 @@ public class ExpenseResource {
 
           final var expenseTotalsBeforeReserveFunds = ConvertUtil.expenseTotals(rate.rate(), expenses);
 
-          final var reserveFundExpenses = reserveFundExpenses(expenseTotalsBeforeReserveFunds, reserveFunds, expenses);
+          final var reserveFundExpenses = ConvertUtil.reserveFundExpenses(expenseTotalsBeforeReserveFunds, reserveFunds, expenses);
 
           final var expenseTotals = ConvertUtil.expenseTotals(rate.rate(), expenses);
 
@@ -282,7 +250,7 @@ public class ExpenseResource {
 
     if (StringUtil.objHash(update) == keys.hash()) {
       return Uni.createFrom().item(Templates.form(formDto.toBuilder()
-          .generalError("HASH No hay cambios para guardar")
+          .generalError("No hay cambios para guardar")
           .build()));
     }
 
@@ -308,7 +276,7 @@ public class ExpenseResource {
 
           final var expenseTotalsBeforeReserveFunds = ConvertUtil.expenseTotals(rate.rate(), expenses);
 
-          final var reserveFundExpenses = reserveFundExpenses(expenseTotalsBeforeReserveFunds, reserveFunds,
+          final var reserveFundExpenses = ConvertUtil.reserveFundExpenses(expenseTotalsBeforeReserveFunds, reserveFunds,
               expenses);
 
           final var expenseTotals = ConvertUtil.expenseTotals(rate.rate(), expenses);

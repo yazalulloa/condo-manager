@@ -5,7 +5,7 @@ import com.yaz.api.domain.response.ReceiptTableResponse;
 import com.yaz.api.resource.ReceiptResource;
 import com.yaz.core.service.EncryptionService;
 import com.yaz.persistence.domain.query.ReceiptQuery;
-import com.yaz.persistence.domain.request.ReceiptUpdateRequest;
+import com.yaz.persistence.domain.request.ReceiptCreateRequest;
 import com.yaz.persistence.entities.Receipt;
 import com.yaz.persistence.repository.turso.ReceiptRepository;
 import io.smallrye.mutiny.Uni;
@@ -34,8 +34,8 @@ public class ReceiptService {
     return repository.delete(buildingId, id);
   }
 
-  public Uni<ReceiptRepository.InsertResult> insert(Receipt receipt) {
-    return repository.insert(receipt);
+  public Uni<ReceiptRepository.InsertResult> insert(ReceiptCreateRequest createRequest) {
+    return repository.insert(createRequest);
   }
 
   public Uni<Integer> updateLastSent(long id) {
@@ -119,7 +119,7 @@ public class ReceiptService {
         });
   }
 
-  public Uni<Integer> update(ReceiptUpdateRequest updateRequest) {
-    return repository.update(updateRequest);
+  public Uni<Integer> update(Receipt receipt) {
+    return repository.update(receipt);
   }
 }

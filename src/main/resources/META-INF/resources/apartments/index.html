@@ -6,7 +6,7 @@
   <link href="/out/css/output.css" rel="stylesheet"/>
   <script src="/out/js/index.js" defer></script>
 </head>
-<body hx-boost="true">
+<body>
 
 <div class="bg-base-100" id="header-container" hx-swap-oob="true">
 
@@ -67,7 +67,7 @@
 </div>
 
 <div id="container" hx-swap-oob="true" class="overflow-auto">
-  <div id="apartment-rows"  hx-get="/api/apartments/init" hx-indicator=".htmx-indicator"
+  <div id="apartment-rows" hx-get="/api/apartments/init" hx-indicator=".htmx-indicator"
        hx-trigger="load"
        hx-swap="innerHTML">
   </div>

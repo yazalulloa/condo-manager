@@ -14,8 +14,9 @@
 
 {#if res.nextPageUrl}
     <option disabled
+            hidden="hidden"
             hx-get="{res.nextPageUrl}"
-            hx-trigger="revealed"
+            hx-trigger="intersect once"
             hx-target="this"
             hx-indicator=".htmx-indicator"
             hx-swap="outerHTML">

@@ -39,7 +39,7 @@ public class RatesRpc {
     return service.table(rateQuery, RateResource.PATH)
         .map(table -> {
           final var results = table.results().stream()
-              .map(Item::getRate)
+              .map(Item::rate)
               .toList();
 
           return RateRes.builder()

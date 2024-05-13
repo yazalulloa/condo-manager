@@ -1,26 +1,31 @@
 package com.yaz.core.service;
 
+import com.yaz.core.service.entity.ExtraChargeService;
 import com.yaz.core.service.entity.RateService;
+import com.yaz.core.service.entity.ReserveFundService;
 import com.yaz.core.util.DecimalUtil;
+import com.yaz.core.util.MutinyUtil;
 import com.yaz.core.util.PagingJsonFile;
 import com.yaz.core.util.RxUtil;
 import com.yaz.persistence.domain.Currency;
+import com.yaz.persistence.domain.request.ExtraChargeCreateRequest;
+import com.yaz.persistence.domain.request.ReceiptCreateRequest;
+import com.yaz.persistence.entities.Building;
 import com.yaz.persistence.entities.Debt;
 import com.yaz.persistence.entities.ExtraCharge;
 import com.yaz.persistence.entities.ExtraCharge.Apt;
 import com.yaz.persistence.entities.ExtraCharge.Type;
 import com.yaz.persistence.entities.Rate;
 import com.yaz.persistence.entities.Receipt;
+import com.yaz.persistence.entities.ReserveFund;
+import com.yaz.persistence.mongo.MongoBuilding;
 import com.yaz.persistence.mongo.MongoReceipt;
 import com.yaz.persistence.mongo.MongoReceipt.MongoExtraCharge;
-import com.yaz.persistence.repository.ApartmentRepository;
-import com.yaz.persistence.repository.BuildingRepository;
 import com.yaz.persistence.repository.turso.ReceiptRepository;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -49,10 +54,10 @@ import org.apache.commons.compress.utils.IOUtils;
 public class LoadBackupService {
 
 
-  private final Instance<BuildingRepository> buildingRepository;
-  private final Instance<ApartmentRepository> apartmentRepository;
   private final ReceiptRepository receiptRepository;
   private final RateService rateService;
+  private final ReserveFundService reserveFundService;
+  private final ExtraChargeService extraChargeService;
   private final PagingJsonFile pagingJsonFile = new PagingJsonFile();
 
 
@@ -96,19 +101,66 @@ public class LoadBackupService {
 
             switch (name) {
               case "buildings.json.gz": {
-//                final var completable = pagingJsonFile.pagingJsonFile(100, fileName, Building.class, list -> {
-//
+                final var completable = pagingJsonFile.pagingJsonFile(100, fileName, MongoBuilding.class, list -> {
+
+                      final var buildings = new ArrayList<Building>();
+                      final var extraCharges = new ArrayList<ExtraChargeCreateRequest>();
+                      final var reserveFunds = new ArrayList<ReserveFund>();
+
+                      for (MongoBuilding building : list) {
+                        building.extraCharges().stream()
+                            .collect(Collectors.groupingBy(MongoExtraCharge::description))
+                            .values().stream()
+                            .map(charges -> {
+                              final var apts = charges.stream().map(MongoExtraCharge::aptNumber)
+                                  .collect(Collectors.toSet());
+
+                              final var extraCharge = charges.getFirst();
+
+                              return ExtraChargeCreateRequest.builder()
+                                  .parentReference(building.id())
+                                  .buildingId(building.id())
+                                  .type(Type.BUILDING)
+                                  .description(extraCharge.description())
+                                  .amount(extraCharge.amount())
+                                  .currency(extraCharge.currency())
+                                  .active(true)
+                                  .apartments(apts)
+                                  .build();
+                            })
+                            .forEach(extraCharges::add);
+
+                        building.reserveFunds().stream()
+                            .map(reserveFund -> {
+                              return reserveFund.toBuilder()
+                                  .buildingId(building.id())
+                                  .build();
+                            })
+                            .forEach(reserveFunds::add);
+                      }
+
+                      final var insertReserveFunds = Observable.fromIterable(reserveFunds)
+                          .map(reserveFundService::insert)
+                          .flatMapSingle(MutinyUtil::single)
+                          .ignoreElements();
+
+                      final var insertExtraCharges = Observable.fromIterable(extraCharges)
+                          .map(extraChargeService::create)
+                          .flatMapSingle(MutinyUtil::single)
+                          .ignoreElements();
+
+                      return Completable.mergeArray(insertExtraCharges, insertReserveFunds);
 //                      return Observable.fromIterable(list)
 //                          .toList()
 //                          .map(buildingRepository.get()::insertIgnore)
 //                          .flatMap(RxUtil::single)
 //                          .doOnSuccess(i -> log.info("BUILDINGS INSERTED: {}", i))
 //                          .ignoreElement();
-//
-//                    })
-//                    .doOnComplete(() -> log.info("BUILDINGS COMPLETED"))
-//                    .doOnError(throwable -> log.error("ERROR BUILDINGS", throwable));
-//                addToList.accept(completable);
+
+                    })
+                    .doOnComplete(() -> log.info("BUILDINGS COMPLETED"))
+                    .doOnError(throwable -> log.error("ERROR BUILDINGS", throwable));
+                addToList.accept(completable);
               }
               break;
               case "apartments.json.gz": {
@@ -139,17 +191,17 @@ public class LoadBackupService {
               }
               break;
               case "rates.json.gz": {
-//                final var completable = pagingJsonFile.pagingJsonFile(100, fileName, Rate.class, list -> {
-//
-//                      return RxUtil.single(rateMySqlRepository.replace(list))
-//                          .doOnSuccess(i -> log.info("RATES INSERTED: {}", i))
-//                          .ignoreElement();
-//
-//                    })
-//                    .doOnComplete(() -> log.info("RATES COMPLETED"))
-//                    .doOnError(throwable -> log.error("ERROR RATES", throwable));
-//
-//                addToList.accept(completable);
+                final var completable = pagingJsonFile.pagingJsonFile(100, fileName, Rate.class, list -> {
+
+                      return RxUtil.single(rateService.insert(list))
+                          .doOnSuccess(i -> log.info("RATES INSERTED: {}", i))
+                          .ignoreElement();
+
+                    })
+                    .doOnComplete(() -> log.info("RATES COMPLETED"))
+                    .doOnError(throwable -> log.error("ERROR RATES", throwable));
+
+                //addToList.accept(completable);
               }
               break;
               case "receipts.json.gz": {
@@ -162,6 +214,7 @@ public class LoadBackupService {
                             .map(mongoReceipt -> {
 
                               final var expenses = mongoReceipt.expenses().stream()
+                                  .filter(expense -> !expense.reserveFund())
                                   .map(expense -> expense.toBuilder()
                                       .buildingId(mongoReceipt.buildingId())
                                       .build())
@@ -216,7 +269,7 @@ public class LoadBackupService {
                                       .build())
                                   .toList();
 
-                              return Receipt.builder()
+                              final var receipt = Receipt.builder()
                                   .buildingId(mongoReceipt.buildingId())
                                   .year(mongoReceipt.year())
                                   .month(mongoReceipt.month().getValue())
@@ -224,9 +277,13 @@ public class LoadBackupService {
                                   .rateId(rateId)
                                   .sent(mongoReceipt.sent())
                                   .lastSent(mongoReceipt.lastSent())
+                                  .createdAt(mongoReceipt.createdAt())
+                                  .build();
+
+                              return ReceiptCreateRequest.builder()
+                                  .receipt(receipt)
                                   .expenses(expenses)
                                   .extraCharges(extraCharges)
-                                  .createdAt(mongoReceipt.createdAt())
                                   .debts(debts)
                                   .build();
                             })
@@ -240,7 +297,7 @@ public class LoadBackupService {
 
                       });
                     });
-                addToList.accept(completable);
+                // addToList.accept(completable);
               }
               break;
             }

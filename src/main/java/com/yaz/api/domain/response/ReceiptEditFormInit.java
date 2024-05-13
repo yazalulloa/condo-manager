@@ -14,6 +14,7 @@ public record ReceiptEditFormInit(
     String totalCommonExpensesPlusReserveFunds,
     ExpenseFormDto expenseFormDto,
     List<ExpenseTableItem> expenses,
+    long expensesCount,
     List<DebtTableItem> debts,
     int debtReceiptsTotal,
     String debtTotal,

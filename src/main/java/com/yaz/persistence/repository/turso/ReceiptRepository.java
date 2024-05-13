@@ -4,10 +4,9 @@ import com.yaz.core.util.DateUtil;
 import com.yaz.core.util.SqlUtil;
 import com.yaz.core.util.StringUtil;
 import com.yaz.persistence.domain.query.ReceiptQuery;
-import com.yaz.persistence.domain.request.ReceiptUpdateRequest;
+import com.yaz.persistence.domain.request.ReceiptCreateRequest;
 import com.yaz.persistence.entities.ExtraCharge.Apt;
 import com.yaz.persistence.entities.Receipt;
-import com.yaz.persistence.repository.turso.ExtraChargeRepository.InsertResult;
 import com.yaz.persistence.repository.turso.client.TursoWsService;
 import com.yaz.persistence.repository.turso.client.ws.request.NamedArg;
 import com.yaz.persistence.repository.turso.client.ws.request.Stmt;
@@ -94,21 +93,20 @@ public class ReceiptRepository {
 
   }
 
-  public Uni<InsertResult> insert(Receipt receipt) {
+  public Uni<InsertResult> insert(ReceiptCreateRequest request) {
 
+    final var receipt = request.receipt();
     final var insertReceipt = Stmt.stmt(INSERT, Value.text(receipt.buildingId()), Value.number(receipt.year()),
-        Value.number(receipt.month()),
-        Value.text(receipt.date()), Value.number(receipt.rateId()), Value.bool(receipt.sent()),
-        Value.text(receipt.lastSent()),
-        Value.text(receipt.createdAt()));
+        Value.number(receipt.month()), Value.text(receipt.date()), Value.number(receipt.rateId()),
+        Value.bool(receipt.sent()), Value.text(receipt.lastSent()), Value.text(receipt.createdAt()));
 
     return tursoWsService.selectOne(insertReceipt, row -> row.getLong("id"))
         .map(optional -> optional.orElseThrow(() -> new RuntimeException("Receipt not inserted")))
         .flatMap(id -> {
 
-          final var expenses = receipt.expenses();
+          final var expenses = request.expenses();
 
-          final var debts = receipt.debts();
+          final var debts = request.debts();
 
           var numberOfStmt = 0;
           if (!expenses.isEmpty()) {
@@ -128,7 +126,7 @@ public class ReceiptRepository {
           statements[0] = expenseRepository.stmtInsert(id, expenses);
           statements[1] = debtRepository.stmtInsert(id, debts);
 
-          final var extraCharges = receipt.extraCharges()
+          final var extraCharges = request.extraCharges()
               .stream()
               .map(extraCharge -> extraCharge.toBuilder()
                   .parentReference(String.valueOf(id))
@@ -303,11 +301,11 @@ public class ReceiptRepository {
         .build();
   }
 
-  public Uni<Integer> update(ReceiptUpdateRequest updateRequest) {
+  public Uni<Integer> update(Receipt receipt) {
     final var stmt = Stmt.stmt(UPDATE,
-        NamedArg.number("year", updateRequest.year()), NamedArg.number("month", updateRequest.month()),
-        NamedArg.text("date", updateRequest.date()), NamedArg.number("rate_id", updateRequest.rateId()),
-        NamedArg.number("id", updateRequest.id()));
+        NamedArg.number("year", receipt.year()), NamedArg.number("month", receipt.month()),
+        NamedArg.text("date", receipt.date()), NamedArg.number("rate_id", receipt.rateId()),
+        NamedArg.number("id", receipt.id()));
 
     return tursoWsService.executeQuery(stmt)
         .map(r -> r.result().rowCount());

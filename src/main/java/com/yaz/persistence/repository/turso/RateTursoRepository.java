@@ -15,6 +15,7 @@ import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +34,11 @@ public class RateTursoRepository implements RateRepository {
   private static final String LAST = "SELECT * FROM %s WHERE from_currency = ? AND to_currency = ? ORDER BY id DESC LIMIT 1".formatted(
       COLLECTION);
   private static final String HASH_EXISTS = "SELECT id FROM %s WHERE hash = ? LIMIT 1".formatted(COLLECTION);
+
+  private static final String INSERT_BULK = """
+      INSERT INTO %s (from_currency, to_currency, rate, date_of_rate, source, created_at, hash, etag, last_modified) VALUES %s
+      """;
+
   private static final String INSERT = """
       INSERT INTO %s (from_currency, to_currency, rate, date_of_rate, source, hash, etag, last_modified) VALUES (%s) returning id
       """.formatted(COLLECTION, SqlUtil.params(8));
@@ -85,12 +91,6 @@ public class RateTursoRepository implements RateRepository {
     return tursoWsService.selectQuery(sql, values, this::from);
   }
 
-  private Stmt insertStmt(Rate rate) {
-    return Stmt.stmt(INSERT, Value.enumV(rate.fromCurrency()), Value.enumV(rate.toCurrency()),
-        Value.number(rate.rate()), Value.text(rate.dateOfRate()), Value.enumV(rate.source()), Value.number(rate.hash()),
-        Value.text(rate.etag()), Value.text(rate.lastModified()));
-  }
-
   @Override
   public Uni<Optional<Long>> save(Rate rate) {
 
@@ -102,8 +102,8 @@ public class RateTursoRepository implements RateRepository {
 
 
   @Override
-  public Uni<Integer> insert(List<Rate> rates) {
-    final var values = new Value[rates.size() * 8];
+  public Uni<Integer> insert(Collection<Rate> rates) {
+    final var values = new Value[rates.size() * 9];
 
     var i = 0;
     for (Rate rate : rates) {
@@ -112,12 +112,15 @@ public class RateTursoRepository implements RateRepository {
       values[i++] = Value.number(rate.rate());
       values[i++] = Value.text(rate.dateOfRate());
       values[i++] = Value.enumV(rate.source());
+      values[i++] = Value.text(rate.createdAt());
       values[i++] = Value.number(rate.hash());
       values[i++] = Value.text(rate.etag());
       values[i++] = Value.text(rate.lastModified());
     }
 
-    return tursoWsService.executeQuery(Stmt.stmt(INSERT, values))
+    final var sql = INSERT_BULK.formatted(COLLECTION, SqlUtil.valuesParams(9, rates.size()));
+
+    return tursoWsService.executeQuery(sql, values)
         .map(executeResp -> executeResp.result().rowCount());
   }
 

@@ -28,8 +28,8 @@ public class ReserveFundRepository {
   private static final String SELECT_BY_BUILDING = "SELECT * FROM %s WHERE building_id = ? ORDER BY id".formatted(
       COLLECTION);
   private static final String INSERT = """
-      INSERT INTO %s (building_id, id, name, fund, expense, pay, active, type, expense_type, add_to_expenses) VALUES (%s)
-      """.formatted(COLLECTION, SqlUtil.params(10));
+      INSERT INTO %s (building_id, name, fund, expense, pay, active, type, expense_type, add_to_expenses) VALUES (%s) returning id
+      """.formatted(COLLECTION, SqlUtil.params(9));
 
   private static final String UPDATE = """
       UPDATE %s SET name = ?, fund = ?, expense = ?, pay = ?, active = ?, type = ?, expense_type = ?, add_to_expenses = ? 
@@ -49,8 +49,8 @@ public class ReserveFundRepository {
     return tursoWsService.count("id", COLLECTION);
   }
 
-  public Uni<Integer> delete(String buildingId, String id) {
-    return tursoWsService.executeQuery(Stmt.stmt(DELETE, Value.text(buildingId), Value.text(id)))
+  public Uni<Integer> delete(String buildingId, long id) {
+    return tursoWsService.executeQuery(Stmt.stmt(DELETE, Value.text(buildingId), Value.number(id)))
         .map(executeResp -> executeResp.result().rowCount());
   }
 
@@ -59,19 +59,20 @@ public class ReserveFundRepository {
         .map(executeResp -> executeResp.result().rowCount());
   }
 
-  public Uni<Integer> insert(ReserveFund reserveFund) {
-    return tursoWsService.executeQuery(INSERT, Value.text(reserveFund.buildingId()), Value.text(reserveFund.id()),
-            Value.text(reserveFund.name()), Value.number(reserveFund.fund()), Value.number(reserveFund.expense()),
-            Value.number(reserveFund.pay()), Value.bool(reserveFund.active()), Value.enumV(reserveFund.type()),
-            Value.enumV(reserveFund.expenseType()), Value.bool(reserveFund.addToExpenses()))
-        .map(executeResp -> executeResp.result().rowCount());
+  public Uni<Long> insert(ReserveFund reserveFund) {
+    return tursoWsService.selectOne(Stmt.stmt(
+            INSERT, Value.text(reserveFund.buildingId()), Value.text(reserveFund.name()), Value.number(reserveFund.fund()),
+            Value.number(reserveFund.expense()), Value.number(reserveFund.pay()), Value.bool(reserveFund.active()),
+            Value.enumV(reserveFund.type()), Value.enumV(reserveFund.expenseType()), Value.bool(reserveFund.addToExpenses())
+        ), row -> row.getLong("id"))
+        .map(opt -> opt.orElseThrow(() -> new RuntimeException("Failed to insert reserve fund")));
   }
 
   public Uni<Integer> update(ReserveFund reserveFund) {
     return tursoWsService.executeQuery(UPDATE, Value.text(reserveFund.name()), Value.number(reserveFund.fund()),
             Value.number(reserveFund.expense()), Value.number(reserveFund.pay()), Value.bool(reserveFund.active()),
             Value.enumV(reserveFund.type()), Value.enumV(reserveFund.expenseType()),
-            Value.bool(reserveFund.addToExpenses()), Value.text(reserveFund.buildingId()), Value.text(reserveFund.id()))
+            Value.bool(reserveFund.addToExpenses()), Value.text(reserveFund.buildingId()), Value.number(reserveFund.id()))
         .map(executeResp -> executeResp.result().rowCount());
   }
 
@@ -82,7 +83,7 @@ public class ReserveFundRepository {
   private ReserveFund from(Row row) {
     return ReserveFund.builder()
         .buildingId(row.getString("building_id"))
-        .id(row.getString("id"))
+        .id(row.getLong("id"))
         .name(row.getString("name"))
         .fund(row.getBigDecimal("fund"))
         .expense(row.getBigDecimal("expense"))
@@ -94,8 +95,8 @@ public class ReserveFundRepository {
         .build();
   }
 
-  public Uni<Optional<ReserveFund>> read(String buildingId, String id) {
-    return tursoWsService.selectOne(Stmt.stmt(READ, Value.text(buildingId), Value.text(id)), this::from);
+  public Uni<Optional<ReserveFund>> read(String buildingId, long id) {
+    return tursoWsService.selectOne(Stmt.stmt(READ, Value.text(buildingId), Value.number(id)), this::from);
   }
 
   public Uni<Long> count(String buildingId) {

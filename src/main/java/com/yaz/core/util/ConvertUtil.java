@@ -2,9 +2,12 @@ package com.yaz.core.util;
 
 import com.yaz.api.domain.ExpenseTotals;
 import com.yaz.api.domain.ExpenseTotals.Total;
+import com.yaz.api.domain.response.ExpenseTableItem;
 import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.domain.ExpenseType;
+import com.yaz.persistence.domain.ReserveFundType;
 import com.yaz.persistence.entities.Expense;
+import com.yaz.persistence.entities.ReserveFund;
 import io.vertx.core.json.JsonObject;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -13,6 +16,7 @@ import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -20,6 +24,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -281,5 +286,55 @@ public class ConvertUtil {
         .common(new Total(totalCommonExpensePair.getKey(), totalCommonExpensePair.getValue()))
         .unCommon(new Total(totalUnCommonExpensePair.getKey(), totalUnCommonExpensePair.getValue()))
         .build();
+  }
+
+  public static List<ExpenseTableItem> reserveFundExpenses(ExpenseTotals expenseTotalsBeforeReserveFunds,
+      List<ReserveFund> reserveFunds, List<Expense> expenses) {
+    final var reserveFundExpenses = new ArrayList<ExpenseTableItem>();
+
+    for (ReserveFund reserveFund : reserveFunds) {
+      final var expenseTableItem = reserveFundExpense(expenseTotalsBeforeReserveFunds, reserveFund);
+      if (expenseTableItem != null) {
+        reserveFundExpenses.add(expenseTableItem);
+        expenses.add(expenseTableItem.item());
+      }
+    }
+
+    return reserveFundExpenses;
+  }
+
+  public static ExpenseTableItem reserveFundExpense(ExpenseTotals expenseTotalsBeforeReserveFunds,
+      ReserveFund reserveFund) {
+    if (!reserveFund.active() || !reserveFund.addToExpenses()) {
+      return null;
+    }
+
+    final var expenseTotal =
+        reserveFund.expenseType() == ExpenseType.COMMON ? expenseTotalsBeforeReserveFunds.common() :
+            expenseTotalsBeforeReserveFunds.unCommon();
+
+    final var amount = reserveFund.type() == ReserveFundType.PERCENTAGE ?
+        DecimalUtil.percentageOf(reserveFund.pay(), expenseTotal.amount()) : reserveFund.pay();
+
+    final var descriptionSuffix =
+        reserveFund.type() == ReserveFundType.PERCENTAGE ? " " + reserveFund.pay() + "%" : "";
+
+    final var expenseReserveFund = Expense.builder()
+        .buildingId(reserveFund.buildingId())
+        .receiptId(reserveFund.id())
+        .id(reserveFund.id())
+        .description(reserveFund.name() + descriptionSuffix)
+        .amount(amount)
+        .currency(expenseTotal.currency())
+        .reserveFund(true)
+        .type(reserveFund.expenseType())
+        .build();
+
+    return ExpenseTableItem.builder()
+        .key("")
+        .item(expenseReserveFund)
+        .cardId(UUID.randomUUID().toString())
+        .build();
+
   }
 }

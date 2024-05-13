@@ -21,7 +21,7 @@
     <span id="expenses-total-uncommon-plus-reserve-funds" hx-swap-oob="true">{dto.unCommonTotalPlusReserveFunds}</span>
 {/if}
 
-{#if dto.reserveFundExpenses}
+{#if dto.reserveFundExpenses != null}
     <div id="reserve-funds-expenses-table-item-grid" hx-swap-oob="true">
         {#for item in dto.reserveFundExpenses}
                 {#include ExpenseResource/item item=item /}

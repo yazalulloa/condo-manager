@@ -1,17 +1,23 @@
 package com.yaz.api.resource;
 
 import com.yaz.api.domain.request.ReserveFundRequest;
+import com.yaz.api.domain.response.ExpenseCountersDto;
 import com.yaz.api.domain.response.ReserveFundCountersDto;
 import com.yaz.api.domain.response.ReserveFundFormDto;
 import com.yaz.api.domain.response.ReserveFundTableItem;
 import com.yaz.core.service.EncryptionService;
 import com.yaz.core.service.entity.ExpenseService;
+import com.yaz.core.service.entity.RateService;
+import com.yaz.core.service.entity.ReceiptService;
 import com.yaz.core.service.entity.ReserveFundService;
-import com.yaz.core.util.DateUtil;
+import com.yaz.core.util.ConvertUtil;
 import com.yaz.core.util.DecimalUtil;
 import com.yaz.core.util.StringUtil;
 import com.yaz.persistence.domain.ExpenseType;
 import com.yaz.persistence.domain.ReserveFundType;
+import com.yaz.persistence.entities.Expense;
+import com.yaz.persistence.entities.Rate;
+import com.yaz.persistence.entities.Receipt;
 import com.yaz.persistence.entities.ReserveFund;
 import com.yaz.persistence.entities.ReserveFund.Keys;
 import io.quarkus.qute.CheckedTemplate;
@@ -28,8 +34,8 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jboss.resteasy.reactive.Cache;
@@ -47,6 +53,8 @@ public class ReserveFundResource {
   private final ReserveFundService service;
   private final EncryptionService encryptionService;
   private final ExpenseService expenseService;
+  private final ReceiptService receiptService;
+  private final RateService rateService;
 
   @CheckedTemplate
   public static class Templates {
@@ -56,18 +64,33 @@ public class ReserveFundResource {
     public static native TemplateInstance counters(ReserveFundCountersDto dto);
   }
 
+  private Uni<Rate> rateUni(long receiptId) {
+    return receiptService.get(receiptId)
+        .map(Receipt::rateId)
+        .flatMap(rateService::get);
+  }
+
   @DELETE
   @Path("{keysStr}")
   public Uni<Response> delete(@NotBlank @RestPath String keysStr) {
     final var keys = encryptionService.decryptObj(keysStr, Keys.class);
 
-    if (keys.buildingId() == null || keys.id() == null) {
+    if (keys.buildingId() == null || keys.id() == 0) {
       return Uni.createFrom().item(Response.status(Response.Status.BAD_REQUEST).build());
     }
 
     return Uni.combine().all()
-        .unis(service.count(keys.buildingId()), service.delete(keys.buildingId(), keys.id()))
-        .with((count, i) -> new ReserveFundCountersDto(count - i))
+        .unis(rateUni(keys.receiptId()),
+            expenseService.readByReceipt(keys.receiptId()), service.listByBuilding(keys.buildingId()),
+            service.count(keys.buildingId()), service.delete(keys.buildingId(), keys.id()))
+        .with((rate, expenses, reserveFunds, count, i) -> {
+          reserveFunds.removeIf(r -> r.id() == keys.id());
+          final var expensesCount = expenses.size();
+          return ReserveFundCountersDto.builder()
+              .count(count - i)
+              .expenseCountersDto(expenseCountersDto(expensesCount, rate.rate(), expenses, reserveFunds))
+              .build();
+        })
         .map(Templates::counters)
         .map(templateInstance -> Response.ok(templateInstance).build());
   }
@@ -95,8 +118,8 @@ public class ReserveFundResource {
   @Produces(MediaType.TEXT_HTML)
   public Uni<Response> form(@NotBlank @RestPath String keysStr) {
     final var keys = encryptionService.decryptObj(keysStr, Keys.class);
-
-    if (keys.buildingId() == null || keys.id() == null) {
+    log.info("GET form keys: {}", keys);
+    if (keys.buildingId() == null || keys.id() == 0) {
       return Uni.createFrom().item(Response.status(Response.Status.BAD_REQUEST).build());
     }
 
@@ -109,6 +132,7 @@ public class ReserveFundResource {
           final var reserveFund = optional.get();
           final var dto = ReserveFundFormDto.builder()
               .isEdit(true)
+              .clearForm(true)
               .key(keysStr)
               .name(reserveFund.name())
               .fund(reserveFund.fund())
@@ -129,8 +153,8 @@ public class ReserveFundResource {
   @Produces(MediaType.TEXT_HTML)
   public Uni<Response> update(ReserveFundRequest request) {
     final var keys = encryptionService.decryptObj(request.getKeys(), Keys.class);
-
-    if (keys.buildingId() == null || keys.id() == null) {
+    log.info("PATCH keys: {}", keys);
+    if (keys.buildingId() == null || keys.id() == 0) {
       return Uni.createFrom().item(Response.status(Response.Status.BAD_REQUEST).build());
     }
 
@@ -163,9 +187,18 @@ public class ReserveFundResource {
       return Uni.createFrom().item(Response.ok(Templates.form(formDto)).build());
     }
 
-    return service.update(reserveFund)
-        .map(i -> {
+    return Uni.combine().all()
+        .unis(rateUni(keys.receiptId()),
+            expenseService.readByReceipt(keys.receiptId()), service.update(reserveFund),
+            service.listByBuilding(keys.buildingId()))
+        .with((rate, expenses, i, reserveFunds) -> {
+
+          final var expensesCount = expenses.size();
+          reserveFunds.removeIf(r -> r.id() == keys.id());
+          reserveFunds.add(reserveFund);
+
           final var newKey = encryptionService.encryptObj(newKeys);
+
           return ReserveFundFormDto.builder()
               .key(newKey)
               .tableItem(ReserveFundTableItem.builder()
@@ -174,10 +207,30 @@ public class ReserveFundResource {
                   .outOfBoundsUpdate(true)
                   .cardId(newKeys.cardId())
                   .build())
+              .expenseCountersDto(expenseCountersDto(expensesCount, rate.rate(), expenses, reserveFunds))
               .build();
         })
         .map(Templates::form)
         .map(t -> Response.ok(t).build());
+  }
+
+  private ExpenseCountersDto expenseCountersDto(
+      int expensesCount, BigDecimal rate, List<Expense> expenses, List<ReserveFund> reserveFunds) {
+    final var expenseTotalsBeforeReserveFunds = ConvertUtil.expenseTotals(rate, expenses);
+
+    final var reserveFundExpenses = ConvertUtil.reserveFundExpenses(expenseTotalsBeforeReserveFunds, reserveFunds,
+        expenses);
+
+    final var expenseTotals = ConvertUtil.expenseTotals(rate, expenses);
+
+    return ExpenseCountersDto.builder()
+        .count(expensesCount)
+        .commonTotal(expenseTotalsBeforeReserveFunds.formatCommon())
+        .unCommonTotal(expenseTotalsBeforeReserveFunds.formatUnCommon())
+        .commonTotalPlusReserveFunds(expenseTotals.formatCommon())
+        .unCommonTotalPlusReserveFunds(expenseTotals.formatUnCommon())
+        .reserveFundExpenses(reserveFundExpenses)
+        .build();
   }
 
   @POST
@@ -192,42 +245,51 @@ public class ReserveFundResource {
 
     final var formDto = formDto(request);
 
-    if (formDto.isSuccess()) {
-      final var reserveFund = ReserveFund.builder()
-          .buildingId(keys.buildingId())
-          .id(DateUtil.epochSecond() + UUID.randomUUID().toString())
-          .name(formDto.name())
-          .fund(formDto.fund())
-          .expense(formDto.expense())
-          .pay(formDto.pay())
-          .active(formDto.active())
-          .type(formDto.type())
-          .expenseType(formDto.expenseType())
-          .addToExpenses(formDto.addToExpenses())
-          .build();
-
-      return Uni.combine().all()
-          .unis(service.count(keys.buildingId()), service.create(reserveFund))
-          .with((count, i) -> {
-            final var keys1 = reserveFund.keys();
-            final var counters = new ReserveFundCountersDto(count + i);
-            final var dto = ReserveFundFormDto.builder()
-                .key(request.getKeys())
-                .tableItem(ReserveFundTableItem.builder()
-                    .key(encryptionService.encryptObj(keys1))
-                    .item(reserveFund)
-                    .addAfterEnd(true)
-                    .cardId(keys1.cardId())
-                    .build())
-                .counters(counters)
-                .build();
-
-            return Templates.form(dto);
-          })
-          .map(templateInstance -> Response.ok(templateInstance).build());
+    if (!formDto.isSuccess()) {
+      return Uni.createFrom().item(Response.ok(Templates.form(formDto)).build());
     }
 
-    return Uni.createFrom().item(Response.ok(Templates.form(formDto)).build());
+    final var update = ReserveFund.builder()
+        .buildingId(keys.buildingId())
+        .name(formDto.name())
+        .fund(formDto.fund())
+        .expense(formDto.expense())
+        .pay(formDto.pay())
+        .active(formDto.active())
+        .type(formDto.type())
+        .expenseType(formDto.expenseType())
+        .addToExpenses(formDto.addToExpenses())
+        .build();
+
+    return Uni.combine().all()
+        .unis(rateUni(keys.receiptId()),
+            expenseService.readByReceipt(keys.receiptId()), service.listByBuilding(keys.buildingId()),
+            service.count(keys.buildingId()), service.insert(update))
+        .with((rate, expenses, reserveFunds, count, id) -> {
+          final var expensesCount = expenses.size();
+          final var reserveFund = update.toBuilder()
+              .id(id)
+              .build();
+
+          reserveFunds.add(reserveFund);
+
+          final var keys1 = reserveFund.keys(keys.receiptId());
+          final var dto = ReserveFundFormDto.builder()
+              .key(request.getKeys())
+              .tableItem(ReserveFundTableItem.builder()
+                  .key(encryptionService.encryptObj(keys1))
+                  .item(reserveFund)
+                  .addAfterEnd(true)
+                  .cardId(keys1.cardId())
+                  .build())
+              .counters(ReserveFundCountersDto.count(count + 1))
+              .expenseCountersDto(expenseCountersDto(expensesCount, rate.rate(), expenses, reserveFunds))
+              .build();
+
+          return Templates.form(dto);
+        })
+        .map(t -> Response.ok(t).build());
+
   }
 
   private ReserveFundFormDto formDto(ReserveFundRequest request) {

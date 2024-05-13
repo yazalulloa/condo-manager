@@ -63,6 +63,20 @@ window.initComponents = function () {
   }
 }
 
+// window.onpageshow = function(event) {
+//   console.log("pageshow event: ", event);
+//   if (event.persisted) {
+//     console.log("window reloading: ", event);
+//     window.location.reload();
+//   }
+// };
+
+window.addEventListener("popstate", (event) => {
+
+  console.log("popstate event: ", event);
+  window.location.reload();
+});
+
 initComponents();
 
 htmx.config.useTemplateFragments = true;
@@ -209,7 +223,7 @@ window.redirectTo = function (url) {
 
 window.initNav = function () {
   let pathname = window.location.pathname;
-  console.log("pathname: {}", pathname);
+  // console.log("pathname: {}", pathname);
   if (pathname.length === 0) {
 
     let lastUrlSegmentCurrent = getLastUrlSegmentCurrent();
@@ -270,6 +284,8 @@ window.initNav = function () {
   }
 }
 
+
+
 window.saveNavState = function (anchor) {
   //console.log("saving nav state {}", anchor.id);
   localStorage.setItem("current-nav", anchor.id);
@@ -277,17 +293,20 @@ window.saveNavState = function (anchor) {
 }
 
 window.modifyUrl = function (elem) {
+
   let pathname = document.getElementById(elem.id).getAttribute("hx-get")
   .replaceAll("/stc", "");
-  //console.log("new_pathname: {}", pathname);
+
   window.history.pushState(window.history.state, document.title, pathname);
+  //window.history.pushState(window.history.state, document.title, pathname);
   //window.location.pathname = pathname;
 }
 
 window.removeStc = function (elem) {
   let href = window.location.href;
   let newHref = href.replaceAll("/stc", "");
-  window.history.pushState(window.history.state, document.title, newHref);
+  window.history.replaceState(window.history.state, document.title, newHref);
+  //window.history.pushState(window.history.state, document.title, newHref);
 }
 
 window.saveToLocalStorage = function (key, value) {
@@ -497,4 +516,3 @@ window.slideTo = function (id, direction) {
   }
 
 }
-

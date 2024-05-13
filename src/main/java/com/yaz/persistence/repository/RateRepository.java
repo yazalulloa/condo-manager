@@ -4,6 +4,7 @@ import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.domain.query.RateQuery;
 import com.yaz.persistence.entities.Rate;
 import io.smallrye.mutiny.Uni;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,5 +24,5 @@ public interface RateRepository {
 
   Uni<Optional<Rate>> read(long id);
 
-  Uni<Integer> insert(List<Rate> rates);
+  Uni<Integer> insert(Collection<Rate> rates);
 }

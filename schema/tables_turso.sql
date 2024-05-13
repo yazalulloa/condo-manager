@@ -246,8 +246,8 @@ CREATE TABLE IF NOT EXISTS notifications_events
 
 CREATE TABLE IF NOT EXISTS reserve_funds
 (
+    id              INTEGER PRIMARY KEY,
     building_id     CHAR(20)                                              NOT NULL,
-    id              VARCHAR(50)                                           NOT NULL,
     name            VARCHAR(100)                                          NOT NULL,
     fund            DECIMAL(16, 2)                                        NOT NULL,
     expense         DECIMAL(16, 2),
@@ -257,9 +257,10 @@ CREATE TABLE IF NOT EXISTS reserve_funds
     expense_type    TEXT CHECK ( expense_type IN ('COMMON', 'UNCOMMON') ) NOT NULL,
     add_to_expenses BOOL                                                  NOT NULL,
     created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at      DATETIME,
-    PRIMARY KEY (building_id, id)
+    updated_at      DATETIME
 );
+
+CREATE INDEX IF NOT EXISTS reserve_funds_building_id_idx ON reserve_funds (building_id);
 
 CREATE TRIGGER IF NOT EXISTS reserve_funds_updated_at_trigger
     AFTER UPDATE
@@ -268,8 +269,7 @@ CREATE TRIGGER IF NOT EXISTS reserve_funds_updated_at_trigger
 BEGIN
     UPDATE reserve_funds
     SET updated_at = CURRENT_TIMESTAMP
-    WHERE building_id = OLD.building_id
-      AND id = OLD.id;
+    WHERE id = OLD.id;
 END;
 
 

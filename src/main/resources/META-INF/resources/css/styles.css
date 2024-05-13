@@ -299,7 +299,7 @@ textarea, input {
 }
 
 .reserve-funds-grid {
-  grid-template-columns: 2fr 2fr 2fr 2fr;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
 }
 
 .debt-grid {

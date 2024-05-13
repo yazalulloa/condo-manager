@@ -5,19 +5,18 @@
       hx-swap="outerHTML"
       hx-indicator=".htmx-indicator"
         {#if dto.isEdit}
-            hx-swap-oob="true"
             hx-patch="/api/reserve_funds"
         {#else}
             hx-post="/api/reserve_funds"
-            {#if dto.clearForm}
-                hx-swap-oob="true"
-            {/if}
         {/if}
 
+        {#if dto.clearForm}
+            hx-swap-oob="true"
+        {/if}
 
       data-te-validation-init
       script="
-  {#if ! dto.isSuccess}
+  {#if !dto.isSuccess}
         init set @data-te-validated to 'true'
   {/if}
 ">
@@ -168,4 +167,8 @@
 
 {#if dto.counters}
         {#include ReserveFundResource/counters dto = dto.counters /}
+{/if}
+
+{#if dto.expenseCountersDto}
+        {#include ExpenseResource/counters dto = dto.expenseCountersDto /}
 {/if}

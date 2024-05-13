@@ -1,5 +1,8 @@
 package com.yaz.persistence.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.yaz.core.util.StringUtil;
 import com.yaz.persistence.domain.ExpenseType;
 import com.yaz.persistence.domain.ReserveFundType;
@@ -7,10 +10,12 @@ import java.math.BigDecimal;
 import java.util.UUID;
 import lombok.Builder;
 
-@Builder
+@Builder(toBuilder = true)
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public record ReserveFund(
     String buildingId,
-    String id,
+    long id,
     String name,
     BigDecimal fund,
     BigDecimal expense,
@@ -40,17 +45,17 @@ public record ReserveFund(
   }
 
   public record Keys(String buildingId,
-                     String id,
+                     long id,
                      long receiptId,
                      String cardId,
                      long hash) {
 
     public static Keys ofBuilding(String buildingId) {
-      return new Keys(buildingId, buildingId, 0, ReserveFund.cardId(), 0);
+      return new Keys(buildingId, 0, 0, ReserveFund.cardId(), 0);
     }
 
     public static Keys newReceipt(long receiptId, String buildingId) {
-      return new Keys(buildingId, buildingId, receiptId, ReserveFund.cardId(), 0);
+      return new Keys(buildingId, 0, receiptId, ReserveFund.cardId(), 0);
     }
   }
 }

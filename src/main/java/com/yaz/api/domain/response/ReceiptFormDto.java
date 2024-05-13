@@ -12,7 +12,12 @@ public record ReceiptFormDto(
     String buildingName,
     String date,
     long rateId,
-    RateTableResponse rates
+    RateTableResponse rates,
+    String generalError
 ) {
+
+  public boolean isSuccess() {
+    return generalError == null;
+  }
 
 }

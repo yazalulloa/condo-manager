@@ -47,6 +47,7 @@ public class ReserveFundFormDto {
 
   private final ReserveFundTableItem tableItem;
   private final ReserveFundCountersDto counters;
+  private final ExpenseCountersDto expenseCountersDto;
 
   public boolean isSuccess() {
     return nameFieldError == null && fundFieldError == null && expenseFieldError == null && payFieldError == null && generalError == null;
