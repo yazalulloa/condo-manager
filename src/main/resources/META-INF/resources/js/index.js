@@ -293,8 +293,7 @@ window.saveNavState = function (anchor) {
 }
 
 window.modifyUrl = function (elem) {
-
-  let pathname = document.getElementById(elem.id).getAttribute("hx-get")
+  let pathname = elem.getAttribute("hx-get")
   .replaceAll("/stc", "");
 
   window.history.pushState(window.history.state, document.title, pathname);

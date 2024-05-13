@@ -14,6 +14,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 @Slf4j
 @ApplicationScoped
 public class StaticReactiveRoutes {
+
   private static final String INDEX_HTML = "index.html";
 
   public static final String BUILDING_EDIT = "/buildings/edit/";
@@ -22,7 +23,7 @@ public class StaticReactiveRoutes {
   public static final String RECEIPT_NEW_FILE = "/receipts/new_file/";
 
   private static final String[] DEEP_LINKING_ROUTES = {BUILDING_EDIT, RECEIPT_EDIT, RECEIPT_PDF_VIEW, RECEIPT_NEW_FILE};
-  private static final String[] FILES_EXTENSIONS = {".js", ".css", ".svg", ".png", ".ico", ".html"};
+  private static final String[] FILES_EXTENSIONS = {".html", ".js", ".css", ".svg", ".png", ".ico"};
 
   private final String[] nextPaths;
 
@@ -76,10 +77,9 @@ public class StaticReactiveRoutes {
     if (path.startsWith("/stc/")) {
       //log.info("Returning STC {}", path);
       var newPath = path.replace("/stc/", "/");
-      if (!path.endsWith("/")) {
-        newPath += "/";
+      if (path.endsWith("/")) {
+        newPath += INDEX_HTML;
       }
-      newPath += INDEX_HTML;
       rc.reroute(newPath);
       return;
     }
