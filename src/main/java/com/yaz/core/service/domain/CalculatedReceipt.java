@@ -8,6 +8,7 @@ import com.yaz.persistence.entities.Building;
 import com.yaz.persistence.entities.Expense;
 import com.yaz.persistence.entities.ExtraCharge;
 import com.yaz.persistence.entities.Rate;
+import com.yaz.persistence.entities.Receipt;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.Month;
@@ -36,7 +37,8 @@ public record CalculatedReceipt(
     List<ReserveFundTotal> reserveFundTotals,
     Building building,
     List<Apartment> apartments,
-    String emailConfigId
+    String emailConfigId,
+    Receipt receipt
 ) {
 
   @Builder(toBuilder = true)

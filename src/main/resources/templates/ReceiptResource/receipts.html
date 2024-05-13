@@ -23,19 +23,7 @@
 
   <span>{item.item.date}</span>
 
-  <div
-    {#if item.item.lastSent}
-        class="tooltip tooltip-bottom"
-        data-tip="{item.item.lastSent.formatDate}"
-    {/if}
-  >
-  <span
-      class="inline-block whitespace-nowrap rounded-full px-[0.65em] pb-[0.25em] pt-[0.35em] text-center align-baseline text-[0.75em] font-bold leading-none
-{item.item.sent ? 'bg-success-100 text-success-700' : 'bg-danger-100 text-danger-700'}
-">
-    {item.item.sent ? 'Enviado' : 'No enviado'}
-  </span>
-  </div>
+  {#include ReceiptResource/sentInfo item = item /}
 
   {#if item.item.createdAt}
       <span>{item.item.createdAt.formatDate}</span>

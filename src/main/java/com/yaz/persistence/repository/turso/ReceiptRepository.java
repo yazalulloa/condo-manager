@@ -1,6 +1,5 @@
 package com.yaz.persistence.repository.turso;
 
-import com.yaz.core.util.DateUtil;
 import com.yaz.core.util.SqlUtil;
 import com.yaz.core.util.StringUtil;
 import com.yaz.persistence.domain.query.ReceiptQuery;
@@ -16,6 +15,7 @@ import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -65,6 +65,9 @@ public class ReceiptRepository {
   private static final String UPDATE = (
       "UPDATE %s SET year = :year, month = :month, date = :date, rate_id = :rate_id "
           + "WHERE id = :id").formatted(COLLECTION);
+
+  private static final String REMOVE_LAST_SENT = "UPDATE %s SET sent = false WHERE id = ?".formatted(
+      COLLECTION);
 
 
   private final TursoWsService tursoWsService;
@@ -154,9 +157,9 @@ public class ReceiptRepository {
 
   }
 
-  public Uni<Integer> updateLastSent(long id) {
+  public Uni<Integer> updateLastSent(long id, LocalDateTime localDateTime) {
     return tursoWsService.executeQuery(
-            Stmt.stmt(UPDATE_LAST_SENT, Value.text(DateUtil.utcLocalDateTime()), Value.number(id)))
+            Stmt.stmt(UPDATE_LAST_SENT, Value.text(localDateTime), Value.number(id)))
         .map(executeResp -> executeResp.result().rowCount());
   }
 
@@ -309,5 +312,11 @@ public class ReceiptRepository {
 
     return tursoWsService.executeQuery(stmt)
         .map(r -> r.result().rowCount());
+  }
+
+  public Uni<Integer> removeLastSent(long id) {
+    return tursoWsService.executeQuery(
+            Stmt.stmt(REMOVE_LAST_SENT, Value.number(id)))
+        .map(executeResp -> executeResp.result().rowCount());
   }
 }

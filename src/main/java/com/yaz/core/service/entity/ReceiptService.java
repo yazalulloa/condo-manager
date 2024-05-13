@@ -1,6 +1,7 @@
 package com.yaz.core.service.entity;
 
 import com.yaz.api.domain.response.ReceiptCountersDto;
+import com.yaz.api.domain.response.ReceiptTableItem;
 import com.yaz.api.domain.response.ReceiptTableResponse;
 import com.yaz.api.resource.ReceiptResource;
 import com.yaz.core.service.EncryptionService;
@@ -11,6 +12,7 @@ import com.yaz.persistence.repository.turso.ReceiptRepository;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -38,8 +40,8 @@ public class ReceiptService {
     return repository.insert(createRequest);
   }
 
-  public Uni<Integer> updateLastSent(long id) {
-    return repository.updateLastSent(id);
+  public Uni<Integer> updateLastSent(long id, LocalDateTime localDateTime) {
+    return repository.updateLastSent(id, localDateTime);
   }
 
   public Uni<Optional<Receipt>> read(long id) {
@@ -82,10 +84,11 @@ public class ReceiptService {
 
           final var results = receipts.stream()
               .map(receipt -> {
-                final var keys = encryptionService.encryptObj(receipt.keys());
-                return ReceiptTableResponse.Item.builder()
-                    .key(keys)
+                final var keys = receipt.keys();
+                return ReceiptTableItem.builder()
+                    .key(encryptionService.encryptObj(keys))
                     .item(receipt)
+                    .cardId(keys.cardId())
                     .build();
               })
               .collect(Collectors.toCollection(() -> new ArrayList<>(receipts.size())));

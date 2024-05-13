@@ -108,7 +108,7 @@ public class EmailConfigService {
             final var last = results.getLast();
 
             nextPageUrl = EmailConfigResource.PATH;
-            nextPageUrl += "?lastId=" + last.getItem().emailConfig().userId();
+            nextPageUrl += "?lastId=" + last.item().emailConfig().userId();
 
             if (query.user() != null) {
               nextPageUrl += "&user=" + query.user();

@@ -13,6 +13,7 @@ import com.yaz.api.domain.response.ReceiptFormDto;
 import com.yaz.api.domain.response.ReceiptInitDto;
 import com.yaz.api.domain.response.ReceiptPdfResponse;
 import com.yaz.api.domain.response.ReceiptProgressUpdate;
+import com.yaz.api.domain.response.ReceiptTableItem;
 import com.yaz.api.domain.response.ReceiptTableResponse;
 import com.yaz.api.domain.response.ReserveFundFormDto;
 import com.yaz.api.domain.response.ReserveFundTableItem;
@@ -130,6 +131,8 @@ public class ReceiptResource {
     public static native TemplateInstance form(ReceiptFormDto dto);
 
     public static native TemplateInstance editInit(ReceiptEditFormInit res);
+
+    public static native TemplateInstance sentInfo(ReceiptTableItem item);
   }
 
   @GET
@@ -299,13 +302,13 @@ public class ReceiptResource {
   }
 
   @POST
-  @Path("send/{keys}")
-  public Uni<TemplateInstance> sendReceipts(@NotBlank @RestPath String keys) {
-    final var key = encryptionService.decryptObj(keys, Keys.class);
+  @Path("send/{key}")
+  public Uni<TemplateInstance> sendReceipts(@NotBlank @RestPath String key) {
+    final var keys = encryptionService.decryptObj(key, Keys.class);
 
     final var clientId = UUID.randomUUID().toString();
 
-    sendReceiptService.sendReceipts(key.buildingId(), key.id(), clientId)
+    sendReceiptService.sendReceipts(keys, key, clientId)
         .subscribe(() -> {
         }, t -> log.error("ERROR_SENDING_RECEIPTS", t));
 
@@ -654,7 +657,7 @@ public class ReceiptResource {
           return receiptService.insert(createRequest)
               .map(res -> {
                 final var id = res.id();
-                final var keys = new Keys(receipt.buildingId(), id, 0);
+                final var keys = new Keys(receipt.buildingId(), id, null, 0);
                 final var encrypted = encryptionService.encryptObj(keys);
 
                 return Response.ok()

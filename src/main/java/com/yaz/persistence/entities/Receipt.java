@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.yaz.core.util.StringUtil;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.UUID;
 import lombok.Builder;
 import lombok.extern.jackson.Jacksonized;
 
@@ -29,9 +30,14 @@ public record Receipt(
     LocalDateTime updatedAt
 ) {
 
+  private static final String CARD_ID_PREFIX = "receipt-card-id-";
+
+  private static String cardId() {
+    return CARD_ID_PREFIX + UUID.randomUUID();
+  }
 
   public Keys keys() {
-    return new Keys(buildingId, id, 0);
+    return new Keys(buildingId, id, cardId(), 0);
   }
 
   public Keys keysWithHash() {
@@ -42,12 +48,13 @@ public record Receipt(
         .updatedAt(null)
         .build();
 
-    return new Keys(buildingId, id, StringUtil.objHash(receipt));
+    return new Keys(buildingId, id, cardId(), StringUtil.objHash(receipt));
   }
 
   public record Keys(
       String buildingId,
       long id,
+      String cardId,
       long hash
   ) {
 

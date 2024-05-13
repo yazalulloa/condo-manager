@@ -114,15 +114,14 @@ public class EmailConfigResource {
 
   @GET
   @Path("add")
-  public Uni<?> redirect(HttpServerRequest request, @Context SecurityIdentity securityContext)
-      throws URISyntaxException, IOException {
+  public Uni<?> redirect(HttpServerRequest request, @Context SecurityIdentity securityContext) {
     log.info("securityContext: {}", securityContext);
 
     final var userId = getUserId(securityContext);
     final var single = gmailService.loadItem(userId)
         .map(item -> {
 
-          if (item.getItem().shouldGetNewOne() || item.getItem().emailConfig().stacktrace() != null) {
+          if (item.item().shouldGetNewOne() || item.item().emailConfig().stacktrace() != null) {
             return responseRedirect(userId, request);
           } else {
             final var tableItem = item.toBuilder()
@@ -229,9 +228,7 @@ public class EmailConfigResource {
 
     final var single = gmailService.loadItem(id)
         .map(Templates::item)
-        .switchIfEmpty(Single.fromCallable(() -> {
-          return Templates.refresh("/");
-        }));
+        .switchIfEmpty(Single.fromCallable(() -> Templates.refresh("/")));
 
     return MutinyUtil.toUni(single);
   }

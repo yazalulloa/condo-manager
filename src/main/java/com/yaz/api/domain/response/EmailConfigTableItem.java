@@ -6,8 +6,10 @@ import com.yaz.persistence.domain.EmailConfigUser;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
+import lombok.experimental.Accessors;
 
 @Data
+@Accessors(fluent = true)
 @Builder(toBuilder = true)
 public class EmailConfigTableItem {
 
@@ -31,11 +33,11 @@ public class EmailConfigTableItem {
   }
 
   public String genCardId() {
-    return "email-config-card-id-" + getItem().emailConfig().userId();
+    return "email-config-card-id-" + item().emailConfig().userId();
   }
 
   public String genDeleteUrl() {
-    return EmailConfigResource.DELETE_PATH + getItem().emailConfig().userId();
+    return EmailConfigResource.DELETE_PATH + item().emailConfig().userId();
   }
 
   public String genCardIdRef() {

@@ -2,6 +2,7 @@ package com.yaz.core.event;
 
 import com.yaz.api.domain.response.ReceiptProgressUpdate;
 import com.yaz.api.resource.ReceiptResource;
+import com.yaz.api.resource.ReceiptResource.Templates;
 import com.yaz.api.resource.fragments.Fragments;
 import com.yaz.core.event.domain.BuildingDeleted;
 import com.yaz.core.event.domain.EmailConfigDeleted;
@@ -90,37 +91,47 @@ public class EventConsumer {
 
   }
 
+  private static final String EVENT_NAME_RECEIPT_PROGRESS = "receipt-progress";
+
   public void receiptAptSent(@ObservesAsync ReceiptAptSent event) {
+    final var clientId = event.clientId();
 
     if (event.finished()) {
       if (event.error() != null) {
         final var msg = Fragments.rateInfo(event.error()).render();
-        serverSideEventHelper.sendEvent(event.clientId(), "receipt-progress", msg);
+        serverSideEventHelper.sendEvent(clientId, EVENT_NAME_RECEIPT_PROGRESS, msg);
       }
 
-      final var div = new Element("div").id("sse-receipt-progress-bar-" + event.clientId())
+      final var div = new Element("div").id("sse-receipt-progress-bar-" + clientId)
           .attr("hx-swap-oob", "true")
           .toString();
 
-      serverSideEventHelper.sendEvent(event.clientId(), "receipt-progress", div);
-      vertx.setTimer(TimeUnit.SECONDS.toMillis(1), l -> serverSideEventHelper.close(event.clientId()));
-    } else {
-
-      var left = "Enviando %s %s %s %s/%s".formatted(event.building(), event.month(), event.date(),
-          event.counter(), event.size());
-      var right = "";
-
-      if (event.from() != null && event.to() != null && !event.to().isEmpty()) {
-        right = "%s %s -> %s".formatted(event.apt(), event.from(), String.join(",", event.to()));
-
-      }
-
-      final var msg = ReceiptResource.Templates.progressUpdate(
-              new ReceiptProgressUpdate(left, right, event.counter(), event.size()))
-          .render();
-
-      serverSideEventHelper.sendEvent(event.clientId(), "receipt-progress", msg);
+      serverSideEventHelper.sendEvent(clientId, EVENT_NAME_RECEIPT_PROGRESS, div);
+      vertx.setTimer(TimeUnit.SECONDS.toMillis(1), l -> serverSideEventHelper.close(clientId));
+      return;
     }
+
+    if (event.item() != null) {
+      final var msg = Templates.sentInfo(event.item()).render();
+      serverSideEventHelper.sendEvent(clientId, EVENT_NAME_RECEIPT_PROGRESS, msg);
+      return;
+    }
+
+    var left = "Enviando %s %s %s %s/%s".formatted(event.building(), event.month(), event.date(),
+        event.counter(), event.size());
+    var right = "";
+
+    if (event.from() != null && event.to() != null && !event.to().isEmpty()) {
+      right = "%s %s -> %s".formatted(event.apt(), event.from(), String.join(",", event.to()));
+
+    }
+
+    final var msg = ReceiptResource.Templates.progressUpdate(
+            new ReceiptProgressUpdate(left, right, event.counter(), event.size()))
+        .render();
+
+    serverSideEventHelper.sendEvent(clientId, EVENT_NAME_RECEIPT_PROGRESS, msg);
+
   }
 
   public void userDeleted(@ObservesAsync UserDeleted task) {

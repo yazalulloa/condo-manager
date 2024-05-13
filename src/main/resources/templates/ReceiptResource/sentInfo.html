@@ -1,0 +1,19 @@
+{@com.yaz.api.domain.response.ReceiptTableItem item}
+
+<div id="{item.cardId}-sent-info"
+        {#if item.item.lastSent}
+            class="tooltip tooltip-bottom fade-me-in"
+            data-tip="{item.item.lastSent.formatDate}"
+        {/if}
+
+        {#if item.sentInfoOutOfBounds}
+            hx-swap-oob="true"
+        {/if}
+>
+  <span
+          class="inline-block whitespace-nowrap rounded-full px-[0.65em] pb-[0.25em] pt-[0.35em] text-center align-baseline text-[0.75em] font-bold leading-none
+{item.item.sent ? 'bg-success-100 text-success-700' : 'bg-danger-100 text-danger-700'}
+">
+    {item.item.sent ? 'Enviado' : 'No enviado'}
+  </span>
+</div>

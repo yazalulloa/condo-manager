@@ -1,7 +1,9 @@
 package com.yaz.core.service;
 
 import com.yaz.api.domain.response.EmailConfigTableItem;
+import com.yaz.api.domain.response.ReceiptTableItem;
 import com.yaz.core.event.domain.ReceiptAptSent;
+import com.yaz.core.service.entity.ReceiptService;
 import com.yaz.core.service.entity.UserService;
 import com.yaz.core.service.gmail.GmailHelper;
 import com.yaz.core.service.gmail.GmailHolder;
@@ -10,9 +12,11 @@ import com.yaz.core.service.gmail.GmailUtil;
 import com.yaz.core.service.gmail.MimeMessageUtil;
 import com.yaz.core.service.gmail.domain.ReceiptEmailRequest;
 import com.yaz.core.service.pdf.ReceiptPdfService;
+import com.yaz.core.util.DateUtil;
 import com.yaz.core.util.RxUtil;
 import com.yaz.core.util.rx.RetryWithDelay;
 import com.yaz.persistence.domain.EmailConfigUser;
+import com.yaz.persistence.entities.Receipt;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
@@ -32,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 public class SendReceiptService {
 
   private final ReceiptPdfService pdfService;
+  private final ReceiptService receiptService;
   private final GmailService gmailService;
   private final UserService userService;
   private final GmailHelper gmailHelper;
@@ -39,9 +44,9 @@ public class SendReceiptService {
   private final Event<ReceiptAptSent> receiptAptSentEvent;
 
 
-  public Completable sendReceipts(String buildingId, long receiptId, String clientId) {
+  public Completable sendReceipts(Receipt.Keys keys, String key, String clientId) {
 
-    return pdfService.pdfs(buildingId, receiptId)
+    return pdfService.pdfs(keys.buildingId(), keys.id())
         .flatMap(response -> {
           final var receipt = response.receipt();
           final var emailConfigId = receipt.emailConfigId();
@@ -51,7 +56,7 @@ public class SendReceiptService {
           }
 
           final var emailConfigSingle = gmailService.loadItem(receipt.emailConfigId())
-              .map(EmailConfigTableItem::getItem)
+              .map(EmailConfigTableItem::item)
               .map(EmailConfigUser::emailConfig)
               .flatMap(emailConfig -> {
 
@@ -68,60 +73,80 @@ public class SendReceiptService {
               .switchIfEmpty(Single.error(new IllegalArgumentException("User not found")));
 
           return Single.zip(emailConfigSingle, userSingle, (emailConfig, user) -> {
-            final var subject = "AVISO DE COBRO %s %s Adm. %s APT: %s";
+                final var subject = "AVISO DE COBRO %s %s Adm. %s APT: %s";
 
-            final var month = translationProvider.translate(receipt.month().name());
+                final var month = translationProvider.translate(receipt.month().name());
 
-            final var gmail = new GmailHolder(gmailHelper.gmail(emailConfig.userId()));
+                final var gmail = new GmailHolder(gmailHelper.gmail(emailConfig.userId()));
 
-            AtomicInteger counter = new AtomicInteger();
+                AtomicInteger counter = new AtomicInteger();
 
-            final var receiptAptSent = ReceiptAptSent.builder()
-                .clientId(clientId)
-                .counter(counter.get())
-                .size(response.pdfItems().size() - 1)
-                .building(receipt.building().id())
-                .month(month)
-                .date(receipt.date().toString())
-                .apt("")
-                .build();
+                final var receiptAptSent = ReceiptAptSent.builder()
+                    .clientId(clientId)
+                    .counter(counter.get())
+                    .size(response.pdfItems().size() - 1)
+                    .building(receipt.building().id())
+                    .month(month)
+                    .date(receipt.date().toString())
+                    .apt("")
+                    .build();
 
-            receiptAptSentEvent.fireAsync(receiptAptSent);
+                receiptAptSentEvent.fireAsync(receiptAptSent);
 
-            return response.pdfItems()
-                .stream()
-                .map(item -> Single.fromCallable(() -> {
-                      if (item.emails() == null || item.emails().isEmpty()) {
-                        return "";
-                      }
-                      final var emailRequest = ReceiptEmailRequest.builder()
-                          .from(user.email())
-                          //.to(item.emails()) TODO
-                          .to(Set.of("yzlup2@gmail.com"))
-                          .subject(subject.formatted(month, receipt.year(), receipt.building().name(), item.id()))
-                          .text("AVISO DE COBRO")
-                          .files(Set.of(item.path().toString()))
-                          .build();
+                return response.pdfItems()
+                    .stream()
+                    .map(item -> Single.fromCallable(() -> {
+                          if (item.emails() == null || item.emails().isEmpty()) {
+                            return "";
+                          }
+                          final var emailRequest = ReceiptEmailRequest.builder()
+                              .from(user.email())
+                              //.to(item.emails()) TODO
+                              .to(Set.of("yzlup2@gmail.com"))
+                              .subject(subject.formatted(month, receipt.year(), receipt.building().name(), item.id()))
+                              .text("AVISO DE COBRO")
+                              .files(Set.of(item.path().toString()))
+                              .build();
 
-                      final var msg = gmail.sendReceiptEmail(emailRequest).toString();
+                          final var msg = gmail.sendReceiptEmail(emailRequest).toString();
 
-                      receiptAptSentEvent.fireAsync(receiptAptSent.toBuilder()
-                          .counter(counter.incrementAndGet())
-                          .from(emailRequest.from())
-                          .to(emailRequest.to())
-                          .apt(item.id())
-                          .build());
+                          receiptAptSentEvent.fireAsync(receiptAptSent.toBuilder()
+                              .counter(counter.incrementAndGet())
+                              .from(emailRequest.from())
+                              .to(emailRequest.to())
+                              .apt(item.id())
+                              .build());
 
-                      return msg;
-                    })
-                    .retryWhen(RetryWithDelay.retry(10, 1, TimeUnit.SECONDS))
-                    .subscribeOn(Schedulers.io()))
-                .toList();
-          });
+                          return msg;
+                        })
+                        .retryWhen(RetryWithDelay.retry(10, 1, TimeUnit.SECONDS, t -> {
+                          log.error("Error sending email: ", t);
+                          return true;
+                        }))
+                        .subscribeOn(Schedulers.io()))
+                    .toList();
+              })
+              .toFlowable()
+              .flatMap(Single::concat)
+              .toList()
+              .flatMap(list -> {
+                final var lastSent = DateUtil.utcLocalDateTime();
+                final var item = ReceiptTableItem.builder()
+                    .key(key)
+                    .item(receipt.receipt().toBuilder()
+                        .sent(true)
+                        .lastSent(lastSent)
+                        .build())
+                    .cardId(keys.cardId())
+                    .sentInfoOutOfBounds(true)
+                    .build();
+
+                receiptAptSentEvent.fireAsync(ReceiptAptSent.item(clientId, item));
+
+                return RxUtil.single(receiptService.updateLastSent(receipt.id(), lastSent));
+              });
         })
-        .toFlowable()
-        .flatMap(Single::concat)
-        .toList()
+        .delay(1, TimeUnit.SECONDS) // wait for last event
         .doOnSuccess(l -> receiptAptSentEvent.fireAsync(ReceiptAptSent.finished(clientId)))
         .onErrorResumeNext(throwable -> {
 
@@ -146,7 +171,7 @@ public class SendReceiptService {
           }
 
           final var emailConfigSingle = gmailService.loadItem(receipt.emailConfigId())
-              .map(EmailConfigTableItem::getItem)
+              .map(EmailConfigTableItem::item)
               .map(EmailConfigUser::emailConfig)
               .flatMap(emailConfig -> {
 
@@ -173,7 +198,6 @@ public class SendReceiptService {
                 .text("AVISO DE COBRO")
                 .files(Set.of(zipResponse.fileResponse().path().toString()))
                 .build();
-
             final var mimeMessage = MimeMessageUtil.createEmail(emailRequest);
 
             final var gmail = gmailHelper.gmail(emailConfig.userId());

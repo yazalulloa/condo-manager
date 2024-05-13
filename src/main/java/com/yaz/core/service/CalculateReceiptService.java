@@ -236,6 +236,7 @@ public class CalculateReceiptService {
               .apartments(apartments)
               .building(building)
               .emailConfigId(building.emailConfigId())
+              .receipt(receipt)
               .build();
         });
 

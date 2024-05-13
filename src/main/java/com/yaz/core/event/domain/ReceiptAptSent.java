@@ -1,5 +1,6 @@
 package com.yaz.core.event.domain;
 
+import com.yaz.api.domain.response.ReceiptTableItem;
 import java.util.Set;
 import lombok.Builder;
 
@@ -15,11 +16,19 @@ public record ReceiptAptSent(
     String from,
     String error,
     Set<String> to,
+    ReceiptTableItem item,
     boolean finished
 ) {
 
   public static ReceiptAptSent finished(String clientId) {
     return finished(clientId, null);
+  }
+
+  public static ReceiptAptSent item(String clientId, ReceiptTableItem item) {
+    return ReceiptAptSent.builder()
+        .clientId(clientId)
+        .item(item)
+        .build();
   }
 
   public static ReceiptAptSent finished(String clientId, String error) {
