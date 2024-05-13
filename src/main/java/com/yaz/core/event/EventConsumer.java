@@ -122,7 +122,7 @@ public class EventConsumer {
     var right = "";
 
     if (event.from() != null && event.to() != null && !event.to().isEmpty()) {
-      right = "%s %s -> %s".formatted(event.apt(), event.from(), String.join(",", event.to()));
+      right = "APT: %s %s %s -> %s".formatted(event.apt(), event.name(), event.from(), String.join(",", event.to()));
 
     }
 

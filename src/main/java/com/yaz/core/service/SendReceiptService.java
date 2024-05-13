@@ -115,6 +115,7 @@ public class SendReceiptService {
                               .from(emailRequest.from())
                               .to(emailRequest.to())
                               .apt(item.id())
+                              .name(item.name())
                               .build());
 
                           return msg;

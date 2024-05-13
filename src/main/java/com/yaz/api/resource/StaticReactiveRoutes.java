@@ -14,6 +14,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 @Slf4j
 @ApplicationScoped
 public class StaticReactiveRoutes {
+  private static final String INDEX_HTML = "index.html";
 
   public static final String BUILDING_EDIT = "/buildings/edit/";
   public static final String RECEIPT_EDIT = "/receipts/edit/";
@@ -72,36 +73,45 @@ public class StaticReactiveRoutes {
       return;
     }
 
-    //log.info("path {}", path);
-
-    final var hxCurrentUrl = rc.request().getHeader("Hx-Current-Url");
-    //log.info("hxCurrentUrl {}", hxCurrentUrl);
-
-    if (hxCurrentUrl == null) {
-      rc.reroute("/index.html");
-      return;
-    }
-
-    for (var route : DEEP_LINKING_ROUTES) {
-      if (path.startsWith(route)) {
-        final var id = path.substring(route.length());
-        if (StringUtils.isEmpty(id)) {
-          rc.response().setStatusCode(404).end();
-          return;
-        }
-        rc.reroute(route + "index.html");
-        return;
-      }
-    }
-
     if (path.startsWith("/stc/")) {
-      final var newPath = path.replace("/stc/", "/");
+      //log.info("Returning STC {}", path);
+      var newPath = path.replace("/stc/", "/");
+      if (!path.endsWith("/")) {
+        newPath += "/";
+      }
+      newPath += INDEX_HTML;
       rc.reroute(newPath);
       return;
     }
 
+    //log.info("path {}", path);
+
+    final var purpose = rc.request().getHeader("purpose");
+    final var hxCurrentUrl = rc.request().getHeader("Hx-Current-Url");
+    //log.info("hxCurrentUrl {}", hxCurrentUrl);
+
+    if (hxCurrentUrl == null && (purpose == null || !purpose.equals("prefetch"))) {
+      //log.error("hxCurrentUrl is null {}", path);
+      rc.reroute("/" + INDEX_HTML);
+      return;
+    }
+
+    if (purpose == null || !purpose.equals("prefetch")) {
+      for (var route : DEEP_LINKING_ROUTES) {
+        if (path.startsWith(route)) {
+          final var id = path.substring(route.length());
+          if (StringUtils.isEmpty(id)) {
+            rc.response().setStatusCode(404).end();
+            return;
+          }
+          rc.reroute(route + INDEX_HTML);
+          return;
+        }
+      }
+    }
+
     if (path.endsWith("/")) {
-      rc.reroute(path + "index.html");
+      rc.reroute(path + INDEX_HTML);
       return;
     }
 

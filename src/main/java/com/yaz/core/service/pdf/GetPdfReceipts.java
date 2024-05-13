@@ -83,6 +83,7 @@ public class GetPdfReceipts {
           .path(pdfReceipt.path())
           .fileName("%s.pdf".formatted(fileName))
           .id(pdfReceipt.id())
+          .name(pdfReceipt.name())
           .buildingName(pdfReceipt.building().name())
           .emails(Optional.ofNullable(pdfReceipt.apartment()).map(Apartment::emails).orElse(null))
           .build();

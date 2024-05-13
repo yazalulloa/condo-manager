@@ -35,6 +35,13 @@ public abstract class CreatePdfReceipt {
         .orElse(null);
   }
 
+  public String name() {
+    return Optional.ofNullable(apartment())
+        .map(Apartment::name)
+        .or(() -> Optional.ofNullable(building()).map(Building::name))
+        .orElse(null);
+  }
+
   public abstract Apartment apartment();
 
   public abstract Building building();

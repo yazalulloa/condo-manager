@@ -13,6 +13,7 @@ public record ReceiptAptSent(
     String month,
     String date,
     String apt,
+    String name,
     String from,
     String error,
     Set<String> to,
