@@ -2,6 +2,9 @@ package com.yaz.core.service.entity.cache;
 
 public class OidcDbTokenCache {
 
+  private OidcDbTokenCache() {
+    super();
+  }
 
   public static final String TOTAL_COUNT = "oidc-db-token-total-count";
   public static final String QUERY_COUNT = "oidc-db-token-query-count";

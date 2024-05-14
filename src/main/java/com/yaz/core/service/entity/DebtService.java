@@ -34,4 +34,8 @@ public class DebtService {
   public Uni<Integer> update(Debt debt) {
     return repository.update(debt);
   }
+
+  public Uni<Integer> deleteByReceipt(String buildingId, long receiptId) {
+    return repository.deleteByReceipt(buildingId, receiptId);
+  }
 }

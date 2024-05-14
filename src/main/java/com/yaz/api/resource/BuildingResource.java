@@ -20,12 +20,14 @@ import com.yaz.core.util.StringUtil;
 import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.domain.query.BuildingQuery;
 import com.yaz.persistence.entities.Building;
+import com.yaz.persistence.entities.Building.Keys;
 import com.yaz.persistence.entities.ExtraCharge;
 import com.yaz.persistence.entities.ReserveFund;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.smallrye.mutiny.Uni;
 import jakarta.inject.Inject;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -36,6 +38,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -43,7 +46,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jboss.resteasy.reactive.RestPath;
 import org.jboss.resteasy.reactive.RestQuery;
-import org.jboss.resteasy.reactive.server.multipart.MultipartFormDataInput;
 
 @Slf4j
 @Path(BuildingResource.PATH)
@@ -130,11 +132,11 @@ public class BuildingResource {
   @GET
   @Path("edit_form")
   @Produces(MediaType.TEXT_HTML)
-  public Uni<TemplateInstance> editForm(@RestQuery String buildingId) {
+  public Uni<TemplateInstance> editForm(@NotBlank @RestQuery String id) {
 
     return Uni.combine().all()
-        .unis(service.read(buildingId), emailConfigService.displayList(), apartmentService.aptByBuildings(buildingId),
-            extraChargeService.by(buildingId, buildingId), reserveFundService.listByBuilding(buildingId))
+        .unis(service.read(id), emailConfigService.displayList(), apartmentService.aptByBuildings(id),
+            extraChargeService.by(id, id), reserveFundService.listByBuilding(id))
         .with((optional, emailConfigs, apartments, extraCharges, reserveFunds) -> {
 
           Supplier<BuildingFormDto> supplier = () -> {
@@ -145,7 +147,9 @@ public class BuildingResource {
             }
 
             final var building = optional.get();
+            final var key = encryptionService.encryptObj(building.keysWithHash());
             return BuildingFormDto.builder()
+                .key(key)
                 .isEdit(true)
                 .id(building.id())
                 .readOnlyId(true)
@@ -188,12 +192,12 @@ public class BuildingResource {
               .extraCharges(list)
               .extraChargeFormDto(ExtraChargeFormDto.builder()
                   .isEdit(false)
-                  .key(encryptionService.encryptObj(ExtraCharge.Keys.newBuilding(buildingId)))
+                  .key(encryptionService.encryptObj(ExtraCharge.Keys.newBuilding(id)))
                   .apartments(apartments)
                   .build())
               .reserveFundFormDto(ReserveFundFormDto.builder()
                   .isEdit(false)
-                  .key(encryptionService.encryptObj(ReserveFund.Keys.ofBuilding(buildingId)))
+                  .key(encryptionService.encryptObj(ReserveFund.Keys.ofBuilding(id)))
                   .build())
               .reserveFunds(reserveFundTableItems)
               .build();
@@ -292,30 +296,20 @@ public class BuildingResource {
   }
 
   @PATCH
-  @Path("/{id}")
   @Produces(MediaType.TEXT_HTML)
-  public Uni<Response> edit(
-      @RestPath String id, @BeanParam BuildingRequest request, MultipartFormDataInput input) {
-    request.setId(id);
+  public Uni<Response> edit(@BeanParam BuildingRequest request) {
+
+    final var keys = encryptionService.decryptObj(Objects.requireNonNull(request.getKey()), Keys.class);
+    request.setId(keys.id());
 
   /*  input.getValues().forEach((k, v) -> {
       log.info("key: {} value: {}", k, v);
     });*/
 
-    final var buildingFormDto = formDto(request).toBuilder()
+    var buildingFormDto = formDto(request).toBuilder()
         .isEdit(true)
         .readOnlyId(true)
         .build();
-
-    if (!buildingFormDto.isSuccess()) {
-
-      return emailConfigService.displayList()
-          .map(emailConfigs -> buildingFormDto.toBuilder()
-              .emailConfigs(emailConfigs)
-              .build())
-          .map(Templates::form)
-          .map(t -> Response.ok(t).build());
-    }
 
     final var building = Building.builder()
         .id(buildingFormDto.id())
@@ -329,6 +323,23 @@ public class BuildingResource {
         .roundUpPayments(request.isRoundUpPayments())
         .emailConfigId(request.getEmailConfig())
         .build();
+
+    if (building.keysWithHash().hash() == keys.hash()) {
+      buildingFormDto = buildingFormDto.toBuilder()
+          .generalFieldError("No se ha modificado nada")
+          .build();
+    }
+
+    if (!buildingFormDto.isSuccess()) {
+
+      BuildingFormDto finalBuildingFormDto = buildingFormDto;
+      return emailConfigService.displayList()
+          .map(emailConfigs -> finalBuildingFormDto.toBuilder()
+              .emailConfigs(emailConfigs)
+              .build())
+          .map(Templates::form)
+          .map(t -> Response.ok(t).build());
+    }
 
     return service.update(building)
 //        .replaceWith(Response.noContent()

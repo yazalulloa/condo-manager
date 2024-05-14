@@ -2,7 +2,6 @@ package com.yaz.persistence.repository.turso;
 
 import com.yaz.core.util.SqlUtil;
 import com.yaz.persistence.domain.Currency;
-import com.yaz.persistence.domain.request.ExtraChargeUpdateRequest;
 import com.yaz.persistence.entities.ExtraCharge;
 import com.yaz.persistence.entities.ExtraCharge.Apt;
 import com.yaz.persistence.repository.AppSqlConfig;
@@ -219,40 +218,40 @@ public class ExtraChargeRepository {
   }
 
 
-  public Uni<Integer> update(ExtraChargeUpdateRequest updateRequest) {
+  public Uni<Integer> update(ExtraCharge extraCharge) {
 
-    final var apartments = updateRequest.apartments();
+    final var apartments = extraCharge.apartments();
     var i = 0;
     final var stmts = new Stmt[apartments.isEmpty() ? 2 : 3];
 
     stmts[i++] = Stmt.stmt(UPDATE,
-        NamedArg.text("description", updateRequest.description()),
-        NamedArg.number("amount", updateRequest.amount()),
-        NamedArg.enumV("currency", updateRequest.currency()),
-        NamedArg.bool("active", updateRequest.active()),
-        NamedArg.text("parent_reference", updateRequest.parentReference()),
-        NamedArg.number("id", updateRequest.id()));
+        NamedArg.text("description", extraCharge.description()),
+        NamedArg.number("amount", extraCharge.amount()),
+        NamedArg.enumV("currency", extraCharge.currency()),
+        NamedArg.bool("active", extraCharge.active()),
+        NamedArg.text("parent_reference", extraCharge.parentReference()),
+        NamedArg.number("id", extraCharge.id()));
 
     if (apartments.isEmpty()) {
 
-      stmts[i] = Stmt.stmt(DELETE_APT, Value.text(updateRequest.parentReference()), Value.number(updateRequest.id()));
+      stmts[i] = Stmt.stmt(DELETE_APT, Value.text(extraCharge.parentReference()), Value.number(extraCharge.id()));
 
     } else {
       final var deleteAptValues = new Value[apartments.size() + 3];
-      deleteAptValues[0] = Value.text(updateRequest.parentReference());
-      deleteAptValues[1] = Value.text(updateRequest.buildingId());
-      deleteAptValues[2] = Value.number(updateRequest.id());
+      deleteAptValues[0] = Value.text(extraCharge.parentReference());
+      deleteAptValues[1] = Value.text(extraCharge.buildingId());
+      deleteAptValues[2] = Value.number(extraCharge.id());
 
       final var insertAptValues = new Value[apartments.size() * 4];
       var insertAptIndex = 0;
       var deleteAptIndex = 3;
       for (var apartment : apartments) {
-        insertAptValues[insertAptIndex++] = Value.text(updateRequest.parentReference());
-        insertAptValues[insertAptIndex++] = Value.text(updateRequest.buildingId());
-        insertAptValues[insertAptIndex++] = Value.number(updateRequest.id());
-        insertAptValues[insertAptIndex++] = Value.text(apartment);
+        insertAptValues[insertAptIndex++] = Value.text(extraCharge.parentReference());
+        insertAptValues[insertAptIndex++] = Value.text(extraCharge.buildingId());
+        insertAptValues[insertAptIndex++] = Value.number(extraCharge.id());
+        insertAptValues[insertAptIndex++] = Value.text(apartment.number());
 
-        deleteAptValues[deleteAptIndex++] = Value.text(apartment);
+        deleteAptValues[deleteAptIndex++] = Value.text(apartment.number());
       }
 
       final var params = Stream.generate(() -> SqlUtil.params(4))
@@ -285,6 +284,12 @@ public class ExtraChargeRepository {
     final var deleteApt = Stmt.stmt(DELETE_APT_BY, values);
 
     return new Stmt[]{delete, deleteApt};
+  }
+
+  public Uni<Integer> deleteByReceipt(String buildingId, String parentReference) {
+    final var stmts = stmtDeleteByReceipt(buildingId, parentReference);
+    return tursoWsService.executeQueries(stmts)
+        .map(SqlUtil::rowCount);
   }
 
   public Uni<Long> count(String buildingId, String parentReference) {

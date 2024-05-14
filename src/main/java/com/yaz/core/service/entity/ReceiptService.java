@@ -5,10 +5,16 @@ import com.yaz.api.domain.response.ReceiptTableItem;
 import com.yaz.api.domain.response.ReceiptTableResponse;
 import com.yaz.api.resource.ReceiptResource;
 import com.yaz.core.service.EncryptionService;
+import com.yaz.core.service.entity.cache.ReceiptCache;
+import com.yaz.core.util.Constants;
+import com.yaz.core.util.MutinyUtil;
 import com.yaz.persistence.domain.query.ReceiptQuery;
 import com.yaz.persistence.domain.request.ReceiptCreateRequest;
 import com.yaz.persistence.entities.Receipt;
 import com.yaz.persistence.repository.turso.ReceiptRepository;
+import io.quarkus.cache.CacheInvalidate;
+import io.quarkus.cache.CacheInvalidateAll;
+import io.quarkus.cache.CacheResult;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -28,22 +34,49 @@ public class ReceiptService {
   private final ReceiptRepository repository;
   private final EncryptionService encryptionService;
 
-  public Uni<Long> totalCount() {
-    return repository.count();
+  @CacheInvalidateAll(cacheName = ReceiptCache.TOTAL_COUNT)
+  @CacheInvalidateAll(cacheName = ReceiptCache.QUERY_COUNT)
+  public Uni<Void> invalidateOne(long id) {
+    return invalidateGet(id);
+  }
+
+  @CacheInvalidateAll(cacheName = ReceiptCache.SELECT)
+  @CacheInvalidate(cacheName = ReceiptCache.GET)
+  public Uni<Void> invalidateGet(long id) {
+    return Uni.createFrom().voidItem();
+  }
+
+  @CacheInvalidateAll(cacheName = ReceiptCache.TOTAL_COUNT)
+  @CacheInvalidateAll(cacheName = ReceiptCache.QUERY_COUNT)
+  @CacheInvalidateAll(cacheName = ReceiptCache.SELECT)
+  @CacheInvalidateAll(cacheName = ReceiptCache.GET)
+  public Uni<Void> invalidateAll() {
+    return Uni.createFrom().voidItem();
   }
 
   public Uni<Integer> delete(String buildingId, long id) {
-    return repository.delete(buildingId, id);
+    return repository.delete(buildingId, id)
+        .invoke(i -> log.info("Receipt deleted: {}", i))
+        .flatMap(MutinyUtil.cacheCall(invalidateOne(id)));
   }
 
   public Uni<ReceiptRepository.InsertResult> insert(ReceiptCreateRequest createRequest) {
-    return repository.insert(createRequest);
+    return repository.insert(createRequest)
+        .flatMap(result -> invalidateOne(result.id())
+            .replaceWith(result));
   }
 
   public Uni<Integer> updateLastSent(long id, LocalDateTime localDateTime) {
-    return repository.updateLastSent(id, localDateTime);
+    return repository.updateLastSent(id, localDateTime)
+        .flatMap(MutinyUtil.cacheCall(invalidateOne(id)));
   }
 
+  public Uni<Integer> update(Receipt receipt) {
+    return repository.update(receipt)
+        .flatMap(MutinyUtil.cacheCall(invalidateOne(receipt.id())));
+  }
+
+  @CacheResult(cacheName = ReceiptCache.GET, lockTimeout = Constants.CACHE_TIMEOUT)
   public Uni<Optional<Receipt>> read(long id) {
     return repository.read(id);
   }
@@ -53,10 +86,17 @@ public class ReceiptService {
         .map(optional -> optional.orElseThrow(() -> new IllegalArgumentException("Receipt not found: " + id)));
   }
 
+  @CacheResult(cacheName = ReceiptCache.SELECT, lockTimeout = Constants.CACHE_TIMEOUT)
   public Uni<List<Receipt>> select(ReceiptQuery receiptQuery) {
     return repository.select(receiptQuery);
   }
 
+  @CacheResult(cacheName = ReceiptCache.TOTAL_COUNT, lockTimeout = Constants.CACHE_TIMEOUT)
+  public Uni<Long> totalCount() {
+    return repository.count();
+  }
+
+  @CacheResult(cacheName = ReceiptCache.QUERY_COUNT, lockTimeout = Constants.CACHE_TIMEOUT)
   public Uni<Optional<Long>> queryCount(ReceiptQuery receiptQuery) {
     return repository.count(receiptQuery);
   }
@@ -120,9 +160,5 @@ public class ReceiptService {
               .results(results)
               .build();
         });
-  }
-
-  public Uni<Integer> update(Receipt receipt) {
-    return repository.update(receipt);
   }
 }

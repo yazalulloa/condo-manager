@@ -17,7 +17,6 @@ import com.yaz.persistence.domain.ExpenseType;
 import com.yaz.persistence.domain.ReserveFundType;
 import com.yaz.persistence.entities.Expense;
 import com.yaz.persistence.entities.Rate;
-import com.yaz.persistence.entities.Receipt;
 import com.yaz.persistence.entities.ReserveFund;
 import com.yaz.persistence.entities.ReserveFund.Keys;
 import io.quarkus.qute.CheckedTemplate;
@@ -64,10 +63,18 @@ public class ReserveFundResource {
     public static native TemplateInstance counters(ReserveFundCountersDto dto);
   }
 
-  private Uni<Rate> rateUni(long receiptId) {
-    return receiptService.get(receiptId)
-        .map(Receipt::rateId)
-        .flatMap(rateService::get);
+  private Uni<Optional<Rate>> rateUni(long receiptId) {
+    return receiptService.read(receiptId)
+        .flatMap(opt -> {
+
+          if (opt.isEmpty()) {
+            return Uni.createFrom().item(Optional.empty());
+          }
+
+          final var receipt = opt.get();
+          return rateService.get(receipt.rateId())
+              .map(Optional::of);
+        });
   }
 
   @DELETE
@@ -83,12 +90,17 @@ public class ReserveFundResource {
         .unis(rateUni(keys.receiptId()),
             expenseService.readByReceipt(keys.receiptId()), service.listByBuilding(keys.buildingId()),
             service.count(keys.buildingId()), service.delete(keys.buildingId(), keys.id()))
-        .with((rate, expenses, reserveFunds, count, i) -> {
-          reserveFunds.removeIf(r -> r.id() == keys.id());
-          final var expensesCount = expenses.size();
+        .with((optRate, expenses, reserveFunds, count, i) -> {
+
+          final var expenseCountersDto = optRate.map(rate -> {
+            reserveFunds.removeIf(r -> r.id() == keys.id());
+            final var expensesCount = expenses.size();
+            return expenseCountersDto(expensesCount, rate.rate(), expenses, reserveFunds);
+          }).orElse(null);
+
           return ReserveFundCountersDto.builder()
               .count(count - i)
-              .expenseCountersDto(expenseCountersDto(expensesCount, rate.rate(), expenses, reserveFunds))
+              .expenseCountersDto(expenseCountersDto)
               .build();
         })
         .map(Templates::counters)
@@ -130,10 +142,11 @@ public class ReserveFundResource {
           }
 
           final var reserveFund = optional.get();
+          final var keys1 = reserveFund.keysWithHash(keys.receiptId(), keys.cardId());
           final var dto = ReserveFundFormDto.builder()
               .isEdit(true)
               .clearForm(true)
-              .key(keysStr)
+              .key(encryptionService.encryptObj(keys1))
               .name(reserveFund.name())
               .fund(reserveFund.fund())
               .expense(reserveFund.expense())
@@ -175,7 +188,7 @@ public class ReserveFundResource {
         .addToExpenses(formDto.addToExpenses())
         .build();
 
-    final var newKeys = reserveFund.keys(keys.receiptId(), keys.cardId());
+    final var newKeys = reserveFund.keysWithHash(keys.receiptId(), keys.cardId());
 
     if (newKeys.hash() == keys.hash()) {
       formDto = formDto.toBuilder()
@@ -191,13 +204,17 @@ public class ReserveFundResource {
         .unis(rateUni(keys.receiptId()),
             expenseService.readByReceipt(keys.receiptId()), service.update(reserveFund),
             service.listByBuilding(keys.buildingId()))
-        .with((rate, expenses, i, reserveFunds) -> {
+        .with((optRate, expenses, i, reserveFunds) -> {
 
-          final var expensesCount = expenses.size();
           reserveFunds.removeIf(r -> r.id() == keys.id());
           reserveFunds.add(reserveFund);
 
           final var newKey = encryptionService.encryptObj(newKeys);
+
+          final var expenseCountersDto = optRate.map(rate -> {
+            final var expensesCount = expenses.size();
+            return expenseCountersDto(expensesCount, rate.rate(), expenses, reserveFunds);
+          }).orElse(null);
 
           return ReserveFundFormDto.builder()
               .key(newKey)
@@ -207,7 +224,7 @@ public class ReserveFundResource {
                   .outOfBoundsUpdate(true)
                   .cardId(newKeys.cardId())
                   .build())
-              .expenseCountersDto(expenseCountersDto(expensesCount, rate.rate(), expenses, reserveFunds))
+              .expenseCountersDto(expenseCountersDto)
               .build();
         })
         .map(Templates::form)
@@ -265,13 +282,18 @@ public class ReserveFundResource {
         .unis(rateUni(keys.receiptId()),
             expenseService.readByReceipt(keys.receiptId()), service.listByBuilding(keys.buildingId()),
             service.count(keys.buildingId()), service.insert(update))
-        .with((rate, expenses, reserveFunds, count, id) -> {
-          final var expensesCount = expenses.size();
+        .with((optRate, expenses, reserveFunds, count, id) -> {
+
           final var reserveFund = update.toBuilder()
               .id(id)
               .build();
 
           reserveFunds.add(reserveFund);
+
+          final var expenseCountersDto = optRate.map(rate -> {
+            final var expensesCount = expenses.size();
+            return expenseCountersDto(expensesCount, rate.rate(), expenses, reserveFunds);
+          }).orElse(null);
 
           final var keys1 = reserveFund.keys(keys.receiptId());
           final var dto = ReserveFundFormDto.builder()
@@ -283,7 +305,7 @@ public class ReserveFundResource {
                   .cardId(keys1.cardId())
                   .build())
               .counters(ReserveFundCountersDto.count(count + 1))
-              .expenseCountersDto(expenseCountersDto(expensesCount, rate.rate(), expenses, reserveFunds))
+              .expenseCountersDto(expenseCountersDto)
               .build();
 
           return Templates.form(dto);

@@ -1,14 +1,16 @@
 package com.yaz.api.domain.request;
 
 import com.yaz.persistence.domain.Currency;
+import jakarta.validation.constraints.NotBlank;
 import java.util.Objects;
 import lombok.Data;
 import org.jboss.resteasy.reactive.RestForm;
 
 @Data
 public class ExtraChargeRequest {
-
-
+  @NotBlank
+  @RestForm
+  private String key;
   @RestForm("extraChargeDescription")
   private String description;
   @RestForm("extraChargeAmount")

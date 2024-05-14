@@ -10,7 +10,6 @@ import com.yaz.core.service.entity.ExtraChargeService;
 import com.yaz.core.util.DecimalUtil;
 import com.yaz.core.util.StringUtil;
 import com.yaz.persistence.domain.request.ExtraChargeCreateRequest;
-import com.yaz.persistence.domain.request.ExtraChargeUpdateRequest;
 import com.yaz.persistence.entities.ExtraCharge;
 import com.yaz.persistence.entities.ExtraCharge.Apt;
 import com.yaz.persistence.entities.ExtraCharge.Keys;
@@ -40,6 +39,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jboss.resteasy.reactive.Cache;
 import org.jboss.resteasy.reactive.RestPath;
+import org.jboss.resteasy.reactive.RestQuery;
 
 @Slf4j
 @Path(ExtraChargeResource.PATH)
@@ -47,7 +47,6 @@ import org.jboss.resteasy.reactive.RestPath;
 public class ExtraChargeResource {
 
   public static final String PATH = "/api/extra_charges";
-  public static final String DELETE_PATH = PATH + "/";
 
   private final BuildingService buildingService;
   private final ApartmentService apartmentService;
@@ -65,16 +64,22 @@ public class ExtraChargeResource {
   }
 
   @DELETE
-  @Path("{id}")
   @Produces(MediaType.TEXT_HTML)
-  public Uni<TemplateInstance> delete(@NotBlank @RestPath String id) {
+  public Uni<TemplateInstance> delete(@NotBlank @RestQuery String id) {
 
     final var json = encryptionService.decrypt(id);
     final var keys = Json.decodeValue(json, Keys.class);
 
-    return service.delete(keys)
-        .replaceWith(service.count(keys))
-        .map(Templates::counters);
+    return Uni.combine()
+        .all()
+        .unis(service.delete(keys),
+            service.count(keys))
+        .with((i, count) -> {
+          if (i > 0) {
+            count -= 1;
+          }
+          return Templates.counters(count);
+        });
   }
 
   @GET
@@ -128,10 +133,12 @@ public class ExtraChargeResource {
               .filter(str -> apartments.stream().anyMatch(apt -> apt.number().equals(str)))
               .collect(Collectors.toSet());
 
+          final var keys1 = extraCharge.keysWithHash(keys.cardId());
+
           final var formDto = ExtraChargeFormDto.builder()
               .isEdit(true)
               .clearForm(true)
-              .key(key)
+              .key(encryptionService.encryptObj(keys1))
               .description(extraCharge.description())
               .amount(BigDecimal.valueOf(extraCharge.amount()))
               .currency(extraCharge.currency())
@@ -163,7 +170,7 @@ public class ExtraChargeResource {
             StringUtil.trimFilter(request.getDescription()) == null ? "No puede estar vacio" : null)
         .amount(Optional.ofNullable(amount).orElse(BigDecimal.ONE))
         .amountFieldError(amount == null || DecimalUtil.zeroOrLess(amount) ? "Debe ser mayor a 0" : null)
-        .apartmentFieldError(aptsSelected.isEmpty() ? "Debe seleccionar al menos un apartamento" : null)
+        .generalFieldError(aptsSelected.isEmpty() ? "Debe seleccionar al menos un apartamento" : null)
         .currency(request.getCurrency())
         .active(request.isActive())
         .apartments(apartments)
@@ -173,10 +180,9 @@ public class ExtraChargeResource {
   }
 
   @POST
-  @Path("{key}")
   @Produces(MediaType.TEXT_HTML)
-  public Uni<Response> create(@NotBlank @RestPath String key, @BeanParam ExtraChargeRequest request) {
-    final var keys = encryptionService.decryptObj(key, Keys.class);
+  public Uni<Response> create(@BeanParam ExtraChargeRequest request) {
+    final var keys = encryptionService.decryptObj(request.getKey(), Keys.class);
 
     return Uni.combine()
         .all()
@@ -186,55 +192,52 @@ public class ExtraChargeResource {
             return Uni.createFrom().item(Response.status(404).build());
           }
 
-          final var formDto = formDto(key, request, apartments);
+          final var formDto = formDto(request.getKey(), request, apartments);
 
-          if (formDto.isSuccess()) {
-            final var createRequest = ExtraChargeCreateRequest.builder()
-                .parentReference(keys.parentReference())
-                .buildingId(keys.buildingId())
-                .type(keys.type())
-                .description(formDto.getDescription())
-                .amount(formDto.getAmount().doubleValue())
-                .currency(formDto.getCurrency())
-                .active(formDto.isActive())
-                .apartments(formDto.getAptChecked())
-                .build();
-
-            return service.create(createRequest)
-                .map(extraCharge -> {
-                  final var apts = apartments.stream()
-                      .filter(apt -> createRequest.apartments().contains(apt.number()))
-                      .toList();
-
-                  return extraCharge.toBuilder()
-                      .apartments(apts)
-                      .build();
-                })
-                .flatMap(extraCharge -> {
-
-                  return service.count(keys)
-                      .map(count -> {
-                        final var keys1 = extraCharge.keys();
-                        return ExtraChargeFormDto.builder()
-                            .isEdit(false)
-                            .key(key)
-                            .apartments(apartments)
-                            .tableItem(ExtraChargeTableItem.builder()
-                                .key(encryptionService.encryptObj(keys1))
-                                .item(extraCharge)
-                                .cardId(keys1.cardId())
-                                .outOfBoundsUpdate(false)
-                                .addAfterEnd(true)
-                                .build())
-                            .count(count)
-                            .build();
-                      });
-                })
-                .map(Templates::form)
-                .map(templateInstance -> Response.ok(templateInstance).build());
+          if (!formDto.isSuccess()) {
+            return Uni.createFrom().item(Response.ok(Templates.form(formDto)).build());
           }
 
-          return Uni.createFrom().item(Response.ok(Templates.form(formDto)).build());
+          final var createRequest = ExtraChargeCreateRequest.builder()
+              .parentReference(keys.parentReference())
+              .buildingId(keys.buildingId())
+              .type(keys.type())
+              .description(formDto.description())
+              .amount(formDto.amount().doubleValue())
+              .currency(formDto.currency())
+              .active(formDto.active())
+              .apartments(formDto.aptChecked())
+              .build();
+
+          return Uni.combine().all()
+              .unis(service.create(createRequest), service.count(keys))
+              .with((extraCharge, count) -> {
+                final var apts = apartments.stream()
+                    .filter(apt -> createRequest.apartments().contains(apt.number()))
+                    .toList();
+
+                extraCharge = extraCharge.toBuilder()
+                    .apartments(apts)
+                    .build();
+
+                final var keys1 = extraCharge.keys();
+                return ExtraChargeFormDto.builder()
+                    .isEdit(false)
+                    .key(request.getKey())
+                    .apartments(apartments)
+                    .tableItem(ExtraChargeTableItem.builder()
+                        .key(encryptionService.encryptObj(keys1))
+                        .item(extraCharge)
+                        .cardId(keys1.cardId())
+                        .outOfBoundsUpdate(false)
+                        .addAfterEnd(true)
+                        .build())
+                    .count(count + 1)
+                    .build();
+              })
+              .map(Templates::form)
+              .map(templateInstance -> Response.ok(templateInstance).build());
+
         });
   }
 
@@ -260,11 +263,10 @@ public class ExtraChargeResource {
   }
 
   @PATCH
-  @Path("{key}")
   @Produces(MediaType.TEXT_HTML)
-  public Uni<Response> update(@NotBlank @RestPath String key, @BeanParam ExtraChargeRequest request) {
+  public Uni<Response> update(@BeanParam ExtraChargeRequest request) {
 
-    final var json = encryptionService.decrypt(key);
+    final var json = encryptionService.decrypt(request.getKey());
     final var keys = Json.decodeValue(json, Keys.class);
 
     return Uni.combine()
@@ -275,56 +277,53 @@ public class ExtraChargeResource {
           if (optional.isEmpty()) {
             return Uni.createFrom().item(Response.status(Status.NOT_FOUND).entity("Extra Charge Not Found").build());
           }
-          final var formDto = formDto(key, request, apartments).toBuilder()
+          var formDto = formDto(request.getKey(), request, apartments).toBuilder()
               .isEdit(true)
-              .apartments(apartments)
+              .build();
+          final var aptChecked = formDto.aptChecked();
+          final var apts = apartments.stream().filter(apt -> aptChecked.contains(apt.number()))
+              .toList();
+
+          final var extraCharge = ExtraCharge.builder()
+              .parentReference(keys.parentReference())
+              .buildingId(keys.buildingId())
+              .id(keys.id())
+              .type(Type.BUILDING)
+              .description(formDto.description())
+              .amount(formDto.amount().doubleValue())
+              .currency(formDto.currency())
+              .active(formDto.active())
+              .apartments(apts)
               .build();
 
-          if (formDto.isSuccess()) {
-            final var updateRequest = ExtraChargeUpdateRequest.builder()
-                .parentReference(keys.parentReference())
-                .buildingId(keys.buildingId())
-                .id(keys.id())
-                .description(formDto.getDescription())
-                .amount(formDto.getAmount().doubleValue())
-                .currency(formDto.getCurrency())
-                .active(formDto.isActive())
-                .apartments(formDto.getAptChecked())
+          final var newKeys = extraCharge.keysWithHash(keys.cardId());
+
+          if (newKeys.hash() == keys.hash()) {
+            formDto = formDto.toBuilder()
+                .generalFieldError("No se ha modificado nada")
                 .build();
-
-            final var apts = apartments.stream().filter(apt -> formDto.getAptChecked().contains(apt.number()))
-                .toList();
-
-            final var extraCharge = ExtraCharge.builder()
-                .parentReference(keys.parentReference())
-                .buildingId(keys.buildingId())
-                .id(keys.id())
-                .type(Type.BUILDING)
-                .description(formDto.getDescription())
-                .amount(formDto.getAmount().doubleValue())
-                .currency(formDto.getCurrency())
-                .active(formDto.isActive())
-                .apartments(apts)
-                .build();
-
-            final var extraChargeFormDto = ExtraChargeFormDto.builder()
-                .isEdit(false)
-                .key(key)
-                .apartments(apartments)
-                .tableItem(ExtraChargeTableItem.builder()
-                    .key(key)
-                    .cardId(keys.cardId())
-                    .item(extraCharge)
-                    .outOfBoundsUpdate(true)
-                    .addAfterEnd(false)
-                    .build())
-                .build();
-
-            return service.update(updateRequest)
-                .replaceWith(Response.ok(Templates.form(extraChargeFormDto)).build());
           }
 
-          return Uni.createFrom().item(Response.ok(Templates.form(formDto)).build());
+          if (!formDto.isSuccess()) {
+            return Uni.createFrom().item(Response.ok(Templates.form(formDto)).build());
+          }
+
+          final var extraChargeFormDto = ExtraChargeFormDto.builder()
+              .isEdit(false)
+              .key(request.getKey())
+              .apartments(apartments)
+              .tableItem(ExtraChargeTableItem.builder()
+                  .key(request.getKey())
+                  .cardId(keys.cardId())
+                  .item(extraCharge)
+                  .outOfBoundsUpdate(true)
+                  .addAfterEnd(false)
+                  .build())
+              .build();
+
+          return service.update(extraCharge)
+              .replaceWith(Response.ok(Templates.form(extraChargeFormDto)).build());
+
         });
   }
 }

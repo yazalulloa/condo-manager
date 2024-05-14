@@ -31,10 +31,10 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 @Dependent
 public class TursoVerticle extends AbstractVerticle {
 
-  private final LinkedBlockingQueue<RequestMsg[]> PENDING_MESSAGES = new LinkedBlockingQueue<>();
+  private final LinkedBlockingQueue<RequestMsg[]> pendingMessages = new LinkedBlockingQueue<>();
 
-  private final Map<Integer, TursoResult> RESULTS = new ConcurrentHashMap<>();
-  private final Map<Integer, Listener> LISTENERS = new ConcurrentHashMap<>();
+  private final Map<Integer, TursoResult> results = new ConcurrentHashMap<>();
+  private final Map<Integer, Listener> listeners = new ConcurrentHashMap<>();
 
   public static final String ADDRESS = "turso-request";
 
@@ -65,7 +65,7 @@ public class TursoVerticle extends AbstractVerticle {
           final var requestMsgs = message.body();
 
           final var requests = new int[requestMsgs.length];
-          final var listener = new Listener(requests, new Handler<AsyncResult<List<TursoResult>>>() {
+          final var listener = new Listener(requests, new Handler<>() {
             @Override
             public void handle(AsyncResult<List<TursoResult>> event) {
               if (event.succeeded()) {
@@ -79,7 +79,7 @@ public class TursoVerticle extends AbstractVerticle {
           for (int i = 0; i < requestMsgs.length; i++) {
             final var requestId = requestMsgs[i].requestId();
             requests[i] = requestId;
-            LISTENERS.put(requestId, listener);
+            listeners.put(requestId, listener);
           }
 
           sendMsg(requestMsgs);
@@ -92,11 +92,11 @@ public class TursoVerticle extends AbstractVerticle {
   void sendMsg(RequestMsg[] requestMsgs) {
     if (webSocket != null) {
       for (RequestMsg requestMsg : requestMsgs) {
-        RESULTS.putIfAbsent(requestMsg.requestId(), new TursoResult(requestMsg));
+        results.putIfAbsent(requestMsg.requestId(), new TursoResult(requestMsg));
         sendMessage(mapper.toJson(requestMsg));
       }
     } else {
-      PENDING_MESSAGES.add(requestMsgs);
+      pendingMessages.add(requestMsgs);
     }
   }
 
@@ -206,32 +206,32 @@ public class TursoVerticle extends AbstractVerticle {
       return;
     }
 
-    final var msgResult = RESULTS.get(responseMsg.requestId());
+    final var msgResult = results.get(responseMsg.requestId());
     if (msgResult == null) {
       log.warn("No request found for response: %s".formatted(json));
     } else {
       msgResult.setResponse(responseMsg);
       log.debug("MsgResult {} {}", msgResult.requestId(), mapper.toJson(msgResult));
-      final var listener = LISTENERS.get(msgResult.requestId());
+      final var listener = listeners.get(msgResult.requestId());
       if (listener != null) {
 
         final var tursoResults = new ArrayList<TursoResult>(listener.requests().length);
         for (int id : listener.requests()) {
-          final var result = RESULTS.get(id);
+          final var result = results.get(id);
           if (result.responseMsg() != null) {
             tursoResults.add(result);
           }
         }
         if (tursoResults.size() == listener.requests().length) {
           for (int id : listener.requests()) {
-            RESULTS.remove(id);
-            LISTENERS.remove(id);
+            results.remove(id);
+            listeners.remove(id);
           }
           listener.handler().handle(Future.succeededFuture(tursoResults));
         }
 
       } else {
-        RESULTS.remove(msgResult.requestId());
+        results.remove(msgResult.requestId());
       }
 
     }
@@ -255,8 +255,8 @@ public class TursoVerticle extends AbstractVerticle {
 
   private void sendPending() {
     if (webSocket != null) {
-      while (!PENDING_MESSAGES.isEmpty()) {
-        sendMsg(PENDING_MESSAGES.poll());
+      while (!pendingMessages.isEmpty()) {
+        sendMsg(pendingMessages.poll());
       }
     }
   }
@@ -312,18 +312,18 @@ public class TursoVerticle extends AbstractVerticle {
   }
 
   private void handleError(Throwable e) {
-    for (Listener listener : LISTENERS.values()) {
+    for (Listener listener : listeners.values()) {
       listener.handler().handle(Future.failedFuture(e));
     }
-    LISTENERS.clear();
-    RESULTS.clear();
+    listeners.clear();
+    results.clear();
   }
 
   private void handleCloseClient() {
-    for (Listener listener : LISTENERS.values()) {
+    for (Listener listener : listeners.values()) {
       listener.handler().handle(Future.failedFuture(new RuntimeException("Connection closed")));
     }
-    LISTENERS.clear();
-    RESULTS.clear();
+    listeners.clear();
+    results.clear();
   }
 }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import com.yaz.core.util.StringUtil;
 import com.yaz.persistence.domain.Currency;
 import java.util.List;
 import java.util.UUID;
@@ -27,8 +28,17 @@ public record ExtraCharge(
 
   private static final String CARD_ID_PREFIX = "extra-charge-card-id-";
 
+  private static String cardId() {
+    return CARD_ID_PREFIX + UUID.randomUUID();
+  }
+
   public Keys keys() {
-    return new Keys(id, parentReference, buildingId, type, CARD_ID_PREFIX + UUID.randomUUID());
+    return new Keys(id, parentReference, buildingId, type, 0, cardId());
+  }
+
+  public Keys keysWithHash(String cardId) {
+
+    return new Keys(id, parentReference, buildingId, type, StringUtil.objHash(this), cardId);
   }
 
   public enum Type {
@@ -47,15 +57,16 @@ public record ExtraCharge(
       String parentReference,
       String buildingId,
       Type type,
+      long hash,
       String cardId
   ) {
 
     public static Keys newBuilding(String buildingId) {
-      return new Keys(0, buildingId, buildingId, Type.BUILDING, CARD_ID_PREFIX + UUID.randomUUID());
+      return new Keys(0, buildingId, buildingId, Type.BUILDING, 0, ExtraCharge.cardId());
     }
 
     public static Keys newReceipt(long receiptId, String buildingId) {
-      return new Keys(0, String.valueOf(receiptId), buildingId, Type.RECEIPT, CARD_ID_PREFIX + UUID.randomUUID());
+      return new Keys(0, String.valueOf(receiptId), buildingId, Type.RECEIPT, 0, ExtraCharge.cardId());
     }
 
   }

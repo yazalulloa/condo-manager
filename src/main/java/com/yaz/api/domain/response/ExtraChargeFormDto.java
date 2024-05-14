@@ -12,9 +12,11 @@ import java.util.List;
 import java.util.Set;
 import lombok.Builder;
 import lombok.Data;
+import lombok.experimental.Accessors;
 import lombok.extern.jackson.Jacksonized;
 
 @Jacksonized
+@Accessors(fluent = true)
 @Builder(toBuilder = true)
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -41,12 +43,12 @@ public class ExtraChargeFormDto {
 
   @Builder.Default
   private final Set<String> aptChecked = Collections.emptySet();
-  private final String apartmentFieldError;
+  private final String generalFieldError;
   private final boolean refreshGrid;
   private final ExtraChargeTableItem tableItem;
 
   public boolean isSuccess() {
-    return descriptionFieldError == null && amountFieldError == null && apartmentFieldError == null;
+    return descriptionFieldError == null && amountFieldError == null && generalFieldError == null;
   }
 
 }

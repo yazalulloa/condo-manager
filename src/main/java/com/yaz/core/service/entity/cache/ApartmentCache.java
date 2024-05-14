@@ -1,6 +1,11 @@
 package com.yaz.core.service.entity.cache;
 
 public class ApartmentCache {
+
+  private ApartmentCache() {
+    super();
+  }
+
   public static final String TOTAL_COUNT = "apartment-total-count";
   public static final String QUERY_COUNT = "apartment-query-count";
   public static final String EXISTS = "apartment-exists";

@@ -12,12 +12,15 @@ import com.yaz.core.event.domain.UserDeleted;
 import com.yaz.core.service.ServerSideEventHelper;
 import com.yaz.core.service.TelegramCommandResolver;
 import com.yaz.core.service.entity.BuildingService;
+import com.yaz.core.service.entity.DebtService;
 import com.yaz.core.service.entity.EmailConfigService;
+import com.yaz.core.service.entity.ExpenseService;
 import com.yaz.core.service.entity.ExtraChargeService;
 import com.yaz.core.service.entity.NotificationEventService;
 import com.yaz.core.service.entity.OidcDbTokenService;
 import com.yaz.core.service.entity.ReserveFundService;
 import com.yaz.core.service.entity.TelegramChatService;
+import com.yaz.persistence.entities.Receipt;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.Vertx;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -43,6 +46,8 @@ public class EventConsumer {
   private final OidcDbTokenService tokenService;
   private final NotificationEventService notificationEventService;
   private final TelegramChatService telegramChatService;
+  private final DebtService debtService;
+  private final ExpenseService expenseService;
 
   public void emailConfigDeleted(@ObservesAsync EmailConfigDeleted task) {
 
@@ -152,6 +157,13 @@ public class EventConsumer {
             e -> {
               log.error("ERROR deleting user data: {}", task.id(), e);
             });
+
+  }
+
+  public void receiptDeleted(@ObservesAsync Receipt.Keys keys) {
+//    extraChargeService.deleteBy(keys.id(), keys.buildingId());
+//    debtService.deleteByReceipt(keys.buildingId(), keys.id());
+//    expenseService.deleteByReceipt(keys.id());
 
   }
 }

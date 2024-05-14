@@ -56,10 +56,6 @@ public class ExpenseRepository {
     return Stmt.stmt(SELECT_BY_RECEIPT, Value.number(receiptId));
   }
 
-  public Stmt stmtDeleteByReceipt(String buildingId, long receiptId) {
-    return Stmt.stmt(DELETE_BY_RECEIPT, Value.text(buildingId), Value.number(receiptId));
-  }
-
   public Stmt stmtInsert(long receiptId, Expense expense) {
     return stmtInsert(receiptId, Collections.singletonList(expense));
   }
@@ -132,6 +128,15 @@ public class ExpenseRepository {
     return tursoWsService.executeQuery(UPDATE, Value.text(expense.description()), Value.number(expense.amount()),
             Value.enumV(expense.currency()), Value.bool(expense.reserveFund()), Value.enumV(expense.type()),
             Value.number(expense.id()))
+        .map(executeResp -> executeResp.result().rowCount());
+  }
+
+  public Stmt stmtDeleteByReceipt(String buildingId, long receiptId) {
+    return Stmt.stmt(DELETE_BY_RECEIPT, Value.text(buildingId), Value.number(receiptId));
+  }
+
+  public Uni<Integer> deleteByReceipt(String buildingId, long receiptId) {
+    return tursoWsService.executeQuery(stmtDeleteByReceipt(buildingId, receiptId))
         .map(executeResp -> executeResp.result().rowCount());
   }
 }

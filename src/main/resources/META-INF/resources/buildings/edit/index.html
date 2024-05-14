@@ -8,21 +8,21 @@
 </head>
 <body >
 
-<div class="bg-base-100 text-center" id="header-container" hx-swap-oob="true" script="init call removeStc()">
+<div class="bg-base-100 text-center" id="header-container" hx-swap-oob="true">
   <h2>Editar Edificio</h2>
 </div>
 
-<div id="container" hx-swap-oob="true" class="h-full">
-  <form
+<div id="container" hx-swap-oob="true" class="h-full p-4">
+  <div
       hx-get="/api/buildings/edit_form"
       hx-indicator=".htmx-indicator"
+      hx-vals="js:{id: getLastUrlSegmentCurrent()}"
       hx-trigger="load"
-      hx-vals="js:{buildingId: getFromLocalStorage('buildingId')}"
       hx-swap="outerHTML">
     <div>
       <img class="htmx-indicator white-filter img-medium-size center" src="/assets/bars.svg" alt="spinner">
     </div>
-  </form>
+  </div>
 </div>
 
 </body>

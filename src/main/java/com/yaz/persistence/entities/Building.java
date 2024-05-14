@@ -1,6 +1,7 @@
 package com.yaz.persistence.entities;
 
 
+import com.yaz.core.util.StringUtil;
 import com.yaz.persistence.domain.Currency;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -25,4 +26,21 @@ public record Building(
     String configEmail,
     Long aptCount) {
 
+  public Keys keys() {
+    return new Keys(id, 0);
+  }
+
+  public Keys keysWithHash() {
+    final var building = this.toBuilder()
+        .createdAt(null)
+        .updatedAt(null)
+        .aptCount(null)
+        .configEmail(null)
+        .build();
+    return new Keys(id, StringUtil.objHash(building));
+  }
+
+  public record Keys(String id, long hash) {
+
+  }
 }

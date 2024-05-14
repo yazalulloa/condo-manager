@@ -1,14 +1,15 @@
 package com.yaz.core.service.entity;
 
 
+import com.yaz.api.domain.response.BuildingReportResponse;
+import com.yaz.api.resource.BuildingResource;
+import com.yaz.core.event.domain.BuildingDeleted;
+import com.yaz.core.service.EncryptionService;
 import com.yaz.core.service.entity.cache.BuildingCache;
 import com.yaz.core.util.Constants;
-import com.yaz.core.event.domain.BuildingDeleted;
 import com.yaz.persistence.domain.query.BuildingQuery;
 import com.yaz.persistence.entities.Building;
 import com.yaz.persistence.repository.BuildingRepository;
-import com.yaz.api.resource.BuildingResource;
-import com.yaz.api.domain.response.BuildingReportResponse;
 import io.quarkus.cache.CacheInvalidate;
 import io.quarkus.cache.CacheInvalidateAll;
 import io.quarkus.cache.CacheResult;
@@ -31,6 +32,7 @@ public class BuildingService {
 
   //private final Instance<BuildingRepository> repository;
   private final BuildingRepository repository;
+  private final EncryptionService encryptionService;
   private final Event<BuildingDeleted> buildingDeletedEvent;
 
   private BuildingRepository repository() {
@@ -97,7 +99,12 @@ public class BuildingService {
         .unis(count(), list(query))
         .with((totalCount, list) -> {
           final var results = list.stream()
-              .map(BuildingReportResponse.Item::new)
+              .map(building -> {
+                return BuildingReportResponse.Item.builder()
+                    .key(encryptionService.encryptObj(building.keys()))
+                    .building(building)
+                    .build();
+              })
               .collect(Collectors.toCollection(() -> new ArrayList<>(list.size())));
 
           String nextPageUrl = null;
@@ -108,7 +115,7 @@ public class BuildingService {
             final var last = results.getLast();
 
             nextPageUrl = BuildingResource.PATH + "/report";
-            nextPageUrl += "?lastId=" + last.getBuilding().id();
+            nextPageUrl += "?lastId=" + last.building().id();
 
           }
 

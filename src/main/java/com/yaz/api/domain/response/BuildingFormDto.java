@@ -9,6 +9,7 @@ import lombok.Builder;
 
 @Builder(toBuilder = true)
 public record BuildingFormDto(
+    String key,
     boolean isEdit,
     String generalFieldError,
     String id,

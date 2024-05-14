@@ -2,6 +2,9 @@ package com.yaz.core.service.entity.cache;
 
 public class EmailConfigCache {
 
+  private EmailConfigCache() {
+    super();
+  }
 
   public static final String TOTAL_COUNT = "email-config-total-count";
   public static final String QUERY_COUNT = "email-config-query-count";

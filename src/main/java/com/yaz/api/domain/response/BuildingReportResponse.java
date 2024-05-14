@@ -7,20 +7,21 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 
-@Data
-@Builder
-@RequiredArgsConstructor
-public class BuildingReportResponse {
 
-  private final long totalCount;
-  private final String nextPageUrl;
-  private final Collection<Item> results;
+@Builder(toBuilder = true)
+public record BuildingReportResponse(
+    long totalCount,
+    String nextPageUrl,
+    Collection<Item> results) {
 
   @Data
-  @RequiredArgsConstructor
+  @Builder(toBuilder = true)
+  @Accessors(fluent = true)
   public static class Item {
 
+    private final String key;
     private final Building building;
 
     @Getter(lazy = true)
@@ -33,11 +34,11 @@ public class BuildingReportResponse {
     private final String deleteUrl = genDeleteUrl();
 
     private String genCardId() {
-      return "rate-card-id-" + getBuilding().id();
+      return "rate-card-id-" + building().id();
     }
 
     private String genDeleteUrl() {
-      return BuildingResource.DELETE_PATH + getBuilding().id();
+      return BuildingResource.DELETE_PATH + key;
     }
 
     private String genCardIdRef() {

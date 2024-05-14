@@ -54,6 +54,13 @@ public class DebtRepository {
       WHERE debts.building_id = ? AND debts.receipt_id = ? AND debts.apt_number = ?
       """;
 
+  private static final String UPDATE = """
+      UPDATE %s SET receipts = ?, amount = ?, months = ?, previous_payment_amount = ?, previous_payment_amount_currency = ? 
+      WHERE building_id = ? AND receipt_id = ? AND apt_number = ?
+      """
+      .formatted(COLLECTION);
+
+
   private final TursoWsService tursoWsService;
 
   Debt from(Row row) {
@@ -79,9 +86,6 @@ public class DebtRepository {
     return Stmt.stmt(SELECT_BY_RECEIPT, Value.text(buildingId), Value.number(receiptId));
   }
 
-  public Stmt stmtDeleteByReceipt(String buildingId, long receiptId) {
-    return Stmt.stmt(DELETE_BY_RECEIPT, Value.text(buildingId), Value.number(receiptId));
-  }
 
   public Stmt stmtInsert(long receiptId, Collection<Debt> debts) {
 
@@ -121,10 +125,9 @@ public class DebtRepository {
   }
 
   public Uni<Integer> update(Debt debt) {
+
     return tursoWsService.executeQuery(
-            Stmt.stmt(
-                "UPDATE %s SET receipts = ?, amount = ?, months = ?, previous_payment_amount = ?, previous_payment_amount_currency = ? WHERE building_id = ? AND receipt_id = ? AND apt_number = ?"
-                    .formatted(COLLECTION),
+            Stmt.stmt(UPDATE,
                 Value.number(debt.receipts()),
                 Value.number(debt.amount()),
                 Value.text(debt.months().stream().map(String::valueOf).collect(Collectors.joining(","))),
@@ -133,6 +136,15 @@ public class DebtRepository {
                 Value.text(debt.buildingId()),
                 Value.number(debt.receiptId()),
                 Value.text(debt.aptNumber())))
+        .map(executeResp -> executeResp.result().rowCount());
+  }
+
+  public Stmt stmtDeleteByReceipt(String buildingId, long receiptId) {
+    return Stmt.stmt(DELETE_BY_RECEIPT, Value.text(buildingId), Value.number(receiptId));
+  }
+
+  public Uni<Integer> deleteByReceipt(String buildingId, long receiptId) {
+    return tursoWsService.executeQuery(stmtDeleteByReceipt(buildingId, receiptId))
         .map(executeResp -> executeResp.result().rowCount());
   }
 }

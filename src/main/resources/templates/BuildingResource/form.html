@@ -8,7 +8,7 @@
       hx-swap="outerHTML"
       data-te-validation-init
 {#if dto.isEdit}
-      hx-patch="/api/buildings/{dto.id}"
+      hx-patch="/api/buildings"
 {#else}
       hx-post="/api/buildings/new"
 {/if}
@@ -26,15 +26,9 @@
            script="init set @data-te-validation-state to invalid"/>
 
 
-{#if dto.generalFieldError}
-<div>
-<span class='input-error error-message'> {dto.generalFieldError}</span>
-</div>
-{/if}
-
 {#if dto.isEdit}
 
-    <input type="hidden" name="id" value="{dto.id}">
+    <input type="hidden" name="key" value="{dto.key}">
 
 {#else}
 
@@ -223,13 +217,18 @@
 
 </div>
 
+  {#if dto.generalFieldError}
+      <div class="m-auto p-2">
+          <span class="text-red-500 text-xs">{dto.generalFieldError}</span>
+      </div>
+  {/if}
 
 <div class="header p-6">
 <button id="apt-form-btn-submit" class="btn btn-primary">
 {#if dto.isEdit}
-  Editar
+  EDITAR
 {#else}
-  Crear
+  CREAR
 {/if}
 </button>
   <img class="htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">

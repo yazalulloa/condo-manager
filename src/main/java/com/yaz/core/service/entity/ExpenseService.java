@@ -77,4 +77,8 @@ public class ExpenseService {
     return repository.update(expense)
         .replaceWith(expense);
   }
+
+  public Uni<Integer> deleteByReceipt(String buildingId, long receiptId) {
+    return repository.deleteByReceipt(buildingId, receiptId);
+  }
 }

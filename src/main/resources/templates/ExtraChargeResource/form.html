@@ -5,16 +5,16 @@
       hx-swap="outerHTML"
       hx-indicator=".htmx-indicator"
         {#if dto.isEdit}
-            hx-patch="/api/extra_charges/{dto.key}"
+            hx-patch="/api/extra_charges"
         {#else}
-            hx-post="/api/extra_charges/{dto.key}"
+            hx-post="/api/extra_charges"
         {/if}
         {#if dto.clearForm}
             hx-swap-oob="true"
         {/if}
       data-te-validation-init
       script="
-  {#if dto.isRefreshGrid}
+  {#if dto.refreshGrid}
         init send 'update_extra_charges' to #extra_charges_grid
   {#else}
         init set @data-te-validated to 'true'
@@ -23,6 +23,8 @@
 >
     <input type="hidden" name="{inject:csrf.parameterName}" value="{inject:csrf.token}"
            script="init set @data-te-validation-state to invalid"/>
+
+    <input type="hidden" name="key" value="{dto.key}">
 
     <cm-form-input
             class=""
@@ -82,9 +84,7 @@
         </label>
     </div>
 
-    {#if dto.apartmentFieldError}
-        <span class="text-red-500 text-xs">{dto.apartmentFieldError}</span>
-    {/if}
+
 
     {#if dto.apartments && ! dto.apartments.isEmpty}
         <div>
@@ -102,6 +102,10 @@
             </select>
             <label data-te-select-label-ref>Apartamentos </label>
         </div>
+    {/if}
+
+    {#if dto.generalFieldError}
+        <span class="text-red-500 text-xs">{dto.generalFieldError}</span>
     {/if}
 
     <div class="p-2 flex flex-row gap-4">

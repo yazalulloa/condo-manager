@@ -1,8 +1,6 @@
 package com.yaz.core.service.entity;
 
-import com.yaz.core.util.monad.Result;
 import com.yaz.persistence.domain.request.ExtraChargeCreateRequest;
-import com.yaz.persistence.domain.request.ExtraChargeUpdateRequest;
 import com.yaz.persistence.entities.ExtraCharge;
 import com.yaz.persistence.entities.ExtraCharge.Keys;
 import com.yaz.persistence.repository.turso.ExtraChargeRepository;
@@ -60,8 +58,8 @@ public class ExtraChargeService {
             .build());
   }
 
-  public Uni<Integer> update(ExtraChargeUpdateRequest updateRequest) {
-    return repository.update(updateRequest);
+  public Uni<Integer> update(ExtraCharge extraCharge) {
+    return repository.update(extraCharge);
   }
 
   public Uni<Integer> deleteByBuilding(String id) {
@@ -70,5 +68,9 @@ public class ExtraChargeService {
 
   public Uni<Long> count(Keys keys) {
     return repository.count(keys.buildingId(), keys.parentReference());
+  }
+
+  public Uni<Integer> deleteByReceipt(String buildingId, String parentReference) {
+    return repository.deleteByReceipt(buildingId, parentReference);
   }
 }

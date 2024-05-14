@@ -37,7 +37,7 @@ public class ExtraChargeTableItem {
 
 
   public String genDeleteUrl() {
-    return ExtraChargeResource.DELETE_PATH + key;
+    return ExtraChargeResource.PATH + "?id=" + key;
   }
 
   public String genCardIdRef() {
