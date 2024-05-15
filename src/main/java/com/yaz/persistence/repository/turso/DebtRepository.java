@@ -147,4 +147,11 @@ public class DebtRepository {
     return tursoWsService.executeQuery(stmtDeleteByReceipt(buildingId, receiptId))
         .map(executeResp -> executeResp.result().rowCount());
   }
+
+  public Uni<Integer> deleteByApartment(String buildingId, String aptNumber) {
+    return tursoWsService.executeQuery(
+        Stmt.stmt("DELETE FROM %s WHERE building_id = ? AND apt_number = ?".formatted(COLLECTION),
+            Value.text(buildingId), Value.text(aptNumber)))
+        .map(executeResp -> executeResp.result().rowCount());
+  }
 }

@@ -269,12 +269,7 @@ public class ExtraChargeRepository {
   }
 
   public Uni<Integer> deleteByBuilding(String id) {
-    final var value = Value.text(id);
-    final var values = new Value[]{value, value};
-    final var delete = Stmt.stmt(DELETE_BY, values);
-    final var deleteApt = Stmt.stmt(DELETE_APT_BY, values);
-
-    return tursoWsService.executeQueries(delete, deleteApt)
+    return tursoWsService.executeQueries(stmtDeleteByReceipt(id, id))
         .map(SqlUtil::rowCount);
   }
 
@@ -295,4 +290,12 @@ public class ExtraChargeRepository {
   public Uni<Long> count(String buildingId, String parentReference) {
     return tursoWsService.count(COUNT_BY, Value.text(buildingId), Value.text(parentReference));
   }
+
+  public Uni<Integer> deleteByApartment(String buildingId, String aptNumber) {
+    return tursoWsService.executeQuery(
+        Stmt.stmt("DELETE FROM %s WHERE building_id = ? AND apt_number = ?".formatted(COLLECTION_APT),
+            Value.text(buildingId), Value.text(aptNumber))
+    ).map(executeResp -> executeResp.result().rowCount());
+  }
+
 }

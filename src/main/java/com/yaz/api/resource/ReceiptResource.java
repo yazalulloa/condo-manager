@@ -220,7 +220,7 @@ public class ReceiptResource {
       @RestForm("date_input") String date) {
     final var key = encryptionService.decryptObj(keys, Keys.class);
 
-    return receiptService.delete(key.buildingId(), key.id())
+    return receiptService.delete(key)
         .replaceWith(counters(building, months, date));
   }
 

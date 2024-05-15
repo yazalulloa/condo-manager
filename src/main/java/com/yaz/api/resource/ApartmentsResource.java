@@ -14,6 +14,7 @@ import com.yaz.core.service.entity.BuildingService;
 import com.yaz.core.util.DecimalUtil;
 import com.yaz.core.util.StringUtil;
 import com.yaz.persistence.domain.query.ApartmentQuery;
+import com.yaz.persistence.entities.Apartment;
 import com.yaz.persistence.entities.Apartment.Keys;
 import io.quarkus.oidc.IdToken;
 import io.quarkus.oidc.UserInfo;
@@ -50,7 +51,6 @@ import org.jboss.resteasy.reactive.RestQuery;
 public class ApartmentsResource {
 
   public static final String PATH = "/api/apartments";
-  public static final String DELETE_PATH = PATH + "/";
   public static final String EDIT_FORM_PATH = PATH + "/edit_form/";
   public static final String ITEM_PATH = PATH + "/item/";
   public static final String TABLE_PATH = PATH + "/grid";
@@ -169,16 +169,15 @@ public class ApartmentsResource {
   }
 
   @DELETE
-  @Path("{key}")
   @Produces(MediaType.TEXT_HTML)
   public Uni<TemplateInstance> delete(
       @RestForm String q,
       @RestForm Set<String> building,
-      @RestPath @NotBlank String key) {
+      @RestQuery @NotBlank String id) {
 
-    final var keys = encryptionService.decryptObj(key, Keys.class);
+    final var keys = encryptionService.decryptObj(id, Keys.class);
 
-    return apartmentService.delete(keys.buildingId(), keys.number())
+    return apartmentService.delete(keys)
         //.invoke(l -> log.info("Apartment delete {} deleted {} {}", l, buildingId, number))
         /*.map(l -> {
           log.info("Apartment delete {} deleted {} {}", l, buildingId, number);
@@ -249,6 +248,7 @@ public class ApartmentsResource {
               .toList();
 
           return ApartmentFormDto.builder()
+              .key(request.getKey())
               .generalFieldError(generalFieldError)
               .buildings(buildings)
               .buildingId(buildingId)
@@ -289,36 +289,54 @@ public class ApartmentsResource {
   }
 
   @PATCH
-  @Path("/{key}")
   @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
   @Produces(MediaType.TEXT_HTML)
-  public Uni<TemplateInstance> patch(@RestPath @NotBlank String key,
-      @BeanParam ApartmentRequest request) {
+  public Uni<TemplateInstance> patch(@BeanParam ApartmentRequest request) {
 
+    final var key = Objects.requireNonNull(StringUtil.trimFilter(request.getKey()));
     final var keys = encryptionService.decryptObj(key, Keys.class);
 
     request.setBuildingId(keys.buildingId());
     request.setNumber(keys.number());
     return fromRequest(request, true)
         .flatMap(dto -> {
-          if (dto.isSuccess()) {
-            //log.info("Updating apartment {}", request);
-            return apartmentService.update(request)
-                .flatMap(apartment -> baseFormDto()
-                    .map(apartmentFormDto -> {
-                      return apartmentFormDto.toBuilder()
-                          .hideForm(true)
-                          .item(AptItem.builder()
-                              .key(key)
-                              .cardId("apartment-card-id-" + keys.cardId())
-                              .apt(apartment)
-                              .isUpdate(true)
-                              .build())
-                          .build();
-                    }));
+          dto = dto.toBuilder()
+              .readOnlyBuilding(true)
+              .readOnlyNumber(true)
+              .build();
+
+          final var apartment = Apartment.builder()
+              .buildingId(request.getBuildingId())
+              .number(request.getNumber())
+              .name(request.getName())
+              .aliquot(request.getAliquot())
+              .emails(request.getEmails())
+              .build();
+
+          if (apartment.keysWithHash(keys.cardId()).hash() == keys.hash()) {
+            dto = dto.toBuilder()
+                .generalFieldError(apartmentMessages.error_msg_apt_no_change())
+                .build();
           }
 
-          return Uni.createFrom().item(dto);
+          if (!dto.isSuccess()) {
+            return Uni.createFrom().item(dto);
+          }
+
+          return apartmentService.update(apartment)
+              .flatMap(i -> baseFormDto()
+                  .map(apartmentFormDto -> {
+                    return apartmentFormDto.toBuilder()
+                        .hideForm(true)
+                        .item(AptItem.builder()
+                            .key(key)
+                            .cardId(keys.cardId())
+                            .apt(apartment)
+                            .isUpdate(true)
+                            .build())
+                        .build();
+                  }));
+
         })
         .map(Templates::form);
   }
@@ -333,19 +351,22 @@ public class ApartmentsResource {
     return Uni.combine()
         .all()
         .unis(apartmentService.get(keys.buildingId(), keys.number()).map(Optional::get), buildingService.ids())
-        .with((apartment, buildings) -> ApartmentFormDto.builder()
-            .key(key)
-            .buildings(buildings)
-            .buildingId(apartment.buildingId())
-            .number(apartment.number())
-            .name(apartment.name())
-            .aliquot(apartment.aliquot())
-            .emails(apartment.emails().stream().map(EmailForm::ofValue).toList())
-            .isEdit(true)
-            .readOnlyBuilding(true)
-            .readOnlyNumber(true)
-            .showForm(true)
-            .build())
+        .with((apartment, buildings) -> {
+          final var keysWithHash = apartment.keysWithHash(keys.cardId());
+          return ApartmentFormDto.builder()
+              .key(encryptionService.encryptObj(keysWithHash))
+              .buildings(buildings)
+              .buildingId(apartment.buildingId())
+              .number(apartment.number())
+              .name(apartment.name())
+              .aliquot(apartment.aliquot())
+              .emails(apartment.emails().stream().map(EmailForm::ofValue).toList())
+              .isEdit(true)
+              .readOnlyBuilding(true)
+              .readOnlyNumber(true)
+              .showForm(true)
+              .build();
+        })
         .map(Templates::form);
   }
 
@@ -359,7 +380,7 @@ public class ApartmentsResource {
         .map(Optional::get)
         .map(apartment -> AptItem.builder()
             .key(key)
-            .cardId("apartment-card-id-" + keys.cardId())
+            .cardId(keys.cardId())
             .apt(apartment)
             .build())
         .map(Templates::grid_item);

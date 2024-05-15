@@ -81,6 +81,11 @@ public class ReceiptRepository {
   }
 
   public Uni<Integer> delete(String buildingId, long id) {
+    if (true) {
+      return tursoWsService.executeQuery(DELETE, Value.number(id))
+          .map(executeResp -> executeResp.result().rowCount());
+    }
+
     final var stmts = new Stmt[5];
     stmts[0] = Stmt.stmt(DELETE, Value.number(id));
     stmts[1] = expenseRepository.stmtDeleteByReceipt(buildingId, id);

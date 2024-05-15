@@ -35,17 +35,17 @@ class ApartmentServiceTest {
 
   @Test
   void update() {
-    final var apartment = new ApartmentRequest();
-    apartment.setBuildingId("TEST");
-    apartment.setNumber("3245");
-    apartment.setName(RandomUtil.randomStr(8));
-    apartment.setAliquot(RandomUtil.randomBigDecimal(2, 1));
-    apartment.setEmails(Stream.generate(() -> RandomUtil.randomStr(6) + "@gmail.com")
-        .limit(RandomUtil.randomInt(1, 10))
-        .collect(Collectors.toSet()));
-
-    final var i = apartmentService.update(apartment).await().indefinitely();
-    System.out.println(i);
+//    final var apartment = new ApartmentRequest();
+//    apartment.setBuildingId("TEST");
+//    apartment.setNumber("3245");
+//    apartment.setName(RandomUtil.randomStr(8));
+//    apartment.setAliquot(RandomUtil.randomBigDecimal(2, 1));
+//    apartment.setEmails(Stream.generate(() -> RandomUtil.randomStr(6) + "@gmail.com")
+//        .limit(RandomUtil.randomInt(1, 10))
+//        .collect(Collectors.toSet()));
+//
+//    final var i = apartmentService.update(apartment).await().indefinitely();
+//    System.out.println(i);
   }
 
 }

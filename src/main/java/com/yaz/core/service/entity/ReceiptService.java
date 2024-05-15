@@ -17,6 +17,7 @@ import io.quarkus.cache.CacheInvalidateAll;
 import io.quarkus.cache.CacheResult;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -33,6 +34,7 @@ public class ReceiptService {
 
   private final ReceiptRepository repository;
   private final EncryptionService encryptionService;
+  private final Event<Receipt.Keys> receiptDeletedEvent;
 
   @CacheInvalidateAll(cacheName = ReceiptCache.TOTAL_COUNT)
   @CacheInvalidateAll(cacheName = ReceiptCache.QUERY_COUNT)
@@ -54,10 +56,12 @@ public class ReceiptService {
     return Uni.createFrom().voidItem();
   }
 
-  public Uni<Integer> delete(String buildingId, long id) {
-    return repository.delete(buildingId, id)
-        .invoke(i -> log.info("Receipt deleted: {}", i))
-        .flatMap(MutinyUtil.cacheCall(invalidateOne(id)));
+  public Uni<Integer> delete(Receipt.Keys keys) {
+    return repository.delete(keys.buildingId(), keys.id())
+        .invoke(i -> log.info("Receipt deleted: {} {}", keys, i))
+        .flatMap(MutinyUtil.cacheCall(invalidateOne(keys.id())))
+        .onItem()
+        .invoke(() -> receiptDeletedEvent.fireAsync(keys));
   }
 
   public Uni<ReceiptRepository.InsertResult> insert(ReceiptCreateRequest createRequest) {

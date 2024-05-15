@@ -17,8 +17,6 @@ public class AptItem {
   private final Apartment apt;
   private final boolean isUpdate;
   private final String cardId;
-  //@Builder.Default
-  //private final String cardId = "apartment-card-id-" + UUID.randomUUID();
 
 
 //  @Getter(lazy = true)
@@ -54,7 +52,7 @@ public class AptItem {
 //  }
 
   public String genDeleteUrl() {
-    return ApartmentsResource.DELETE_PATH + key;
+    return ApartmentsResource.PATH + "?=id" + key;
   }
 
   public String genCardIdRef() {

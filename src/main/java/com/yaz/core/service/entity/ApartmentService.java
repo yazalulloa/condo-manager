@@ -8,9 +8,9 @@ import com.yaz.api.resource.ApartmentsResource;
 import com.yaz.core.service.EncryptionService;
 import com.yaz.core.service.entity.cache.ApartmentCache;
 import com.yaz.core.util.Constants;
+import com.yaz.core.util.MutinyUtil;
 import com.yaz.persistence.domain.query.ApartmentQuery;
 import com.yaz.persistence.entities.Apartment;
-import com.yaz.persistence.entities.Apartment.Keys;
 import com.yaz.persistence.entities.ExtraCharge;
 import com.yaz.persistence.repository.ApartmentRepository;
 import io.quarkus.cache.CacheInvalidate;
@@ -18,6 +18,7 @@ import io.quarkus.cache.CacheInvalidateAll;
 import io.quarkus.cache.CacheResult;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,22 +36,21 @@ public class ApartmentService {
   //private final Instance<ApartmentRepository> repository;
   private final ApartmentRepository repository;
   private final EncryptionService encryptionService;
+  private final Event<Apartment.Keys> aptDeletedEvent;
+
 
   private ApartmentRepository repository() {
     //return repository.get();
     return repository;
   }
 
-  public Uni<Integer> delete(String buildingId, String number) {
+  public Uni<Integer> delete(Apartment.Keys keys) {
+    final var buildingId = keys.buildingId();
+    final var number = keys.number();
     return repository().delete(buildingId, number)
-        .flatMap(i -> {
-          if (i > 0) {
-            return invalidateOne(buildingId, number)
-                .replaceWith(i);
-          }
-
-          return Uni.createFrom().item(i);
-        });
+        .flatMap(MutinyUtil.cacheCall(invalidateOne(buildingId, number)))
+        .onItem()
+        .invoke(() -> aptDeletedEvent.fireAsync(keys));
   }
 
   @CacheResult(cacheName = ApartmentCache.TOTAL_COUNT, lockTimeout = Constants.CACHE_TIMEOUT)
@@ -81,13 +81,12 @@ public class ApartmentService {
         .unis(counters(apartmentQuery), repository().select(apartmentQuery))
         .with((counters, apartments) -> {
 
-
           final var results = apartments.stream()
               .map(apartment -> {
                 final var keys = apartment.keys();
                 return AptItem.builder()
                     .key(encryptionService.encryptObj(keys))
-                    .cardId("apartment-card-id-" + keys.cardId())
+                    .cardId(keys.cardId())
                     .apt(apartment)
                     .build();
               })
@@ -181,24 +180,10 @@ public class ApartmentService {
   }
 
 
-  public Uni<Apartment> update(ApartmentRequest request) {
-    final var apartment = Apartment.builder()
-        .buildingId(request.getBuildingId())
-        .number(request.getNumber())
-        .name(request.getName())
-        .aliquot(request.getAliquot())
-        .emails(request.getEmails())
-        .build();
+  public Uni<Integer> update(Apartment apartment) {
 
     return repository().update(apartment)
-        .flatMap(i -> {
-          if (i > 0) {
-            return invalidateGet(apartment.buildingId(), apartment.number())
-                .replaceWith(apartment);
-          }
-
-          return Uni.createFrom().item(apartment);
-        });
+        .flatMap(MutinyUtil.cacheCall(invalidateGet(apartment.buildingId(), apartment.number())));
   }
 
   @CacheResult(cacheName = ApartmentCache.SELECT_MINIMAL_BY_BUILDINGS, lockTimeout = Constants.CACHE_TIMEOUT)

@@ -24,7 +24,6 @@ public class ExpenseService {
     return repository.count();
   }
 
-
   public Uni<List<Expense>> readByReceipt(long receiptId) {
     return repository.readByReceipt(receiptId);
   }

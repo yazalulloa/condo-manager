@@ -38,4 +38,8 @@ public class DebtService {
   public Uni<Integer> deleteByReceipt(String buildingId, long receiptId) {
     return repository.deleteByReceipt(buildingId, receiptId);
   }
+
+  public Uni<Integer> deleteByApartment(String buildingId, String aptNumber) {
+    return repository.deleteByApartment(buildingId, aptNumber);
+  }
 }

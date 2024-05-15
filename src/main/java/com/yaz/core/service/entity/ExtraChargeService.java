@@ -73,4 +73,7 @@ public class ExtraChargeService {
   public Uni<Integer> deleteByReceipt(String buildingId, String parentReference) {
     return repository.deleteByReceipt(buildingId, parentReference);
   }
+  public Uni<Integer> deleteByApartment(String buildingId, String aptNumber) {
+    return repository.deleteByApartment(buildingId, aptNumber);
+  }
 }

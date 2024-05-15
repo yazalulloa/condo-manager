@@ -8,7 +8,8 @@ import org.jboss.resteasy.reactive.RestForm;
 
 @Data
 public class ApartmentRequest {
-
+  @RestForm
+  private String key;
   @RestForm
   private String buildingId;
   @RestForm

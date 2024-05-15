@@ -20,6 +20,7 @@ import com.yaz.core.service.entity.NotificationEventService;
 import com.yaz.core.service.entity.OidcDbTokenService;
 import com.yaz.core.service.entity.ReserveFundService;
 import com.yaz.core.service.entity.TelegramChatService;
+import com.yaz.persistence.entities.Apartment;
 import com.yaz.persistence.entities.Receipt;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.Vertx;
@@ -128,11 +129,9 @@ public class EventConsumer {
 
     if (event.from() != null && event.to() != null && !event.to().isEmpty()) {
       right = "APT: %s %s %s -> %s".formatted(event.apt(), event.name(), event.from(), String.join(",", event.to()));
-
     }
 
-    final var msg = ReceiptResource.Templates.progressUpdate(
-            new ReceiptProgressUpdate(left, right, event.counter(), event.size()))
+    final var msg = ReceiptResource.Templates.progressUpdate(new ReceiptProgressUpdate(left, right, event.counter(), event.size()))
         .render();
 
     serverSideEventHelper.sendEvent(clientId, EVENT_NAME_RECEIPT_PROGRESS, msg);
@@ -161,9 +160,32 @@ public class EventConsumer {
   }
 
   public void receiptDeleted(@ObservesAsync Receipt.Keys keys) {
-//    extraChargeService.deleteBy(keys.id(), keys.buildingId());
-//    debtService.deleteByReceipt(keys.buildingId(), keys.id());
-//    expenseService.deleteByReceipt(keys.id());
+    log.info("receiptDeleted: {}", keys);
+    Uni.join()
+        .all(extraChargeService.deleteByReceipt(keys.buildingId(), String.valueOf(keys.id())),
+            debtService.deleteByReceipt(keys.buildingId(), keys.id()),
+            expenseService.deleteByReceipt(keys.buildingId(), keys.id()))
+        .andCollectFailures()
+        .subscribe()
+        .with(
+            i -> log.info("Deleting receipt data: {} {} deleted: {}", keys.buildingId(), keys.id(), i),
+            e -> log.error("ERROR deleting receipt data: {} {}", keys.buildingId(), keys.id(), e));
 
+  }
+
+  public void apartmentDeleted(@ObservesAsync Apartment.Keys keys) {
+    log.info("apartmentDeleted: {}", keys);
+    Uni.join()
+        .all(debtService.deleteByApartment(keys.buildingId(), keys.number()),
+            extraChargeService.deleteByApartment(keys.buildingId(), keys.number()))
+        .andCollectFailures()
+        .subscribe()
+        .with(
+            i -> {
+              log.info("Deleting apartment data: {} {} deleted: {}", keys.buildingId(), keys.number(), i);
+            },
+            e -> {
+              log.error("ERROR deleting apartment data: {} {}", keys.buildingId(), keys.number(), e);
+            });
   }
 }
