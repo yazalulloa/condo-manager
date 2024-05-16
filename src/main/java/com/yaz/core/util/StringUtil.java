@@ -13,6 +13,7 @@ import java.util.zip.CRC32;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterOutputStream;
 import org.apache.commons.codec.digest.XXHash32;
+import org.apache.commons.text.StringEscapeUtils;
 
 public class StringUtil {
 
@@ -150,5 +151,16 @@ public class StringUtil {
     final var xxHash32 = new XXHash32();
     xxHash32.update(ByteBuffer.wrap(str.getBytes(StandardCharsets.UTF_8)));
     return xxHash32.getValue();
+  }
+
+  public static String escapeInput(String str) {
+
+    return Optional.ofNullable(str)
+        .map(String::trim)
+        .filter(s -> !s.isEmpty())
+        .map(StringEscapeUtils::escapeHtml4)
+        .map(StringEscapeUtils::escapeEcmaScript)
+        .map(StringEscapeUtils::escapeXml11)
+        .orElse(null);
   }
 }

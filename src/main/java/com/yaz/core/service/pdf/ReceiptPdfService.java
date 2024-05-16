@@ -9,12 +9,15 @@ import com.yaz.core.service.EncryptionService;
 import com.yaz.core.service.TranslationProvider;
 import com.yaz.core.service.domain.FileResponse;
 import com.yaz.core.util.RxUtil;
+import com.yaz.persistence.entities.Apartment;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,9 +51,19 @@ public class ReceiptPdfService {
         });
   }
 
-  public Single<PdfReceiptResponse> pdfs(String buildingId, long receiptId) {
+  public Single<PdfReceiptResponse> pdfs(String buildingId, long receiptId, Set<String> apts) {
     return calculate(buildingId, receiptId)
         .map(receipt -> {
+          if (apts != null && !apts.isEmpty()) {
+            final var apartments = receipt.apartments().stream()
+                .filter(apartment -> apts.contains(apartment.number()))
+                .toList();
+
+            receipt = receipt.toBuilder()
+                .apartments(apartments)
+                .build();
+          }
+
           final var pdfItems = getPdfReceipts.pdfItems(receipt);
           return new PdfReceiptResponse(receipt, pdfItems);
         });

@@ -2,6 +2,7 @@ package com.yaz.core.service;
 
 import com.yaz.api.domain.response.EmailConfigTableItem;
 import com.yaz.api.domain.response.ReceiptTableItem;
+import com.yaz.api.resource.ReceiptResource.SendReceiptRequest;
 import com.yaz.core.event.domain.ReceiptAptSent;
 import com.yaz.core.service.entity.ReceiptService;
 import com.yaz.core.service.entity.UserService;
@@ -17,6 +18,7 @@ import com.yaz.core.util.RxUtil;
 import com.yaz.core.util.rx.RetryWithDelay;
 import com.yaz.persistence.domain.EmailConfigUser;
 import com.yaz.persistence.entities.Receipt;
+import com.yaz.persistence.entities.Receipt.Keys;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
@@ -24,6 +26,7 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -44,15 +47,24 @@ public class SendReceiptService {
   private final Event<ReceiptAptSent> receiptAptSentEvent;
 
 
-  public Completable sendReceipts(Receipt.Keys keys, String key, String clientId) {
+  public Completable sendReceipts(Keys keys, String clientId, SendReceiptRequest request) {
+    return sendReceipts(keys, request.getKey(), clientId, request.getSubject(), request.getMsg(), request.getApts());
+  }
 
-    return pdfService.pdfs(keys.buildingId(), keys.id())
+  public Completable sendReceipts(Receipt.Keys keys, String key, String clientId) {
+    return sendReceipts(keys, key, clientId, null, null, null);
+  }
+
+  public Completable sendReceipts(Receipt.Keys keys, String key, String clientId, String subjectParam, String msgParam,
+      Set<String> apts) {
+
+    return pdfService.pdfs(keys.buildingId(), keys.id(), apts)
         .flatMap(response -> {
           final var receipt = response.receipt();
           final var emailConfigId = receipt.emailConfigId();
 
           if (emailConfigId == null) {
-            throw new IllegalArgumentException("Email config not set in building");
+            return Single.error(new IllegalArgumentException("Email config not set in building"));
           }
 
           final var emailConfigSingle = gmailService.loadItem(receipt.emailConfigId())
@@ -73,7 +85,9 @@ public class SendReceiptService {
               .switchIfEmpty(Single.error(new IllegalArgumentException("User not found")));
 
           return Single.zip(emailConfigSingle, userSingle, (emailConfig, user) -> {
-                final var subject = "AVISO DE COBRO %s %s Adm. %s APT: %s";
+
+                final var subject = Optional.ofNullable(subjectParam)
+                    .orElse("AVISO DE COBRO") + " %s %s Adm. %s APT: %s";
 
                 final var month = translationProvider.translate(receipt.month().name());
 
@@ -104,7 +118,7 @@ public class SendReceiptService {
                               //.to(item.emails()) TODO
                               .to(Set.of("yzlup2@gmail.com"))
                               .subject(subject.formatted(month, receipt.year(), receipt.building().name(), item.id()))
-                              .text("AVISO DE COBRO")
+                              .text(Optional.ofNullable(msgParam).orElse("AVISO DE COBRO"))
                               .files(Set.of(item.path().toString()))
                               .build();
 

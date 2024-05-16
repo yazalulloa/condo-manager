@@ -1,12 +1,13 @@
 {@com.yaz.api.domain.response.ReceiptSendDialogDto dto}
 
 <dialog id="dialog-cm" hx-swap-oob="true"
-        class="z-30 form-container rounded border-2 border-gray-400 bg-base-100 m-0 top-1/2 left-1/2 p-2 max-h-9/10"
+        class="z-30 form-container rounded border-2 border-gray-400 bg-base-100 m-0 top-1/2 left-1/2 p-2 max-h-95per"
         open>
-    <div id="receipt-dialog-content" class="p-2">
+    <div id="receipt-dialog-content" class="p-2 h-full">
 
-        <form class="items-center text-center"
+        <form class="items-center text-center overflow-hidden h-full"
               hx-post="/api/receipts/send_receipt"
+              hx-swap="none"
               hx-indicator=".htmx-indicator">
 
             <input type="hidden" name="{inject:csrf.parameterName}" value="{inject:csrf.token}"/>
@@ -42,16 +43,31 @@
                 <textarea class="textarea textarea-bordered" name="msg" autocomplete="on">AVISO DE COBRO</textarea>
             </label>
 
-            <div class="grid apt-receipt-dialog-grid gap-2 p-2 pt-4 text-sm">
+            <div id="dialog-error" hidden="hidden">
+            </div>
+
+
+            <label class="label justify-center gap-4 cursor-pointer">
+                <span class="label-text">Seleccionar todos</span>
+                <input type="checkbox" class="toggle"
+                       script="
+                           init set $check to false
+                           on click set .receipt-sent-checkbox's checked to $check
+                                if $check is true
+                                    set $check to false
+                                otherwise set $check to true end"
+                       checked/>
+            </label>
+
+            <div id="apts-receipt-checbox" class="grid apt-receipt-dialog-grid gap-2 p-2 pt-4">
 
                 {#for apt in dto.apartments}
                     <div>{apt.number}</div>
                     <div>{apt.name}</div>
                     <div>
-                        <input type="checkbox" checked="checked" class="checkbox" name="apts"
+                        <input type="checkbox" checked="checked" class="receipt-sent-checkbox checkbox" name="apts"
                                value="{apt.number}"/>
                     </div>
-
                 {/for}
 
             </div>

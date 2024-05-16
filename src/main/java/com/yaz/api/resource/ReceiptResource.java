@@ -122,7 +122,7 @@ public class ReceiptResource {
 
     public static native TemplateInstance init(ReceiptInitDto dto);
 
-    public static native TemplateInstance progress(String key);
+    public static native TemplateInstance progress(String key, boolean clearDialog);
 
     public static native TemplateInstance progressUpdate(ReceiptProgressUpdate res);
 
@@ -137,6 +137,8 @@ public class ReceiptResource {
     public static native TemplateInstance sentInfo(ReceiptTableItem item);
 
     public static native TemplateInstance sendDialog(ReceiptSendDialogDto dto);
+
+    public static native TemplateInstance dialogError(String error);
   }
 
   @GET
@@ -316,7 +318,31 @@ public class ReceiptResource {
         .subscribe(() -> {
         }, t -> log.error("ERROR_SENDING_RECEIPTS", t));
 
-    return Uni.createFrom().item(Templates.progress(clientId));
+    return Uni.createFrom().item(Templates.progress(clientId, false));
+  }
+
+  @POST
+  @Path("send_receipt")
+  @Produces(MediaType.TEXT_HTML)
+  public Uni<TemplateInstance> sendReceipts(@BeanParam SendReceiptRequest request) {
+    final var keys = encryptionService.decryptObj(request.getKey(), Keys.class);
+
+    if (request.getApts().isEmpty()) {
+      return Uni.createFrom().item(Templates.dialogError("Seleccione un apartmento"));
+    }
+
+    request.setSubject(StringUtil.escapeInput(request.getSubject()));
+    request.setMsg(StringUtil.escapeInput(request.getMsg()));
+
+    final var clientId = UUID.randomUUID().toString();
+
+    sendReceiptService.sendReceipts(keys, clientId, request)
+        .subscribe(() -> {
+        }, t -> log.error("ERROR_SENDING_RECEIPTS", t));
+
+    return Uni.createFrom().item(Templates.progress(clientId, true));
+
+
   }
 
   @POST
@@ -779,5 +805,20 @@ public class ReceiptResource {
               .build();
         })
         .map(Templates::sendDialog);
+  }
+
+  @Data
+  public static class SendReceiptRequest {
+
+    @RestForm
+    @NotBlank
+    private String key;
+    @RestForm
+    private String subject;
+    @RestForm
+    private String msg;
+    @RestForm
+    private Set<String> apts;
+
   }
 }
