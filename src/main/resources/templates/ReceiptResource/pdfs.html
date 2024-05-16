@@ -3,56 +3,58 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Recibo de Pago PDF - {res.building} {res.month} {res.date}</title>
+    <meta charset="UTF-8">
+    <title>Recibo de Pago PDF - {res.building} {res.month} {res.date}</title>
 </head>
-<body >
+<body>
 
 <div id="receipt-pdf-viewer-header" hx-swap-oob="true" class="flex flex-row gap-4 text-center items-center">
-  <h1 class="bold">Recibo de Pago PDF &ndash; {res.building} {res.month} {res.date}</h1>
-  <button class="btn btn-primary"
-          hx-get="/api/receipts/zip_download/{res.zipPath}"
-          hx-indicator=".htmx-indicator"
-          hx-swap="none">
-    Descargar zip
-  </button>
+    <h1 class="font-bold">Recibo de Pago PDF &ndash; {res.building} {res.month} {res.date}</h1>
+    <button class="btn btn-primary"
+            hx-get="/api/receipts/zip_download/{res.zipPath}"
+            hx-indicator=".htmx-indicator"
+            hx-swap="none">
+        Descargar zip
+    </button>
 </div>
 
 
 <div class="overflow-hidden">
-  <div class="rounded-box join max-w-full h-14 max-h-14 items-center stop-vertical-scroll">
-      <button class="join-item btn btn-outline"
-              onclick="slideTo('pdf_carousel', 'left')"
-      >«</button>
+    <div class="rounded-box join max-w-full h-14 max-h-14 items-center stop-vertical-scroll">
+        <button class="join-item btn btn-outline"
+                onclick="slideTo('pdf_carousel', 'left')"
+        >«
+        </button>
 
-    <div id="pdf_carousel" class="join-item carousel rounded-box"
-         onwheel="this.scrollLeft+=event.deltaY>0?100:-100"
-    >
-      {#for tab in res.tabs}
-          <button
-          class="carousel-item btn btn-outline join-item tablinks" onclick="openTab(this,'{tab.name}')"
-      {#if tab.checked}
-          script="init call openTab(event,'{tab.name}')
+        <div id="pdf_carousel" class="join-item carousel rounded-box"
+             onload="scrollDiv(this)"
+        >
+            {#for tab in res.tabs}
+                <button
+                        class="carousel-item btn btn-outline join-item tablinks" onclick="openTab(this,'{tab.name}')"
+                        {#if tab.checked}
+                            script="init call openTab(event,'{tab.name}')
                   init add .btn-active to me
                   init remove @script from me"
-      {/if}
-    >{tab.name}</button>
-      {/for}
+                        {/if}
+                >{tab.name}</button>
+            {/for}
+        </div>
+        <button class="join-item btn btn-outline"
+                onclick="slideTo('pdf_carousel', 'right')"
+        >»
+        </button>
     </div>
-    <button class="join-item btn btn-outline"
-            onclick="slideTo('pdf_carousel', 'right')"
-    >»</button>
-  </div>
 
-  {#for tab in res.tabs}
-      <div id="{tab.name}" class="tab-cm-content pt-2">
-  <object data="/api/receipts/pdf/{tab.path}" type="application/pdf"
-          standby="Loading PDF file..."
-          style="min-height:100vh;max-height:100vh;width:100%;height:100%">
-    <p>Unable to display PDF file. <a href="/api/receipts/pdf/{tab.path}">Download</a> instead.</p>
-  </object>
-</div>
-  {/for}
+    {#for tab in res.tabs}
+        <div id="{tab.name}" class="tab-cm-content pt-2">
+            <object data="/api/receipts/pdf/{tab.path}" type="application/pdf"
+                    standby="Loading PDF file..."
+                    style="min-height:100vh;max-height:100vh;width:100%;height:100%">
+                <p>Unable to display PDF file. <a href="/api/receipts/pdf/{tab.path}">Download</a> instead.</p>
+            </object>
+        </div>
+    {/for}
 </div>
 
 

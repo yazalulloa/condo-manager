@@ -93,6 +93,14 @@
           Enviar recibos ahora
         </a>
       </li>
+      <li>
+          <a hx-get="/api/receipts/sent_dialog/{item.key}"
+           hx-indicator=".htmx-indicator"
+           hx-swap="none">
+          <img src="/assets/send-mail.svg" style="width:25px;height:25px;" alt="send-receipt">
+          Enviar recibos
+        </a>
+      </li>
     </ul>
   </div>
 

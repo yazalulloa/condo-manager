@@ -9,14 +9,14 @@ import io.quarkus.qute.TemplateGlobal;
 @TemplateGlobal
 public class Globals {
 
-  static Currency[] GLO_CURRENCIES = Currency.values;
-  static NotificationEvent.Event[] GLO_NOTIFICATION_EVENTS = NotificationEvent.Event.VALUES;
+  public static Currency[] GLO_CURRENCIES = Currency.values;
+  public static NotificationEvent.Event[] GLO_NOTIFICATION_EVENTS = NotificationEvent.Event.VALUES;
 
-  static ReserveFundType[] GLO_RESERVE_FUND_TYPES = ReserveFundType.VALUES;
+  public static ReserveFundType[] GLO_RESERVE_FUND_TYPES = ReserveFundType.VALUES;
 
-  static ExpenseType[] GLO_EXPENSE_TYPES = ExpenseType.VALUES;
+  public static ExpenseType[] GLO_EXPENSE_TYPES = ExpenseType.VALUES;
 
-  static MonthType[] GLO_MONTH_TYPES = {
+  public static MonthType[] GLO_MONTH_TYPES = {
       new MonthType(1, "Enero"),
       new MonthType(2, "Febrero"),
       new MonthType(3, "Marzo"),

@@ -93,7 +93,8 @@ window.onload = function () {
         inputs[i].onchange = function () {
           let value = this.value;
           // console.log("trimming {}", value);
-          this.value = this.value.replace(/^\s+/, '').replace(/\s+$/, '').trim();
+          this.value = this.value.replace(/^\s+/, '').replace(/\s+$/,
+              '').trim();
           let val2 = this.value;
           // console.log("trimmed {}", val2);
         };
@@ -284,8 +285,6 @@ window.initNav = function () {
   }
 }
 
-
-
 window.saveNavState = function (anchor) {
   //console.log("saving nav state {}", anchor.id);
   localStorage.setItem("current-nav", anchor.id);
@@ -439,7 +438,7 @@ if (sidenav2) {
 
 }
 
-window.monthsToStr  = function (months) {
+window.monthsToStr = function (months) {
   let str = "";
   for (let i = 0; i < months.length; i++) {
     let month = months[i];
@@ -513,5 +512,16 @@ window.slideTo = function (id, direction) {
       behavior: 'smooth'
     });
   }
-
 }
+
+window.scrollDiv = function (elem) {
+  elem.addEventListener("wheel", (event) => {
+    elem.scrollBy({
+      left: event.deltaY > 0 ? -400 : 400,
+      behavior: 'smooth'
+    });
+  }, {
+    passive: true
+  });
+}
+

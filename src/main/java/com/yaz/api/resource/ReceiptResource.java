@@ -13,10 +13,12 @@ import com.yaz.api.domain.response.ReceiptFormDto;
 import com.yaz.api.domain.response.ReceiptInitDto;
 import com.yaz.api.domain.response.ReceiptPdfResponse;
 import com.yaz.api.domain.response.ReceiptProgressUpdate;
+import com.yaz.api.domain.response.ReceiptSendDialogDto;
 import com.yaz.api.domain.response.ReceiptTableItem;
 import com.yaz.api.domain.response.ReceiptTableResponse;
 import com.yaz.api.domain.response.ReserveFundFormDto;
 import com.yaz.api.domain.response.ReserveFundTableItem;
+import com.yaz.api.extensions.TemplateExtensions;
 import com.yaz.api.resource.fragments.Fragments;
 import com.yaz.core.service.EncryptionService;
 import com.yaz.core.service.SendReceiptService;
@@ -133,6 +135,8 @@ public class ReceiptResource {
     public static native TemplateInstance editInit(ReceiptEditFormInit res);
 
     public static native TemplateInstance sentInfo(ReceiptTableItem item);
+
+    public static native TemplateInstance sendDialog(ReceiptSendDialogDto dto);
   }
 
   @GET
@@ -754,4 +758,26 @@ public class ReceiptResource {
         });
   }
 
+
+  @GET
+  @Path("sent_dialog/{keys}")
+  @Produces(MediaType.TEXT_HTML)
+  public Uni<TemplateInstance> sentDialog(@NotBlank @RestPath String keys) {
+    final var key = encryptionService.decryptObj(keys, Keys.class);
+
+    return Uni.combine().all()
+        .unis(receiptService.get(key.id()), apartmentService.aptByBuildings(key.buildingId()))
+        .with((receipt, apartments) -> {
+
+          return ReceiptSendDialogDto.builder()
+              .key(keys)
+              .buildingId(key.buildingId())
+              .year(receipt.year())
+              .month(TemplateExtensions.monthFromInt(receipt.month()))
+              .date(receipt.date())
+              .apartments(apartments)
+              .build();
+        })
+        .map(Templates::sendDialog);
+  }
 }

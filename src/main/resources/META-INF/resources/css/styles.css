@@ -20,6 +20,17 @@ textarea, input {
   word-spacing: inherit;
 }
 
+/* Hide scrollbar for Chrome, Safari and Opera */
+*::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+* {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
 .original-state {
   color: blue;
 }
@@ -304,6 +315,10 @@ textarea, input {
 
 .debt-grid {
   grid-template-columns: 2fr 1fr 1fr 2fr 1fr 1fr;
+}
+
+.apt-receipt-dialog-grid {
+  grid-template-columns: 1fr 2fr 1fr;
 }
 
 .receipt-grid-container {

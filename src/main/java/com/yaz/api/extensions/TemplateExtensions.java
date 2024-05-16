@@ -1,6 +1,7 @@
 package com.yaz.api.extensions;
 
 import com.yaz.api.domain.response.DebtTableItem;
+import com.yaz.api.extensions.Globals.MonthType;
 import com.yaz.core.util.DateUtil;
 import com.yaz.core.util.DecimalUtil;
 import com.yaz.persistence.entities.Debt;
@@ -45,5 +46,15 @@ public class TemplateExtensions {
     }
 
     return item.currency().numberFormat().format(item.item().amount());
+  }
+
+  public static String monthFromInt(int i) {
+    for (MonthType type : Globals.GLO_MONTH_TYPES) {
+      if (type.month() == i) {
+        return type.name();
+      }
+    }
+
+    return "";
   }
 }
