@@ -16,6 +16,7 @@ public interface GmailConfig {
   String appName();
 
   Set<String> receiptTo();
+
   @WithDefault("false")
   boolean useAlternativeReceiptTo();
 

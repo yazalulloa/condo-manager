@@ -11,6 +11,7 @@ import com.yaz.core.service.gmail.GmailHolder;
 import com.yaz.core.service.gmail.GmailService;
 import com.yaz.core.service.gmail.GmailUtil;
 import com.yaz.core.service.gmail.MimeMessageUtil;
+import com.yaz.core.service.gmail.domain.GmailConfig;
 import com.yaz.core.service.gmail.domain.ReceiptEmailRequest;
 import com.yaz.core.service.pdf.ReceiptPdfService;
 import com.yaz.core.util.DateUtil;
@@ -41,6 +42,7 @@ public class SendReceiptService {
   private final ReceiptPdfService pdfService;
   private final ReceiptService receiptService;
   private final GmailService gmailService;
+  private final GmailConfig gmailConfig;
   private final UserService userService;
   private final GmailHelper gmailHelper;
   private final TranslationProvider translationProvider;
@@ -115,8 +117,7 @@ public class SendReceiptService {
                           }
                           final var emailRequest = ReceiptEmailRequest.builder()
                               .from(user.email())
-                              //.to(item.emails()) TODO
-                              .to(Set.of("yzlup2@gmail.com"))
+                              .to(gmailConfig.useAlternativeReceiptTo() ? gmailConfig.receiptTo() : item.emails())
                               .subject(subject.formatted(month, receipt.year(), receipt.building().name(), item.id()))
                               .text(Optional.ofNullable(msgParam).orElse("AVISO DE COBRO"))
                               .files(Set.of(item.path().toString()))
@@ -176,7 +177,7 @@ public class SendReceiptService {
 
   }
 
-  public Completable sendZip(String buildingId, long receiptId) {
+  public Completable sendZip(String buildingId, long receiptId, Set<String> emails) {
     return pdfService.zipResponse(buildingId, receiptId)
         .flatMap(zipResponse -> {
           final var receipt = zipResponse.receipt();
@@ -208,7 +209,7 @@ public class SendReceiptService {
             final var month = translationProvider.translate(receipt.month().name());
             final var emailRequest = ReceiptEmailRequest.builder()
                 .from(user.email())
-                .to(Set.of("yzlup2@gmail.com"))
+                .to(emails)
                 .subject(subject.formatted(month, receipt.year(), receipt.building().name()))
                 .text("AVISO DE COBRO")
                 .files(Set.of(zipResponse.fileResponse().path().toString()))

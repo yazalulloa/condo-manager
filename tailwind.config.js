@@ -73,6 +73,9 @@ module.exports = {
       },
       zIndex: {
         '11': '11',
+      },
+      gridTemplateColumns: {
+        "two-3-1": "3fr 1fr",
       }
     },
   },

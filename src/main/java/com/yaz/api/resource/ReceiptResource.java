@@ -56,6 +56,8 @@ import io.smallrye.mutiny.Uni;
 import io.vertx.core.json.Json;
 import jakarta.inject.Inject;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
@@ -296,11 +298,11 @@ public class ReceiptResource {
   }
 
   @POST
-  @Path("send_zip/{keys}")
-  public Uni<Response> sendZip(@NotBlank @RestPath String keys) {
-    final var key = encryptionService.decryptObj(keys, Keys.class);
+  @Path("send_zip")
+  public Uni<Response> sendZip(@NotBlank @RestForm String key, @NotNull @NotEmpty @RestForm Set<String> emails) {
+    final var keys = encryptionService.decryptObj(key, Keys.class);
 
-    final var responseSingle = sendReceiptService.sendZip(key.buildingId(), key.id())
+    final var responseSingle = sendReceiptService.sendZip(keys.buildingId(), keys.id(), emails)
         .doOnError(t -> log.error("ERROR_SENDING_RECEIPT_ZIP", t))
         .toSingleDefault(Response.noContent().build());
 
