@@ -94,7 +94,13 @@
 
   <dialog id="apt-form-dialog"
           open
-          x-data="{e_counter: 0, emails: new Set()}"
+          x-data="{emails: new Set()}"
+          @add-apt-form-email="
+          let v = $event.detail?.email?.trim();
+          if (v && v.length > 0 && validateEmail(v)) {
+            emails.add(v);
+          }
+          "
           class="z-30 form-container rounded border-2 border-gray-400 bg-base-100 m-0 top-1/2 left-1/2 max-h-95per max-w-9/10 min-w-1/2">
 
     <div x-data="{dialog_open: true}" x-effect=" if (dialog_open) {
@@ -210,19 +216,11 @@
         <div class="flex flex-row gap-4 pb-4">
           <input class="input input-bordered w-full" placeholder="Email"
                  type="email"
-                 @keyup.enter="
-                 let v = $el?.value?.trim();
-                 if (v && v.length > 0 && validateEmail(v)) {
-                    emails.add(v);
-                 }"
+                 @keyup.enter="$dispatch('add-apt-form-email', { email: $el?.value?.trim() })"
                  autocomplete="email">
           <button type="button"
                   class="btn btn-primary"
-                  @click.prevent="
-                 let v = $el.previousElementSibling?.value?.trim();
-                 if (v && v.length > 0 && validateEmail(v)) {
-                    emails.add(v);
-                 }">
+                  @click.prevent="$dispatch('add-apt-form-email', { email: $el.previousElementSibling?.value?.trim() })">
             Añadir
           </button>
         </div>
