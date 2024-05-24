@@ -33,6 +33,7 @@ _hyperscript.browserInit();
 // Alpine.start()
 
 import './receipts';
+import './apartments';
 
 window.initComponents = function () {
   // console.log("INIT TW-ELEMENTS")
@@ -161,6 +162,11 @@ document.body.addEventListener("htmx:afterSettle", function (configEvent) {
 });
 
 window.addDisableEventToButtons = function () {
+  if (true) {
+    return;
+  }
+
+  console.log("adding disable event to buttons");
   const buttons = document.getElementsByTagName('button');
 
   for (let i = 0; i < buttons.length; i++) {
@@ -177,6 +183,7 @@ function disableButton(button) {
 }
 
 function disableOnHtmxEvents(eventElement, btn) {
+  console.log("disableOnHtmxEvents");
   // btn.removeAttribute("disabled");
   eventElement.addEventListener("htmx:beforeRequest", function () {
     btn.toggleAttribute("disabled", true);
@@ -193,6 +200,10 @@ function disableOnHtmxEvents(eventElement, btn) {
 }
 
 window.disableBtnInsideForm = function () {
+  if (true) {
+    return;
+  }
+
   const forms = document.getElementsByTagName('form');
   for (let i = 0; i < forms.length; i++) {
     const form = forms[i];

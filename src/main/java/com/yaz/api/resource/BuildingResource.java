@@ -77,6 +77,9 @@ public class BuildingResource {
     public static native TemplateInstance edit_init(BuildingEditFormInit res);
   }
 
+
+
+
   @GET
   @Path("selector")
   @Produces(MediaType.TEXT_HTML)

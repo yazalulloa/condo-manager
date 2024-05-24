@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AlpineSet</title>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body>
+
+<h1>
+  AlpineSet
+</h1>
+<script>
+  document.currentScript.parentElement.addEventListener("keypress", (event) => {
+    event.key === "Enter" && event.preventDefault();
+  });
+
+
+</script>
+<form>
+
+
+  <div x-data="{emails: new Set()}">
+
+    <ul>
+      <template x-for="value in Array.from(emails)">
+        <li>
+          <span x-text="value"></span>
+          <button type="button" @click.prevent="emails.delete(value)">
+            DELETE
+          </button>
+        </li>
+      </template>
+    </ul>
+
+    <div class="flex flex-row gap-4 pb-4">
+      <input class="input input-bordered w-full" placeholder="Email"
+             type="text"
+             @keyup.enter="
+                 let v = $el?.value?.trim();
+                 if (v && v.length > 0) {
+                    emails.add(v);
+                    console.log(emails);
+                 }"
+             autocomplete="email">
+      <button type="button"
+              class="btn btn-primary"
+              @click.prevent="
+              let v = $el.previousElementSibling?.value?.trim();
+                 if (v && v.length > 0) {
+                    emails.add(v);
+                    console.log(emails);
+                 }">
+        Añadir
+      </button>
+    </div>
+
+  </div>
+
+</form>
+
+</body>
+</html>

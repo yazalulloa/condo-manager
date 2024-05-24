@@ -18,3 +18,5 @@
 </div>
 
 {#include ApartmentsResource/form dto=dto.formDto /}
+
+<input id="apt-csrf-input" hx-swap-oob="true" type="hidden" name="{inject:csrf.parameterName}" value="{inject:csrf.token}"/>

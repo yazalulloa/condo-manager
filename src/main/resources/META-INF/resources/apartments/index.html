@@ -66,6 +66,7 @@
   </div>
 </div>
 
+
 <div id="container" hx-swap-oob="true" class="overflow-auto">
   <div id="apartment-rows" hx-get="/api/apartments/init" hx-indicator=".htmx-indicator"
        hx-trigger="load"
@@ -90,6 +91,160 @@
 
     <form id="apartment-form"></form>
   </div>
+
+  <dialog id="apt-form-dialog"
+          open
+          x-data="{e_counter: 0, emails: new Set()}"
+          class="z-30 form-container rounded border-2 border-gray-400 bg-base-100 m-0 top-1/2 left-1/2 max-h-95per max-w-9/10 min-w-1/2">
+
+    <div x-data="{dialog_open: true}" x-effect=" if (dialog_open) {
+            document.getElementById('apt-form-dialog').show();
+          } else {
+            document.getElementById('apt-form-dialog').close();
+            emails.clear();
+          }">
+
+      <form class="pb-2 px-3 flex flex-col"
+            hx-post="/api/apartments/v2"
+            hx-swap="none"
+            hx-indicator=".htmx-indicator"
+            x-data="{ number: '', name: '', aliquot: 0}">
+
+        <div id="apt-csrf-input" hidden="hidden"></div>
+
+        <script>
+          document.currentScript.parentElement.addEventListener("keypress", (event) => {
+            event.key === "Enter" && event.preventDefault();
+          });
+
+
+        </script>
+
+        <div class="h-full text-center align-middle flex flex-col gap-4">
+
+          <div class="flex flex-row justify-between">
+            <div style="height: 3rem; width: 3rem;">
+
+            </div>
+            <h2 class="font-bold m-auto">Nuevo Apartamento</h2>
+            <div>
+              <button type="button" class="btn btn-square btn-outline btn-error" style="height: 3rem; width: 3rem;"
+                      @click="dialog_open = false"
+              >
+                <img src="/assets/cross-svgrepo-com.svg" alt="remove-email" style="height: 1.5rem; width: 1.5rem">
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <label class="form-control w-full">
+          <div class="label">
+            <span class="label-text">Edificio</span>
+          </div>
+          <select name="buildingId"
+                  class="select select-bordered w-full">
+            <option hx-get="/api/buildings/selector" hx-indicator=".htmx-indicator" hx-trigger="load"
+                    hx-swap="outerHTML">
+            </option>
+          </select>
+          <div class="label">
+            <span class="label-text-alt error-message" hidden="hidden">Alt label</span>
+            <span class="label-text-alt" hidden="hidden">Alt label</span>
+          </div>
+        </label>
+
+        <label class="form-control w-full">
+          <div class="label">
+            <span class="label-text">Nro. Apt</span>
+          </div>
+          <input type="text" placeholder="Nro. Apt" class="input input-bordered w-full" name="number"
+                 x-model="number"/>
+          <div class="label">
+            <span class="label-text-alt error-message" hidden="hidden">Bottom Left label</span>
+          </div>
+        </label>
+
+        <label class="form-control w-full">
+          <div class="label">
+            <span class="label-text">Nombre</span>
+          </div>
+          <input type="text" placeholder="Nombre" class="input input-bordered w-full" name="name"
+                 x-model="name"/>
+          <div class="label">
+            <span class="label-text-alt error-message" hidden="hidden">Bottom Left label</span>
+          </div>
+        </label>
+
+        <label class="form-control w-full">
+          <div class="label">
+            <span class="label-text">Alícuota</span>
+          </div>
+          <input type="number" placeholder="Alícuota" class="input input-bordered w-full" name="aliquot" min="0"
+                 step=".01" maxlength="5" max="100" x-model="aliquot"/>
+          <div class="label">
+            <span class="label-text-alt error-message" hidden="hidden">Bottom Left label</span>
+          </div>
+        </label>
+
+        <script id="email-apt-form-template" type="text/x-handlebars-template">
+          <div class="flex flex-row justify-between apt-emails-form p-2">
+            <input type="text" name="emails" hidden="hidden" value="{{value}}">
+            <div class="flex align-middle">{{value}}</div>
+            <button type="button" @click.prevent="removeAptFormEmail('{{value}}')"><img src="/assets/trash.svg"
+                                                                                        alt="delete-email"></button>
+          </div>
+        </script>
+
+        <div>
+          <template x-for="value in Array.from(emails)">
+            <div class="flex flex-row justify-between apt-emails-form p-2">
+              <input type="text" name="emails" hidden="hidden" :value="value">
+              <div class="flex align-middle" x-text="value"></div>
+              <button type="button" @click.prevent="emails.delete(value)"><img src="/assets/trash.svg"
+                                                                            alt="delete-email"></button>
+            </div>
+          </template>
+
+        </div>
+
+        <div class="flex flex-row gap-4 pb-4">
+          <input class="input input-bordered w-full" placeholder="Email"
+                 type="email"
+                 @keyup.enter="
+                 let v = $el?.value?.trim();
+                 if (v && v.length > 0 && validateEmail(v)) {
+                    emails.add(v);
+                 }"
+                 autocomplete="email">
+          <button type="button"
+                  class="btn btn-primary"
+                  @click.prevent="
+                 let v = $el.previousElementSibling?.value?.trim();
+                 if (v && v.length > 0 && validateEmail(v)) {
+                    emails.add(v);
+                 }">
+            Añadir
+          </button>
+        </div>
+
+        <div class="flex flex-row gap-4">
+          <button type="submit" class="btn btn-primary"
+                  x-effect="$el.disabled=!(number?.trim()?.length > 0 && name?.trim()?.length > 0 && aliquot && aliquot > 0 )">
+            Crear
+          </button>
+
+          <button type="button" class="btn btn-secondary"
+                  @click="dialog_open = false">
+            Cancelar
+          </button>
+          <img class="htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">
+        </div>
+
+      </form>
+    </div>
+
+
+  </dialog>
 </div>
 
 </body>
