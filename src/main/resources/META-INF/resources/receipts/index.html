@@ -66,20 +66,7 @@
 </div>
 
 <div id="container" hx-swap-oob="true" class="p-2 gap-1 flex flex-col"
-     x-data="{zip_dialog_receipt_key: '', zip_dialog_csrf_token_name: '', zip_dialog_csrf_token: '', zip_dialog_building: '', zip_dialog_date: '', zip_dialog_year: 0, zip_dialog_month: ''}">
-
-  <script>
-    initReceipt();
-    window.Alpine.effect(() => {
-      if (zipDialogData.zip_dialog_open) {
-        emailZipDialogBtnSubmit.disabled = true;
-        document.getElementById("dialog-cm-zip").show();
-      } else {
-        document.getElementById("dialog-cm-zip").close();
-        dataEmailZip.emails = [];
-      }
-    });
-  </script>
+     x-data="{zip_dialog_open: false, zip_dialog_receipt_key: '', zip_dialog_building: '', zip_dialog_date: '', zip_dialog_year: 0, zip_dialog_month: ''}">
 
   <div id="receipt-grid">
     <div hx-get="/api/receipts/init" hx-indicator=".htmx-indicator" hx-trigger="load" hx-swap="outerHTML"></div>
@@ -95,6 +82,21 @@
 
   <dialog id="dialog-cm-zip"
           class="z-30 form-container rounded border-2 border-gray-400 bg-base-100 m-0 top-1/2 left-1/2 p-2 max-h-95per min-w-1/2"
+          x-data="{email_input: '', disable_btn: false, emails: new Set()}"
+          x-effect="
+          email_input = '';
+          emails.clear();
+           if (zip_dialog_open) {
+            $el.show();
+          } else {
+            $el.close();
+          }"
+          @add-receipt-zip-dialog-email="
+          let v = $event.detail?.email?.trim();
+          if (v && v.length > 0 && validateEmail(v)) {
+            emails.add(v);
+          }
+          "
   >
 
     <form id="send-zip-form"
@@ -103,7 +105,7 @@
           hx-indicator=".htmx-indicator">
 
       <script>
-        document.getElementById("send-zip-form").addEventListener("keypress", (event) => {
+        document.currentScript.parentElement.addEventListener("keypress", (event) => {
           event.key === "Enter" && event.preventDefault();
         });
 
@@ -113,7 +115,7 @@
 
         <input type="hidden" type="text" name="key" x-bind:value="zip_dialog_receipt_key">
 
-        <input type="hidden" type="text" x-bind:name="zip_dialog_csrf_token_name" x-bind:value="zip_dialog_csrf_token"/>
+        <div id="csrf-input" hidden="hidden"></div>
 
         <div class="flex flex-row justify-between">
           <div style="height: 3rem; width: 3rem;">
@@ -122,7 +124,7 @@
           <h2 class="font-bold m-auto">ENVIAR ZIP</h2>
           <div>
             <button type="button" class="btn btn-square btn-outline btn-error" style="height: 3rem; width: 3rem;"
-                    @click="zipDialogData.zip_dialog_open = false"
+                    @click="zip_dialog_open = false"
             >
               <img src="/assets/cross-svgrepo-com.svg" alt="remove-email" style="height: 1.5rem; width: 1.5rem">
             </button>
@@ -141,14 +143,17 @@
           </div>
         </div>
 
-        <script id="email-zip-template" type="text/x-handlebars-template">
-          <div class="flex flex-row justify-between receipt-email-zip p-2">
-            <input type="text" name="emails" hidden="hidden" value="{{value}}">
-            <div class="flex align-middle">{{value}}</div>
-            <button type="button" @click.prevent="removeEmail('{{value}}')"><img src="/assets/trash.svg"
-                                                                                 alt="delete-email"></button>
-          </div>
-        </script>
+        <div class="pb-2">
+          <template x-for="value in Array.from(emails)">
+            <div class="flex flex-row justify-between apt-emails-form p-2">
+              <input type="text" name="emails" hidden="hidden" :value="value">
+              <div class="flex align-middle" x-text="value"></div>
+              <button type="button" @click.prevent="emails.delete(value)"><img src="/assets/trash.svg"
+                                                                               alt="delete-email"></button>
+            </div>
+          </template>
+
+        </div>
 
         <div id="emails-zip" class="">
 
@@ -157,73 +162,28 @@
         <div class="flex flex-row gap-4">
           <input id="email-zip-input" class="input input-bordered w-full" placeholder="Email"
                  type="email"
-                 script="on keyup[key is 'Enter'] call addEmail('email-zip-input')"
+                 x-model="email_input"
+                 @keyup.enter="$dispatch('add-receipt-zip-dialog-email', { email: $el?.value?.trim() })"
                  autocomplete="email">
           <button type="button"
                   class="btn btn-primary"
-                  script="on click call addEmail('email-zip-input')">
+                  @click.prevent="$dispatch('add-receipt-zip-dialog-email', { email: $el.previousElementSibling?.value?.trim() })">
             Añadir
           </button>
         </div>
 
         <div class="flex flex-row gap-4">
-          <button id="submit-receipt-zip" type="submit" class="btn btn-primary" disabled>
+          <button id="submit-receipt-zip" type="submit" class="btn btn-primary"
+                  x-effect="$el.disabled=emails.size == 0">
             Enviar
           </button>
           <button type="button" class="btn btn-secondary"
-                  @click="zipDialogData.zip_dialog_open = false">
+                  @click="zip_dialog_open = false">
             Cancelar
           </button>
           <img class="htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">
         </div>
-
-        <script>
-
-          function addEmail(inputId) {
-            console.debug("addEmail", inputId);
-            let input = document.getElementById(inputId);
-            let email = input.value?.trim();
-            if (validateEmail(email)) {
-              if (dataEmailZip.emails.includes(email)) {
-                console.debug("email already added", email, inputId);
-                return;
-              }
-
-              console.debug("email added", email, inputId);
-              dataEmailZip.emails.push(email);
-              document.getElementById(inputId).value = "";
-              return;
-            }
-            console.debug("invalid email", email, inputId, dataEmailZip.emails);
-          }
-
-          function removeEmail(email) {
-            console.debug("removeEmail", email);
-            dataEmailZip.emails = dataEmailZip.emails.filter((e) => e !== email);
-          }
-
-          window.Alpine.effect(() => {
-            let emails = dataEmailZip.emails;
-
-            if (emails.length > 0) {
-              console.debug("enable btn");
-              emailZipDialogBtnSubmit.disabled = false;
-            } else {
-              console.debug("disable btn");
-              emailZipDialogBtnSubmit.disabled = true;
-            }
-            let template = emailZipTemplate.innerHTML;
-            emailsZip.innerHTML = "";
-
-            emails.forEach((email) => {
-              let templateScript = window.Handlebars.compile(template);
-              let html = templateScript({value: email});
-              emailsZip.innerHTML += html;
-            });
-
-          });
-
-        </script>
+        
       </div>
     </form>
 

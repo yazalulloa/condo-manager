@@ -15,25 +15,13 @@ import './sse.js';
 // import './components.js';
 import _hyperscript from 'hyperscript.org';
 import './elements.js';
-import Handlebars from "handlebars";
+
 import Alpine from 'alpinejs'
 
-window.Handlebars = Handlebars;
-
 window.Alpine = Alpine
-
 Alpine.start();
 
 _hyperscript.browserInit();
-
-// import Alpine from 'alpinejs'
-//
-// window.Alpine = Alpine
-//
-// Alpine.start()
-
-import './receipts';
-import './apartments';
 
 window.initComponents = function () {
   // console.log("INIT TW-ELEMENTS")
@@ -546,40 +534,6 @@ window.scrollDiv = function (elem) {
   });
 }
 
-// window.addEmail = function (elemId) {
-//   let elem = document.getElementById(elemId);
-//   if (elem && elem.value) {
-//     elem.value = elem.value.trim();
-//     let value = elem.value;
-//     if (value.length > 0) {
-//       let atIndex = value.indexOf("@");
-//       let dotIndex = value.indexOf(".");
-//
-//       if (atIndex > 0 && dotIndex > atIndex && dotIndex < value.length - 1) {
-//         let container = document.getElementById("emails-zip");
-//         for (let child of container.children) {
-//           let input = child.children[0].children[0];
-//           if (input.value === value) {
-//             return;
-//           }
-//         }
-//
-//         let source = document.getElementById("email-zip-template").innerHTML;
-//         let template = Handlebars.compile(source);
-//         let html = template({value: value});
-//
-//         const div = document.createElement('div');
-//         div.innerHTML = html;
-//         div.children[0].children[2].addEventListener("click", function () {
-//           div.remove();
-//         });
-//         container.appendChild(div);
-//       }
-//     }
-//   }
-//
-// }
-
 window.validateEmail = function (value) {
 
   if (value) {
@@ -596,7 +550,7 @@ window.validateEmail = function (value) {
   return false;
 }
 
-window.sendEvent = function(id, eventName) {
+window.sendEvent = function (id, eventName) {
   let elem = document.getElementById(id);
   if (elem) {
     elem.dispatchEvent(new CustomEvent(eventName));

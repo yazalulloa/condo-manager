@@ -76,8 +76,7 @@
       </li>
 
       <li>
-        <a @click="zip_dialog_receipt_key='{item.key}'; zip_dialog_csrf_token_name='{inject:csrf.parameterName}';
-        zip_dialog_csrf_token='{inject:csrf.token}'; zipDialogData.zip_dialog_open=true; zip_dialog_building='{item.item.buildingId}';
+        <a @click="zip_dialog_receipt_key='{item.key}'; zip_dialog_open=true; zip_dialog_building='{item.item.buildingId}';
         zip_dialog_year='{item.item.year}'; zip_dialog_month='{item.item.month.monthFromInt}'; zip_dialog_date='{item.item.date}'" >
           <img src="/assets/send-mail.svg" style="width:25px;height:25px;" alt="download-zip-pdfs">
           Enviar ZIP

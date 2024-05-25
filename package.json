@@ -3,7 +3,6 @@
     "alpinejs": "^3.13.10",
     "daisyui": "^4.10.1",
     "franken-ui": "^0.0.7",
-    "handlebars": "^4.7.8",
     "htmx.org": "latest",
     "hyperscript.org": "latest",
     "tw-elements": "1.1.0"

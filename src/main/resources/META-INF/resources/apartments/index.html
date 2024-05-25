@@ -67,21 +67,6 @@
     <img class="htmx-indicator white-filter img-medium-size center" src="/assets/bars.svg" alt="spinner">
   </div>
 
-  <div id="apt-form-container"
-       class="hidden form-container border-2 border-gray-400 bg-base-100 max-h-90per max-w-3/4 min-w-[310px] w-1/2 overflow-auto rounded-md z-30">
-    <div class="header apt-form-title">
-      <span class="font-bold">Nuevo Apartamento</span>
-      <img class="htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">
-      <button class="btn btn-square btn-outline btn-error" type="button"
-              script="on click add .hidden to #apt-form-container"
-      >
-        <img src="/assets/cross-svgrepo-com.svg" alt="close-form">
-      </button>
-    </div>
-
-    <form id="apartment-form"></form>
-  </div>
-
   <dialog id="apt-form-dialog"
           open
           x-data="{is_edit: false, emails: new Set()}"
