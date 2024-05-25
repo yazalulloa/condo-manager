@@ -38,17 +38,7 @@
     >
 
     <!--    on click set #apt-form-aliquot@value to '0'-->
-    <button script="
-    on click if #hidden-apt-building-id != null remove #hidden-apt-building-id end
-    on click remove @disabled from <select/> in #apartment-form
-    on click remove @disabled from <input/> in #apartment-form
-
-    on click put 'Crear' into #apt-form-btn-submit
-    on click if #apartment-form-general-error != null remove #apartment-form-general-error end
-    on click remove .hidden from #apt-form-container
-    on click send 'dispose-validation' to #apartment-form
-    on click send clear to <cm-form-input/> in #apt-form-inputs
-"
+    <button @click.prevent="$dispatch('new-apt')"
             class="btn btn-primary">
       Nuevo
     </button>
@@ -94,29 +84,69 @@
 
   <dialog id="apt-form-dialog"
           open
-          x-data="{emails: new Set()}"
+          x-data="{is_edit: false, emails: new Set()}"
           @add-apt-form-email="
           let v = $event.detail?.email?.trim();
           if (v && v.length > 0 && validateEmail(v)) {
             emails.add(v);
           }
           "
-          class="z-30 form-container rounded border-2 border-gray-400 bg-base-100 m-0 top-1/2 left-1/2 max-h-95per max-w-9/10 min-w-1/2">
+          class="z-30 form-container rounded border-2 bg-base-100 m-0 top-1/2 left-1/2 max-h-95per max-w-9/10 min-w-1/2">
 
-    <div x-data="{dialog_open: true}" x-effect=" if (dialog_open) {
+    <div x-data="{dialog_open: false}" x-effect=" if (dialog_open) {
             document.getElementById('apt-form-dialog').show();
           } else {
             document.getElementById('apt-form-dialog').close();
-            emails.clear();
           }">
 
+
       <form class="pb-2 px-3 flex flex-col"
-            hx-post="/api/apartments/v2"
-            hx-swap="none"
+            hx-post="/api/apartments/upsert"
+            hx-target="#apt-form-error"
+            hx-swap="innerHTML"
             hx-indicator=".htmx-indicator"
-            x-data="{ number: '', name: '', aliquot: 0}">
+            x-data="{ key: '', building_id: '', number: '', name: '', aliquot: 0, buildingError: null, numberError: null,
+            nameError: null, aliquotError: null, generalError: null }"
+            @new-apt.window="
+            is_edit = false;
+            emails.clear();
+            key = '';
+            number = '';
+            name = '';
+            aliquot = 0;
+            $dispatch('clear-apt-errors')
+            dialog_open = true;
+            "
+            @edit-apt.window="
+           let base64 = $event.detail;
+           let decodedString = atob(base64);
+           let jsonObject = JSON.parse(decodedString);
+
+           is_edit = true;
+           emails.clear();
+           key = jsonObject.key;
+           $refs.aptBuildingSelect.value = jsonObject.buildingId;
+           number = jsonObject.number;
+           name = jsonObject.name;
+           aliquot = jsonObject.aliquot;
+           jsonObject.emails.forEach((email) => emails.add(email));
+           $dispatch('clear-apt-errors')
+           dialog_open = true;
+          "
+            @clear-apt-errors.window="
+            buildingError = null;
+            numberError = null;
+            nameError = null;
+            aliquotError = null;
+            generalError = null;
+            "
+      >
+
+        <div id="apt-form-error"></div>
 
         <div id="apt-csrf-input" hidden="hidden"></div>
+
+        <input hidden="hidden" name="key" x-model="key">
 
         <script>
           document.currentScript.parentElement.addEventListener("keypress", (event) => {
@@ -147,14 +177,18 @@
           <div class="label">
             <span class="label-text">Edificio</span>
           </div>
-          <select name="buildingId"
-                  class="select select-bordered w-full">
+          <select x-ref="aptBuildingSelect" name="buildingId"
+                  class="select select-bordered w-full"
+                  x-model="building_id"
+                  x-bind:disabled="is_edit"
+          >
             <option hx-get="/api/buildings/selector" hx-indicator=".htmx-indicator" hx-trigger="load"
+                    hx-target="this"
                     hx-swap="outerHTML">
             </option>
           </select>
           <div class="label">
-            <span class="label-text-alt error-message" hidden="hidden">Alt label</span>
+            <span class="label-text-alt error-message" x-text="buildingError">Alt label</span>
             <span class="label-text-alt" hidden="hidden">Alt label</span>
           </div>
         </label>
@@ -164,9 +198,10 @@
             <span class="label-text">Nro. Apt</span>
           </div>
           <input type="text" placeholder="Nro. Apt" class="input input-bordered w-full" name="number"
-                 x-model="number"/>
+                 x-model="number"
+                 x-bind:disabled="is_edit"/>
           <div class="label">
-            <span class="label-text-alt error-message" hidden="hidden">Bottom Left label</span>
+            <span class="label-text-alt error-message" x-text="numberError">Bottom Left label</span>
           </div>
         </label>
 
@@ -177,7 +212,7 @@
           <input type="text" placeholder="Nombre" class="input input-bordered w-full" name="name"
                  x-model="name"/>
           <div class="label">
-            <span class="label-text-alt error-message" hidden="hidden">Bottom Left label</span>
+            <span class="label-text-alt error-message" x-text="nameError">Bottom Left label</span>
           </div>
         </label>
 
@@ -188,32 +223,23 @@
           <input type="number" placeholder="Alícuota" class="input input-bordered w-full" name="aliquot" min="0"
                  step=".01" maxlength="5" max="100" x-model="aliquot"/>
           <div class="label">
-            <span class="label-text-alt error-message" hidden="hidden">Bottom Left label</span>
+            <span class="label-text-alt error-message" x-text="aliquotError">Bottom Left label</span>
           </div>
         </label>
 
-        <script id="email-apt-form-template" type="text/x-handlebars-template">
-          <div class="flex flex-row justify-between apt-emails-form p-2">
-            <input type="text" name="emails" hidden="hidden" value="{{value}}">
-            <div class="flex align-middle">{{value}}</div>
-            <button type="button" @click.prevent="removeAptFormEmail('{{value}}')"><img src="/assets/trash.svg"
-                                                                                        alt="delete-email"></button>
-          </div>
-        </script>
-
-        <div>
+        <div class="pb-2">
           <template x-for="value in Array.from(emails)">
             <div class="flex flex-row justify-between apt-emails-form p-2">
               <input type="text" name="emails" hidden="hidden" :value="value">
               <div class="flex align-middle" x-text="value"></div>
               <button type="button" @click.prevent="emails.delete(value)"><img src="/assets/trash.svg"
-                                                                            alt="delete-email"></button>
+                                                                               alt="delete-email"></button>
             </div>
           </template>
 
         </div>
 
-        <div class="flex flex-row gap-4 pb-4">
+        <div class="flex flex-row gap-4">
           <input class="input input-bordered w-full" placeholder="Email"
                  type="email"
                  @keyup.enter="$dispatch('add-apt-form-email', { email: $el?.value?.trim() })"
@@ -225,8 +251,14 @@
           </button>
         </div>
 
+
+        <div class="label">
+          <span x-transition class="label-text-alt error-message" x-text="generalError"></span>
+        </div>
+
         <div class="flex flex-row gap-4">
           <button type="submit" class="btn btn-primary"
+                  x-init="$watch('is_edit', value => $el.childNodes[0].nodeValue = (value ? 'Editar' : 'Crear'))"
                   x-effect="$el.disabled=!(number?.trim()?.length > 0 && name?.trim()?.length > 0 && aliquot && aliquot > 0 )">
             Crear
           </button>

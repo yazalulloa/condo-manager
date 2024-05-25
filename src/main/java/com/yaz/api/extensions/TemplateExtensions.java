@@ -1,5 +1,6 @@
 package com.yaz.api.extensions;
 
+import com.yaz.api.domain.EditAttr;
 import com.yaz.api.domain.response.DebtTableItem;
 import com.yaz.api.extensions.Globals.MonthType;
 import com.yaz.core.util.DateUtil;
@@ -9,7 +10,9 @@ import com.yaz.persistence.entities.Expense;
 import com.yaz.persistence.entities.ExtraCharge;
 import com.yaz.persistence.entities.Rate;
 import io.quarkus.qute.TemplateExtension;
+import io.vertx.core.json.Json;
 import java.time.ZoneOffset;
+import java.util.Base64;
 import java.util.Optional;
 
 @TemplateExtension
@@ -56,5 +59,11 @@ public class TemplateExtensions {
     }
 
     return "";
+  }
+
+  public static String format(EditAttr editAttr) {
+
+    final var json = Json.encode(editAttr);
+    return Base64.getUrlEncoder().encodeToString(json.getBytes());
   }
 }

@@ -6,6 +6,7 @@ import com.yaz.api.domain.ApartmentInitDto;
 import com.yaz.api.domain.AptItem;
 import com.yaz.api.domain.request.ApartmentRequest;
 import com.yaz.api.domain.response.ApartmentTableResponse;
+import com.yaz.api.domain.response.ApartmentUpsertFormDto;
 import com.yaz.api.domain.response.AptCountersDto;
 import com.yaz.api.msg.ApartmentMessages;
 import com.yaz.core.service.EncryptionService;
@@ -76,6 +77,8 @@ public class ApartmentsResource {
     public static native TemplateInstance counters(AptCountersDto dto);
 
     public static native TemplateInstance grid_item(AptItem item);
+
+    public static native TemplateInstance upsert(ApartmentUpsertFormDto dto);
   }
 
   private final ApartmentService apartmentService;
@@ -187,9 +190,9 @@ public class ApartmentsResource {
   }
 
   private Uni<ApartmentFormDto> fromRequest(ApartmentRequest request, boolean isUpdate) {
-    final var buildingId = StringUtil.trimFilter(request.getBuildingId());
-    final var number = StringUtil.trimFilter(request.getNumber());
-    final var name = StringUtil.trimFilter(request.getName());
+    final var buildingId = StringUtil.escapeInput(request.getBuildingId());
+    final var number = StringUtil.escapeInput(request.getNumber());
+    final var name = StringUtil.escapeInput(request.getName());
 
     final var numberFieldErrorUni = Uni.createFrom().deferred(() -> {
       if (isUpdate) {
@@ -385,4 +388,81 @@ public class ApartmentsResource {
             .build())
         .map(Templates::grid_item);
   }
+
+  @POST
+  @Path("upsert")
+  public Uni<TemplateInstance> upsert(@BeanParam ApartmentRequest request) {
+
+    final var key = StringUtil.escapeInput(request.getKey());
+
+    final var optKeys = Optional.ofNullable(key)
+        .map(str -> encryptionService.decryptObj(str, Keys.class));
+
+    optKeys.ifPresent(keys -> {
+      request.setBuildingId(keys.buildingId());
+      request.setNumber(keys.number());
+    });
+
+    final var isUpdate = key != null;
+    return fromRequest(request, isUpdate)
+        .map(dto -> {
+          final var emailError = dto.emails().stream().map(EmailForm::error)
+              .filter(Objects::nonNull)
+              .findFirst()
+              .orElse(null);
+
+          final var generalError = Optional.ofNullable(dto.generalFieldError())
+              .orElse(emailError);
+
+          return ApartmentUpsertFormDto.builder()
+              .buildingError(dto.buildingIdFieldError())
+              .numberError(dto.numberFieldError())
+              .nameError(dto.nameFieldError())
+              .aliquotError(dto.aliquotFieldError())
+              .generalError(generalError)
+              .build();
+        })
+        .flatMap(dto -> {
+
+          final var apartment = Apartment.builder()
+              .buildingId(request.getBuildingId())
+              .number(request.getNumber())
+              .name(request.getName())
+              .aliquot(request.getAliquot())
+              .emails(request.getEmails())
+              .build();
+
+          if (optKeys.isPresent()) {
+            if (apartment.keysWithHash(optKeys.get().cardId()).hash() == optKeys.get().hash()) {
+              dto = dto.toBuilder()
+                  .generalError("No hay cambios")
+                  .build();
+            }
+          }
+
+          if (dto.isSuccess()) {
+
+            if (isUpdate) {
+              dto = dto.toBuilder()
+                  .item(AptItem.builder()
+                      .key(key)
+                      .cardId(optKeys.get().cardId())
+                      .apt(apartment)
+                      .isUpdate(isUpdate)
+                      .build())
+                  .build();
+
+              return apartmentService.update(apartment)
+                  .replaceWith(dto);
+            }
+
+            return apartmentService.create(request)
+                .replaceWith(dto);
+          }
+
+          return Uni.createFrom().item(dto);
+        })
+        .map(Templates::upsert);
+  }
+
 }

@@ -30,7 +30,11 @@ public record Apartment(
   }
 
   public Keys keys() {
-    return new Keys(buildingId, number, 0, cardId());
+    final var apartment = this.toBuilder()
+        .createdAt(null)
+        .updatedAt(null)
+        .build();
+    return new Keys(buildingId, number, StringUtil.objHash(apartment), cardId());
   }
 
   public Keys keysWithHash(String cardId) {

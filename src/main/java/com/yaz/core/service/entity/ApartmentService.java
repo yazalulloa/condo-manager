@@ -100,7 +100,7 @@ public class ApartmentService {
             final var last = results.getLast();
 
             nextPageUrl = ApartmentsResource.TABLE_PATH;
-            nextPageUrl += "?nextPage=" + last.getKey();
+            nextPageUrl += "?nextPage=" + last.key();
             //nextPageUrl += "?lastBuildingId=" + last.buildingId() + "&lastNumber=" + last.number();
 
             if (apartmentQuery.q() != null) {

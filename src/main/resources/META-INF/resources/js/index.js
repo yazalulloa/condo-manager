@@ -596,3 +596,10 @@ window.validateEmail = function (value) {
   return false;
 }
 
+window.sendEvent = function(id, eventName) {
+  let elem = document.getElementById(id);
+  if (elem) {
+    elem.dispatchEvent(new CustomEvent(eventName));
+  }
+}
+

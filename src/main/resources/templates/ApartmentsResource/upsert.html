@@ -1,0 +1,16 @@
+{@com.yaz.api.domain.response.ApartmentUpsertFormDto dto}
+
+<div x-init="buildingError='{dto.buildingError}'; numberError='{dto.numberError}'; nameError='{dto.nameError}'; aliquotError='{dto.aliquotError}';
+generalError='{dto.generalError}';
+
+{#if dto.isSuccess && dto.item == null}
+sendEvent('apt-search-input', 'new_apt');
+{/if}
+
+">
+
+</div>
+
+{#if dto.item}
+        {#include ApartmentsResource/grid_item item=dto.item /}
+{/if}

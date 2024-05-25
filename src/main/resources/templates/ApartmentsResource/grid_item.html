@@ -2,39 +2,38 @@
 
 <div class="break-all hover:bg-[#00000014] apartment-grid-container base-grid-cm p-1 fade-me-out fade-me-in"
      id="{item.cardId}"
-     hx-get="{item.itemUrl}"
-     hx-trigger="update_apt"
      hx-swap="outerHTML"
 
-  {#if item.isUpdate}
-     hx-swap-oob="true"
-  {/if}
-  >
+        {#if item.isUpdate}
+            hx-swap-oob="true"
+        {/if}
+>
+    <div class="apartment-grid-content"
+         {!hx-get="{item.editUrl}"!}
+         {!hx-swap="none"!}
+         {!hx-trigger="click"!}
+         @click.prevent="$dispatch('edit-apt', '{item.editAttr.format}')"
+    >
+        <div>{item.apt.buildingId}</div>
+        <div>{item.apt.number}</div>
+        <div>{item.apt.name}</div>
+        <div class="flex flex-col gap-2 pt-1 pb-1 justify-center">
+            {#for email in item.apt.emails}
+                <span>{email}</span>
+            {/for}
+        </div>
+        <div>{item.apt.aliquot}</div>
 
-      <div class="apartment-grid-content"
-      hx-get="{item.editUrl}"
-           hx-swap="none"
-           hx-trigger="click">
-  <div>{item.apt.buildingId}</div>
-  <div>{item.apt.number}</div>
-  <div>{item.apt.name}</div>
-  <div class="flex flex-col gap-2 pt-1 pb-1 justify-center">
-    {#for email in item.apt.emails}
-    <span>{email}</span>
-    {/for}
-  </div>
-  <div>{item.apt.aliquot}</div>
-
-</div>
-  <div class="block">
-    <button class="delete-btn"
-            hx-headers='{"{inject:csrf.headerName}":"{inject:csrf.token}"}'
-            hx-delete="{item.deleteUrl}"
-            hx-target="{item.cardIdRef}"
-            hx-vals="js:\{building: document.querySelector('#buildings-selector select').value, q: document.querySelector('#apt-search-input').value\}"
-            hx-trigger="click"
-            hx-swap="delete">
-      <img src="/assets/trash.svg" alt="delete-item">
-    </button>
-  </div>
+    </div>
+    <div class="block">
+        <button class="delete-btn"
+                hx-headers='{"{inject:csrf.headerName}":"{inject:csrf.token}"}'
+                hx-delete="{item.deleteUrl}"
+                hx-target="{item.cardIdRef}"
+                hx-vals="js:\{building: document.querySelector('#buildings-selector select').value, q: document.querySelector('#apt-search-input').value\}"
+                hx-trigger="click"
+                hx-swap="delete">
+            <img src="/assets/trash.svg" alt="delete-item">
+        </button>
+    </div>
 </div>

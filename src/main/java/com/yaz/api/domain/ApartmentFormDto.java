@@ -4,8 +4,10 @@ import java.math.BigDecimal;
 import java.util.List;
 import lombok.Builder;
 import lombok.Data;
+import lombok.experimental.Accessors;
 
 @Data
+@Accessors(fluent = true)
 @Builder(toBuilder = true)
 public class ApartmentFormDto {
 
