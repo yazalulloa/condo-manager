@@ -70,12 +70,6 @@ public class EmailConfigResource {
     public static native TemplateInstance error(String msg);
   }
 
-//  private String getUserId(SecurityIdentity identity) {
-//    final var userId = Objects.requireNonNull(identity.getAttribute("userId")).toString();
-//    log.info("userId: {}", userId);
-//    return userId;
-//  }
-
   private String getRedirectUri(HttpServerRequest req) {
     //log.info("getRedirectUri uri: {}", req.uri());
     //log.info("getRedirectUri absoluteURI: {}", req.absoluteURI());

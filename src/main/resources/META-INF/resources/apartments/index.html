@@ -249,7 +249,7 @@
           </button>
 
           <button type="button" class="btn btn-secondary"
-                  @click="dialog_open = false">
+                  @click.prevent="dialog_open = false">
             Cancelar
           </button>
           <img class="htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">
