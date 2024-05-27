@@ -13,6 +13,10 @@ import lombok.Builder;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record EmailConfig(
     String userId,
+    String email,
+    String name,
+    String picture,
+    String givenName,
     byte[] file,
     long fileSize,
     long hash,

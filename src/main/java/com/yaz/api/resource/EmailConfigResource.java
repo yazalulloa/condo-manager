@@ -1,6 +1,10 @@
 package com.yaz.api.resource;
 
 import com.google.api.client.auth.oauth2.AuthorizationCodeResponseUrl;
+import com.google.api.client.auth.openidconnect.IdTokenResponse;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken.Payload;
+import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
 import com.google.api.client.http.GenericUrl;
 import com.yaz.api.domain.response.EmailConfigTableItem;
 import com.yaz.api.domain.response.EmailConfigTableResponse;
@@ -8,6 +12,7 @@ import com.yaz.core.helper.VertxHelper;
 import com.yaz.core.service.entity.EmailConfigService;
 import com.yaz.core.service.gmail.GmailHelper;
 import com.yaz.core.service.gmail.GmailService;
+import com.yaz.core.service.gmail.GoogleHelper;
 import com.yaz.core.util.DateUtil;
 import com.yaz.core.util.MutinyUtil;
 import com.yaz.core.util.RandomUtil;
@@ -34,7 +39,6 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriBuilder;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,6 +55,7 @@ public class EmailConfigResource {
 
   private final EmailConfigService service;
   private final GmailHelper gmailHelper;
+  private final GoogleHelper googleHelper;
   private final GmailService gmailService;
   private final VertxHelper vertxHelper;
 
@@ -157,20 +162,30 @@ public class EmailConfigResource {
         return Single.just(Response.status(400).entity("Missing authorization code").build());
       } else {
 
-        final var flow = gmailHelper.flow(getUserId(identity));
+        final var userId = getUserId(identity);
+        final var flow = gmailHelper.flow(userId);
 
         final var redirectUri = getRedirectUri(request);
         //log.info("callback redirectUri: {}", redirectUri);
 
-        final var response = flow.newTokenRequest(code).setRedirectUri(redirectUri).execute();
-        final var userId = getUserId(identity);
-        //log.info("token response: {}", response);
+        final var response = (GoogleTokenResponse) flow.newTokenRequest(code).setRedirectUri(redirectUri).execute();
+        log.info("token response: {}", response);
+        final var googleIdToken = googleHelper.googleIdTokenVerifier().verify(response.getIdToken());
+        final var payload = googleIdToken.getPayload();
+
+        log.info("googleIdToken: {}", googleIdToken);
         final var credential = flow.createAndStoreCredential(response, userId);
 
         return RxUtil.completable(gmailHelper.testCredential(credential))
             .andThen(vertxHelper.fileWithHash(GmailHelper.DIR + "/" + userId + "/StoredCredential"))
             .map(fileWithHash -> {
               final var emailConfig = EmailConfig.builder()
+                  .userId(payload.getSubject())
+                  .email(payload.getEmail())
+                  .name(payload.get("name").toString())
+                  .picture(payload.get("picture").toString())
+                  .givenName(payload.get("given_name").toString())
+
                   .userId(userId)
                   .file(fileWithHash.buffer().getBytes())
                   .fileSize(fileWithHash.fileSize())
