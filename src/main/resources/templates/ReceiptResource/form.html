@@ -85,7 +85,9 @@
         </button>
         <button type="button" class="btn btn-secondary"
                 hx-get="/stc/receipts"
-                hx-trigger="click">
+                hx-swap="none"
+                hx-trigger="click"
+                hx-on::before-request="modifyUrl(this)">
             Cancelar
         </button>
         <img class="htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">
