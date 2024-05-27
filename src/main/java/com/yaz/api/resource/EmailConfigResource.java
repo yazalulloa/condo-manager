@@ -19,7 +19,6 @@ import com.yaz.persistence.domain.query.EmailConfigQuery;
 import com.yaz.persistence.entities.EmailConfig;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
-import io.quarkus.security.identity.SecurityIdentity;
 import io.reactivex.rxjava3.core.Single;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.http.HttpServerRequest;
@@ -30,7 +29,6 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriBuilder;
@@ -121,25 +119,6 @@ public class EmailConfigResource {
   @Path("add")
   public Response redirect(HttpServerRequest request) throws IOException {
     return responseRedirect(RandomUtil.getRandNumb(20), request);
-
-//    final var userId = getUserId(securityContext);
-//    final var single = gmailService.loadItem(userId)
-//        .map(item -> {
-//
-//          if (item.item().shouldGetNewOne() || item.item().emailConfig().stacktrace() != null) {
-//            return responseRedirect(userId, request);
-//          } else {
-//            final var tableItem = item.toBuilder()
-//                .outOfBoundUpdate(true)
-//                .build();
-//            return Templates.item(tableItem);
-//          }
-//
-//        })
-//        .switchIfEmpty(Single.fromCallable(() -> responseRedirect(userId, request)));
-//
-//    return MutinyUtil.toUni(single);
-
   }
 
   @GET
@@ -168,80 +147,84 @@ public class EmailConfigResource {
 
   @GET
   @Path("callback")
-  public Uni<Response> callback(HttpServerRequest request, @Context SecurityIdentity identity) {
+  public Uni<Response> callback(HttpServerRequest request) {
 
     final var single = Single.defer(() -> {
-      final var responseUrl = new AuthorizationCodeResponseUrl(request.absoluteURI() + "?" + request.query());
-      // log.info("callback: {}", request.uri());
+          final var responseUrl = new AuthorizationCodeResponseUrl(request.absoluteURI() + "?" + request.query());
+          // log.info("callback: {}", request.uri());
 
-      final var code = responseUrl.getCode();
-      if (responseUrl.getError() != null) {
-        final var jsonObject = new JsonObject()
-            .put("error", responseUrl.getError())
-            .put("errorDescription", responseUrl.getErrorDescription())
-            .put("errorUri", responseUrl.getErrorUri());
+          final var code = responseUrl.getCode();
+          if (responseUrl.getError() != null) {
+            final var jsonObject = new JsonObject()
+                .put("error", responseUrl.getError())
+                .put("errorDescription", responseUrl.getErrorDescription())
+                .put("errorUri", responseUrl.getErrorUri());
 
-        log.error("callback error: {}", jsonObject);
+            log.error("callback error: {}", jsonObject);
 
-        final var error = Optional.ofNullable(responseUrl.getErrorDescription())
-            .orElse(responseUrl.getError());
+            final var error = Optional.ofNullable(responseUrl.getErrorDescription())
+                .orElse(responseUrl.getError());
 
-        return Single.just(errorRedirect(error));
-      } else if (code == null) {
-        return Single.just(errorRedirect("Missing code"));
-      } else {
+            return Single.just(errorRedirect(error));
+          } else if (code == null) {
+            return Single.just(errorRedirect("Missing code"));
+          } else {
 
-        //final var userId = getUserId(identity);
-        final var userId = request.params().get("state");
-        final var flow = gmailHelper.flow(userId);
+            //final var userId = getUserId(identity);
+            final var userId = request.params().get("state");
+            final var flow = gmailHelper.flow(userId);
 
-        final var redirectUri = getRedirectUri(request);
-        //log.info("callback redirectUri: {}", redirectUri);
+            final var redirectUri = getRedirectUri(request);
+            //log.info("callback redirectUri: {}", redirectUri);
 
-        final var response = (GoogleTokenResponse) flow.newTokenRequest(code).setRedirectUri(redirectUri).execute();
+            final var response = (GoogleTokenResponse) flow.newTokenRequest(code).setRedirectUri(redirectUri).execute();
 
-        final var completeScopes = GoogleHelper.SCOPES.stream()
-            .map(scope -> response.getScope().contains(scope))
-            .reduce(Boolean::logicalAnd)
-            .orElse(false);
+            final var completeScopes = GoogleHelper.SCOPES.stream()
+                .map(scope -> response.getScope().contains(scope))
+                .reduce(Boolean::logicalAnd)
+                .orElse(false);
 
-        if (!completeScopes) {
-          return Single.just(errorRedirect("Missing functionality"));
-        }
+            if (!completeScopes) {
+              return Single.just(errorRedirect("Missing functionality"));
+            }
 
-        log.info("token response: {}", response);
-        final var googleIdToken = googleHelper.googleIdTokenVerifier().verify(response.getIdToken());
-        final var payload = googleIdToken.getPayload();
+            log.info("token response: {}", response);
+            final var googleIdToken = googleHelper.googleIdTokenVerifier().verify(response.getIdToken());
+            final var payload = googleIdToken.getPayload();
 
-        log.info("googleIdToken: {}", googleIdToken);
-        final var credential = flow.createAndStoreCredential(response, userId);
+            log.info("googleIdToken: {}", googleIdToken);
+            final var credential = flow.createAndStoreCredential(response, userId);
 
-        return RxUtil.completable(gmailHelper.testCredential(credential))
-            .andThen(vertxHelper.fileWithHash(GmailHelper.DIR + "/" + userId + "/StoredCredential"))
-            .map(fileWithHash -> {
-              final var emailConfig = EmailConfig.builder()
-                  .subject(payload.getSubject())
-                  .email(payload.getEmail())
-                  .name(payload.get("name").toString())
-                  .picture(payload.get("picture").toString())
-                  .givenName(payload.get("given_name").toString())
-                  .id(userId)
-                  .file(fileWithHash.buffer().getBytes())
-                  .fileSize(fileWithHash.fileSize())
-                  .hash(fileWithHash.crc32())
-                  .active(true)
-                  .isAvailable(true)
-                  .hasRefreshToken(credential.getRefreshToken() != null)
-                  .expiresIn(credential.getExpirationTimeMilliseconds())
-                  .createdAt(DateUtil.utcLocalDateTime())
-                  .build();
+            return RxUtil.completable(gmailHelper.testCredential(credential))
+                .andThen(vertxHelper.fileWithHash(GmailHelper.DIR + "/" + userId + "/StoredCredential"))
+                .map(fileWithHash -> {
+                  final var emailConfig = EmailConfig.builder()
+                      .subject(payload.getSubject())
+                      .email(payload.getEmail())
+                      .name(payload.get("name").toString())
+                      .picture(payload.get("picture").toString())
+                      .givenName(payload.get("given_name").toString())
+                      .id(userId)
+                      .file(fileWithHash.buffer().getBytes())
+                      .fileSize(fileWithHash.fileSize())
+                      .hash(fileWithHash.crc32())
+                      .active(true)
+                      .isAvailable(true)
+                      .hasRefreshToken(credential.getRefreshToken() != null)
+                      .expiresIn(credential.getExpirationTimeMilliseconds())
+                      .createdAt(DateUtil.utcLocalDateTime())
+                      .build();
 
-              return service.create(emailConfig)
-                  .replaceWith(Response.temporaryRedirect(new URI("/")).build());
-            })
-            .flatMap(RxUtil::single);
-      }
-    });
+                  return service.create(emailConfig)
+                      .replaceWith(Response.temporaryRedirect(new URI("/")).build());
+                })
+                .flatMap(RxUtil::single);
+          }
+        })
+        .onErrorReturn(throwable -> {
+          log.error("callback error: ", throwable);
+          return errorRedirect("Unknown error");
+        });
 
     return MutinyUtil.toUni(single);
   }

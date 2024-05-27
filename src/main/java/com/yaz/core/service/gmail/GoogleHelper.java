@@ -11,6 +11,7 @@ import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.GmailScopes;
 import com.yaz.core.service.gmail.domain.GmailConfig;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.List;
@@ -59,7 +60,9 @@ public final class GoogleHelper {
   }
 
   public GoogleAuthorizationCodeFlow flow(String userId) throws IOException {
-    final var dataStoreFactory = new FileDataStoreFactory(Paths.get(GmailHelper.DIR, userId).toFile());
+    final var file = Paths.get(GmailHelper.DIR, userId).toFile();
+    file.mkdirs();
+    final var dataStoreFactory = new FileDataStoreFactory(file);
     return new Builder(httpTransport(), jsonFactory(), gmailConfig.clientId(), gmailConfig.clientSecret(),
         SCOPES)
         .setDataStoreFactory(dataStoreFactory)
