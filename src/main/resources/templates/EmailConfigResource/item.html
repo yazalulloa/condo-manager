@@ -11,42 +11,42 @@ class="fade-me-out fade-me-in"
 <div
     class="hover:bg-[#00000014] rounded-lg py-2 px-4 bg-neutral flex-wrap flex-row flex justify-between items-center gap-2">
   <div class="flex flex-row gap-4 items-center">
-    <img src="{res.item.user.picture}" alt="Avatar" class="w-10 h-10 rounded-full" referrerpolicy="no-referrer">
+    <img src="{res.item.picture}" alt="Avatar" class="w-10 h-10 rounded-full" referrerpolicy="no-referrer">
     <div class="flex-col flex justify-between">
-      <span>{res.item.user.name}</span>
-      <span>{res.item.user.email}</span>
+      <span>{res.item.name}</span>
+      <span>{res.item.email}</span>
     </div>
   </div>
 
   <div class="tooltip tooltip-bottom"
-       data-tip="{res.item.emailConfig.hash}">
-    <span class="text-sm">{res.item.emailConfig.fileSize.formatFileSize}</span>
+       data-tip="{res.item.hash}">
+    <span class="text-sm">{res.item.fileSize.formatFileSize}</span>
   </div>
 
 
   <div>
   <span
       class="inline-block whitespace-nowrap rounded-full px-[0.65em] pb-[0.25em] pt-[0.35em] text-center align-baseline text-[0.75em] font-bold leading-none
-{res.item.emailConfig.active ? 'bg-success-100 text-success-700' : 'bg-danger-100 text-danger-700'}
+{res.item.active ? 'bg-success-100 text-success-700' : 'bg-danger-100 text-danger-700'}
 ">
-    {res.item.emailConfig.active ? 'Activo' : 'Desactivado'}
+    {res.item.active ? 'Activo' : 'Desactivado'}
   </span>
   </div>
 
-  {!<div hidden="hidden">{res.item.emailConfig.stacktrace}</div>!}
+  {!<div hidden="hidden">{res.item.stacktrace}</div>!}
 
   <div
-    {#if res.item.emailConfig.stacktrace}
+    {#if res.item.stacktrace}
         class="tooltip tooltip-bottom"
-        data-tip="{res.item.emailConfig.stacktrace}"
+        data-tip="{res.item.stacktrace}"
     {/if}
   >
 
     <span
         class="inline-block whitespace-nowrap rounded-full px-[0.65em] pb-[0.25em] pt-[0.35em] text-center align-baseline text-[0.75em] font-bold leading-none
-         {res.item.emailConfig.isAvailable ? (res.item.hasExpired ? 'bg-warning-100 text-warning-700' : 'bg-success-100 text-success-700') : 'bg-danger-100 text-danger-700'}"
+         {res.item.isAvailable ? (res.item.hasExpired ? 'bg-warning-100 text-warning-700' : 'bg-success-100 text-success-700') : 'bg-danger-100 text-danger-700'}"
     >
-      {res.item.emailConfig.isAvailable ? (res.item.hasExpired ? 'Expirado' : 'Disponible') : 'Error'}
+      {res.item.isAvailable ? (res.item.hasExpired ? 'Expirado' : 'Disponible') : 'Error'}
 
     </span>
   </div>
@@ -54,27 +54,27 @@ class="fade-me-out fade-me-in"
   <div>
       <span
           class="inline-block whitespace-nowrap rounded-full px-[0.65em] pb-[0.25em] pt-[0.35em] text-center align-baseline text-[0.75em] font-bold leading-none
-{res.item.emailConfig.hasRefreshToken ? 'bg-success-100 text-success-700' : 'bg-danger-100 text-danger-700'}
+{res.item.hasRefreshToken ? 'bg-success-100 text-success-700' : 'bg-danger-100 text-danger-700'}
 "> Refresh
       </span>
   </div>
 
   <div class="flex flex-col justify-between text-sm">
-    {#if res.item.emailConfig.expiresIn}
-    <span>Expira: {res.item.emailConfig.expiresIn.fromEpochMillis}</span>
+    {#if res.item.expiresIn}
+    <span>Expira: {res.item.expiresIn.fromEpochMillis}</span>
     {/if}
-    <span>Creado: {res.item.emailConfig.createdAt.formatDate}</span>
-    {#if res.item.emailConfig.updatedAt}
-    <span>Actualizado: {res.item.emailConfig.updatedAt.formatDate}</span>
+    <span>Creado: {res.item.createdAt.formatDate}</span>
+    {#if res.item.updatedAt}
+    <span>Actualizado: {res.item.updatedAt.formatDate}</span>
     {/if}
-    {#if res.item.emailConfig.lastCheckAt}
-    <span>Ultima verificación: {res.item.emailConfig.lastCheckAt.formatDate}</span>
+    {#if res.item.lastCheckAt}
+    <span>Ultima verificación: {res.item.lastCheckAt.formatDate}</span>
     {/if}
   </div>
 
 <div>
   <button class="btn"
-          hx-put="/api/email_configs/check/{res.item.emailConfig.userId}"
+          hx-put="/api/email_configs/check/{res.item.id}"
           hx-headers='{"{inject:csrf.headerName}":"{inject:csrf.token}"}'
           hx-trigger="click"
           hx-indicator=".htmx-indicator"

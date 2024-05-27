@@ -20,8 +20,7 @@ class EmailConfigServiceTest {
   void sizecheck() {
     final var list = service.list(EmailConfigQuery.builder().build()).await().indefinitely();
 
-    list.forEach(emailConfigUser -> {
-      final var emailConfig = emailConfigUser.emailConfig();
+    list.forEach(emailConfig -> {
 
       final var length = emailConfig.file().length;
       final var fileSize = emailConfig.fileSize();

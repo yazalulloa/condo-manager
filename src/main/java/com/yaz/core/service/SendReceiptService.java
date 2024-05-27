@@ -17,7 +17,6 @@ import com.yaz.core.service.pdf.ReceiptPdfService;
 import com.yaz.core.util.DateUtil;
 import com.yaz.core.util.RxUtil;
 import com.yaz.core.util.rx.RetryWithDelay;
-import com.yaz.persistence.domain.EmailConfigUser;
 import com.yaz.persistence.entities.Receipt;
 import com.yaz.persistence.entities.Receipt.Keys;
 import io.reactivex.rxjava3.core.Completable;
@@ -71,7 +70,6 @@ public class SendReceiptService {
 
           final var emailConfigSingle = gmailService.loadItem(receipt.emailConfigId())
               .map(EmailConfigTableItem::item)
-              .map(EmailConfigUser::emailConfig)
               .flatMap(emailConfig -> {
 
                 if (emailConfig.stacktrace() != null) {
@@ -93,7 +91,7 @@ public class SendReceiptService {
 
                 final var month = translationProvider.translate(receipt.month().name());
 
-                final var gmail = new GmailHolder(gmailHelper.gmail(emailConfig.userId()));
+                final var gmail = new GmailHolder(gmailHelper.gmail(emailConfig.id()));
 
                 AtomicInteger counter = new AtomicInteger();
 
@@ -188,7 +186,6 @@ public class SendReceiptService {
 
           final var emailConfigSingle = gmailService.loadItem(receipt.emailConfigId())
               .map(EmailConfigTableItem::item)
-              .map(EmailConfigUser::emailConfig)
               .flatMap(emailConfig -> {
 
                 if (emailConfig.stacktrace() != null) {
@@ -216,7 +213,7 @@ public class SendReceiptService {
                 .build();
             final var mimeMessage = MimeMessageUtil.createEmail(emailRequest);
 
-            final var gmail = gmailHelper.gmail(emailConfig.userId());
+            final var gmail = gmailHelper.gmail(emailConfig.id());
             final var messageWithEmail = GmailUtil.createMessageWithEmail(mimeMessage);
             return gmail.users().messages().send("me", messageWithEmail)
                 .execute()

@@ -12,7 +12,8 @@ import lombok.Builder;
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record EmailConfig(
-    String userId,
+    String id,
+    String subject,
     String email,
     String name,
     String picture,
@@ -28,5 +29,14 @@ public record EmailConfig(
     LocalDateTime updatedAt,
     LocalDateTime lastCheckAt,
     String stacktrace) {
+
+  public boolean hasExpired() {
+    return expiresIn() == null || expiresIn() < System.currentTimeMillis();
+  }
+
+  public boolean shouldGetNewOne() {
+
+    return hasExpired() && !hasRefreshToken();
+  }
 
 }

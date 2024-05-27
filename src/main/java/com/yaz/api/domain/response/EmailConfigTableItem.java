@@ -2,7 +2,7 @@ package com.yaz.api.domain.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yaz.api.resource.EmailConfigResource;
-import com.yaz.persistence.domain.EmailConfigUser;
+import com.yaz.persistence.entities.EmailConfig;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
@@ -13,7 +13,7 @@ import lombok.experimental.Accessors;
 @Builder(toBuilder = true)
 public class EmailConfigTableItem {
 
-  private final EmailConfigUser item;
+  private final EmailConfig item;
   private final boolean outOfBoundUpdate;
   @JsonIgnore
   @Getter(lazy = true)
@@ -25,7 +25,7 @@ public class EmailConfigTableItem {
   @Getter(lazy = true)
   private final String deleteUrl = genDeleteUrl();
 
-  public static EmailConfigTableItem ofItem(EmailConfigUser item) {
+  public static EmailConfigTableItem ofItem(EmailConfig item) {
     return EmailConfigTableItem.builder()
         .item(item)
         .outOfBoundUpdate(false)
@@ -33,11 +33,11 @@ public class EmailConfigTableItem {
   }
 
   public String genCardId() {
-    return "email-config-card-id-" + item().emailConfig().userId();
+    return "email-config-card-id-" + item().id();
   }
 
   public String genDeleteUrl() {
-    return EmailConfigResource.DELETE_PATH + item().emailConfig().userId();
+    return EmailConfigResource.DELETE_PATH + item().id();
   }
 
   public String genCardIdRef() {

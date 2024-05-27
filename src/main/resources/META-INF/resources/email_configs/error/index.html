@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Error Configuracion de Email</title>
+  <link href="/out/css/output.css" rel="stylesheet"/>
+  <script src="/out/js/index.js" defer></script>
+</head>
+<body >
+
+<div class="bg-base-100 text-center" id="header-container" hx-swap-oob="true">
+  <h2><strong>Error Configuracion de Email</strong></h2>
+</div>
+
+<div id="container" hx-swap-oob="true" class="p-12">
+  <div
+      hx-get="/api/email_configs/error"
+      hx-indicator=".htmx-indicator"
+      hx-vals="js:{id: getLastUrlSegmentCurrent()}"
+      hx-trigger="load"
+      hx-swap="outerHTML">
+    <div>
+      <img class="htmx-indicator white-filter img-medium-size center" src="/assets/bars.svg" alt="spinner">
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

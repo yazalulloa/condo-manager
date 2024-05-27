@@ -21,7 +21,7 @@ import lombok.experimental.Accessors;
 @Accessors(fluent = true)
 @RequiredArgsConstructor
 public final class GoogleHelper {
-  private static final List<String> SCOPES = List.of("openid", "email", "profile", GmailScopes.GMAIL_LABELS,
+  public static final List<String> SCOPES = List.of("openid", "email", "profile", GmailScopes.GMAIL_LABELS,
       GmailScopes.GMAIL_SEND);
 
   private final GmailConfig gmailConfig;

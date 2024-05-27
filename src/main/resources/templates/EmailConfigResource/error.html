@@ -1,0 +1,10 @@
+<div class="flex flex-col gap-4 text-center items-center fade-me-in">
+    <div>{msg}</div>
+
+    <button class="btn btn-primary"
+            hx-get="/email_configs"
+            hx-push-url="true"
+            hx-trigger="click">
+        Regresar
+    </button>
+</div>

@@ -88,19 +88,25 @@ CREATE INDEX IF NOT EXISTS users_provider_id_idx ON users (provider, provider_id
 
 CREATE TABLE IF NOT EXISTS email_configs
 (
-    user_id           VARCHAR(50) NOT NULL,
-    file              BLOB        NOT NULL,
-    file_size         INT         NOT NULL,
-    hash              BIGINT      NOT NULL,
-    active            BOOL        NOT NULL,
-    is_available      BOOL        NOT NULL,
+    id                VARCHAR(50)  NOT NULL,
+    subject           TEXT         NOT NULL,
+    email             VARCHAR(320) NOT NULL,
+    given_name        VARCHAR(100) NOT NULL,
+    name              VARCHAR(200) NOT NULL,
+    picture           VARCHAR(500) NOT NULL,
+
+    file              BLOB         NOT NULL,
+    file_size         INT          NOT NULL,
+    hash              BIGINT       NOT NULL,
+    active            BOOL         NOT NULL,
+    is_available      BOOL         NOT NULL,
     expires_in        BIGINT,
-    has_refresh_token BOOL        NOT NULL,
+    has_refresh_token BOOL         NOT NULL,
     created_at        DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at        DATETIME,
     last_check_at     DATETIME,
     stacktrace        TEXT,
-    PRIMARY KEY (user_id)
+    PRIMARY KEY (id)
 );
 
 

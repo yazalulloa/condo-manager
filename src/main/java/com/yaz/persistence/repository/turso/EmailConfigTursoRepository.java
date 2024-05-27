@@ -5,8 +5,6 @@ import com.yaz.api.domain.response.EmailConfigTableItem;
 import com.yaz.core.util.DateUtil;
 import com.yaz.core.util.SqlUtil;
 import com.yaz.core.util.StringUtil;
-import com.yaz.persistence.domain.EmailConfigUser;
-import com.yaz.persistence.domain.IdentityProvider;
 import com.yaz.persistence.domain.query.EmailConfigQuery;
 import com.yaz.persistence.entities.EmailConfig;
 import com.yaz.persistence.repository.EmailConfigRepository;
@@ -30,58 +28,46 @@ import lombok.extern.slf4j.Slf4j;
 public class EmailConfigTursoRepository implements EmailConfigRepository {
 
   private static final String COLLECTION = "email_configs";
-  private static final String READ = "SELECT * FROM %s WHERE user_id = ?".formatted(COLLECTION);
-  private static final String EXISTS = "SELECT user_id FROM %s WHERE user_id = ?".formatted(COLLECTION);
-  private static final String DELETE = "DELETE FROM %s WHERE user_id = ?".formatted(COLLECTION);
+  private static final String READ = "SELECT * FROM %s WHERE id = ?".formatted(COLLECTION);
+  private static final String EXISTS = "SELECT id FROM %s WHERE id = ?".formatted(COLLECTION);
+  private static final String DELETE = "DELETE FROM %s WHERE id = ?".formatted(COLLECTION);
   private static final String INSERT = """
-      INSERT INTO %s (user_id, file, file_size, hash, active, is_available, has_refresh_token, expires_in) VALUES (%s);
-      """.formatted(COLLECTION, SqlUtil.params(8));
+      INSERT INTO %s (id, subject, email, name, picture, given_name, file, file_size, hash, active, is_available, has_refresh_token, expires_in) VALUES (%s);
+      """.formatted(COLLECTION, SqlUtil.params(13));
 
   private static final String COMMON_FIELDS = """
-      email_configs.user_id, email_configs.file_size, email_configs.hash, email_configs.active,
-      email_configs.is_available, email_configs.has_refresh_token, email_configs.expires_in, email_configs.created_at,
-      email_configs.updated_at, email_configs.last_check_at, email_configs.stacktrace
+      id, subject, email, name, picture, given_name, file_size, hash, active,
+      is_available, has_refresh_token, expires_in, created_at,
+      updated_at, last_check_at, stacktrace
       """;
 
-  private static final String SELECT_WITH_USER = """
-      SELECT %s,
-      users.provider_id, users.provider, users.email, users.username, users.name, users.picture
-           FROM email_configs
-           LEFT JOIN users ON email_configs.user_id = users.id
-            %s
-      GROUP BY email_configs.user_id
-      ORDER BY email_configs.user_id ASC LIMIT ?;
+  private static final String SELECT_WITH_FIELDS = """
+      SELECT %s FROM email_configs %s ORDER BY id ASC LIMIT ?;
       """;
-  private static final String READ_WITH_USER = """
-      SELECT %s, users.provider_id, users.provider, users.email, users.username, users.name, users.picture
-         FROM email_configs
-         INNER JOIN users ON email_configs.user_id = users.id
-         WHERE email_configs.user_id = ?;
+  private static final String READ_WITH_FIELDS = """
+      SELECT %s FROM email_configs WHERE id = ?;
       """;
 
   private static final String UPDATE = """
       UPDATE %s
       SET file = ?, file_size = ?, hash = ?, is_available = ?, has_refresh_token = ?, expires_in = ?, updated_at = ?, 
-      last_check_at = ?, stacktrace = ? WHERE user_id = ?;
+      last_check_at = ?, stacktrace = ? WHERE id = ?;
       """.formatted(COLLECTION);
   private static final String SELECT_DISPLAY = """
-      SELECT email_configs.user_id,users.email, users.username, users.name, users.picture
-           FROM email_configs
-           LEFT JOIN users ON email_configs.user_id = users.id
-      ORDER BY users.email DESC;
+      SELECT id, subject, email, name, picture, given_name FROM email_configs ORDER BY email DESC;
       """;
 
   private static final String UPDATE_LAST_CHECK = """
       UPDATE %s
       SET has_refresh_token = ?, expires_in = ?, last_check_at = ?, is_available = true, stacktrace = null
-      WHERE user_id = ?;
+      WHERE id = ?;
       """.formatted(COLLECTION);
 
   private final TursoWsService tursoWsService;
 
   @Override
   public Uni<Long> count() {
-    return tursoWsService.count("user_id", COLLECTION);
+    return tursoWsService.count("id", COLLECTION);
   }
 
   @Override
@@ -105,7 +91,14 @@ public class EmailConfigTursoRepository implements EmailConfigRepository {
   private EmailConfig from(Row row) {
 
     return EmailConfig.builder()
-        .userId(row.getString("user_id"))
+        .id(row.getString("id"))
+
+        .subject(row.getString("subject"))
+        .email(row.getString("email"))
+        .name(row.getString("name"))
+        .picture(row.getString("picture"))
+        .givenName(row.getString("given_name"))
+
         .file(row.getBlob("file"))
         .fileSize(row.getLong("file_size"))
         .hash(row.getLong("hash"))
@@ -120,25 +113,14 @@ public class EmailConfigTursoRepository implements EmailConfigRepository {
         .build();
   }
 
-  private EmailConfigUser.User userFrom(Row row) {
-    return EmailConfigUser.User.builder()
-        .providerId(row.getString("provider_id"))
-        .provider(row.getEnum("provider", IdentityProvider::valueOf))
-        .email(row.getString("email"))
-        .username(row.getString("username"))
-        .name(row.getString("name"))
-        .picture(row.getString("picture"))
-        .build();
-  }
-
-  private EmailConfigUser fromWithUser(Row row) {
-    return new EmailConfigUser(userFrom(row), from(row));
-  }
 
   @Override
   public Uni<Integer> create(EmailConfig emailConfig) {
 
-    final var stmt = Stmt.stmt(INSERT, Value.text(emailConfig.userId()), Value.blob(emailConfig.file()),
+    final var stmt = Stmt.stmt(INSERT, Value.text(emailConfig.id()), Value.text(emailConfig.subject()),
+        Value.text(emailConfig.email()),
+        Value.text(emailConfig.name()), Value.text(emailConfig.picture()), Value.text(emailConfig.givenName()),
+        Value.blob(emailConfig.file()),
         Value.number(emailConfig.fileSize()), Value.number(emailConfig.hash()), Value.bool(emailConfig.active()),
         Value.bool(emailConfig.isAvailable()), Value.bool(emailConfig.hasRefreshToken()),
         Value.number(emailConfig.expiresIn())
@@ -152,17 +134,17 @@ public class EmailConfigTursoRepository implements EmailConfigRepository {
     final var lastId = StringUtil.trimFilter(query.lastId());
     if (lastId == null) {
 
-      return Stmt.stmt(SELECT_WITH_USER.formatted(COMMON_FIELDS, ""), Value.number(query.limit()));
+      return Stmt.stmt(SELECT_WITH_FIELDS.formatted(COMMON_FIELDS, ""), Value.number(query.limit()));
     }
 
-    final var sql = SELECT_WITH_USER.formatted(COMMON_FIELDS, "WHERE email_configs.user_id > ?");
+    final var sql = SELECT_WITH_FIELDS.formatted(COMMON_FIELDS, "WHERE id > ?");
 
     return Stmt.stmt(sql, Value.text(lastId), Value.number(query.limit()));
   }
 
   @Override
-  public Uni<List<EmailConfigUser>> select(EmailConfigQuery query) {
-    return tursoWsService.selectQuery(selectQuery(query), this::fromWithUser);
+  public Uni<List<EmailConfig>> select(EmailConfigQuery query) {
+    return tursoWsService.selectQuery(selectQuery(query), this::from);
   }
 
   @Override
@@ -174,7 +156,7 @@ public class EmailConfigTursoRepository implements EmailConfigRepository {
         Value.bool(emailConfig.hasRefreshToken()),
         Value.number(emailConfig.expiresIn()), Value.text(emailConfig.updatedAt()),
         Value.text(emailConfig.lastCheckAt()),
-        Value.text(emailConfig.stacktrace()), Value.text(emailConfig.userId())
+        Value.text(emailConfig.stacktrace()), Value.text(emailConfig.id())
     );
 
     return tursoWsService.executeQuery(stmt)
@@ -184,8 +166,8 @@ public class EmailConfigTursoRepository implements EmailConfigRepository {
   @Override
   public Uni<Optional<EmailConfigTableItem>> readWithUser(String id) {
 
-    return tursoWsService.selectOne(Stmt.stmt(READ_WITH_USER.formatted(COMMON_FIELDS), Value.text(id)),
-            this::fromWithUser)
+    return tursoWsService.selectOne(Stmt.stmt(READ_WITH_FIELDS.formatted(COMMON_FIELDS), Value.text(id)),
+            this::from)
         .map(opt -> opt.map(EmailConfigTableItem::ofItem));
   }
 
@@ -214,9 +196,9 @@ public class EmailConfigTursoRepository implements EmailConfigRepository {
 
   private EmailConfigDto fromDisplay(Row row) {
     return EmailConfigDto.builder()
-        .id(row.getString("user_id"))
+        .id(row.getString("id"))
         .email(row.getString("email"))
-        .username(row.getString("username"))
+        .username(row.getString("giver_name"))
         .name(row.getString("name"))
         .picture(row.getString("picture"))
         .build();

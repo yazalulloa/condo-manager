@@ -1,9 +1,6 @@
 package com.yaz.api.resource;
 
 import com.google.api.client.auth.oauth2.AuthorizationCodeResponseUrl;
-import com.google.api.client.auth.openidconnect.IdTokenResponse;
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken.Payload;
 import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
 import com.google.api.client.http.GenericUrl;
 import com.yaz.api.domain.response.EmailConfigTableItem;
@@ -39,7 +36,9 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriBuilder;
 import java.io.IOException;
 import java.net.URI;
-import java.util.Objects;
+import java.net.URISyntaxException;
+import java.util.Base64;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jboss.resteasy.reactive.RestPath;
@@ -69,14 +68,15 @@ public class EmailConfigResource {
     public static native TemplateInstance refresh(String url);
 
     public static native TemplateInstance item(EmailConfigTableItem res);
+
+    public static native TemplateInstance error(String msg);
   }
 
-
-  private String getUserId(SecurityIdentity identity) {
-    final var userId = Objects.requireNonNull(identity.getAttribute("userId")).toString();
-    log.info("userId: {}", userId);
-    return userId;
-  }
+//  private String getUserId(SecurityIdentity identity) {
+//    final var userId = Objects.requireNonNull(identity.getAttribute("userId")).toString();
+//    log.info("userId: {}", userId);
+//    return userId;
+//  }
 
   private String getRedirectUri(HttpServerRequest req) {
     //log.info("getRedirectUri uri: {}", req.uri());
@@ -100,7 +100,7 @@ public class EmailConfigResource {
   private Response responseRedirect(String userId, HttpServerRequest request) throws IOException {
     final var flow = gmailHelper.flow(userId);
     final var authorizationUrl = flow.newAuthorizationUrl();
-    authorizationUrl.setState(RandomUtil.randomIntStr(10));
+    authorizationUrl.setState(userId);
     authorizationUrl.setRedirectUri(getRedirectUri(request));
 
     final var url = UriBuilder.fromUri(authorizationUrl.build())
@@ -119,27 +119,51 @@ public class EmailConfigResource {
 
   @GET
   @Path("add")
-  public Uni<?> redirect(HttpServerRequest request, @Context SecurityIdentity securityContext) {
-    log.info("securityContext: {}", securityContext);
+  public Response redirect(HttpServerRequest request) throws IOException {
+    return responseRedirect(RandomUtil.getRandNumb(20), request);
 
-    final var userId = getUserId(securityContext);
-    final var single = gmailService.loadItem(userId)
-        .map(item -> {
+//    final var userId = getUserId(securityContext);
+//    final var single = gmailService.loadItem(userId)
+//        .map(item -> {
+//
+//          if (item.item().shouldGetNewOne() || item.item().emailConfig().stacktrace() != null) {
+//            return responseRedirect(userId, request);
+//          } else {
+//            final var tableItem = item.toBuilder()
+//                .outOfBoundUpdate(true)
+//                .build();
+//            return Templates.item(tableItem);
+//          }
+//
+//        })
+//        .switchIfEmpty(Single.fromCallable(() -> responseRedirect(userId, request)));
+//
+//    return MutinyUtil.toUni(single);
 
-          if (item.item().shouldGetNewOne() || item.item().emailConfig().stacktrace() != null) {
-            return responseRedirect(userId, request);
-          } else {
-            final var tableItem = item.toBuilder()
-                .outOfBoundUpdate(true)
-                .build();
-            return Templates.item(tableItem);
-          }
+  }
 
-        })
-        .switchIfEmpty(Single.fromCallable(() -> responseRedirect(userId, request)));
+  @GET
+  @Path("error")
+  public TemplateInstance error(@RestQuery String id) {
+    final var json = StringUtil.trimFilter(id);
 
-    return MutinyUtil.toUni(single);
+    if (json == null) {
+      return Templates.refresh("/");
+    }
 
+    try {
+      final var decoded = Base64.getUrlDecoder().decode(json.getBytes());
+      final var msg = new String(decoded);
+      return Templates.error(msg);
+    } catch (Exception e) {
+      log.error("error: {}", e.getMessage());
+      return Templates.error("Unknown error");
+    }
+  }
+
+  private Response errorRedirect(String msg) throws URISyntaxException {
+    return Response.temporaryRedirect(
+        new URI("/email_configs/error/" + Base64.getUrlEncoder().encodeToString(msg.getBytes()))).build();
   }
 
   @GET
@@ -157,18 +181,34 @@ public class EmailConfigResource {
             .put("errorDescription", responseUrl.getErrorDescription())
             .put("errorUri", responseUrl.getErrorUri());
 
-        return Single.just(Response.status(200).entity(jsonObject).build());
+        log.error("callback error: {}", jsonObject);
+
+        final var error = Optional.ofNullable(responseUrl.getErrorDescription())
+            .orElse(responseUrl.getError());
+
+        return Single.just(errorRedirect(error));
       } else if (code == null) {
-        return Single.just(Response.status(400).entity("Missing authorization code").build());
+        return Single.just(errorRedirect("Missing code"));
       } else {
 
-        final var userId = getUserId(identity);
+        //final var userId = getUserId(identity);
+        final var userId = request.params().get("state");
         final var flow = gmailHelper.flow(userId);
 
         final var redirectUri = getRedirectUri(request);
         //log.info("callback redirectUri: {}", redirectUri);
 
         final var response = (GoogleTokenResponse) flow.newTokenRequest(code).setRedirectUri(redirectUri).execute();
+
+        final var completeScopes = GoogleHelper.SCOPES.stream()
+            .map(scope -> response.getScope().contains(scope))
+            .reduce(Boolean::logicalAnd)
+            .orElse(false);
+
+        if (!completeScopes) {
+          return Single.just(errorRedirect("Missing functionality"));
+        }
+
         log.info("token response: {}", response);
         final var googleIdToken = googleHelper.googleIdTokenVerifier().verify(response.getIdToken());
         final var payload = googleIdToken.getPayload();
@@ -180,13 +220,12 @@ public class EmailConfigResource {
             .andThen(vertxHelper.fileWithHash(GmailHelper.DIR + "/" + userId + "/StoredCredential"))
             .map(fileWithHash -> {
               final var emailConfig = EmailConfig.builder()
-                  .userId(payload.getSubject())
+                  .subject(payload.getSubject())
                   .email(payload.getEmail())
                   .name(payload.get("name").toString())
                   .picture(payload.get("picture").toString())
                   .givenName(payload.get("given_name").toString())
-
-                  .userId(userId)
+                  .id(userId)
                   .file(fileWithHash.buffer().getBytes())
                   .fileSize(fileWithHash.fileSize())
                   .hash(fileWithHash.crc32())

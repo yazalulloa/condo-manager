@@ -50,16 +50,15 @@ public class GmailChecker {
     final var ids = new HashSet<String>();
     return RxUtil.paging(emailConfigService.pagingProcessor(1), list -> {
           return Observable.fromIterable(list)
-              .flatMapCompletable(emailConfigUser -> {
-                ids.add(emailConfigUser.emailConfig().userId());
+              .flatMapCompletable(emailConfig -> {
+                ids.add(emailConfig.id());
 
-                if (emailConfigUser.shouldGetNewOne()) {
+                if (emailConfig.shouldGetNewOne()) {
                   return Completable.complete();
                 }
 
-                final var emailConfig = emailConfigUser.emailConfig();
-                return check(emailConfig.userId(), emailConfig.hash())
-                    .doOnError(throwable -> log.error("ERROR with config {}", emailConfig.userId(), throwable))
+                return check(emailConfig.id(), emailConfig.hash())
+                    .doOnError(throwable -> log.error("ERROR with config {}", emailConfig.id(), throwable))
                     .onErrorComplete();
               });
         })
@@ -109,7 +108,7 @@ public class GmailChecker {
                           .map(buffer -> {
 
                             return EmailConfig.builder()
-                                .userId(userId)
+                                .id(userId)
                                 .file(buffer.getBytes())
                                 .fileSize(buffer.length())
                                 .hash(currentHash)

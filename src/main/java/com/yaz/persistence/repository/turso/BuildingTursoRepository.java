@@ -59,7 +59,6 @@ public class BuildingTursoRepository implements BuildingRepository {
       round_up_payments) VALUES %s ON CONFLICT DO NOTHING;
       """;
 
-
   private static final String EMAIL_CONFIG_DELETED = "UPDATE %s SET email_config_id = NULL WHERE id IN (%s)";
 
   private static final String EXISTS = "SELECT id FROM %s WHERE id = ? LIMIT 1".formatted(COLLECTION);

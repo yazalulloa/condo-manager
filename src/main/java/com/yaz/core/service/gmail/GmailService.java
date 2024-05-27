@@ -26,8 +26,8 @@ public class GmailService {
             return Maybe.just(item);
           }
 
-          final var emailConfig = item.item().emailConfig();
-          return gmailChecker.check(emailConfig.userId(), emailConfig.hash())
+          final var emailConfig = item.item();
+          return gmailChecker.check(emailConfig.id(), emailConfig.hash())
               .andThen(RxUtil.single(emailConfigService.readItem(id)))
               .flatMapMaybe(Maybe::fromOptional);
         })
