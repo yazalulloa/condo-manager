@@ -8,8 +8,18 @@
 </head>
 <body >
 
-<div class="bg-base-100 text-center" id="header-container" hx-swap-oob="true" >
-  <h2>Editar Recibo</h2>
+<div class="flex flex-row justify-between px-6 bg-base-100 text-center items-center" id="header-container" hx-swap-oob="true">
+  <button class="btn btn-square btn-outline"
+          hx-get="/stc/receipts/"
+          hx-swap="none"
+          hx-trigger="click"
+          hx-on::before-request="modifyUrl(this)">
+    <img src="/assets/left-arrow.svg" style="width: 1.5rem; height: 1.5rem;" alt="back to buildings">
+  </button>
+  <h2><strong>Editar Recibo</strong></h2>
+  <div>
+
+  </div>
 </div>
 
 <div id="container" hx-swap-oob="true" class="h-full p-4">

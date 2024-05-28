@@ -33,9 +33,9 @@ public class BuildingTursoRepository implements BuildingRepository {
 
   private static final String COLLECTION = "buildings";
   private static final String SELECT = """
-      SELECT buildings.*, users.email as config_email, COUNT(apartments.building_id) as apt_count
+      SELECT buildings.*, email_configs.email as config_email, COUNT(apartments.building_id) as apt_count
       FROM buildings
-      LEFT JOIN users ON buildings.email_config_id = users.id
+      LEFT JOIN email_configs ON buildings.email_config_id = email_configs.id
       LEFT JOIN apartments ON buildings.id = apartments.building_id 
       %s
       GROUP BY buildings.id
@@ -185,25 +185,6 @@ public class BuildingTursoRepository implements BuildingRepository {
             Value.text(building.emailConfigId()), Value.text(building.id()))
         .map(e -> e.result().rowCount());
 
-  }
-
-  private String insertParams(Building building) {
-    return Stream.of(
-            building.id(),
-            building.name(),
-            building.rif(),
-            building.mainCurrency().name(),
-            building.debtCurrency().name(),
-            building.currenciesToShowAmountToPay().stream()
-                .map(Enum::name)
-                .collect(Collectors.joining(",")),
-            building.fixedPay(),
-            building.fixedPayAmount(),
-            building.roundUpPayments(),
-            building.emailConfigId()
-        )
-        .map(SqlUtil::escape)
-        .collect(Collectors.joining(","));
   }
 
   @Override

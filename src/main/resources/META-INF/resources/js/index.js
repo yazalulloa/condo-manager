@@ -245,7 +245,7 @@ window.initNav = function () {
       //console.log("current-nav: {}", item);
       if (item) {
         let elem = document.getElementById(item);
-        elem?.dispatchEvent(new Event('navigate'));
+        elem?.dispatchEvent(new CustomEvent('navigate'));
         return;
       }
       let navbar = document.getElementsByClassName("navbar-start");
@@ -255,7 +255,7 @@ window.initNav = function () {
         if (anchors.length > 0) {
           let anchor = anchors[0];
           localStorage.setItem("current-nav", anchor.id);
-          anchor.dispatchEvent(new Event('navigate'));
+          anchor.dispatchEvent(new CustomEvent('navigate'));
         }
       }
 
@@ -271,7 +271,7 @@ window.initNav = function () {
       //console.log("current-nav: {}", item);
       if (item) {
         let elem = document.getElementById(item);
-        elem?.dispatchEvent(new Event('navigate'));
+        elem?.dispatchEvent(new CustomEvent('navigate'));
         return;
       }
       let navbar = document.getElementsByClassName("navbar-start");
@@ -281,7 +281,7 @@ window.initNav = function () {
         if (anchors.length > 0) {
           let anchor = anchors[0];
           localStorage.setItem("current-nav", anchor.id);
-          anchor.dispatchEvent(new Event('navigate'));
+          anchor.dispatchEvent(new CustomEvent('navigate'));
         }
       }
 
@@ -289,7 +289,7 @@ window.initNav = function () {
   } else {
     let element = document.getElementById("nav-helper");
     if (element) {
-      element.dispatchEvent(new Event('navigate'));
+      element.dispatchEvent(new CustomEvent('navigate'));
     }
   }
 }

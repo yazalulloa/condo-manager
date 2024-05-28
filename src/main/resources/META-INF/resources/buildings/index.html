@@ -10,8 +10,10 @@
 <div class="header bg-base-100" id="header-container" hx-swap-oob="true">
   <span id="buildings-total-counter"></span>
 
-  <button class="btn btn-primary" hx-get="/stc/buildings/new"
-          hx-indicator=".htmx-indicator">
+  <button class="btn btn-primary"
+          hx-get="/stc/buildings/new/"
+          hx-swap="none"
+          hx-on::before-request="modifyUrl(this)">
     Nuevo Edificio
   </button>
 

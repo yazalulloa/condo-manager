@@ -1,239 +1,242 @@
 {@com.yaz.api.domain.response.BuildingFormDto dto}
 
 {#if dto.shouldRedirect}
-<div hx-get="/stc/buildings" hx-indicator=".htmx-indicator" hx-trigger="load"></div>
+    <div hx-get="/stc/buildings/" hx-indicator=".htmx-indicator" hx-trigger="load"></div>
 
 {#else}
-<form class="flex flex-col w-4/6 align-middle center gap-4 p-12"
-      hx-swap="outerHTML"
-      data-te-validation-init
-{#if dto.isEdit}
-      hx-patch="/api/buildings"
-{#else}
-      hx-post="/api/buildings/new"
-{/if}
-      hx-indicator=".htmx-indicator"
+    <form class="flex flex-col w-4/6 align-middle center gap-4 p-12"
+          hx-swap="outerHTML"
+          data-te-validation-init
+            {#if dto.isEdit}
+                hx-patch="/api/buildings"
+            {#else}
+                hx-post="/api/buildings/new"
+            {/if}
+          hx-indicator=".htmx-indicator"
 
 
-      script="
-          {#if !dto.isNew && !dto.isSuccess}
+          script="
+          {#if ! dto.isNew && ! dto.isSuccess}
         init set @data-te-validated to 'true'
   {/if}
 "
->
-
-    <input type="hidden" name="{inject:csrf.parameterName}" value="{inject:csrf.token}"
-           script="init set @data-te-validation-state to invalid"/>
-
-
-{#if dto.isEdit}
-
-    <input type="hidden" name="key" value="{dto.key}">
-
-{#else}
-
-    <cm-form-input
-    class=""
-    id="idField"
-    name="id"
-    value="{dto.id}"
-    maxlength="20"
-    placeholder="ID"
-{#if dto.idFieldError}
-    input-error="{dto.idFieldError}"
-{/if}
-{#if dto.isEdit}
-    disabled="disabled"
-{/if}
-
->
-
-</cm-form-input>
-
-{/if}
-
-
-
-
-    <cm-form-input
-    id="nameField"
-    name="name"
-    value="{dto.name}"
-    maxlength="100"
-    placeholder="Nombre"
-{#if dto.nameFieldError}
-    input-error="{dto.nameFieldError}"
-{/if}
->
-
-</cm-form-input>
-
-  <cm-form-input
-      id="rifField"
-      name="rif"
-      value="{dto.rif}"
-      maxlength="20"
-      placeholder="RIF"
-    {#if dto.rifFieldError}
-        input-error="{dto.rifFieldError}"
-    {/if}
-  >
-
-  </cm-form-input>
-
-<div class="content-center flex flex-row justify-center gap-4">
-<label class="label gap-4">
-
-  <span class="label-text">Moneda Principal</span>
-<select class="select select-bordered w-full" name="mainCurrency">
-    <option value="USD"
-{#if dto.mainCurrency == 'USD'}
-            selected
-{/if}
->USD
-</option>
-  <option value="VED"
-    {#if dto.mainCurrency == 'VED'}
-          selected
-    {/if}
-  >VED
-  </option>
-</select>
-</label>
-
-  <label class="label gap-4">
-    <span class="label-text">Moneda Deudas</span>
-    <select class="select select-bordered w-full" name="debtCurrency">
-      <option value="USD"
-        {#if dto.debtCurrency == 'USD'}
-              selected
-        {/if}
-      >USD
-      </option>
-      <option value="VED"
-        {#if dto.debtCurrency == 'VED'}
-              selected
-        {/if}
-      >VED
-      </option>
-    </select>
-  </label>
-</div>
-
-<div class="flex flex-row gap-4 p-2">
-<div class="flex flex-col center">
-  <label class="center label label-text">Monedas a mostrar al pagar</label>
-<div class="flex flex-row">
-{#each GLO_CURRENCIES}
-<div class="form-control">
-
-<label class="label cursor-pointer">
-<span class="label-text p-2">{it}</span>
-  <input type="checkbox"
-    {#if dto.currenciesToShowAmountToPay.contains(it)}
-         checked="checked"
-    {/if}
-        value="{it}" name="currenciesToShowAmountToPay"
-         class="checkbox checkbox-primary"/>
-</label>
-</div>
-{/each}
-</div>
-</div>
-
-
-
-<div class="flex flex-col center">
-<label class="cursor-pointer label flex flex-row  gap-4">
-  <span class="label-text">Monto Fijo</span>
-    <input name="fixedPay" type="checkbox"
-{#if dto.fixedPay}
-           checked="checked"
-{/if}
-           class="checkbox checkbox-primary"
-           value="true"
-           script="on click toggle @hidden on next <cm-form-input/>"/>
-
-    <cm-form-input
-    type="number"
-    id="fixedAmountField"
-    name="fixedPayAmount"
-    min="1"
-    value="{dto.fixedPayAmount}"
-    maxlength="10"
-    step=".01"
-    placeholder="Monto fijo"
-
-{#if dto.fixedPayAmountFieldError}
-    input-error="{dto.fixedPayAmountFieldError}"
-{/if}
-{#if !dto.fixedPay}
-    hidden
-{/if}
->
-
-</cm-form-input>
-
-
-</label>
-
-  <label class="cursor-pointer label flex flex-row  gap-4">
-    <span class="label-text">Redondear Pagos</span>
-    <input name="roundUpPayments" type="checkbox"
-      {#if dto.roundUpPayments}
-           checked="checked"
-      {/if}
-           value="true"
-           class="checkbox checkbox-primary"/>
-  </label>
-</div>
-</div>
-
-<div>
-<label class="form-control w-full">
-
-
-
-  <div class="label">
-    <span class="label-text">Configuración email</span>
-  </div>
-<select class="select select-bordered w-full" name="emailConfig">
-{#for item in dto.emailConfigs}
-    <option
-    value="{item.id}"
-{#if item.id == dto.emailConfig}
-    selected
-{/if}
     >
-  <span>{item.name}</span>
-  <span>{item.email}</span>
 
-</option>
+        <input type="hidden" name="{inject:csrf.parameterName}" value="{inject:csrf.token}"
+               script="init set @data-te-validation-state to invalid"/>
 
-{/for}
 
-</select>
-</label>
+        {#if dto.isEdit}
 
-</div>
+            <input type="hidden" name="key" value="{dto.key}">
 
-  {#if dto.generalFieldError}
-      <div class="m-auto p-2">
-          <span class="text-red-500 text-xs">{dto.generalFieldError}</span>
-      </div>
-  {/if}
+        {#else}
 
-<div class="header p-6">
-<button id="apt-form-btn-submit" class="btn btn-primary">
-{#if dto.isEdit}
-  EDITAR
-{#else}
-  CREAR
-{/if}
-</button>
-  <img class="htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">
-</div>
-</form>
+            <cm-form-input
+                    class=""
+                    id="idField"
+                    name="id"
+                    value="{dto.id}"
+                    maxlength="20"
+                    placeholder="ID"
+                    {#if dto.idFieldError}
+                        input-error="{dto.idFieldError}"
+                    {/if}
+                    {#if dto.isEdit}
+                        disabled="disabled"
+                    {/if}
+
+            >
+
+            </cm-form-input>
+
+        {/if}
+
+
+        <cm-form-input
+                id="nameField"
+                name="name"
+                value="{dto.name}"
+                maxlength="100"
+                placeholder="Nombre"
+                {#if dto.nameFieldError}
+                    input-error="{dto.nameFieldError}"
+                {/if}
+        >
+
+        </cm-form-input>
+
+        <cm-form-input
+                id="rifField"
+                name="rif"
+                value="{dto.rif}"
+                maxlength="20"
+                placeholder="RIF"
+                {#if dto.rifFieldError}
+                    input-error="{dto.rifFieldError}"
+                {/if}
+        >
+
+        </cm-form-input>
+
+        <div class="content-center flex flex-row justify-center gap-4">
+            <label class="label gap-4">
+
+                <span class="label-text">Moneda Principal</span>
+                <select class="select select-bordered w-full" name="mainCurrency">
+                    <option value="USD"
+                            {#if dto.mainCurrency == 'USD'}
+                                selected
+                            {/if}
+                    >USD
+                    </option>
+                    <option value="VED"
+                            {#if dto.mainCurrency == 'VED'}
+                                selected
+                            {/if}
+                    >VED
+                    </option>
+                </select>
+            </label>
+
+            <label class="label gap-4">
+                <span class="label-text">Moneda Deudas</span>
+                <select class="select select-bordered w-full" name="debtCurrency">
+                    <option value="USD"
+                            {#if dto.debtCurrency == 'USD'}
+                                selected
+                            {/if}
+                    >USD
+                    </option>
+                    <option value="VED"
+                            {#if dto.debtCurrency == 'VED'}
+                                selected
+                            {/if}
+                    >VED
+                    </option>
+                </select>
+            </label>
+        </div>
+
+        <div class="flex flex-row gap-4 p-2">
+            <div class="flex flex-col center">
+                <label class="center label label-text">Monedas a mostrar al pagar</label>
+                <div class="flex flex-row">
+                    {#each GLO_CURRENCIES}
+                        <div class="form-control">
+
+                            <label class="label cursor-pointer">
+                                <span class="label-text p-2">{it}</span>
+                                <input type="checkbox"
+                                        {#if dto.currenciesToShowAmountToPay.contains(it)}
+                                            checked="checked"
+                                        {/if}
+                                       value="{it}" name="currenciesToShowAmountToPay"
+                                       class="checkbox checkbox-primary"/>
+                            </label>
+                        </div>
+                    {/each}
+                </div>
+            </div>
+
+
+            <div class="flex flex-col center">
+                <label class="cursor-pointer label flex flex-row  gap-4">
+                    <span class="label-text">Monto Fijo</span>
+                    <input name="fixedPay" type="checkbox"
+                            {#if dto.fixedPay}
+                                checked="checked"
+                            {/if}
+                           class="checkbox checkbox-primary"
+                           value="true"
+                           script="on click toggle @hidden on next <cm-form-input/>"/>
+
+                    <cm-form-input
+                            type="number"
+                            id="fixedAmountField"
+                            name="fixedPayAmount"
+                            min="1"
+                            value="{dto.fixedPayAmount}"
+                            maxlength="10"
+                            step=".01"
+                            placeholder="Monto fijo"
+
+                            {#if dto.fixedPayAmountFieldError}
+                                input-error="{dto.fixedPayAmountFieldError}"
+                            {/if}
+                            {#if ! dto.fixedPay}
+                                hidden
+                            {/if}
+                    >
+
+                    </cm-form-input>
+
+
+                </label>
+
+                <label class="cursor-pointer label flex flex-row  gap-4">
+                    <span class="label-text">Redondear Pagos</span>
+                    <input name="roundUpPayments" type="checkbox"
+                            {#if dto.roundUpPayments}
+                                checked="checked"
+                            {/if}
+                           value="true"
+                           class="checkbox checkbox-primary"/>
+                </label>
+            </div>
+        </div>
+
+        <div>
+            <label class="form-control w-full">
+
+
+                <div class="label">
+                    <span class="label-text">Configuración email</span>
+                </div>
+                <select class="select select-bordered w-full" name="emailConfig">
+                    {#for item in dto.emailConfigs}
+                        <option
+                                value="{item.id}"
+                                {#if item.id == dto.emailConfig}
+                                    selected
+                                {/if}
+                        >
+                            <span>{item.name}</span>
+                            <span>{item.email}</span>
+
+                        </option>
+
+                    {/for}
+
+                </select>
+            </label>
+
+        </div>
+
+        {#if dto.generalFieldError}
+            <div class="m-auto p-2">
+                <span class="text-red-500 text-xs">{dto.generalFieldError}</span>
+            </div>
+        {/if}
+
+        <div class="header p-6">
+            <button id="apt-form-btn-submit" class="btn btn-primary">
+                {#if dto.isEdit}
+                    Editar
+                {#else}
+                    Crear
+                {/if}
+            </button>
+            <button type="button" class="btn btn-secondary"
+                    hx-get="/stc/buildings/"
+                    hx-swap="none"
+                    hx-trigger="click"
+                    hx-on::before-request="modifyUrl(this)">
+                Cancelar
+            </button>
+            <img class="htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">
+        </div>
+    </form>
 
 {/if}
 

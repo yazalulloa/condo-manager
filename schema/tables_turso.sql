@@ -134,7 +134,7 @@ CREATE TABLE IF NOT EXISTS buildings
     fixed_pay                        BOOL                                           NOT NULL,
     fixed_pay_amount                 DECIMAL(16, 2),
     round_up_payments                BOOL                                           NOT NULL,
-    email_config_id                  BINARY(16),
+    email_config_id                  TEXT,
     created_at                       DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at                       DATETIME
 );

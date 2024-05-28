@@ -132,8 +132,9 @@ public class StaticReactiveRoutes {
   @Route(path = "redirect", methods = HttpMethod.GET)
   void redirect(RoutingContext rc) {
     final var value = StringUtil.trimFilter(rc.request().getParam("v"));
-    //log.info("redirect {}", value);
+
     if (value == null) {
+      log.info("redirect {}", rc.request().uri());
       rc.response().setStatusCode(404).end();
     } else {
       rc.reroute(value);
