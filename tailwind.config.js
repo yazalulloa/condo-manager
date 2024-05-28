@@ -80,7 +80,7 @@ module.exports = {
     },
   },
   daisyui: {
-    themes: ["cupcake", "dracula", "cmyk"],
+      themes: ["cupcake", "dracula", "cmyk"],
     // themes: false, // true: all themes | false: only light + dark | array: specific themes like this ["light", "dark", "cupcake"]
     darkTheme: "dracula", // name of one of the included themes for dark mode
     base: true, // applies background color and foreground color for root element by default
