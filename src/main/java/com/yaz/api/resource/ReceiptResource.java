@@ -20,6 +20,7 @@ import com.yaz.api.domain.response.ReserveFundFormDto;
 import com.yaz.api.domain.response.ReserveFundTableItem;
 import com.yaz.api.extensions.TemplateExtensions;
 import com.yaz.api.resource.fragments.Fragments;
+import com.yaz.core.roles.RoleUtil;
 import com.yaz.core.service.EncryptionService;
 import com.yaz.core.service.SendReceiptService;
 import com.yaz.core.service.TranslationProvider;
@@ -54,6 +55,7 @@ import io.quarkus.qute.TemplateInstance;
 import io.reactivex.rxjava3.core.Single;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.json.Json;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -145,6 +147,7 @@ public class ReceiptResource {
 
   @GET
   @Path("init")
+  @RolesAllowed("RECEIPTS_READ")
   @Produces(MediaType.TEXT_HTML)
   public Uni<TemplateInstance> init() {
     final var buildingsUni = buildingService.ids();
@@ -161,6 +164,7 @@ public class ReceiptResource {
 
   @GET
   @Path("counters")
+  @RolesAllowed("RECEIPTS_READ")
   @Produces(MediaType.TEXT_HTML)
   public Uni<TemplateInstance> counters(@RestQuery("building_input") Set<String> building,
       @RestQuery("month_input") Set<Integer> months,
@@ -189,6 +193,7 @@ public class ReceiptResource {
   }
 
   @GET
+  @RolesAllowed("RECEIPTS_READ")
   @Produces(MediaType.TEXT_HTML)
   public Uni<TemplateInstance> receipts(
       @RestQuery String nextPage,

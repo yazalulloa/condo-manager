@@ -10,9 +10,9 @@
     id="{item.cardId}">
 
 <div class="flex-grow receipt-grid-container"
-     hx-get="/stc/receipts/edit/{item.key}"
+     hx-get="/stc/receipts/edit/"
      hx-trigger="click"
-     hx-on::before-request="modifyUrl(this)">
+     hx-on::before-request="saveResource('receipt', '{item.key}')">
   <span>{item.item.buildingId}</span>
 
   <div class="flex flex-row gap-2 justify-center">
@@ -66,9 +66,9 @@
         </a>
       </li>
       <li>
-        <a hx-get="/stc/receipts/pdfs/{item.key}"
+        <a hx-get="/stc/receipts/pdfs/"
            hx-indicator=".htmx-indicator"
-           hx-on::before-request="modifyUrl(this)"
+           hx-on::before-request="saveResource('receipt', '{item.key}')"
            hx-swap="none">
           <img src="/assets/pdf-logo.svg" style="width:25px;height:25px;" alt="download-zip-pdfs">
           Ver PDFs

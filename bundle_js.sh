@@ -1,13 +1,14 @@
 DIR=$(dirname "$(readlink -f "$0")")
 RES_DIR=$DIR/src/main/resources/META-INF/resources
 
+
 if [ -n "$1" ]
 then
   echo "Minify"
-  bun build --minify  --outdir="$RES_DIR"/out "$RES_DIR"/js
+  bun --env-file=bunenv.env build --minify --target=browser --outdir="$RES_DIR"/out "$DIR"/frontend/js
 else
   echo "Watching"
-  bun build --outdir="$RES_DIR"/out "$RES_DIR"/js  --watch
+  bun --env-file=bunenv.env build --target=browser --outdir="$RES_DIR"/out "$DIR"/frontend/js  --watch
 fi
 
 

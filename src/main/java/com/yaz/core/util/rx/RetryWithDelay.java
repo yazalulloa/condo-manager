@@ -6,6 +6,7 @@ import io.netty.resolver.dns.DnsNameResolverTimeoutException;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.functions.BiConsumer;
 import io.reactivex.rxjava3.functions.Function;
+import io.vertx.core.http.HttpClosedException;
 import java.net.NoRouteToHostException;
 import java.net.UnknownHostException;
 import java.util.Objects;
@@ -65,7 +66,7 @@ public class RetryWithDelay implements Function<Flowable<? extends Throwable>, F
     return retry(maxRetryCount, retryDelay, timeUnit,
         t -> {
           final var shouldRetry = ReflectionUtil.isInstanceOf(t, DnsNameResolverTimeoutException.class,
-              UnknownHostException.class,
+              UnknownHostException.class, HttpClosedException.class,
               SSLException.class, SSLHandshakeException.class,
               ProxyConnectException.class, NoRouteToHostException.class
               //        , ConnectException.class

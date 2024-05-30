@@ -16,7 +16,7 @@
   <div
       hx-get="/api/receipts/pdfs"
       hx-indicator=".htmx-indicator"
-      hx-vals="js:{id: getLastUrlSegmentCurrent()}"
+      hx-vals="js:{id: getResource('receipt', 'pdfs/')}"
       hx-trigger="load"
       hx-swap="outerHTML">
     <div>

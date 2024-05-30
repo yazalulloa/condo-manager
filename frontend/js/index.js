@@ -13,7 +13,6 @@ import {
 import './loader.js';
 import './sse.js';
 // import './components.js';
-import _hyperscript from 'hyperscript.org';
 import './elements.js';
 
 import Alpine from 'alpinejs'
@@ -21,6 +20,7 @@ import Alpine from 'alpinejs'
 window.Alpine = Alpine
 Alpine.start();
 
+import _hyperscript from 'hyperscript.org';
 _hyperscript.browserInit();
 
 window.initComponents = function () {
@@ -555,5 +555,23 @@ window.sendEvent = function (id, eventName) {
   if (elem) {
     elem.dispatchEvent(new CustomEvent(eventName));
   }
+}
+
+window.saveResource = function (key, value) {
+  saveToLocalStorage(key, value);
+}
+
+window.getResource = function (key, path) {
+  let storageValue = getFromLocalStorage(key);
+  let segmentValue = getLastUrlSegmentCurrent();
+  localStorage.removeItem(key);
+
+  let value = storageValue ?? segmentValue;
+
+  if (storageValue) {
+    let pathname = window.location.href + path  + value;
+    window.history.pushState(window.history.state, document.title, pathname);
+  }
+  return value;
 }
 

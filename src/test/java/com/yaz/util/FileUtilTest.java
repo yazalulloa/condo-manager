@@ -14,7 +14,7 @@ class FileUtilTest {
 
   @Test
   void checksum() throws IOException {
-    final var hash = FileUtil.checksumInputStream(new File(path));
+    final var hash = FileUtil.hashFile(new File(path));
 
     final var buffer = vertx.fileSystem().readFile(path).blockingGet();
 

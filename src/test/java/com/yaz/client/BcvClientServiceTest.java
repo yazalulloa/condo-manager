@@ -2,7 +2,7 @@ package com.yaz.client;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.yaz.core.client.BcvClientService;
+import com.yaz.core.bcv.BcvClientService;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;

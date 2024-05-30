@@ -2,8 +2,8 @@ package com.yaz.core.service.entity;
 
 import com.yaz.api.domain.response.RateTableResponse;
 import com.yaz.api.domain.response.RateTableResponse.Item;
-import com.yaz.core.client.BcvClientService;
-import com.yaz.core.domain.BcvUsdRateResult;
+import com.yaz.core.bcv.BcvClientService;
+import com.yaz.core.bcv.BcvUsdRateResult;
 import com.yaz.core.service.EncryptionService;
 import com.yaz.core.service.ListService;
 import com.yaz.core.service.ListServicePagingProcessorImpl;
@@ -28,7 +28,6 @@ import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -42,7 +41,7 @@ import org.jsoup.Jsoup;
 
 @Slf4j
 @ApplicationScoped
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
+@RequiredArgsConstructor
 public class RateService {
 
 
@@ -194,18 +193,8 @@ public class RateService {
         .map(optional -> optional.orElseThrow(() -> new IllegalArgumentException("Rate not found: " + id)));
   }
 
-  private record BcvCheck(String etag, String lastModified) {
-
-  }
-
   private Maybe<BcvUsdRateResult> bcvCheck(Rate rate) {
-    return bcvClientService.head()
-        .map(response -> {
-          final var etag = response.getHeaderString("etag");
-          final var lastModified = response.getHeaderString("last-modified");
-
-          return new BcvCheck(etag, lastModified);
-        })
+    return bcvClientService.bcvCheck()
         .filter(bcvCheck -> bcvCheck.etag().equals(rate.etag()))
         .map(b -> new BcvUsdRateResult(BcvUsdRateResult.State.ETAG_IS_SAME));
   }

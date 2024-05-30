@@ -1,12 +1,15 @@
-package com.yaz.core.client;
+package com.yaz.core.bcv;
 
-import com.yaz.core.util.RxUtil;
 import com.yaz.core.util.rx.RetryWithDelay;
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.file.OpenOptions;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.client.WebClientOptions;
-import io.vertx.mutiny.core.Vertx;
-import io.vertx.mutiny.ext.web.client.WebClient;
+import io.vertx.rxjava3.core.Vertx;
+import io.vertx.rxjava3.core.buffer.Buffer;
+import io.vertx.rxjava3.ext.web.client.HttpResponse;
+import io.vertx.rxjava3.ext.web.client.WebClient;
+import io.vertx.rxjava3.ext.web.codec.BodyCodec;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
@@ -18,6 +21,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 public class AlternateBcvClient implements BcvClient {
 
   private final String url;
+  private final Vertx vertx;
   private final WebClient client;
 
   @Inject
@@ -40,6 +44,7 @@ public class AlternateBcvClient implements BcvClient {
 
     this.client = WebClient.create(vertx, options);
     this.url = url;
+    this.vertx = vertx;
   }
 
   public Single<Response> get() {
@@ -52,7 +57,7 @@ public class AlternateBcvClient implements BcvClient {
 
   public Single<Response> bcv(HttpMethod httpMethod) {
 
-    return RxUtil.single(client.requestAbs(httpMethod, url).send())
+    return client.requestAbs(httpMethod, url).send()
         .doOnError(throwable -> log.error("BCV_HTTP_ERROR", throwable))
         .retryWhen(RetryWithDelay.retryIfFailedNetwork())
         .map(res -> {
@@ -64,6 +69,39 @@ public class AlternateBcvClient implements BcvClient {
 
           return responseBuilder.build();
         });
+  }
+
+  public Single<HttpResponse<Buffer>> get(String requestUri) {
+
+    return client.get(url.replace("https://", ""), requestUri)
+        .ssl(false)
+        .send()
+        .doOnError(throwable -> log.error("BCV_HTTP_ERROR", throwable))
+        .retryWhen(RetryWithDelay.retryIfFailedNetwork());
+  }
+
+  public Single<HttpResponse<Buffer>> headAbs(String url) {
+    return client.headAbs(url)
+        .send()
+        .doOnError(throwable -> log.error("BCV_HTTP_ERROR", throwable))
+        .retryWhen(RetryWithDelay.retryIfFailedNetwork());
+  }
+
+  public Single<HttpResponse<Void>> download(String path, String requestUri) {
+
+    return vertx.fileSystem().open(path, new OpenOptions().setWrite(true))
+        .flatMap(asyncFile -> {
+          log.info("Downloading file: {}", requestUri);
+          return client.getAbs(requestUri)
+              .as(BodyCodec.pipe(asyncFile))
+              .send()
+              .doOnError(throwable -> log.error("BCV_HTTP_ERROR", throwable))
+              .retryWhen(RetryWithDelay.retryIfFailedNetwork())
+              .doOnSuccess(s -> log.info("Downloaded file: {}", path))
+              ;
+        });
+
+
   }
 
 }

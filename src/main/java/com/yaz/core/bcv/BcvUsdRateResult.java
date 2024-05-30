@@ -1,4 +1,4 @@
-package com.yaz.core.domain;
+package com.yaz.core.bcv;
 
 
 import com.yaz.persistence.entities.Rate;

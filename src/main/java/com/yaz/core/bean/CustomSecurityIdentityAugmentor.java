@@ -27,6 +27,7 @@ public class CustomSecurityIdentityAugmentor implements SecurityIdentityAugmento
   @Override
   public Uni<SecurityIdentity> augment(SecurityIdentity identity, AuthenticationRequestContext context) {
     // log.info("CustomSecurityIdentityAugmentor.augment SecurityIdentity {} {} {}", identity, identity.isAnonymous(), identity.getAttributes());
+    // log.info("principal {}", identity.getPrincipal());
     RoutingContext routingContext = identity.getAttribute(RoutingContext.class.getName());
     final var userIdAttr = identity.getAttribute("userId");
     if (identity.getPrincipal() instanceof OidcJwtCallerPrincipal principal && userIdAttr == null) {
@@ -41,6 +42,7 @@ public class CustomSecurityIdentityAugmentor implements SecurityIdentityAugmento
 
               }
               builder.addAttribute("userId", optional.orElse(null));
+              builder.addRole("RECEIPTS_READ");
               //log.info("CustomSecurityIdentityAugmentor.augment userId {}", userId);
               return builder.build();
             });
@@ -48,7 +50,9 @@ public class CustomSecurityIdentityAugmentor implements SecurityIdentityAugmento
 
     }
 
+
     if (routingContext != null) {
+      log.info("UserId is set {} {}", userIdAttr, routingContext.request().path());
 
       if (routingContext.normalizedPath().endsWith("/github")) {
         QuarkusSecurityIdentity.Builder builder = QuarkusSecurityIdentity.builder(identity);

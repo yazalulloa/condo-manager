@@ -26,7 +26,7 @@
   <div
       hx-get="/api/buildings/edit_form"
       hx-indicator=".htmx-indicator"
-      hx-vals="js:{id: getLastUrlSegmentCurrent()}"
+      hx-vals="js:{id: getResource('building', 'edit/')}"
       hx-trigger="load"
       hx-swap="outerHTML">
     <div>

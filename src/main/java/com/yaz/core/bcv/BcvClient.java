@@ -1,7 +1,6 @@
-package com.yaz.core.client;
+package com.yaz.core.bcv;
 
 import io.reactivex.rxjava3.core.Single;
-import io.smallrye.mutiny.Uni;
 import jakarta.ws.rs.core.Response;
 
 public interface BcvClient {

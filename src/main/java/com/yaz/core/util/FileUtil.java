@@ -199,7 +199,7 @@ public class FileUtil {
     return byteCountToDisplaySize(BigDecimal.valueOf(size));
   }
 
-  public static long checksumInputStream(File file) throws IOException {
+  public static long hashFile(File file) throws IOException {
     try (final var in = new FileInputStream(file)) {
       final var crc = new CRC32();
       int c;

@@ -1,4 +1,4 @@
-package com.yaz.core.client;
+package com.yaz.core.bcv;
 
 import io.smallrye.mutiny.Uni;
 import jakarta.ws.rs.GET;

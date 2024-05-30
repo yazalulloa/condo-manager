@@ -1,7 +1,7 @@
 package com.yaz.core.service;
 
-import com.yaz.core.domain.BcvUsdRateResult;
-import com.yaz.core.domain.BcvUsdRateResult.State;
+import com.yaz.core.bcv.BcvUsdRateResult;
+import com.yaz.core.bcv.BcvUsdRateResult.State;
 import com.yaz.core.service.entity.RateService;
 import com.yaz.core.util.DateUtil;
 import com.yaz.core.util.DecimalUtil;

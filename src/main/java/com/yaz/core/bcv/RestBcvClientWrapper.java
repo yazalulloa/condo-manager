@@ -1,4 +1,4 @@
-package com.yaz.core.client;
+package com.yaz.core.bcv;
 
 import com.yaz.core.util.RxUtil;
 import io.reactivex.rxjava3.core.Single;

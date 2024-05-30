@@ -9,8 +9,8 @@ RES_DIR=$DIR/src/main/resources/META-INF/resources
 if [ -n "$1" ]
 then
   echo "Minify"
-  bunx tailwindcss -i "$RES_DIR"/css/styles.css -o "$RES_DIR"/out/css/output.css --minify
+  bunx tailwindcss -i "$DIR"/frontend/css/styles.css -o "$RES_DIR"/out/css/output.css --minify
 else
   echo "Watching"
-  bunx tailwindcss -i "$RES_DIR"/css/styles.css -o "$RES_DIR"/out/css/output.css --watch
+  bunx tailwindcss -i "$DIR"/frontend/css/styles.css -o "$RES_DIR"/out/css/output.css --watch
 fi

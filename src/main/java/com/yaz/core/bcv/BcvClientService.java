@@ -1,4 +1,4 @@
-package com.yaz.core.client;
+package com.yaz.core.bcv;
 
 import io.reactivex.rxjava3.core.Single;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -44,34 +44,13 @@ public class BcvClientService {
     return clientResponse(BcvClient::head);
   }
 
-//  public Single<Response> get() {
-//    return Single.defer(() -> {
-//      if (useAlternate.get()) {
-//        return alternateBcvClient.get();
-//      } else {
-//        return restBcvClient.get()
-//            .doOnError(throwable -> {
-//              log.error("ERROR GET BCV", throwable);
-//              useAlternate.set(true);
-//            })
-//            .onErrorResumeWith(alternateBcvClient.get());
-//      }
-//    }).doOnError(throwable -> log.error("ERROR GET BCV", throwable));
-//  }
+  public Single<BcvCheck> bcvCheck() {
+    return head()
+        .map(response -> {
+          final var etag = response.getHeaderString("etag");
+          final var lastModified = response.getHeaderString("last-modified");
 
-//  public Single<Response> head() {
-//
-//    return Single.defer(() -> {
-//      if (useAlternate.get()) {
-//        return alternateBcvClient.head();
-//      } else {
-//        return restBcvClient.head()
-//            .doOnError(throwable -> {
-//              log.error("ERROR HEAD BCV", throwable);
-//              useAlternate.set(true);
-//            })
-//            .onErrorResumeWith(alternateBcvClient.head());
-//      }
-//    }).doOnError(throwable -> log.error("ERROR HEAD BCV", throwable));
-//  }
+          return new BcvCheck(etag, lastModified);
+        });
+  }
 }
