@@ -1,6 +1,6 @@
 {@com.yaz.api.domain.AptItem item}
 
-<div class="break-all hover:bg-[#00000014] apartment-grid-container base-grid-cm p-1 fade-me-out fade-me-in"
+<div class="break-all hover:bg-[#00000014] apartment-grid-container base-grid-cm fade-me-out fade-me-in"
      id="{item.cardId}"
      hx-swap="outerHTML"
 
@@ -8,10 +8,7 @@
             hx-swap-oob="true"
         {/if}
 >
-    <div class="apartment-grid-content"
-         {!hx-get="{item.editUrl}"!}
-         {!hx-swap="none"!}
-         {!hx-trigger="click"!}
+    <div class="apartment-grid-content p-1"
          @click.prevent="$dispatch('edit-apt', '{item.editAttr.format}')"
     >
         <div>{item.apt.buildingId}</div>
