@@ -3,18 +3,28 @@
 {#include RateResource/counters totalCount=res.totalCount /}
 
 {#for item in res.results}
-
+<details>
+  <summary>
     <div class="hover:bg-[#00000014] border-solid p-0.5 oicd-token-grid base-grid-cm fade-me-out fade-me-in"
          id="{item.cardId}">
-  <span>{item.rate.id}</span>
-  <span>{item.rate.fromCurrency} &rightarrow; {item.rate.toCurrency}</span>
-  <span>{item.rate.rate.toDouble}</span>
-  <span>{item.rate.dateOfRate}</span>
-  <span>{item.rate.formatCreatedAt}</span>
+      <span>{item.rate.id}</span>
+      <span>{item.rate.fromCurrency} &rightarrow; {item.rate.toCurrency}</span>
+      <span>{item.rate.rate.toDouble}</span>
+      <span>{item.rate.dateOfRate}</span>
+      <span>{item.rate.formatCreatedAt}</span>
 
-{#include fragments/delete-btn deleteUrl=item.deleteUrl cardIdRef=item.cardIdRef/}
+            {#include fragments/delete-btn deleteUrl=item.deleteUrl cardIdRef=item.cardIdRef/}
 
-</div>
+    </div>
+  </summary>
+  <div class="flex flex-row gap-2 justify-center p-2 border-b-2">
+    <span>Hash: {item.rate.hash}</span>
+    <span>Etag: {item.rate.etag}</span>
+    <span>Last-Modified: {item.rate.lastModified}</span>
+  </div>
+
+</details>
+
 {/for}
 
 {#include fragments/next-page.html url = res.nextPageUrl /}

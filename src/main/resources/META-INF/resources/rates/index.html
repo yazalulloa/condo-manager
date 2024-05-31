@@ -6,7 +6,7 @@
   <link href="/out/css/output.css" rel="stylesheet"/>
   <script src="/out/js/index.js" defer></script>
 </head>
-<body >
+<body>
 
 
 <div class="bg-base-100" id="header-container" hx-swap-oob="true">
@@ -30,18 +30,18 @@
            hx-indicator=".htmx-indicator">
 
     <img class="htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">
-    <button class="btn btn-primary"
+    <button class="btn btn-primary hidden"
             hx-get="/api/rates/download"
             hx-indicator=".htmx-indicator"
             hx-swap="none">
       DOWNLOAD BACKUP
     </button>
 
-<!--    <div hx-get="/components/datepicker.html" hx-trigger="load" hx-swap="outerHTML"></div>-->
+    <!--    <div hx-get="/components/datepicker.html" hx-trigger="load" hx-swap="outerHTML"></div>-->
 
-<!--    <svelte-counter>-->
+    <!--    <svelte-counter>-->
 
-<!--    </svelte-counter>-->
+    <!--    </svelte-counter>-->
   </div>
 
   <div class="oicd-token-grid base-grid-cm p-2 font-bold">

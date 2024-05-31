@@ -24,6 +24,7 @@ public class LoadDataResource {
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public Uni<String> loadData() {
+
     if (true) {
       return Uni.createFrom().item("OK");
     }
@@ -33,6 +34,18 @@ public class LoadDataResource {
 
     return MutinyUtil.toUni(single);
     //return loadDataClient.loadBackup();
+  }
+
+  @GET
+  @Path("/historic_rates")
+  @Produces(MediaType.APPLICATION_JSON)
+  public Uni<String> historicRates() {
+    if (true) {
+      return Uni.createFrom().item("OK");
+    }
+
+    return MutinyUtil.toUni(backupService.historicRates())
+        .map(i -> "Rates: " + i);
   }
 
 }

@@ -23,7 +23,6 @@ public record RateTableResponse(
   @Builder
   public static class Item {
 
-
     private final String key;
     private final Rate rate;
 

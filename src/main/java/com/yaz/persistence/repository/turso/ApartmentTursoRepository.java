@@ -101,7 +101,7 @@ public class ApartmentTursoRepository implements ApartmentRepository {
 
   private static final String SELECT_MINIMAL_BY_BUILDING = """
       SELECT building_id, number, name FROM %s WHERE building_id = ? ORDER BY number
-            """.formatted(COLLECTION);
+      """.formatted(COLLECTION);
 
   private static final String SELECT_BY_BUILDING = """
       SELECT apartments.*,
@@ -111,15 +111,20 @@ public class ApartmentTursoRepository implements ApartmentRepository {
       WHERE apartments.building_id = ?
       GROUP BY apartments.building_id, apartments.number
       ORDER BY apartments.building_id, apartments.number
-            """.formatted(COLLECTION);
+      """;
+
   private static final String INSERT_IGNORE = """
-      INSERT IGNORE INTO %s (building_id, number, name, aliquot) 
-      VALUES %s;
+      INSERT INTO %s (building_id, number, name, aliquot)
+      VALUES %s ON CONFLICT DO NOTHING;
       """;
 
   private static final String EMAIL_COLLECTION = "apartment_emails";
   private static final String INSERT_EMAIL = "INSERT INTO %s (building_id, apt_number, email) VALUES (%s) ON CONFLICT DO NOTHING"
       .formatted(EMAIL_COLLECTION, SqlUtil.params(3));
+  private static final String INSERT_EMAIL_IGNORE = """
+      INSERT INTO %s (building_id, apt_number, email)
+      VALUES %s ON CONFLICT DO NOTHING;
+      """;
   public static final String DELETE_EMAIL = "DELETE FROM %s WHERE building_id = ? AND apt_number = ?".formatted(
       EMAIL_COLLECTION);
   public static final String DELETE_EMAIL_BY_BUILDING = "DELETE FROM %s WHERE building_id = ?".formatted(
@@ -364,7 +369,7 @@ public class ApartmentTursoRepository implements ApartmentRepository {
         .limit(emailsSize)
         .collect(Collectors.joining(","));
 
-    final var insertEmail = Stmt.stmt(INSERT_IGNORE.formatted(EMAIL_COLLECTION, emailParams), emailValues);
+    final var insertEmail = Stmt.stmt(INSERT_EMAIL_IGNORE.formatted(EMAIL_COLLECTION, emailParams), emailValues);
 
     return tursoWsService.executeQueries(insertApt, insertEmail)
         .map(resps -> {

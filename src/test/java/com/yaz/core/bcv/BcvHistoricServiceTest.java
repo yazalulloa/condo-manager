@@ -53,4 +53,11 @@ class BcvHistoricServiceTest {
   void fileLinks() {
     bcvHistoricService.fileLinks().blockingGet().forEach(System.out::println);
   }
+
+  @Test
+  void bcvCheck() {
+    final var bcvCheck = bcvHistoricService.bcvCheck().blockingGet();
+
+    System.out.println(bcvCheck);
+  }
 }

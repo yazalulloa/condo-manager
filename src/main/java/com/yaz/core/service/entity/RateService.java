@@ -3,6 +3,7 @@ package com.yaz.core.service.entity;
 import com.yaz.api.domain.response.RateTableResponse;
 import com.yaz.api.domain.response.RateTableResponse.Item;
 import com.yaz.core.bcv.BcvClientService;
+import com.yaz.core.bcv.BcvHistoricService;
 import com.yaz.core.bcv.BcvUsdRateResult;
 import com.yaz.core.service.EncryptionService;
 import com.yaz.core.service.ListService;
@@ -13,7 +14,6 @@ import com.yaz.core.util.Constants;
 import com.yaz.core.util.MutinyUtil;
 import com.yaz.core.util.PagingProcessor;
 import com.yaz.core.util.RxUtil;
-import com.yaz.core.util.StringUtil;
 import com.yaz.core.util.WriteEntityToFile;
 import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.domain.query.RateQuery;
@@ -28,8 +28,6 @@ import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
-import java.math.BigDecimal;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -37,7 +35,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jsoup.Jsoup;
 
 @Slf4j
 @ApplicationScoped
@@ -50,6 +47,7 @@ public class RateService {
   private final BcvClientService bcvClientService;
   private final WriteEntityToFile writeEntityToFile;
   private final EncryptionService encryptionService;
+  private final BcvHistoricService bcvHistoricService;
 
   private RateRepository repository() {
     //return repository.get();
@@ -135,52 +133,11 @@ public class RateService {
   }*/
 
   private Single<BcvUsdRateResult> newRateResult() {
-    return bcvClientService.get()
-        .map(response -> {
-          final var etag = response.getHeaderString("etag");
-          final var lastModified = response.getHeaderString("last-modified");
 
-          final var html = response.readEntity(String.class);
-          final var hash = StringUtil.crc32(html);
-
-          final var document = Jsoup.parse(html);
-
-          final var dolar = document.getElementById("dolar");
-
-          final var valDolar = dolar
-              .childNode(1)
-              .childNode(1)
-              .childNode(3)
-              .childNode(0)
-              .childNode(0)
-              .toString()
-              .replaceAll("\\.", "")
-              .replaceAll(",", ".")
-              .trim();
-
-          final var elementsByClass = document.getElementsByClass("pull-right dinpro center");
-
-          final var date = elementsByClass.get(0)
-              .childNode(1)
-              .attr("content")
-              .trim();
-
-          final var rate = new BigDecimal(valDolar);
-          final var dateOfRate = ZonedDateTime.parse(date).toLocalDate();
-
-          return Rate.builder()
-              .fromCurrency(Currency.USD)
-              .toCurrency(Currency.VED)
-              .rate(rate)
-              .dateOfRate(dateOfRate)
-              .source(Rate.Source.BCV)
-              .hash(hash)
-              .etag(etag)
-              .lastModified(lastModified)
-              .build();
-        })
-        .map(newRate -> new BcvUsdRateResult(BcvUsdRateResult.State.NEW_RATE, newRate))
-        .subscribeOn(Schedulers.io());
+    return //bcvClientService.currentRate()
+        bcvHistoricService.currentRate()
+            .map(newRate -> new BcvUsdRateResult(BcvUsdRateResult.State.NEW_RATE, newRate))
+            .subscribeOn(Schedulers.io());
   }
 
   @CacheResult(cacheName = RateCache.GET, lockTimeout = Constants.CACHE_TIMEOUT)
@@ -194,9 +151,10 @@ public class RateService {
   }
 
   private Maybe<BcvUsdRateResult> bcvCheck(Rate rate) {
-    return bcvClientService.bcvCheck()
-        .filter(bcvCheck -> bcvCheck.etag().equals(rate.etag()))
-        .map(b -> new BcvUsdRateResult(BcvUsdRateResult.State.ETAG_IS_SAME));
+    return //bcvClientService.bcvCheck()
+        bcvHistoricService.bcvCheck()
+            .filter(bcvCheck -> bcvCheck.etag().equals(rate.etag()))
+            .map(b -> new BcvUsdRateResult(BcvUsdRateResult.State.ETAG_IS_SAME));
   }
 
   public Single<BcvUsdRateResult> newRate() {

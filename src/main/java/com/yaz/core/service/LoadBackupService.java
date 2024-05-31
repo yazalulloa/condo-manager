@@ -1,5 +1,6 @@
 package com.yaz.core.service;
 
+import com.yaz.core.bcv.BcvHistoricService;
 import com.yaz.core.service.entity.ExtraChargeService;
 import com.yaz.core.service.entity.RateService;
 import com.yaz.core.service.entity.ReserveFundService;
@@ -10,6 +11,7 @@ import com.yaz.core.util.RxUtil;
 import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.domain.request.ExtraChargeCreateRequest;
 import com.yaz.persistence.domain.request.ReceiptCreateRequest;
+import com.yaz.persistence.entities.Apartment;
 import com.yaz.persistence.entities.Building;
 import com.yaz.persistence.entities.Debt;
 import com.yaz.persistence.entities.ExtraCharge;
@@ -18,12 +20,16 @@ import com.yaz.persistence.entities.ExtraCharge.Type;
 import com.yaz.persistence.entities.Rate;
 import com.yaz.persistence.entities.Receipt;
 import com.yaz.persistence.entities.ReserveFund;
+import com.yaz.persistence.mongo.MongoApartment;
 import com.yaz.persistence.mongo.MongoBuilding;
 import com.yaz.persistence.mongo.MongoReceipt;
 import com.yaz.persistence.mongo.MongoReceipt.MongoExtraCharge;
+import com.yaz.persistence.repository.ApartmentRepository;
+import com.yaz.persistence.repository.BuildingRepository;
 import com.yaz.persistence.repository.turso.ReceiptRepository;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -59,6 +65,15 @@ public class LoadBackupService {
   private final ReserveFundService reserveFundService;
   private final ExtraChargeService extraChargeService;
   private final PagingJsonFile pagingJsonFile = new PagingJsonFile();
+  private final BcvHistoricService bcvHistoricService;
+  private final BuildingRepository buildingRepository;
+  private final ApartmentRepository apartmentRepository;
+
+  public Single<Integer> historicRates() {
+    return bcvHistoricService.historicRates()
+        .map(rateService::insert)
+        .flatMap(MutinyUtil::single);
+  }
 
 
   public Completable load() {
@@ -108,6 +123,20 @@ public class LoadBackupService {
                       final var reserveFunds = new ArrayList<ReserveFund>();
 
                       for (MongoBuilding building : list) {
+                        final var newBuilding = Building.builder()
+                            .id(building.id())
+                            .name(building.name())
+                            .rif(building.rif())
+                            .mainCurrency(building.mainCurrency())
+                            .debtCurrency(building.debtCurrency())
+                            .currenciesToShowAmountToPay(building.currenciesToShowAmountToPay())
+                            .fixedPay(building.fixedPay())
+                            .fixedPayAmount(building.fixedPayAmount())
+                            .roundUpPayments(building.roundUpPayments())
+                            .build();
+
+                        buildings.add(newBuilding);
+
                         building.extraCharges().stream()
                             .collect(Collectors.groupingBy(MongoExtraCharge::description))
                             .values().stream()
@@ -149,7 +178,11 @@ public class LoadBackupService {
                           .flatMapSingle(MutinyUtil::single)
                           .ignoreElements();
 
-                      return Completable.mergeArray(insertExtraCharges, insertReserveFunds);
+                      final var insertBuildings = RxUtil.single(buildingRepository.insertIgnore(buildings))
+                          .doOnSuccess(i -> log.info("BUILDINGS INSERTED: {}", i))
+                          .ignoreElement();
+
+                      return Completable.mergeArray(insertExtraCharges, insertReserveFunds, insertBuildings);
 //                      return Observable.fromIterable(list)
 //                          .toList()
 //                          .map(buildingRepository.get()::insertIgnore)
@@ -160,37 +193,39 @@ public class LoadBackupService {
                     })
                     .doOnComplete(() -> log.info("BUILDINGS COMPLETED"))
                     .doOnError(throwable -> log.error("ERROR BUILDINGS", throwable));
+
                 addToList.accept(completable);
               }
               break;
               case "apartments.json.gz": {
 
-//                final var completable = pagingJsonFile.pagingJsonFile(100, fileName, MongoApartment.class, list -> {
-//
-//                      log.info("INSERTING APARTMENTS SIZE: {}", list.size());
-//                      return Observable.fromIterable(list)
-//                          .map(apt -> Apartment.builder()
-//                              .buildingId(apt.apartmentId().buildingId())
-//                              .number(apt.apartmentId().number())
-//                              .name(apt.name())
-//                              .aliquot(apt.amountToPay())
-//                              .emails(apt.emails())
-//                              .build())
-//                          .toList()
-//                          .map(apartmentRepository.get()::insert)
-//                          .retry(3)
-//                          .flatMap(RxUtil::single)
-//                          .doOnSuccess(i -> log.info("APARTMENTS INSERTED: {}", i))
-//                          .ignoreElement();
-//
-//                    })
-//                    .doOnComplete(() -> log.info("APARTMENTS COMPLETED"))
-//                    .doOnError(throwable -> log.error("ERROR APARTMENTS", throwable));
-//
-//                addToList.accept(completable);
+                final var completable = pagingJsonFile.pagingJsonFile(100, fileName, MongoApartment.class, list -> {
+
+                      log.info("INSERTING APARTMENTS SIZE: {}", list.size());
+                      return Observable.fromIterable(list)
+                          .map(apt -> Apartment.builder()
+                              .buildingId(apt.apartmentId().buildingId())
+                              .number(apt.apartmentId().number())
+                              .name(apt.name())
+                              .aliquot(apt.amountToPay())
+                              .emails(apt.emails())
+                              .build())
+                          .toList()
+                          .map(apartmentRepository::insert)
+                          .retry(3)
+                          .flatMap(RxUtil::single)
+                          .doOnSuccess(i -> log.info("APARTMENTS INSERTED: {}", i))
+                          .ignoreElement();
+
+                    })
+                    .doOnComplete(() -> log.info("APARTMENTS COMPLETED"))
+                    .doOnError(throwable -> log.error("ERROR APARTMENTS", throwable));
+
+                addToList.accept(completable);
               }
               break;
               case "rates.json.gz": {
+
                 final var completable = pagingJsonFile.pagingJsonFile(100, fileName, Rate.class, list -> {
 
                       return RxUtil.single(rateService.insert(list))
@@ -296,8 +331,11 @@ public class LoadBackupService {
                             .ignoreElements();
 
                       });
-                    });
-                // addToList.accept(completable);
+                    })
+                    .doOnComplete(() -> log.info("RECEIPTS COMPLETED"))
+                    .doOnError(throwable -> log.error("ERROR RECEIPTS", throwable));
+
+                addToList.accept(completable);
               }
               break;
             }

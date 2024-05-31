@@ -19,6 +19,7 @@ import java.io.FileInputStream;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,6 +29,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -48,6 +50,70 @@ public class BcvHistoricService {
 
   private final Vertx vertx;
   private final AlternateBcvClient client;
+
+  public Single<String> lastFile() {
+    return client.get("/estadisticas/tipo-cambio-de-referencia-smc")
+        .map(HttpResponse::bodyAsString)
+        .map(html -> {
+          final var document = Jsoup.parse(html);
+          final var section = document.getElementById("block-system-main");
+
+          if (section == null) {
+            log.error("Section not found");
+            throw new IllegalStateException("Section not found");
+          }
+
+          final var links = section.getElementsByTag("a");
+          if (links.isEmpty()) {
+            log.error("No links found");
+            throw new IllegalStateException("No links found");
+          }
+
+          final var first = links.first();
+
+          if (first == null) {
+            log.error("First link not found");
+            throw new IllegalStateException("First link not found");
+          }
+
+          final var value = first.attribute("href").getValue();
+
+          if (value.isEmpty()) {
+            log.error("First link value not found");
+            throw new IllegalStateException("First link value not found");
+          }
+
+          if (!value.endsWith(".xls")) {
+            log.error("First link value not an xls file");
+            throw new IllegalStateException("First link value not an xls file");
+          }
+
+          return value;
+        });
+  }
+
+  public Single<BcvCheck> bcvCheck() {
+    return lastFile()
+        .flatMap(client::headAbs)
+        .map(res -> new BcvCheck(res.getHeader("ETag"), res.getHeader("Last-Modified")));
+  }
+
+  public Single<Rate> currentRate() {
+    return lastFile()
+        .flatMap(url -> {
+          final var path = DIR + url.substring(url.lastIndexOf("/") + 1);
+          return cleanDir().andThen(client.download(path, url))
+              .flatMap(res -> {
+                final var headers = res.headers();
+                final var fileInfo = new FileInfo(path, url, headers.get("ETag"), headers.get("Last-Modified"),
+                    headers);
+
+                return parseWorkbook(fileInfo, true);
+              });
+        })
+        .map(Result::rates)
+        .map(List::getFirst);
+  }
 
   public Single<List<String>> fileLinks() {
     return client.get("/estadisticas/tipo-cambio-de-referencia-smc")
@@ -107,7 +173,7 @@ public class BcvHistoricService {
           return client.download(path, str)
               .map(res -> {
                 final var headers = res.headers();
-                return new FileInfo(path, headers.get("ETag"), headers.get("Last-Modified"), headers);
+                return new FileInfo(path, str, headers.get("ETag"), headers.get("Last-Modified"), headers);
               });
         })
         .flatMapSingle(this::parseWorkbook)
@@ -122,8 +188,10 @@ public class BcvHistoricService {
         .flatMap(list -> cleanDir().toSingleDefault(list));
   }
 
+  @Builder
   private record FileInfo(
       String path,
+      String url,
       String etag,
       String lastModified,
       MultiMap headers
@@ -131,12 +199,11 @@ public class BcvHistoricService {
 
   }
 
-
   public Single<List<Rate>> parseRates() {
     return vertx.fileSystem().readDir(DIR)
         .flatMapObservable(Observable::fromIterable)
         .flatMapSingle(path -> {
-          final var fileInfo = new FileInfo(path, null, null, null);
+          final var fileInfo = FileInfo.builder().path(path).build();
           return parseWorkbook(fileInfo);
         })
         .map(Result::rates)
@@ -145,6 +212,10 @@ public class BcvHistoricService {
   }
 
   private Single<Result> parseWorkbook(FileInfo fileInfo) {
+    return parseWorkbook(fileInfo, false);
+  }
+
+  private Single<Result> parseWorkbook(FileInfo fileInfo, boolean first) {
 
     final var path = fileInfo.path();
     return Single.fromCallable(() -> {
@@ -190,11 +261,15 @@ public class BcvHistoricService {
               .rate(BigDecimal.valueOf(rate))
               .dateOfRate(dateOfRate)
               .source(Source.BCV)
-              .createdAt(createdAt.toLocalDateTime())
+              .createdAt(createdAt.withZoneSameInstant(ZoneOffset.UTC).toLocalDateTime())
               .hash(hashFile)
               .etag(fileInfo.etag())
               .lastModified(fileInfo.lastModified())
               .build());
+
+          if (first) {
+            break;
+          }
 
 //          for (Row rateRow : sheet) {
 //
