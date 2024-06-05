@@ -1,7 +1,7 @@
 package com.yaz.core.service.entity;
 
 import com.yaz.api.domain.response.RateTableResponse;
-import com.yaz.api.domain.response.RateTableResponse.Item;
+import com.yaz.api.domain.response.RateTableItem;
 import com.yaz.core.bcv.BcvClientService;
 import com.yaz.core.bcv.BcvHistoricService;
 import com.yaz.core.bcv.BcvUsdRateResult;
@@ -174,7 +174,7 @@ public class RateService {
             .build()))
         .with((totalCount, list) -> {
           final var results = list.stream()
-              .map(rate -> Item.builder()
+              .map(rate -> RateTableItem.builder()
                   .key(encryptionService.encrypt(String.valueOf(rate.id())))
                   .rate(rate)
                   .build())

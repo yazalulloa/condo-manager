@@ -2,21 +2,19 @@ package com.yaz.core.service.pdf;
 
 import com.yaz.api.domain.response.ReceiptPdfResponse;
 import com.yaz.api.domain.response.ReceiptPdfResponse.Tab;
-import com.yaz.core.service.domain.CalculatedReceipt;
-import com.yaz.core.util.MutinyUtil;
 import com.yaz.core.service.CalculateReceiptService;
 import com.yaz.core.service.EncryptionService;
 import com.yaz.core.service.TranslationProvider;
+import com.yaz.core.service.domain.CalculatedReceipt;
 import com.yaz.core.service.domain.FileResponse;
+import com.yaz.core.util.MutinyUtil;
 import com.yaz.core.util.RxUtil;
-import com.yaz.persistence.entities.Apartment;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -46,7 +44,8 @@ public class ReceiptPdfService {
     return calculate(buildingId, receiptId)
         .observeOn(Schedulers.io())
         .map(receipt -> {
-          final var fileResponse = getPdfReceipts.zipReceipt(receipt);
+          final var pdfReceiptItems = getPdfReceipts.pdfItems(receipt);
+          final var fileResponse = getPdfReceipts.zipPath(receipt, pdfReceiptItems);
           return new ZipResponse(receipt, fileResponse);
         });
   }

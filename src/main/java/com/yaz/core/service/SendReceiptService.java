@@ -5,7 +5,6 @@ import com.yaz.api.domain.response.ReceiptTableItem;
 import com.yaz.api.resource.ReceiptResource.SendReceiptRequest;
 import com.yaz.core.event.domain.ReceiptAptSent;
 import com.yaz.core.service.entity.ReceiptService;
-import com.yaz.core.service.entity.UserService;
 import com.yaz.core.service.gmail.GmailHelper;
 import com.yaz.core.service.gmail.GmailHolder;
 import com.yaz.core.service.gmail.GmailService;
@@ -42,7 +41,6 @@ public class SendReceiptService {
   private final ReceiptService receiptService;
   private final GmailService gmailService;
   private final GmailConfig gmailConfig;
-  private final UserService userService;
   private final GmailHelper gmailHelper;
   private final TranslationProvider translationProvider;
   private final Event<ReceiptAptSent> receiptAptSentEvent;
@@ -68,7 +66,7 @@ public class SendReceiptService {
             return Single.error(new IllegalArgumentException("Email config not set in building"));
           }
 
-          final var emailConfigSingle = gmailService.loadItem(receipt.emailConfigId())
+          return gmailService.loadItem(receipt.emailConfigId())
               .map(EmailConfigTableItem::item)
               .flatMap(emailConfig -> {
 
@@ -78,14 +76,8 @@ public class SendReceiptService {
 
                 return Maybe.just(emailConfig);
               })
-              .switchIfEmpty(Single.error(new IllegalArgumentException("Email config not found")));
-
-          final var userSingle = RxUtil.single(userService.read(receipt.emailConfigId()))
-              .flatMapMaybe(Maybe::fromOptional)
-              .switchIfEmpty(Single.error(new IllegalArgumentException("User not found")));
-
-          return Single.zip(emailConfigSingle, userSingle, (emailConfig, user) -> {
-
+              .switchIfEmpty(Single.error(new IllegalArgumentException("Email config not found")))
+              .map(emailConfig -> {
                 final var subject = Optional.ofNullable(subjectParam)
                     .orElse("AVISO DE COBRO") + " %s %s Adm. %s APT: %s";
 
@@ -114,7 +106,7 @@ public class SendReceiptService {
                             return "";
                           }
                           final var emailRequest = ReceiptEmailRequest.builder()
-                              .from(user.email())
+                              .from(emailConfig.email())
                               .to(gmailConfig.useAlternativeReceiptTo() ? gmailConfig.receiptTo() : item.emails())
                               .subject(subject.formatted(month, receipt.year(), receipt.building().name(), item.id()))
                               .text(Optional.ofNullable(msgParam).orElse("AVISO DE COBRO"))
@@ -184,7 +176,7 @@ public class SendReceiptService {
             return Single.error(new IllegalArgumentException("Email config not set in building"));
           }
 
-          final var emailConfigSingle = gmailService.loadItem(receipt.emailConfigId())
+          return gmailService.loadItem(receipt.emailConfigId())
               .map(EmailConfigTableItem::item)
               .flatMap(emailConfig -> {
 
@@ -194,31 +186,26 @@ public class SendReceiptService {
 
                 return Maybe.just(emailConfig);
               })
-              .switchIfEmpty(Single.error(new IllegalArgumentException("Email config not found")));
+              .switchIfEmpty(Single.error(new IllegalArgumentException("Email config not found")))
+              .map(emailConfig -> {
+                final var subject = "AVISO DE COBRO %s %s Adm. %s";
 
-          final var userSingle = RxUtil.single(userService.read(receipt.emailConfigId()))
-              .flatMapMaybe(Maybe::fromOptional)
-              .switchIfEmpty(Single.error(new IllegalArgumentException("User not found")));
+                final var month = translationProvider.translate(receipt.month().name());
+                final var emailRequest = ReceiptEmailRequest.builder()
+                    .from(emailConfig.email())
+                    .to(emails)
+                    .subject(subject.formatted(month, receipt.year(), receipt.building().name()))
+                    .text("AVISO DE COBRO")
+                    .files(Set.of(zipResponse.fileResponse().path().toString()))
+                    .build();
+                final var mimeMessage = MimeMessageUtil.createEmail(emailRequest);
 
-          return Single.zip(emailConfigSingle, userSingle, (emailConfig, user) -> {
-            final var subject = "AVISO DE COBRO %s %s Adm. %s";
-
-            final var month = translationProvider.translate(receipt.month().name());
-            final var emailRequest = ReceiptEmailRequest.builder()
-                .from(user.email())
-                .to(emails)
-                .subject(subject.formatted(month, receipt.year(), receipt.building().name()))
-                .text("AVISO DE COBRO")
-                .files(Set.of(zipResponse.fileResponse().path().toString()))
-                .build();
-            final var mimeMessage = MimeMessageUtil.createEmail(emailRequest);
-
-            final var gmail = gmailHelper.gmail(emailConfig.id());
-            final var messageWithEmail = GmailUtil.createMessageWithEmail(mimeMessage);
-            return gmail.users().messages().send("me", messageWithEmail)
-                .execute()
-                .toString();
-          });
+                final var gmail = gmailHelper.gmail(emailConfig.id());
+                final var messageWithEmail = GmailUtil.createMessageWithEmail(mimeMessage);
+                return gmail.users().messages().send("me", messageWithEmail)
+                    .execute()
+                    .toString();
+              });
         })
         .subscribeOn(Schedulers.io())
         .ignoreElement();

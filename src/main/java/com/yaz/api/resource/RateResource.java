@@ -13,6 +13,7 @@ import com.yaz.persistence.entities.Rate;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.smallrye.mutiny.Uni;
+import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Inject;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.ws.rs.DELETE;
@@ -34,7 +35,7 @@ import org.jboss.resteasy.reactive.RestResponse.ResponseBuilder;
 @Path(RateResource.PATH)
 @Slf4j
 //@Authenticated
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
+@RequiredArgsConstructor
 public class RateResource {
 
   public static final String PATH = "/api/rates";
@@ -101,11 +102,10 @@ public class RateResource {
   @Path("bcv-lookup")
   @Produces(MediaType.APPLICATION_JSON)
   public Uni<TemplateInstance> bcvLookup() {
+    log.info("INIT_BCV_LOOKUP");
     return MutinyUtil.toUni(saveNewBcvRate.saveNewRate())
         .onItem().invoke(res -> log.info("BCV LOOKUP {}", res))
-        .map(result -> {
-          return result.state().name();
-        })
+        .map(result -> result.state().name())
         .map(Fragments::rateInfo)
         //.replaceWith(Response.noContent().build())
         ;

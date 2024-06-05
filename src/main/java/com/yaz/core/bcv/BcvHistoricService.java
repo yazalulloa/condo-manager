@@ -10,8 +10,10 @@ import com.yaz.persistence.entities.Rate.Source;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.file.OpenOptions;
 import io.vertx.rxjava3.core.MultiMap;
 import io.vertx.rxjava3.core.Vertx;
+import io.vertx.rxjava3.core.file.AsyncFile;
 import io.vertx.rxjava3.ext.web.client.HttpResponse;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.io.File;
@@ -43,6 +45,8 @@ import org.jsoup.nodes.Attribute;
 @RequiredArgsConstructor
 //@RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class BcvHistoricService {
+
+  private static volatile Single<Rate> currentRateSingle;
 
   private static final String DIR = "tmp/bcv/";
   private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm a");
@@ -98,21 +102,59 @@ public class BcvHistoricService {
         .map(res -> new BcvCheck(res.getHeader("ETag"), res.getHeader("Last-Modified")));
   }
 
-  public Single<Rate> currentRate() {
-    return lastFile()
+  private Completable createDir(String path) {
+    return vertx.fileSystem().exists(path)
+        .flatMapCompletable(bool -> {
+          if (bool) {
+            log.debug("Dir exists {}", path);
+            return Completable.complete();
+          }
+          log.debug("Dir does not exist {}", path);
+          return vertx.fileSystem().mkdirs(path)
+              .andThen(createDir(path));
+        });
+  }
+
+  public Completable createFile(String path) {
+
+    return vertx.fileSystem().open(path, new OpenOptions().setWrite(true).setCreate(true))
+        .flatMapCompletable(AsyncFile::close)
+        .doOnError(throwable -> log.error("FAIL_TO_OPEN_FILE {} {}", path, throwable.getMessage()))
+        //.retryWhen(RetryWithDelay.retry(0, 1000, TimeUnit.MILLISECONDS))
+        .onErrorComplete();
+  }
+
+  private Single<Rate> getCurrentRateSingle() {
+    return createDir(DIR)
+        .andThen(lastFile())
         .flatMap(url -> {
+
           final var path = DIR + url.substring(url.lastIndexOf("/") + 1);
-          return cleanDir().andThen(client.download(path, url))
+          return createDir(DIR)
+              .andThen(createFile(path))
+              .andThen(client.download(path, url))
               .flatMap(res -> {
                 final var headers = res.headers();
                 final var fileInfo = new FileInfo(path, url, headers.get("ETag"), headers.get("Last-Modified"),
                     headers);
 
                 return parseWorkbook(fileInfo, true);
-              });
+              })
+              .doAfterTerminate(() -> vertx.getDelegate().fileSystem().delete(path));
         })
         .map(Result::rates)
-        .map(List::getFirst);
+        .map(List::getFirst)
+        .doAfterTerminate(() -> currentRateSingle = null);
+  }
+
+  public Single<Rate> currentRate() {
+
+    if (currentRateSingle == null) {
+      log.debug("Current rate is null");
+      currentRateSingle = getCurrentRateSingle().cache();
+    }
+
+    return currentRateSingle;
   }
 
   public Single<List<String>> fileLinks() {
@@ -232,7 +274,6 @@ public class BcvHistoricService {
         for (Sheet sheet : workbook) {
           final var sheetName = sheet.getSheetName();
           log.debug("Sheet name: {}", sheetName);
-          boolean found = false;
 
           final var date = PoiUtil.cellToString(sheet.getRow(0).getCell(6));
 
@@ -243,12 +284,6 @@ public class BcvHistoricService {
           final var dateStr = sheet.getRow(4).getCell(3).getStringCellValue();
           final var dateOfRateStr = dateStr.substring(dateStr.indexOf(":") + 1).trim();
           final var dateOfRate = LocalDate.parse(dateOfRateStr, LOCAL_DATE_FORMATTER);
-
-          //log.info("dateOfRateStr {} {}", dateOfRateStr, dateOfRate);
-
-//          final var utcTime = createdAt.withZoneSameInstant(ZoneOffset.UTC);
-//
-//          log.debug("DATE {} -> {} -> {} {}", date, createdAt, utcTime, date.endsWith("M"));
 
           final var rateRow = sheet.getRow(14);
           final var currency = rateRow.getCell(1).getStringCellValue();
@@ -270,52 +305,6 @@ public class BcvHistoricService {
           if (first) {
             break;
           }
-
-//          for (Row rateRow : sheet) {
-//
-//            if (rateRow.getPhysicalNumberOfCells() >= 6) {
-//              final var cellCurrency = rateRow.getCell(1);
-//
-//              if (cellCurrency == null) {
-//                //log.info("NO_CURRENCY File {} Sheet {} Row {}", path, sheet.getSheetName(), rateRow.getRowNum());
-//                continue;
-//              }
-//
-//              final var currency = cellCurrency.getStringCellValue();
-//
-//              if (!currency.equals("USD")) {
-//                continue;
-//              }
-//
-//              final var rateCell = rateRow.getCell(6);
-//
-//              if (rateCell == null) {
-//                log.info("NO_RATE File {} Sheet {} Row {}", path, sheetName, rateRow.getRowNum());
-//                continue;
-//              }
-//
-//              final var rate = rateCell.getNumericCellValue();
-//              found = true;
-//
-//              rates.add(Rate.builder()
-//                  .fromCurrency(Currency.valueOf(currency))
-//                  .toCurrency(Currency.VED)
-//                  .rate(BigDecimal.valueOf(rate))
-//                  .dateOfRate(createdAt.toLocalDate())
-//                  .source(Source.BCV)
-//                  .createdAt(createdAt.toLocalDateTime())
-//                  .hash(hashFile)
-//                  .build());
-//
-//              log.debug("{} Currency: {} Rate: {}", createdAt, currency, rate);
-//            }
-//          }
-//
-//          if (!found) {
-//            log.info("NO_RATE_FOUND File {} Sheet {}", path, sheetName);
-//          } else {
-//            counter++;
-//          }
         }
 
       }

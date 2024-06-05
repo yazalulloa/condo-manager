@@ -1,6 +1,7 @@
 {@com.yaz.api.domain.response.RateTableResponse res}
 
 
+
 {#each res.results}
 <option value="{it.key}"
         {#if res.selected && res.selected == it.rate.id}

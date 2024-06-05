@@ -22,7 +22,7 @@
          hidden="hidden"
          hx-get="/api/receipts"
          hx-include="[name='building_input'],[name='month_input'],[name='date_input']"
-         hx-trigger="update_receipts delay:400ms"
+         hx-trigger="update_receipts delay:300ms"
          hx-target="#receipt-grid"
          hx-swap="innerHTML"
          hx-indicator=".htmx-indicator"
@@ -66,7 +66,125 @@
 </div>
 
 <div id="container" hx-swap-oob="true" class="p-2 gap-1 flex flex-col"
-     x-data="{zip_dialog_open: false, zip_dialog_receipt_key: '', zip_dialog_building: '', zip_dialog_date: '', zip_dialog_year: 0, zip_dialog_month: ''}">
+     x-data="{
+     zip_dialog_open: false, zip_dialog_receipt_key: '', zip_dialog_building: '', zip_dialog_date: '', zip_dialog_year: 0, zip_dialog_month: '',
+     send_dialog_open: false, send_dialog_receipt_key: '', send_dialog_building: '', send_dialog_date: '', send_dialog_year: 0, send_dialog_month: '',
+     send_dialog_receipt_select_all : true, send_dialog_apts: []}">
+
+  <div id="dialog-helper"></div>
+
+  <dialog id="receipt-send-dialog"
+          class="z-30 form-container rounded border-2 border-gray-400 bg-base-100 m-0 top-1/2 left-1/2 p-2 max-h-95per"
+          @event-receipt-send-dialog.window="
+          $dispatch('event-set-receipt-send-dialog-apt-' + send_dialog_building.toLowerCase());
+          document.getElementById('dialog-error').innerHTML = '';
+          send_dialog_open = true;
+          "
+          x-effect="
+           if (send_dialog_open) {
+            send_dialog_receipt_select_all = true;
+            $el.show();
+          } else {
+            $el.close();
+          }"
+  >
+    <div class="p-2 h-full">
+
+      <form class="items-center text-center overflow-hidden h-full"
+            hx-post="/api/receipts/send_receipt"
+            hx-swap="none"
+            hx-indicator=".htmx-indicator">
+
+        <input type="hidden" type="text" name="key" x-bind:value="send_dialog_receipt_key">
+
+        <div id="send-receipt-dialog-csrf" hidden="hidden"></div>
+
+        <div class="flex flex-row justify-between">
+          <div style="height: 3rem; width: 3rem;">
+
+          </div>
+          <h2 class="font-bold m-auto">ENVIAR RECIBO</h2>
+          <div>
+            <button type="button" class="btn btn-square btn-outline btn-error" style="height: 3rem; width: 3rem;"
+                    @click="send_dialog_open = false"
+            >
+              <img src="/assets/cross-svgrepo-com.svg" alt="remove-email" style="height: 1.5rem; width: 1.5rem">
+            </button>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-2 font-bold pb-2">
+          <div>
+            <span x-text="send_dialog_building"></span>
+          </div>
+
+          <div class="flex flex-row gap-2 justify-center">
+            <span x-text="send_dialog_year"></span>
+            <span x-text="send_dialog_month"></span>
+            <span x-text="send_dialog_date"></span>
+          </div>
+        </div>
+
+        <cm-form-input
+            class=""
+            name="subject"
+            maxlength="100"
+            placeholder="Sujeto"
+            value="AVISO DE COBRO"
+        >
+
+        </cm-form-input>
+
+        <label class="form-control">
+          <div class="label">
+            <span class="label-text">Mensaje</span>
+          </div>
+          <textarea class="textarea textarea-bordered" name="msg" autocomplete="on">AVISO DE COBRO</textarea>
+        </label>
+
+        <div id="send-dialog-error" hidden="hidden">
+        </div>
+
+
+        <label class="label justify-center gap-4 cursor-pointer">
+          <span class="label-text">Seleccionar todos</span>
+          <input type="checkbox" class="toggle"
+                 @click="send_dialog_receipt_select_all=!send_dialog_receipt_select_all"
+                 x-bind:checked="send_dialog_receipt_select_all"/>
+        </label>
+
+        <div class="pb-2">
+          <template x-for="apt in send_dialog_apts">
+            <div class="grid apt-receipt-dialog-grid gap-2">
+              <div x-text="apt.number"></div>
+              <div x-text="apt.name"></div>
+              <div>
+                <input type="checkbox" checked="checked" class="receipt-sent-checkbox checkbox" name="apts"
+                       x-effect="$el.checked = send_dialog_receipt_select_all"
+                       x-bind:value="apt.number"/>
+              </div>
+            </div>
+          </template>
+
+        </div>
+
+        <div id="dialog-error" hidden="hidden">
+        </div>
+
+        <div class="flex flex-row gap-4">
+          <button type="submit" class="btn btn-primary">
+            Enviar
+          </button>
+          <button type="button" class="btn btn-secondary"
+                  @click="send_dialog_open = false">
+            Cancelar
+          </button>
+          <img class="htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">
+        </div>
+
+      </form>
+    </div>
+  </dialog>
 
   <div id="receipt-grid">
     <div hx-get="/api/receipts/init" hx-indicator=".htmx-indicator" hx-trigger="load" hx-swap="outerHTML"></div>
@@ -173,7 +291,7 @@
         </div>
 
         <div class="flex flex-row gap-4">
-          <button id="submit-receipt-zip" type="submit" class="btn btn-primary"
+          <button type="submit" class="btn btn-primary"
                   x-effect="$el.disabled=emails.size == 0">
             Enviar
           </button>
@@ -183,7 +301,7 @@
           </button>
           <img class="htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">
         </div>
-        
+
       </div>
     </form>
 

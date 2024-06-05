@@ -1,6 +1,7 @@
 package com.yaz.api.resource;
 
 import com.yaz.api.domain.response.DebtTableItem;
+import com.yaz.api.domain.response.EmailConfigTableItem;
 import com.yaz.api.domain.response.ExpenseCountersDto;
 import com.yaz.api.domain.response.ExpenseFormDto;
 import com.yaz.api.domain.response.ExpenseTableItem;
@@ -11,6 +12,7 @@ import com.yaz.api.domain.response.ReceiptEditFormInit;
 import com.yaz.api.domain.response.ReceiptFileFormDto;
 import com.yaz.api.domain.response.ReceiptFormDto;
 import com.yaz.api.domain.response.ReceiptInitDto;
+import com.yaz.api.domain.response.ReceiptInitDto.Apts;
 import com.yaz.api.domain.response.ReceiptPdfResponse;
 import com.yaz.api.domain.response.ReceiptProgressUpdate;
 import com.yaz.api.domain.response.ReceiptSendDialogDto;
@@ -20,7 +22,6 @@ import com.yaz.api.domain.response.ReserveFundFormDto;
 import com.yaz.api.domain.response.ReserveFundTableItem;
 import com.yaz.api.extensions.TemplateExtensions;
 import com.yaz.api.resource.fragments.Fragments;
-import com.yaz.core.roles.RoleUtil;
 import com.yaz.core.service.EncryptionService;
 import com.yaz.core.service.SendReceiptService;
 import com.yaz.core.service.TranslationProvider;
@@ -30,6 +31,7 @@ import com.yaz.core.service.domain.FileResponse;
 import com.yaz.core.service.entity.ApartmentService;
 import com.yaz.core.service.entity.BuildingService;
 import com.yaz.core.service.entity.DebtService;
+import com.yaz.core.service.entity.EmailConfigService;
 import com.yaz.core.service.entity.ExpenseService;
 import com.yaz.core.service.entity.ExtraChargeService;
 import com.yaz.core.service.entity.RateService;
@@ -53,6 +55,7 @@ import com.yaz.persistence.entities.ReserveFund;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.reactivex.rxjava3.core.Single;
+import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.json.Json;
 import jakarta.annotation.security.RolesAllowed;
@@ -114,6 +117,7 @@ public class ReceiptResource {
   private final DebtService debtService;
   private final ApartmentService apartmentService;
   private final ReserveFundService reserveFundService;
+  private final EmailConfigService emailConfigService;
 
   @CheckedTemplate
   public static class Templates {
@@ -140,8 +144,6 @@ public class ReceiptResource {
 
     public static native TemplateInstance sentInfo(ReceiptTableItem item);
 
-    public static native TemplateInstance sendDialog(ReceiptSendDialogDto dto);
-
     public static native TemplateInstance dialogError(String error);
   }
 
@@ -151,13 +153,31 @@ public class ReceiptResource {
   @Produces(MediaType.TEXT_HTML)
   public Uni<TemplateInstance> init() {
     final var buildingsUni = buildingService.ids();
+    final var aptUni = buildingsUni.toMulti()
+        .flatMap(Multi.createFrom()::iterable)
+        .onItem()
+        .transformToUni(str -> apartmentService.aptByBuildings(str)
+            .map(list -> {
+//              final var json = new JsonObject()
+//                  .put("building", str)
+//                  .put("apts", new JsonArray(Json.encode(list)))
+//                  .encode()
+//                  .replace("\"", "");
+
+              return new Apts(str, list);
+            }))
+        .merge()
+        .collect()
+        .asList();
+
     final var tableResponseUni = receiptService.table(ReceiptQuery.builder().build());
 
     return Uni.combine().all()
-        .unis(buildingsUni, tableResponseUni)
-        .with((buildings, tableResponse) -> ReceiptInitDto.builder()
+        .unis(buildingsUni, tableResponseUni, aptUni)
+        .with((buildings, tableResponse, apts) -> ReceiptInitDto.builder()
             .table(tableResponse)
             .buildings(buildings)
+            .apts(apts)
             .build())
         .map(Templates::init);
   }
@@ -325,7 +345,7 @@ public class ReceiptResource {
         .subscribe(() -> {
         }, t -> log.error("ERROR_SENDING_RECEIPTS", t));
 
-    return Uni.createFrom().item(Templates.progress(clientId, false));
+    return Uni.createFrom().item(Templates.progress(clientId, true));
   }
 
   @POST
@@ -341,15 +361,39 @@ public class ReceiptResource {
     request.setSubject(StringUtil.escapeInput(request.getSubject()));
     request.setMsg(StringUtil.escapeInput(request.getMsg()));
 
-    final var clientId = UUID.randomUUID().toString();
+    return buildingService.read(keys.buildingId())
+        .flatMap(optional -> {
+          if (optional.isEmpty()) {
+            return Uni.createFrom().item(Templates.dialogError("Edificio no existe"));
+          }
 
-    sendReceiptService.sendReceipts(keys, clientId, request)
-        .subscribe(() -> {
-        }, t -> log.error("ERROR_SENDING_RECEIPTS", t));
+          final var building = optional.get();
+          if (building.emailConfigId() == null) {
+            return Uni.createFrom().item(Templates.dialogError("Edificio no tiene configuración de correo"));
+          }
 
-    return Uni.createFrom().item(Templates.progress(clientId, true));
+          return emailConfigService.readItem(building.emailConfigId())
+              .flatMap(opt -> {
+                if (opt.isEmpty()) {
+                  return Uni.createFrom().item(Templates.dialogError("Configuración de correo no existe"));
+                }
 
+                final var emailConfig = opt.get().item();
 
+                if (emailConfig.stacktrace() != null) {
+                  return Uni.createFrom().item(Templates.dialogError("Error en configuración de correo: " + emailConfig.stacktrace()));
+                }
+
+                final var clientId = UUID.randomUUID().toString();
+
+                log.info("SEND_RECEIPT {} {}", keys, clientId);
+                sendReceiptService.sendReceipts(keys, clientId, request)
+                    .subscribe(() -> {
+                    }, t -> log.error("ERROR_SENDING_RECEIPTS", t));
+
+                return Uni.createFrom().item(Templates.progress(clientId, true));
+              });
+        });
   }
 
   @POST
@@ -789,29 +833,6 @@ public class ReceiptResource {
                 return Response.ok(templateInstance).build();
               });
         });
-  }
-
-
-  @GET
-  @Path("sent_dialog/{keys}")
-  @Produces(MediaType.TEXT_HTML)
-  public Uni<TemplateInstance> sentDialog(@NotBlank @RestPath String keys) {
-    final var key = encryptionService.decryptObj(keys, Keys.class);
-
-    return Uni.combine().all()
-        .unis(receiptService.get(key.id()), apartmentService.aptByBuildings(key.buildingId()))
-        .with((receipt, apartments) -> {
-
-          return ReceiptSendDialogDto.builder()
-              .key(keys)
-              .buildingId(key.buildingId())
-              .year(receipt.year())
-              .month(TemplateExtensions.monthFromInt(receipt.month()))
-              .date(receipt.date())
-              .apartments(apartments)
-              .build();
-        })
-        .map(Templates::sendDialog);
   }
 
   @Data

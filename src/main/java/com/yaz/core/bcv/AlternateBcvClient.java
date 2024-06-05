@@ -1,6 +1,7 @@
 package com.yaz.core.bcv;
 
 import com.yaz.core.util.rx.RetryWithDelay;
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.file.OpenOptions;
 import io.vertx.core.http.HttpMethod;
@@ -13,6 +14,7 @@ import io.vertx.rxjava3.ext.web.codec.BodyCodec;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
+import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
@@ -89,15 +91,15 @@ public class AlternateBcvClient implements BcvClient {
 
   public Single<HttpResponse<Void>> download(String path, String requestUri) {
 
-    return vertx.fileSystem().open(path, new OpenOptions().setWrite(true))
+    return vertx.fileSystem().open(path, new OpenOptions().setWrite(true).setCreate(true))
         .flatMap(asyncFile -> {
-          log.info("Downloading file: {}", requestUri);
+          log.debug("Downloading file: {}", requestUri);
           return client.getAbs(requestUri)
               .as(BodyCodec.pipe(asyncFile))
               .send()
-              .doOnError(throwable -> log.error("BCV_HTTP_ERROR", throwable))
+              .doOnError(throwable -> log.error("BCV_HTTP_ERROR {}", requestUri, throwable))
               .retryWhen(RetryWithDelay.retryIfFailedNetwork())
-              .doOnSuccess(s -> log.info("Downloaded file: {}", path))
+              .doOnSuccess(s -> log.debug("Downloaded file: {}", path))
               ;
         });
 

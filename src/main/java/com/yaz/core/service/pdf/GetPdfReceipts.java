@@ -125,9 +125,4 @@ public class GetPdfReceipts {
 
     return list;
   }
-
-  public FileResponse zipReceipt(CalculatedReceipt calculatedReceipt) throws IOException {
-    final var pdfReceiptItems = pdfItems(calculatedReceipt);
-    return zipPath(calculatedReceipt, pdfReceiptItems);
-  }
 }

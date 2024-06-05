@@ -8,7 +8,7 @@
 </div>
 
 {#if clearDialog}
-  <dialog id="dialog-cm" hx-swap-oob="true">
+  <dialog id="dialog-helper" hx-swap-oob="true" x-init="zip_dialog_open: false; send_dialog_open = false;">
 
   </dialog>
 

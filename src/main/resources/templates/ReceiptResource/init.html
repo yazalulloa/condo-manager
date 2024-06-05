@@ -1,32 +1,45 @@
 {@com.yaz.api.domain.response.ReceiptInitDto dto}
 
+{#for item in dto.apts}
+
+    <div hidden="hidden" x-data="{
+    apts : [
+{#for apt in item.apts}
+{ number: '{apt.number}',name: '{apt.name}',},
+{/for}
+    ]}"
+    @event-set-receipt-send-dialog-apt-{item.building.toLowerCase}.window="send_dialog_apts=apts">
+    </div>
+{/for}
+
+
 <div id="buildings-selector" hx-swap-oob="true" class="p-2" hidden="hidden"
      script="init add .fade-me-in then wait 20 then toggle @hidden"
 >
-<select name="building_input"
-        script="on change send 'update_receipts' to #receipts-updater"
-        data-te-select-init multiple>
-{#include BuildingResource/selector.html list=dto.buildings /}
-</select>
-  <label data-te-select-label-ref>Edificio</label>
+    <select name="building_input"
+            script="on change send 'update_receipts' to #receipts-updater"
+            data-te-select-init multiple>
+            {#include BuildingResource/selector.html list = dto.buildings /}
+    </select>
+    <label data-te-select-label-ref>Edificio</label>
 </div>
 
-{#include ReceiptResource/receipts res=dto.table /}
+    {#include ReceiptResource/receipts res = dto.table /}
 
-    <input id="file-input"
-           hx-swap-oob="true"
-           type="file"
-           accept=".xlsx,.xls"
-           class="file-input file-input-bordered w-full max-w-xs"
-           name="file"
-           hx-post="/api/receipts/file"
-           hx-headers='{"{inject:csrf.headerName}":"{inject:csrf.token}"}'
-           hx-encoding='multipart/form-data'
-           hx-trigger="change"
-           hx-swap="none"
-           hx-indicator=".htmx-indicator"
+<input id="file-input"
+       hx-swap-oob="true"
+       type="file"
+       accept=".xlsx,.xls"
+       class="file-input file-input-bordered w-full max-w-xs"
+       name="file"
+       hx-post="/api/receipts/file"
+       hx-headers='{"{inject:csrf.headerName}":"{inject:csrf.token}"}'
+       hx-encoding='multipart/form-data'
+       hx-trigger="change"
+       hx-swap="none"
+       hx-indicator=".htmx-indicator"
 />
 
 
-
 <input id="csrf-input" hx-swap-oob="true" type="hidden" name="{inject:csrf.parameterName}" value="{inject:csrf.token}"/>
+<input id="send-receipt-dialog-csrf" hx-swap-oob="true" type="hidden" name="{inject:csrf.parameterName}" value="{inject:csrf.token}"/>

@@ -70,6 +70,8 @@ public class ApartmentsResource {
 
     public static native TemplateInstance grid(ApartmentTableResponse res);
 
+    public static native TemplateInstance apartments(ApartmentTableResponse res);
+
     public static native TemplateInstance form(ApartmentFormDto dto);
 
     public static native TemplateInstance init(ApartmentInitDto dto);
@@ -130,6 +132,28 @@ public class ApartmentsResource {
 
     return apartmentService.tableResponse(apartmentQuery)
         .map(Templates::grid);
+  }
+
+  @GET
+  @Produces(MediaType.TEXT_HTML)
+  public Uni<TemplateInstance> apartments(
+      @RestQuery String nextPage,
+      @RestQuery String q,
+      @RestQuery Set<String> building) {
+
+    final var keys = Optional.ofNullable(nextPage)
+        .map(StringUtil::trimFilter)
+        .map(str -> encryptionService.decryptObj(str, Keys.class));
+
+    final var apartmentQuery = ApartmentQuery.builder()
+        .lastBuildingId(keys.map(Keys::buildingId).orElse(null))
+        .lastNumber(keys.map(Keys::number).orElse(null))
+        .q(StringUtil.trimFilter(q))
+        .buildings(building)
+        .build();
+
+    return apartmentService.tableResponse(apartmentQuery)
+        .map(Templates::apartments);
   }
 
   @GET
