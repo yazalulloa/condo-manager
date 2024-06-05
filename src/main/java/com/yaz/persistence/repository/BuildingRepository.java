@@ -2,6 +2,7 @@ package com.yaz.persistence.repository;
 
 import com.yaz.persistence.domain.query.BuildingQuery;
 import com.yaz.persistence.entities.Building;
+import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.sqlclient.Row;
 import io.vertx.mutiny.sqlclient.RowSet;
@@ -33,4 +34,6 @@ public interface BuildingRepository {
   Uni<Integer> updateEmailConfig(Set<String> ids);
 
   Uni<Set<String>> selectByEmailConfig(String id);
+
+  Uni<Integer> updateEmailConfig(Set<String> set, String newConfigId);
 }

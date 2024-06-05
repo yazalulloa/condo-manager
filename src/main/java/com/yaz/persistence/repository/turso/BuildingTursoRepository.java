@@ -1,5 +1,7 @@
 package com.yaz.persistence.repository.turso;
 
+import com.yaz.core.util.SqlUtil;
+import com.yaz.core.util.StringUtil;
 import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.domain.query.BuildingQuery;
 import com.yaz.persistence.entities.Building;
@@ -8,8 +10,6 @@ import com.yaz.persistence.repository.turso.client.TursoWsService;
 import com.yaz.persistence.repository.turso.client.ws.request.Stmt;
 import com.yaz.persistence.repository.turso.client.ws.request.Value;
 import com.yaz.persistence.repository.turso.client.ws.response.ExecuteResp;
-import com.yaz.core.util.SqlUtil;
-import com.yaz.core.util.StringUtil;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -223,4 +223,18 @@ public class BuildingTursoRepository implements BuildingRepository {
   public Uni<Set<String>> selectByEmailConfig(String id) {
     return tursoWsService.selectQuerySet(Stmt.stmt(SELECT_BY_EMAIL_CONFIG, Value.text(id)), row -> row.getString("id"));
   }
+
+  @Override
+  public Uni<Integer> updateEmailConfig(Set<String> set, String newConfigId) {
+    final var sql = "UPDATE buildings SET email_config_id = ? WHERE id IN (%s)".formatted(
+        SqlUtil.params(set.size()));
+
+    final var values = Stream.concat(Stream.of(Value.text(newConfigId)), set.stream().map(Value::text))
+        .toArray(Value[]::new);
+
+    return tursoWsService.executeQuery(sql, values)
+        .map(e -> e.result().rowCount());
+  }
+
+
 }

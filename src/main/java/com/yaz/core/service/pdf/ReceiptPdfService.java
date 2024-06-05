@@ -43,16 +43,18 @@ public class ReceiptPdfService {
   public Single<ZipResponse> zipResponse(String buildingId, long receiptId) {
     return calculate(buildingId, receiptId)
         .observeOn(Schedulers.io())
-        .map(receipt -> {
-          final var pdfReceiptItems = getPdfReceipts.pdfItems(receipt);
-          final var fileResponse = getPdfReceipts.zipPath(receipt, pdfReceiptItems);
-          return new ZipResponse(receipt, fileResponse);
+        .flatMap(receipt -> {
+          return getPdfReceipts.pdfItems(receipt)
+              .map(pdfReceiptItems -> {
+                final var fileResponse = getPdfReceipts.zipPath(receipt, pdfReceiptItems);
+                return new ZipResponse(receipt, fileResponse);
+              });
         });
   }
 
   public Single<PdfReceiptResponse> pdfs(String buildingId, long receiptId, Set<String> apts) {
     return calculate(buildingId, receiptId)
-        .map(receipt -> {
+        .flatMap(receipt -> {
           if (apts != null && !apts.isEmpty()) {
             final var apartments = receipt.apartments().stream()
                 .filter(apartment -> apts.contains(apartment.number()))
@@ -63,8 +65,9 @@ public class ReceiptPdfService {
                 .build();
           }
 
-          final var pdfItems = getPdfReceipts.pdfItems(receipt);
-          return new PdfReceiptResponse(receipt, pdfItems);
+          CalculatedReceipt finalReceipt = receipt;
+          return getPdfReceipts.pdfItems(receipt)
+              .map(pdfReceiptItems -> new PdfReceiptResponse(finalReceipt, pdfReceiptItems));
         });
   }
 
@@ -78,33 +81,37 @@ public class ReceiptPdfService {
   public Uni<ReceiptPdfResponse> pdfResponse(String buildingId, long receiptId) {
     final var responseSingle = calculate(buildingId, receiptId)
         .observeOn(Schedulers.io())
-        .map(calculatedReceipt -> {
+        .flatMap(calculatedReceipt -> {
 
-          final var pdfReceiptItems = getPdfReceipts.pdfItems(calculatedReceipt);
-          final var zipPath = getPdfReceipts.zipPath(calculatedReceipt, pdfReceiptItems);
-          final var fileName = getPdfReceipts.fileName(calculatedReceipt);
+          return getPdfReceipts.pdfItems(calculatedReceipt)
+              .map(pdfReceiptItems -> {
 
-          final var tabs = pdfReceiptItems.stream()
-              .map(item -> {
+                final var zipPath = getPdfReceipts.zipPath(calculatedReceipt, pdfReceiptItems);
+                final var fileName = getPdfReceipts.fileName(calculatedReceipt);
 
-                final var s =
-                    fileName + (item.id().equals(calculatedReceipt.building().id()) ? "" : "_" + item.id()) + ".pdf";
+                final var tabs = pdfReceiptItems.stream()
+                    .map(item -> {
 
-                return Tab.builder()
-                    .name(item.id())
-                    .path(encryptionService.encrypt(item.path().toString()) + "/" + s)
-                    .checked(item.emails() == null)
+                      final var s =
+                          fileName + (item.id().equals(calculatedReceipt.building().id()) ? "" : "_" + item.id())
+                              + ".pdf";
+
+                      return Tab.builder()
+                          .name(item.id())
+                          .path(encryptionService.encrypt(item.path().toString()) + "/" + s)
+                          .checked(item.emails() == null)
+                          .build();
+                    })
+                    .collect(Collectors.toList());
+
+                return ReceiptPdfResponse.builder()
+                    .building(calculatedReceipt.building().id())
+                    .month(translationProvider.translate(calculatedReceipt.month().name()))
+                    .date(calculatedReceipt.date())
+                    .zipPath(encryptionService.encrypt(zipPath.path().toString()))
+                    .tabs(tabs)
                     .build();
-              })
-              .collect(Collectors.toList());
-
-          return ReceiptPdfResponse.builder()
-              .building(calculatedReceipt.building().id())
-              .month(translationProvider.translate(calculatedReceipt.month().name()))
-              .date(calculatedReceipt.date())
-              .zipPath(encryptionService.encrypt(zipPath.path().toString()))
-              .tabs(tabs)
-              .build();
+              });
         });
 
     return MutinyUtil.toUni(responseSingle);

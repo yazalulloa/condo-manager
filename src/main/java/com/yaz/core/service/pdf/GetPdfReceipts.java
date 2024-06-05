@@ -6,13 +6,15 @@ import com.yaz.core.service.domain.FileResponse;
 import com.yaz.core.util.ZipUtility;
 import com.yaz.persistence.entities.Apartment;
 import com.yaz.persistence.entities.Building;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -53,45 +55,86 @@ public class GetPdfReceipts {
         .build();
   }
 
-  public Collection<PdfReceiptItem> pdfItems(CalculatedReceipt receipt)
+  public Single<Collection<PdfReceiptItem>> pdfItems(CalculatedReceipt receipt)
       throws IOException {
+    return Single.defer(() -> {
+      final var start = System.currentTimeMillis();
 
-    final var tempPath = Paths.get("tmp", "receipts", receipt.building().id(), String.valueOf(receipt.id()));
-    //asyncSubject.onNext(ReceiptPdfProgressState.ofIndeterminate("Calculando..."));
-    final var pdfReceipts = pdfReceipts(tempPath, receipt, receipt.building(), receipt.apartments());
+      final var tempPath = Paths.get("tmp", "receipts", receipt.building().id(), String.valueOf(receipt.id()));
+      //asyncSubject.onNext(ReceiptPdfProgressState.ofIndeterminate("Calculando..."));
+      final var pdfReceipts = pdfReceipts(tempPath, receipt, receipt.building(), receipt.apartments());
 
-    var counter = 0;
+      var counter = 0;
 
-    // updateState("Creando archivos ", 0, pdfReceipts.size());
-    final var items = new ArrayList<PdfReceiptItem>(pdfReceipts.size());
+      return Observable.fromIterable(pdfReceipts)
+          .map(pdfReceipt -> {
 
-    for (CreatePdfReceipt pdfReceipt : pdfReceipts) {
-      pdfReceipt.createPdf();
-      final var buildingName = pdfReceipt.building().name();
+            return Single.fromCallable(() -> {
+              final var millis = System.currentTimeMillis();
+              pdfReceipt.createPdf();
+              log.info("Create pdf: {} millis: {}", pdfReceipt.path(), System.currentTimeMillis() - millis);
+              final var buildingName = pdfReceipt.building().name();
 
-      final var apt = Optional.ofNullable(pdfReceipt.apartment())
-          .map(Apartment::number)
-          .orElse("");
+              final var apt = Optional.ofNullable(pdfReceipt.apartment())
+                  .map(Apartment::number)
+                  .orElse("");
 
-      //updateState("Creando archivos %s %s ".formatted(buildingName, apt), ++counter, pdfReceipts.size());
+              //updateState("Creando archivos %s %s ".formatted(buildingName, apt), ++counter, pdfReceipts.size());
 
-      final var fileName = Optional.ofNullable(pdfReceipt.apartment())
-          .map(Apartment::number)
-          .orElse(pdfReceipt.building().name());
+              final var fileName = Optional.ofNullable(pdfReceipt.apartment())
+                  .map(Apartment::number)
+                  .orElse(pdfReceipt.building().name());
 
-      final var item = PdfReceiptItem.builder()
-          .path(pdfReceipt.path())
-          .fileName("%s.pdf".formatted(fileName))
-          .id(pdfReceipt.id())
-          .name(pdfReceipt.name())
-          .buildingName(pdfReceipt.building().name())
-          .emails(Optional.ofNullable(pdfReceipt.apartment()).map(Apartment::emails).orElse(null))
-          .build();
+              return PdfReceiptItem.builder()
+                  .path(pdfReceipt.path())
+                  .fileName("%s.pdf".formatted(fileName))
+                  .id(pdfReceipt.id())
+                  .name(pdfReceipt.name())
+                  .buildingName(pdfReceipt.building().name())
+                  .emails(Optional.ofNullable(pdfReceipt.apartment()).map(Apartment::emails).orElse(null))
+                  .build();
+            }).subscribeOn(Schedulers.io());
+          })
+          .toList()
+          .toFlowable()
+          .flatMap(Single::merge)
+          .toList()
+          .doOnSuccess(list -> {
+            log.info("Create pdfs: {} millis", System.currentTimeMillis() - start);
+          });
 
-      items.add(item);
-    }
-
-    return items;
+//      for (CreatePdfReceipt pdfReceipt : pdfReceipts) {
+//        final var millis = System.currentTimeMillis();
+//        pdfReceipt.createPdf();
+//        log.info("Create pdf: {} millis: {}", pdfReceipt.path(), System.currentTimeMillis() - millis);
+//        final var buildingName = pdfReceipt.building().name();
+//
+//        final var apt = Optional.ofNullable(pdfReceipt.apartment())
+//            .map(Apartment::number)
+//            .orElse("");
+//
+//        //updateState("Creando archivos %s %s ".formatted(buildingName, apt), ++counter, pdfReceipts.size());
+//
+//        final var fileName = Optional.ofNullable(pdfReceipt.apartment())
+//            .map(Apartment::number)
+//            .orElse(pdfReceipt.building().name());
+//
+//        final var item = PdfReceiptItem.builder()
+//            .path(pdfReceipt.path())
+//            .fileName("%s.pdf".formatted(fileName))
+//            .id(pdfReceipt.id())
+//            .name(pdfReceipt.name())
+//            .buildingName(pdfReceipt.building().name())
+//            .emails(Optional.ofNullable(pdfReceipt.apartment()).map(Apartment::emails).orElse(null))
+//            .build();
+//
+//        items.add(item);
+//      }
+//
+//      log.info("Create pdfs: {} millis", System.currentTimeMillis() - start);
+//
+//      return items;
+    });
   }
 
   public List<CreatePdfReceipt> pdfReceipts(Path path, CalculatedReceipt receipt, Building building,

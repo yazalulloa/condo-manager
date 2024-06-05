@@ -146,12 +146,22 @@ public class ReceiptParserStreaming extends ReceiptParserAbstractImpl {
         }
 
         final var status = iterator.hasNext() ? iterator.next().value().trim() : "";
-        final var abono = iterator.hasNext() ? iterator.next().value().trim() : null;
+        var abono = iterator.hasNext() ? iterator.next().value().trim() : null;
+
+        if (abono == null && StringUtil.hasNumbers(status)) {
+          abono = status;
+        }
 
         final var previousPaymentAmount = Optional.ofNullable(abono)
+            .map(str -> str.replace("$", "").replace("Bs.", "").trim())
             .filter(str -> !str.equals("OJO"))
             .map(PoiUtil::decimal)
             .orElse(null);
+
+        final var previousPaymentCurrency = Optional.ofNullable(abono)
+            .filter(str -> str.contains("$"))
+            .map(b -> Currency.USD)
+            .orElse(Currency.VED);
 
         final var amountDecimal = amount.isEmpty() ? BigDecimal.ZERO : PoiUtil.decimal(amount);
 
@@ -162,6 +172,7 @@ public class ReceiptParserStreaming extends ReceiptParserAbstractImpl {
             .amount(amountDecimal)
             .months(months(status))
             .previousPaymentAmount(previousPaymentAmount)
+            .previousPaymentAmountCurrency(previousPaymentCurrency)
             .build();
 
         debts.add(debt);

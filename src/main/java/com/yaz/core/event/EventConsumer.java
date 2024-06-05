@@ -131,7 +131,8 @@ public class EventConsumer {
       right = "APT: %s %s %s -> %s".formatted(event.apt(), event.name(), event.from(), String.join(",", event.to()));
     }
 
-    final var msg = ReceiptResource.Templates.progressUpdate(new ReceiptProgressUpdate(left, right, event.counter(), event.size()))
+    final var msg = ReceiptResource.Templates.progressUpdate(
+            new ReceiptProgressUpdate(left, right, event.counter(), event.size()))
         .render();
 
     serverSideEventHelper.sendEvent(clientId, EVENT_NAME_RECEIPT_PROGRESS, msg);

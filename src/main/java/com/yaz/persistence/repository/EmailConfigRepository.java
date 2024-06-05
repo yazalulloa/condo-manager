@@ -31,4 +31,6 @@ public interface EmailConfigRepository {
   Uni<Optional<byte[]>> getFile(String userId);
 
   Uni<Integer> updateLastCheck(String userId, boolean hasRefreshToken, Long expiresIn);
+
+  Uni<List<EmailConfig>> selectByEmail(String email, String id);
 }

@@ -52,7 +52,7 @@ class ReceiptParserTest {
 
   @Test
   void parse() {
-    final var receipt = receiptParser.parse(Paths.get("/home/yaz/Downloads/TULIPANES FACTURA  SEP23 YAZAL.xlsx"))
+    final var receipt = receiptParser.parse(Paths.get("/home/yaz/Downloads/ANTONIETA FACTURACION  MAY24  YAZAL.xlsx"))
         .blockingGet();
 
     log.info("{}", Json.encodePrettily(receipt));

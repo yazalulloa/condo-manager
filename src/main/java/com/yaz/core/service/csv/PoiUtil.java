@@ -113,7 +113,8 @@ public class PoiUtil {
   public static BigDecimal decimal(String str) {
 
     try {
-      return new BigDecimal(toAmount(str));
+      final var string = toAmount(str);
+      return new BigDecimal(string);
     } catch (Exception e) {
       final var msg = "FAILED_TO_PARSE_DECIMAL {%s}".formatted(str);
       log.error(msg, str, e);

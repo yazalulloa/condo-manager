@@ -194,6 +194,11 @@ public class EmailConfigTursoRepository implements EmailConfigRepository {
         .map(executeResp -> executeResp.result().rowCount());
   }
 
+  public Uni<List<EmailConfig>> selectByEmail(String email, String id) {
+    return tursoWsService.selectQuery(Stmt.stmt("SELECT * FROM email_configs WHERE email = ? AND id != ?",
+        Value.text(email), Value.text(id)), this::from);
+  }
+
   private EmailConfigDto fromDisplay(Row row) {
     return EmailConfigDto.builder()
         .id(row.getString("id"))

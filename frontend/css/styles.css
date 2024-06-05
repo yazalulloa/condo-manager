@@ -8,6 +8,7 @@
 
 html {
   font-size: 100%;
+  box-sizing: border-box;
 }
 
 select, textarea, input, button {

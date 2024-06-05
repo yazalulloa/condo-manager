@@ -161,9 +161,7 @@ public class CreatePdfAptReceipt extends CreatePdfReceipt {
 
       final var thereIsReserveFundExpense = receipt().reserveFundTotals()
           .stream()
-          .filter(reserveFundTotal -> reserveFundTotal.expense() != null)
-          .findFirst()
-          .isPresent();
+          .anyMatch(reserveFundTotal -> reserveFundTotal.expense() != null);
 
       final var table = reserveFundTable(thereIsReserveFundExpense ? 5 : 4);
       table.setFontSize(9);

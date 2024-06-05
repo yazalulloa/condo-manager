@@ -180,4 +180,22 @@ public class BuildingService {
 
         });
   }
+
+  public Uni<Integer> updateEmailConfig(String oldConfigId, String newConfigId) {
+    return repository().selectByEmailConfig(oldConfigId)
+        .flatMap(set -> {
+          if (set.isEmpty()) {
+            return Uni.createFrom().item(0);
+          }
+
+          return repository().updateEmailConfig(set, newConfigId)
+              .flatMap(i -> {
+                return Multi.createFrom().iterable(set)
+                    .toUni()
+                    .flatMap(this::invalidateOne)
+                    .replaceWith(i);
+              });
+
+        });
+  }
 }

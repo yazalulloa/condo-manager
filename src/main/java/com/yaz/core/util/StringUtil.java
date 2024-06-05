@@ -13,6 +13,7 @@ import java.util.zip.CRC32;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterOutputStream;
 import org.apache.commons.codec.digest.XXHash32;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 
 public class StringUtil {
@@ -162,5 +163,10 @@ public class StringUtil {
         .map(StringEscapeUtils::escapeEcmaScript)
         .map(StringEscapeUtils::escapeXml11)
         .orElse(null);
+  }
+
+  public static boolean hasNumbers(String input) {
+    String result = StringUtils.getDigits(input);
+    return result != null && !result.isEmpty();
   }
 }

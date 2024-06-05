@@ -145,34 +145,6 @@ public class EmailConfigService {
         });
   }
 
-//  public Uni<EmailConfig> check(EmailConfig config) {
-//    return gmailHelper.check(config)
-//        .flatMap(this::update);
-//  }
-
-//  public Uni<EmailConfigTableItem> check(EmailConfigTableItem item) {
-//    if (item.getItem().shouldGetNewOne()) {
-//      return Uni.createFrom().item(item);
-//    }
-//
-//    return check(item.getItem().emailConfig())
-//        .map(emailConfig -> emailConfig.toBuilder()
-//            .file(null)
-//            .build())
-//        .map(emailConfig -> EmailConfigTableItem.ofItem(new EmailConfigUser(item.getItem().user(), emailConfig)));
-//  }
-
-//  public Maybe<EmailConfigTableItem> loadItem(String id) {
-//    return RxUtil.single(readItem(id))
-//        .flatMapMaybe(Maybe::fromOptional)
-//        .map(this::check)
-//        .flatMapSingle(RxUtil::single)
-//        .switchIfEmpty(Maybe.defer(() -> {
-//          gmailHelper.clearFlow(id);
-//          return Maybe.empty();
-//        }));
-//  }
-
   public PagingProcessor<List<EmailConfig>> pagingProcessor(int pageSize) {
     return new ListServicePagingProcessorImpl<>(new ListService<>() {
       @Override
@@ -207,6 +179,9 @@ public class EmailConfigService {
 
   public Completable updateLastCheck(String userId, boolean hasRefreshToken, Long expiresIn) {
     return RxUtil.completable(repository().updateLastCheck(userId, hasRefreshToken, expiresIn));
+  }
 
+  public Uni<List<EmailConfig>> selectByEmail(String email, String id) {
+    return repository().selectByEmail(email, id);
   }
 }

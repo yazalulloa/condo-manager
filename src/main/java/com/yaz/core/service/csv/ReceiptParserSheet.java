@@ -155,10 +155,10 @@ public class ReceiptParserSheet extends ReceiptParserAbstractImpl {
           final var previousPaymentCurrency = Optional.ofNullable(abono)
               .map(str -> str.contains("$"))
               .map(b -> Currency.USD)
-              .orElse(null);
+              .orElse(Currency.VED);
 
           final var previousPaymentAmount = Optional.ofNullable(abono)
-              .map(str -> str.replace("$", "").trim())
+              .map(str -> str.replace("$", "").replace("Bs.", "").trim())
               .filter(str -> !str.equals("OJO"))
               .filter(s -> !s.isEmpty())
               .map(PoiUtil::decimal)

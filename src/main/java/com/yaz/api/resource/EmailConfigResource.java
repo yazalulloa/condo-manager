@@ -6,6 +6,7 @@ import com.google.api.client.http.GenericUrl;
 import com.yaz.api.domain.response.EmailConfigTableItem;
 import com.yaz.api.domain.response.EmailConfigTableResponse;
 import com.yaz.core.helper.VertxHelper;
+import com.yaz.core.service.entity.BuildingService;
 import com.yaz.core.service.entity.EmailConfigService;
 import com.yaz.core.service.gmail.GmailHelper;
 import com.yaz.core.service.gmail.GmailService;
@@ -20,6 +21,7 @@ import com.yaz.persistence.entities.EmailConfig;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.reactivex.rxjava3.core.Single;
+import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonObject;
@@ -39,6 +41,7 @@ import java.util.Base64;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jboss.resteasy.reactive.RestPath;
 import org.jboss.resteasy.reactive.RestQuery;
 
@@ -50,11 +53,12 @@ public class EmailConfigResource {
   public static final String PATH = "/api/email_configs";
   public static final String DELETE_PATH = PATH + "/";
 
-  private final EmailConfigService service;
+  private final EmailConfigService emailConfigService;
   private final GmailHelper gmailHelper;
   private final GoogleHelper googleHelper;
   private final GmailService gmailService;
   private final VertxHelper vertxHelper;
+  private final BuildingService buildingService;
 
   @CheckedTemplate
   public static class Templates {
@@ -209,7 +213,8 @@ public class EmailConfigResource {
                       .createdAt(DateUtil.utcLocalDateTime())
                       .build();
 
-                  return service.create(emailConfig)
+                  return emailConfigService.create(emailConfig)
+                      .flatMap(this::changeBuildings)
                       .replaceWith(Response.temporaryRedirect(new URI("/")).build());
                 })
                 .flatMap(RxUtil::single);
@@ -227,7 +232,7 @@ public class EmailConfigResource {
   @Path("counters")
   @Produces(MediaType.TEXT_HTML)
   public Uni<TemplateInstance> counters() {
-    return service.count()
+    return emailConfigService.count()
         .map(Templates::counters);
   }
 
@@ -235,7 +240,7 @@ public class EmailConfigResource {
   @Path("{id}")
   @Produces
   public Uni<TemplateInstance> delete(@RestPath String id) {
-    return service.delete(id)
+    return emailConfigService.delete(id)
         .replaceWith(counters());
   }
 
@@ -248,7 +253,7 @@ public class EmailConfigResource {
         .user(StringUtil.trimFilter(user))
         .build();
 
-    return service.table(query)
+    return emailConfigService.table(query)
         .map(Templates::table);
   }
 
@@ -262,5 +267,37 @@ public class EmailConfigResource {
         .switchIfEmpty(Single.fromCallable(() -> Templates.refresh("/")));
 
     return MutinyUtil.toUni(single);
+  }
+
+  private Uni<Void> changeBuildings(EmailConfig emailConfig) {
+    return emailConfigService.selectByEmail(emailConfig.email(), emailConfig.id())
+        .flatMap(list -> {
+          return Multi.createFrom().iterable(list)
+              .onItem()
+              .transformToUni(config -> {
+                return buildingService.updateEmailConfig(config.id(), emailConfig.id());
+              })
+              .merge()
+              .collect()
+              .asList()
+              .map(l -> l.stream().reduce(Integer::sum).orElse(0))
+              .flatMap(buildingsChanged -> {
+
+                return Multi.createFrom().iterable(list)
+                    .map(EmailConfig::id)
+                    .onItem()
+                    .transformToUni(emailConfigService::delete)
+                    .merge()
+                    .collect()
+                    .asList()
+                    .map(l -> l.stream().reduce(Integer::sum).orElse(0))
+                    .map(emailConfigsDeleted -> {
+                      return Pair.of(buildingsChanged, emailConfigsDeleted);
+                    });
+
+              });
+        })
+        .invoke(pair -> log.info("buildingsChanged: {} emailConfigsDeleted {}", pair.getLeft(), pair.getRight()))
+        .replaceWithVoid();
   }
 }

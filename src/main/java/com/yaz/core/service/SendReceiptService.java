@@ -202,9 +202,12 @@ public class SendReceiptService {
 
                 final var gmail = gmailHelper.gmail(emailConfig.id());
                 final var messageWithEmail = GmailUtil.createMessageWithEmail(mimeMessage);
-                return gmail.users().messages().send("me", messageWithEmail)
+                final var msg = gmail.users().messages().send("me", messageWithEmail)
                     .execute()
                     .toString();
+
+                log.info("Zip sent: {} {}", emailRequest, msg);
+                return msg;
               });
         })
         .subscribeOn(Schedulers.io())
