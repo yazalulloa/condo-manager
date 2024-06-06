@@ -157,15 +157,7 @@ public class ReceiptResource {
         .flatMap(Multi.createFrom()::iterable)
         .onItem()
         .transformToUni(str -> apartmentService.aptByBuildings(str)
-            .map(list -> {
-//              final var json = new JsonObject()
-//                  .put("building", str)
-//                  .put("apts", new JsonArray(Json.encode(list)))
-//                  .encode()
-//                  .replace("\"", "");
-
-              return new Apts(str, list);
-            }))
+            .map(list -> new Apts(str, list)))
         .merge()
         .collect()
         .asList();

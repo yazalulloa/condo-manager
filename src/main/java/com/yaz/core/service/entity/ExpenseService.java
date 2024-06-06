@@ -29,9 +29,7 @@ public class ExpenseService {
   }
 
   public Uni<Integer> delete(Keys keys) {
-    return MutinyUtil.measure(repository.delete(keys.id()), duration -> {
-      log.info("Expense deleted in {} ms", duration);
-    });
+    return repository.delete(keys.id());
   }
 
   public Uni<Long> countByReceipt(long receiptId) {

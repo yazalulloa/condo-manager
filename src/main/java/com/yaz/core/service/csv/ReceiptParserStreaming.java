@@ -155,7 +155,13 @@ public class ReceiptParserStreaming extends ReceiptParserAbstractImpl {
         final var previousPaymentAmount = Optional.ofNullable(abono)
             .map(str -> str.replace("$", "").replace("Bs.", "").trim())
             .filter(str -> !str.equals("OJO"))
-            .map(PoiUtil::decimal)
+            .map(str -> {
+              try {
+                return PoiUtil.decimal(str);
+              } catch (Exception e) {
+                return null;
+              }
+            })
             .orElse(null);
 
         final var previousPaymentCurrency = Optional.ofNullable(abono)
