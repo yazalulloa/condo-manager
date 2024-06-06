@@ -214,9 +214,9 @@ public class ApartmentsResource {
   }
 
   private Uni<ApartmentFormDto> fromRequest(ApartmentRequest request, boolean isUpdate) {
-    final var buildingId = StringUtil.escapeInput(request.getBuildingId());
-    final var number = StringUtil.escapeInput(request.getNumber());
-    final var name = StringUtil.escapeInput(request.getName());
+    final var buildingId = request.getBuildingId();
+    final var number = request.getNumber();
+    final var name = request.getName();
 
     final var numberFieldErrorUni = Uni.createFrom().deferred(() -> {
       if (isUpdate) {
@@ -417,7 +417,7 @@ public class ApartmentsResource {
   @Path("upsert")
   public Uni<TemplateInstance> upsert(@BeanParam ApartmentRequest request) {
 
-    final var key = StringUtil.escapeInput(request.getKey());
+    final var key = request.getKey();
 
     final var optKeys = Optional.ofNullable(key)
         .map(str -> encryptionService.decryptObj(str, Keys.class));

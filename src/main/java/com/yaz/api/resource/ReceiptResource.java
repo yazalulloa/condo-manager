@@ -358,8 +358,8 @@ public class ReceiptResource {
       return Uni.createFrom().item(Templates.dialogError("Seleccione un apartmento"));
     }
 
-    request.setSubject(StringUtil.escapeInput(request.getSubject()));
-    request.setMsg(StringUtil.escapeInput(request.getMsg()));
+    request.setSubject(request.getSubject());
+    request.setMsg(request.getMsg());
 
     return buildingService.read(keys.buildingId())
         .flatMap(optional -> {
@@ -386,7 +386,6 @@ public class ReceiptResource {
 
                 final var clientId = UUID.randomUUID().toString();
 
-                log.info("SEND_RECEIPT {} {}", keys, clientId);
                 sendReceiptService.sendReceipts(keys, clientId, request)
                     .subscribe(() -> {
                     }, t -> log.error("ERROR_SENDING_RECEIPTS", t));
