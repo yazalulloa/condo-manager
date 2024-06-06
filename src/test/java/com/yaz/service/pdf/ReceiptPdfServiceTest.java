@@ -13,7 +13,7 @@ class ReceiptPdfServiceTest {
 
    @Test
   void zipDownload() {
-     receiptPdfService.zipDownload("KORAL", 76)
+     receiptPdfService.zipDownload("ANTONIETA", 92)
          .await().indefinitely();
   }
 

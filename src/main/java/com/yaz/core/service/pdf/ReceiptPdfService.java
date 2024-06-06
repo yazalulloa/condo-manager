@@ -16,7 +16,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.util.Collection;
 import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -102,7 +101,7 @@ public class ReceiptPdfService {
                           .checked(item.emails() == null)
                           .build();
                     })
-                    .collect(Collectors.toList());
+                    .toList();
 
                 return ReceiptPdfResponse.builder()
                     .building(calculatedReceipt.building().id())

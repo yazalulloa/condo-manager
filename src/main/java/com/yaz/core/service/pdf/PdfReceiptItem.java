@@ -10,6 +10,7 @@ public record PdfReceiptItem(
     String fileName,
     String id,
     String name,
+    String buildingId,
     String buildingName,
     Set<String> emails) {
 

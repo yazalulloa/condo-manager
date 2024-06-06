@@ -16,6 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -55,8 +56,7 @@ public class GetPdfReceipts {
         .build();
   }
 
-  public Single<Collection<PdfReceiptItem>> pdfItems(CalculatedReceipt receipt)
-      throws IOException {
+  public Single<Collection<PdfReceiptItem>> pdfItems(CalculatedReceipt receipt) {
     return Single.defer(() -> {
       final var start = System.currentTimeMillis();
 
@@ -72,7 +72,7 @@ public class GetPdfReceipts {
             return Single.fromCallable(() -> {
               final var millis = System.currentTimeMillis();
               pdfReceipt.createPdf();
-              log.info("Create pdf: {} millis: {}", pdfReceipt.path(), System.currentTimeMillis() - millis);
+              log.debug("Create pdf: {} millis: {}", pdfReceipt.path(), System.currentTimeMillis() - millis);
               final var buildingName = pdfReceipt.building().name();
 
               final var apt = Optional.ofNullable(pdfReceipt.apartment())
@@ -90,6 +90,7 @@ public class GetPdfReceipts {
                   .fileName("%s.pdf".formatted(fileName))
                   .id(pdfReceipt.id())
                   .name(pdfReceipt.name())
+                  .buildingId(pdfReceipt.building().id())
                   .buildingName(pdfReceipt.building().name())
                   .emails(Optional.ofNullable(pdfReceipt.apartment()).map(Apartment::emails).orElse(null))
                   .build();
@@ -98,42 +99,16 @@ public class GetPdfReceipts {
           .toList()
           .toFlowable()
           .flatMap(Single::merge)
+          .sorted(Comparator.comparing(PdfReceiptItem::id))
           .toList()
-          .doOnSuccess(list -> {
-            log.info("Create pdfs: {} millis", System.currentTimeMillis() - start);
-          });
-
-//      for (CreatePdfReceipt pdfReceipt : pdfReceipts) {
-//        final var millis = System.currentTimeMillis();
-//        pdfReceipt.createPdf();
-//        log.info("Create pdf: {} millis: {}", pdfReceipt.path(), System.currentTimeMillis() - millis);
-//        final var buildingName = pdfReceipt.building().name();
-//
-//        final var apt = Optional.ofNullable(pdfReceipt.apartment())
-//            .map(Apartment::number)
-//            .orElse("");
-//
-//        //updateState("Creando archivos %s %s ".formatted(buildingName, apt), ++counter, pdfReceipts.size());
-//
-//        final var fileName = Optional.ofNullable(pdfReceipt.apartment())
-//            .map(Apartment::number)
-//            .orElse(pdfReceipt.building().name());
-//
-//        final var item = PdfReceiptItem.builder()
-//            .path(pdfReceipt.path())
-//            .fileName("%s.pdf".formatted(fileName))
-//            .id(pdfReceipt.id())
-//            .name(pdfReceipt.name())
-//            .buildingName(pdfReceipt.building().name())
-//            .emails(Optional.ofNullable(pdfReceipt.apartment()).map(Apartment::emails).orElse(null))
-//            .build();
-//
-//        items.add(item);
-//      }
-//
-//      log.info("Create pdfs: {} millis", System.currentTimeMillis() - start);
-//
-//      return items;
+          .map(list -> {
+            final var buildingItem = list.stream().filter(item -> item.id().equals(item.buildingId()))
+                .findFirst().orElseThrow();
+            list.removeIf(item -> item.id().equals(item.buildingId()));
+            list.addFirst(buildingItem);
+            return list;
+          })
+          .doOnSuccess(list -> log.debug("Create pdfs: {} millis", System.currentTimeMillis() - start));
     });
   }
 

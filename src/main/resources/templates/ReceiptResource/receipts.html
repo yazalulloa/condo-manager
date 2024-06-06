@@ -12,7 +12,7 @@
 
 <div class="receipt-grid-container flex-grow flex-auto h-full p-2"
      hx-get="/stc/receipts/edit/"
-     hx-trigger="click"
+     hx-trigger="dblclick"
      hx-on::before-request="saveResource('receipt', '{item.key}')">
   <span>{item.item.buildingId}</span>
 
