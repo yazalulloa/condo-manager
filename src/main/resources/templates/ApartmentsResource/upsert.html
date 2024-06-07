@@ -3,8 +3,12 @@
 <div x-init="buildingError='{dto.buildingError}'; numberError='{dto.numberError}'; nameError='{dto.nameError}'; aliquotError='{dto.aliquotError}';
 generalError='{dto.generalError}';
 
-{#if dto.isSuccess && dto.item == null}
+{#if dto.isSuccess}
+dialog_open = false;
+
+{#if dto.item == null}
 sendEvent('apt-search-input', 'new_apt');
+{/if}
 {/if}
 
 ">

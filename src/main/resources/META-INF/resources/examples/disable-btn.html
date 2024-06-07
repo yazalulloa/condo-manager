@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Disable Btn</title>
+  <script defer src="https://unpkg.com/htmx.org@1.9.12"
+          integrity="sha384-ujb1lZYygJmzgSwoxRggbCHcjc0rB2XoQrxeTUQyRjrOnlCoYta87iKBWq3EsdM2"
+          crossorigin="anonymous"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.2/dist/full.min.css" rel="stylesheet" type="text/css"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+<div class="flex justify-center p-8 m-0">
+  <form class="flex flex-col gap-4"
+        x-data="{is_checked: true, name: ''}"
+        hx-post="https://http.cat/200"
+        hx-indicator=".htmx-indicator"
+        hx-disabled-elt="button"
+        hx-swap="none">
+
+    <input type="text"
+           x-model="name"
+           placeholder="Name"
+           required
+           class="input input-bordered"/>
+
+    <input type="checkbox" class="toggle"
+           @click="is_checked=!is_checked"
+           x-bind:checked="is_checked"/>
+
+   <div class="flex flex-col gap-2">
+     <button class="btn btn-primary"
+             type="submit"
+             x-effect="$el.disabled = !(is_checked && name?.trim()?.length > 0)"
+     >
+       Submit
+     </button>
+
+     <img class="htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">
+   </div>
+  </form>
+</div>
+
+</body>
+</html>

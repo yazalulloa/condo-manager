@@ -23,14 +23,16 @@
 
     </div>
     <div class="block">
-        <button class="delete-btn"
+        <button class="btn btn-circle"
                 hx-headers='{"{inject:csrf.headerName}":"{inject:csrf.token}"}'
                 hx-delete="{item.deleteUrl}"
                 hx-target="{item.cardIdRef}"
                 hx-vals="js:\{building: document.querySelector('#buildings-selector select').value, q: document.querySelector('#apt-search-input').value\}"
+                hx-indicator=".htmx-indicator"
+                hx-disabled-elt="this"
                 hx-trigger="click"
-                hx-swap="delete">
-            <img src="/assets/trash.svg" alt="delete-item">
+                hx-swap="delete swap:300ms">
+            <img class="h-6 w-6" src="/assets/trash.svg" alt="delete-item">
         </button>
     </div>
 </div>

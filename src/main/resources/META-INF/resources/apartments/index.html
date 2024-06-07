@@ -182,7 +182,7 @@
           <div class="label">
             <span class="label-text">Nro. Apt</span>
           </div>
-          <input type="text" placeholder="Nro. Apt" class="input input-bordered w-full" name="number"
+          <input placeholder="Nro. Apt" class="input input-bordered w-full" name="number"
                  x-model="number"
                  x-bind:disabled="is_edit"/>
           <div class="label">
@@ -217,7 +217,7 @@
             <div class="flex flex-row justify-between apt-emails-form p-2">
               <input type="text" name="emails" hidden="hidden" :value="value">
               <div class="flex align-middle" x-text="value"></div>
-              <button type="button" @click.prevent="emails.delete(value)"><img src="/assets/trash.svg"
+              <button type="button" @click.prevent="emails.delete(value)"><img class="h-6 w-6" src="/assets/trash.svg"
                                                                                alt="delete-email"></button>
             </div>
           </template>
@@ -244,7 +244,10 @@
         <div class="flex flex-row gap-4">
           <button type="submit" class="btn btn-primary"
                   x-init="$watch('is_edit', value => $el.childNodes[0].nodeValue = (value ? 'Editar' : 'Crear'))"
-                  x-effect="$el.disabled=!(number?.trim()?.length > 0 && name?.trim()?.length > 0 && aliquot && aliquot > 0 )">
+                  x-effect="
+                  let v = !(number?.trim()?.length > 0 && name?.trim()?.length > 0 && aliquot && aliquot > 0 );
+                  $el.disabled=v;
+                  ">
             Crear
           </button>
 

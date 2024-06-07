@@ -1,7 +1,6 @@
 package com.yaz.api.resource;
 
 
-import com.yaz.api.domain.ExpenseTotals;
 import com.yaz.api.domain.response.ExpenseCountersDto;
 import com.yaz.api.domain.response.ExpenseFormDto;
 import com.yaz.api.domain.response.ExpenseTableItem;
@@ -15,12 +14,10 @@ import com.yaz.core.util.DecimalUtil;
 import com.yaz.core.util.StringUtil;
 import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.domain.ExpenseType;
-import com.yaz.persistence.domain.ReserveFundType;
 import com.yaz.persistence.entities.Expense;
 import com.yaz.persistence.entities.Expense.Keys;
 import com.yaz.persistence.entities.Rate;
 import com.yaz.persistence.entities.Receipt;
-import com.yaz.persistence.entities.ReserveFund;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.smallrye.mutiny.Uni;
@@ -36,10 +33,9 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import java.math.BigDecimal;
-import java.util.ArrayList;
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -94,7 +90,8 @@ public class ExpenseResource {
 
           final var expenseTotalsBeforeReserveFunds = ConvertUtil.expenseTotals(rate.rate(), expenses);
 
-          final var reserveFundExpenses = ConvertUtil.reserveFundExpenses(expenseTotalsBeforeReserveFunds, reserveFunds, expenses);
+          final var reserveFundExpenses = ConvertUtil.reserveFundExpenses(expenseTotalsBeforeReserveFunds, reserveFunds,
+              expenses);
 
           final var expenseTotals = ConvertUtil.expenseTotals(rate.rate(), expenses);
 
@@ -175,7 +172,6 @@ public class ExpenseResource {
 
   }
 
-  
 
   @POST
   @Path("{key}")
@@ -205,7 +201,8 @@ public class ExpenseResource {
 
           final var expenseTotalsBeforeReserveFunds = ConvertUtil.expenseTotals(rate.rate(), expenses);
 
-          final var reserveFundExpenses = ConvertUtil.reserveFundExpenses(expenseTotalsBeforeReserveFunds, reserveFunds, expenses);
+          final var reserveFundExpenses = ConvertUtil.reserveFundExpenses(expenseTotalsBeforeReserveFunds, reserveFunds,
+              expenses);
 
           final var expenseTotals = ConvertUtil.expenseTotals(rate.rate(), expenses);
 

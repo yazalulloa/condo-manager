@@ -13,7 +13,7 @@
                 hx-post="/api/buildings/new"
             {/if}
           hx-indicator=".htmx-indicator"
-
+          hx-disabled-elt="this, button"
 
           script="
           {#if ! dto.isNew && ! dto.isSuccess}

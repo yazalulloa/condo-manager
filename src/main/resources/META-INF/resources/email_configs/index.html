@@ -6,12 +6,14 @@
   <link href="/out/css/output.css" rel="stylesheet"/>
   <script src="/out/js/index.js" defer></script>
 </head>
-<body >
+<body>
 
 <div class="header bg-base-100 fade-me-in fade-me-out" id="header-container" hx-swap-oob="true">
   <span id="email-configs-total-counter"></span>
 
-  <button class="btn btn-primary" hx-get="/api/email_configs/add"
+  <button class="btn btn-primary"
+          hx-get="/api/email_configs/add"
+          hx-disabled-elt="this"
           hx-indicator=".htmx-indicator"
           hx-swap="none">
     Añadir Configuración

@@ -34,6 +34,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -417,9 +418,7 @@ public class ApartmentsResource {
   @Path("upsert")
   public Uni<TemplateInstance> upsert(@BeanParam ApartmentRequest request) {
 
-    final var key = request.getKey();
-
-    final var optKeys = Optional.ofNullable(key)
+    final var optKeys = Optional.ofNullable(StringUtil.trimFilter(request.getKey()))
         .map(str -> encryptionService.decryptObj(str, Keys.class));
 
     optKeys.ifPresent(keys -> {
@@ -427,7 +426,7 @@ public class ApartmentsResource {
       request.setNumber(keys.number());
     });
 
-    final var isUpdate = key != null;
+    final var isUpdate = optKeys.isPresent();
     return fromRequest(request, isUpdate)
         .map(dto -> {
           final var emailError = dto.emails().stream().map(EmailForm::error)
@@ -469,7 +468,7 @@ public class ApartmentsResource {
             if (isUpdate) {
               dto = dto.toBuilder()
                   .item(AptItem.builder()
-                      .key(key)
+                      .key(request.getKey())
                       .cardId(optKeys.get().cardId())
                       .apt(apartment)
                       .isUpdate(isUpdate)

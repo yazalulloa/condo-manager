@@ -2,8 +2,8 @@
 
 <div class="expenses-grid base-grid-cm hover:bg-[#00000014] p-1 fade-me-out fade-me-in"
      id="{item.cardId}"
-     {#if item.outOfBoundsUpdate}
-     hx-swap-oob="true"
+        {#if item.outOfBoundsUpdate}
+            hx-swap-oob="true"
         {/if}
 >
 
@@ -13,21 +13,28 @@
 
     <div class="flex flex-row gap-2 justify-center">
         {#if item.item.reserveFund == false}
-            <div class="block">
-                <button class="edit-btn"
-                        hx-get="{item.editUrl}"
-                        hx-indicator=".htmx-indicator"
-                        hx-trigger="click"
-                        hx-swap="none">
-
-                    <img src="/assets/edit_icon.svg" alt="edit-expense">
-                </button>
-            </div>
-                {#include fragments/delete-btn deleteUrl = item.deleteUrl cardIdRef = item.cardIdRef/}
+        <button class="btn btn-circle disabled:bg-gray-800"
+                hx-get="{item.editUrl}"
+                hx-indicator=".htmx-indicator"
+                hx-trigger="click"
+                hx-disabled-elt="this"
+                hx-swap="none">
+            <img class="h-6 w-6" src="/assets/edit_icon.svg" alt="edit-expense">
+        </button>
+        <button class="btn btn-circle disabled:bg-gray-800"
+                hx-headers='{"{inject:csrf.headerName}":"{inject:csrf.token}"}'
+                hx-delete="{item.deleteUrl}"
+                hx-target="{item.cardIdRef}"
+                hx-indicator=".htmx-indicator"
+                hx-trigger="click"
+                hx-disabled-elt="this"
+                hx-swap="delete swap:300ms">
+            <img class="h-6 w-6" src="/assets/trash.svg" alt="delete-item">
+        </button>
         {#else}
-            <div style="height: 34px">
+        <div style="height: 34px">
 
-            </div>
+        </div>
         {/if}
 
     </div>

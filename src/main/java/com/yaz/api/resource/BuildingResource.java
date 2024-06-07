@@ -37,6 +37,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -222,6 +223,7 @@ public class BuildingResource {
             ? requestFixedPayAmount : null;
 
     return BuildingFormDto.builder()
+        .key(request.getKey())
         .id(id)
         .idFieldError(id == null ? "ID no puede estar vacio" : null)
         .name(name)
@@ -341,6 +343,9 @@ public class BuildingResource {
               .emailConfigs(emailConfigs)
               .build())
           .map(Templates::form)
+          .onItem()
+          .delayIt()
+          .by(Duration.ofSeconds(1))
           .map(t -> Response.ok(t).build());
     }
 

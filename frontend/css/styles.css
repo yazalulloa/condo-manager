@@ -32,6 +32,21 @@ textarea, input {
   scrollbar-width: none;  /* Firefox */
 }
 
+/**[hx-swap] {*/
+/*  animation: animate-in 1s ease-in-out;*/
+/*}*/
+
+/*@keyframes animate-in {*/
+/*  0% {*/
+/*    opacity: 0;*/
+/*    transform: translateY(10px);*/
+/*  }*/
+/*  100% {*/
+/*    opacity: 1;*/
+/*    transform: translateY(0);*/
+/*  }*/
+/*}*/
+
 .original-state {
   color: blue;
 }
@@ -121,11 +136,15 @@ textarea, input {
   background-color: lightyellow;
 }
 
+.noClick {
+  pointer-events: none;
+}
+
 .edit-btn {
   background: none;
   color: inherit;
   border: none;
-  padding: 2px;
+  padding: 0.35rem;
   font: inherit;
   cursor: pointer;
   outline: inherit;
