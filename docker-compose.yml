@@ -8,10 +8,10 @@ services:
 #    env_file:
 #      - local.env
     deploy:
-#      resources:
-#        limits:
-#          cpus: '0.5'
-#          memory: 512M
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
     environment:
       - DOCKER_TIMEZONE=America/Caracas
     volumes:

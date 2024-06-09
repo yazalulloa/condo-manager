@@ -1,5 +1,14 @@
-{#if error}
-    <div id="dialog-error" hx-swap-oob="true" class="fade-me-in p-2">
+<div
+        {#if isZip}
+            id="zip-dialog-error"
+        {#else}
+            id="dialog-error"
+        {/if}
+        hx-swap-oob="true" class="fade-me-in p-2">
+    {#if error}
         <span class="text-red-500 text-xs">{error}</span>
-    </div>
-{/if}
+    {#else}
+            <span class="text-xs">Enviado</span>
+    {/if}
+
+</div>

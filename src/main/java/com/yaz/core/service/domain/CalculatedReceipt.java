@@ -38,7 +38,8 @@ public record CalculatedReceipt(
     Building building,
     List<Apartment> apartments,
     String emailConfigId,
-    Receipt receipt
+    Receipt receipt,
+    String clientId
 ) {
 
   @Builder(toBuilder = true)

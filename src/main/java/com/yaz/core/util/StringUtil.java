@@ -15,6 +15,9 @@ import java.util.zip.InflaterOutputStream;
 import org.apache.commons.codec.digest.XXHash32;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
+import org.unbescape.html.HtmlEscape;
+import org.unbescape.java.JavaEscape;
+import org.unbescape.javascript.JavaScriptEscape;
 
 public class StringUtil {
 
@@ -159,9 +162,12 @@ public class StringUtil {
     return Optional.ofNullable(str)
         .map(String::trim)
         .filter(s -> !s.isEmpty())
-        .map(StringEscapeUtils::escapeHtml4)
-        .map(StringEscapeUtils::escapeEcmaScript)
-        .map(StringEscapeUtils::escapeXml11)
+        .map(HtmlEscape::escapeHtml5Xml)
+        .map(JavaScriptEscape::escapeJavaScriptMinimal)
+
+//        .map(StringEscapeUtils::escapeHtml4)
+//        .map(StringEscapeUtils::escapeEcmaScript)
+//        .map(StringEscapeUtils::escapeXml11)
         .orElse(null);
   }
 

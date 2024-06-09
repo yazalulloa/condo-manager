@@ -80,7 +80,12 @@ public class CalculateReceiptService {
 
     final var debtsSingle = RxUtil.single(debtService.readByReceipt(buildingId, receiptId));
 
-    final var extraChargesSingle = RxUtil.single(extraChargeService.by(buildingId, String.valueOf(receiptId)));
+    final var extraChargesSingle = Single.zip(RxUtil.single(extraChargeService.by(buildingId, buildingId)),
+        RxUtil.single(extraChargeService.by(buildingId, String.valueOf(receiptId))),
+        (building, receipt) -> {
+          return Stream.concat(building.stream(), receipt.stream())
+              .toList();
+        });
 
     final var rateSingle = receiptSingle.map(Receipt::rateId)
         .map(rateService::read)

@@ -26,7 +26,11 @@
 </div>
 
 
-<div class="overflow-hidden">
+<div id="receipt-pdfs" class="overflow-hidden"
+    {#if res.outOfBounds}
+        hx-swap-oob="true"
+    {/if}
+>
     <div class="rounded-box join max-w-full h-14 max-h-14 items-center stop-vertical-scroll">
         <button class="join-item btn btn-outline"
                 onclick="slideTo('pdf_carousel', 'left')"

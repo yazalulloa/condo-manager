@@ -22,7 +22,7 @@ public interface ReceiptParser {
       Map.entry("SEP", Month.SEPTEMBER),
       Map.entry("OCT", Month.OCTOBER),
       Map.entry("NOV", Month.NOVEMBER),
-      Map.entry("DEC", Month.DECEMBER)
+      Map.entry("DIC", Month.DECEMBER)
   );
 
   Single<List<CsvReceipt>> parseDir(String dir);

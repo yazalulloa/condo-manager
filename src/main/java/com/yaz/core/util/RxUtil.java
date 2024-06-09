@@ -15,6 +15,7 @@ import io.reactivex.rxjava3.functions.Function;
 import io.reactivex.rxjava3.processors.BehaviorProcessor;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.converters.uni.UniRx3Converters;
+import io.vertx.core.impl.cpu.CpuCoreSensor;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -203,5 +204,9 @@ public class RxUtil {
 
   public static <T> Completable completable(Uni<T> voidUni) {
     return toMaybe(voidUni).ignoreElement();
+  }
+
+  public static <T> Flowable<T> mergeOrConcat(List<Single<T>> list) {
+    return CpuCoreSensor.availableProcessors() > 4 ? Single.merge(list) : Single.concat(list);
   }
 }

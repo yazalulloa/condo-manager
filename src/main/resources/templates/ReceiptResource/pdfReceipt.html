@@ -1,0 +1,17 @@
+{@com.yaz.api.domain.response.receipt.ReceiptPdfDto dto}
+
+<div id="receipt-pdfs" class="flex flex-col gap-2 items-center text-center">
+    <div class="flex flex-col gap-2 font-bold pb-2">
+        <div>
+            <span>{dto.receipt.buildingId}</span>
+        </div>
+
+        <div class="flex flex-row gap-2 justify-center">
+            <span>{dto.receipt.year}</span>
+            <span>{dto.receipt.month}</span>
+            <span>{dto.receipt.date}</span>
+        </div>
+    </div>
+
+        {#include ReceiptResource/progress dto = dto.progressDto /}
+</div>

@@ -137,6 +137,7 @@ public class ReceiptParserStreaming extends ReceiptParserAbstractImpl {
       if (row.cells().size() >= 4) {
         final var iterator = row.cells().values().iterator();
         final var apt = iterator.next().value().trim();
+
         final var name = iterator.next().value().trim();
         final var receipts = iterator.next().value().trim();
         final var amount = iterator.next().value().trim().replace(",", "");

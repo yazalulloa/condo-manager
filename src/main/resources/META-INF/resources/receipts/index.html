@@ -198,10 +198,11 @@
 
   </dialog>
 
-  <dialog id="dialog-cm-zip"
-          class="z-30 form-container rounded border-2 border-gray-400 bg-base-100 m-0 top-1/2 left-1/2 p-2 max-h-95per min-w-1/2"
-          x-data="{email_input: '', disable_btn: false, emails: new Set()}"
-          x-effect="
+  <dialog
+      class="z-30 form-container rounded border-2 border-gray-400 bg-base-100 m-0 top-1/2 left-1/2 p-2 max-h-95per min-w-1/2"
+      x-data="{email_input: '', disable_btn: false, emails: new Set(), zip_msg: ''}"
+      x-effect="
+          zip_msg = '';
           email_input = '';
           emails.clear();
            if (zip_dialog_open) {
@@ -209,7 +210,7 @@
           } else {
             $el.close();
           }"
-          @add-receipt-zip-dialog-email="
+      @add-receipt-zip-dialog-email="
           let v = $event.detail?.email?.trim();
           if (v && v.length > 0 && validateEmail(v)) {
             emails.add(v);
@@ -289,6 +290,9 @@
                   @click.prevent="$dispatch('add-receipt-zip-dialog-email', { email: $el.previousElementSibling?.value?.trim() })">
             Añadir
           </button>
+        </div>
+
+        <div id="zip-dialog-error">
         </div>
 
         <div class="flex flex-row gap-4">

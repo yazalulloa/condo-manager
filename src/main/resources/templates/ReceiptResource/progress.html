@@ -1,15 +1,20 @@
-<div id="progress-receipts" class="text-center" hx-swap-oob="beforeend">
-  <div id="sse-receipt-progress-bar-{key}" hx-ext="sse" sse-connect="/api/sse/{key}" sse-swap="receipt-progress">
+{@com.yaz.api.domain.response.receipt.ReceiptProgressDto dto}
+
+<div id="progress-receipts" class="text-center w-full"
+        {#if dto.outOfBoundsUpdate}
+          hx-swap-oob="beforeend"
+        {/if}>
+  <div id="sse-receipt-progress-bar-{dto.clientId}" hx-ext="sse" sse-connect="/api/sse/{dto.clientId}" sse-swap="receipt-progress">
     <label class="label gap-4 flex-col">
-      <span class="label-text text-center font-bold text-base">Buscando data... </span>
+      <span class="label-text text-center font-bold text-base">{dto.msg ?: 'Buscando data...'}</span>
       <progress class="progress w-[80%]"></progress>
     </label>
   </div>
 </div>
 
-{#if clearDialog}
+{#if dto.clearDialog}
   <dialog id="dialog-helper" hx-swap-oob="true"
-          {!x-init="zip_dialog_open = false; send_dialog_open = false;"!}
+          x-init="zip_dialog_open = false; send_dialog_open = false;"
   >
 
   </dialog>

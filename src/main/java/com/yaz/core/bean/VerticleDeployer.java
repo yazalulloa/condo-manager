@@ -28,6 +28,7 @@ public class VerticleDeployer {
     eventBus.registerCodec(defaultJacksonMessageCodec);
     eventBus.codecSelector(body -> defaultJacksonMessageCodec.name());
     final var deploymentOptions = new DeploymentOptions()
+        // In native this is precalculated
         .setInstances(VertxOptions.DEFAULT_EVENT_LOOP_POOL_SIZE)
         //.setInstances(1)
         ;

@@ -10,7 +10,8 @@ public record ReceiptPdfResponse(
     String month,
     LocalDate date,
     String zipPath,
-    List<Tab> tabs
+    List<Tab> tabs,
+    boolean outOfBounds
 ) {
 
 

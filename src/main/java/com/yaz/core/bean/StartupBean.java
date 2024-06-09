@@ -10,6 +10,8 @@ import io.quarkus.runtime.StartupEvent;
 import io.quarkus.runtime.configuration.ConfigUtils;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
+import io.vertx.core.VertxOptions;
+import io.vertx.core.impl.cpu.CpuCoreSensor;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
@@ -51,6 +53,8 @@ public class StartupBean {
     log.info("Profiles: {}", profiles);
     final var cloudProvider = System.getenv("CLOUD_PROVIDER");
     log.info("Cloud provider: {}", cloudProvider);
+    log.info("Cores: {}", CpuCoreSensor.availableProcessors());
+    log.info("Event Loop Size {}", VertxOptions.DEFAULT_EVENT_LOOP_POOL_SIZE);
   }
 
   void shutdown(@Observes ShutdownEvent event) {

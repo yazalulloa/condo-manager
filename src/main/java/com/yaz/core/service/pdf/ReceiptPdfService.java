@@ -29,7 +29,7 @@ public class ReceiptPdfService {
   private final TranslationProvider translationProvider;
   private final EncryptionService encryptionService;
 
-  private Single<CalculatedReceipt> calculate(String buildingId, long receiptId) {
+  public Single<CalculatedReceipt> calculate(String buildingId, long receiptId) {
     return RxUtil.single(calculateReceiptService.calculate(buildingId, receiptId));
   }
 
@@ -77,42 +77,44 @@ public class ReceiptPdfService {
 
   }
 
-  public Uni<ReceiptPdfResponse> pdfResponse(String buildingId, long receiptId) {
-    final var responseSingle = calculate(buildingId, receiptId)
+  public Single<ReceiptPdfResponse> pdfResponse(String buildingId, long receiptId, String clientId) {
+    return calculate(buildingId, receiptId)
+        .map(calculatedReceipt -> calculatedReceipt.toBuilder()
+            .clientId(clientId)
+            .build())
         .observeOn(Schedulers.io())
-        .flatMap(calculatedReceipt -> {
+        .flatMap(this::pdfResponse);
+  }
 
-          return getPdfReceipts.pdfItems(calculatedReceipt)
-              .map(pdfReceiptItems -> {
+  public Single<ReceiptPdfResponse> pdfResponse(CalculatedReceipt calculatedReceipt) {
+    return getPdfReceipts.pdfItems(calculatedReceipt)
+        .map(pdfReceiptItems -> {
 
-                final var zipPath = getPdfReceipts.zipPath(calculatedReceipt, pdfReceiptItems);
-                final var fileName = getPdfReceipts.fileName(calculatedReceipt);
+          final var zipPath = getPdfReceipts.zipPath(calculatedReceipt, pdfReceiptItems);
+          final var fileName = getPdfReceipts.fileName(calculatedReceipt);
 
-                final var tabs = pdfReceiptItems.stream()
-                    .map(item -> {
+          final var tabs = pdfReceiptItems.stream()
+              .map(item -> {
 
-                      final var s =
-                          fileName + (item.id().equals(calculatedReceipt.building().id()) ? "" : "_" + item.id())
-                              + ".pdf";
+                final var s =
+                    fileName + (item.id().equals(calculatedReceipt.building().id()) ? "" : "_" + item.id())
+                        + ".pdf";
 
-                      return Tab.builder()
-                          .name(item.id())
-                          .path(encryptionService.encrypt(item.path().toString()) + "/" + s)
-                          .checked(item.emails() == null)
-                          .build();
-                    })
-                    .toList();
-
-                return ReceiptPdfResponse.builder()
-                    .building(calculatedReceipt.building().id())
-                    .month(translationProvider.translate(calculatedReceipt.month().name()))
-                    .date(calculatedReceipt.date())
-                    .zipPath(encryptionService.encrypt(zipPath.path().toString()))
-                    .tabs(tabs)
+                return Tab.builder()
+                    .name(item.id())
+                    .path(encryptionService.encrypt(item.path().toString()) + "/" + s)
+                    .checked(item.emails() == null)
                     .build();
-              });
-        });
+              })
+              .toList();
 
-    return MutinyUtil.toUni(responseSingle);
+          return ReceiptPdfResponse.builder()
+              .building(calculatedReceipt.building().id())
+              .month(translationProvider.translate(calculatedReceipt.month().name()))
+              .date(calculatedReceipt.date())
+              .zipPath(encryptionService.encrypt(zipPath.path().toString()))
+              .tabs(tabs)
+              .build();
+        });
   }
 }
