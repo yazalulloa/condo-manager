@@ -102,7 +102,8 @@ public class GetPdfReceipts {
                   .apt(fileName)
                   .name(pdfReceipt.name())
                   .build();
-              log.info("Sending Event {} {}", state.apt(), state.counter());
+
+              log.debug("Sending Event {} {}", state.apt(), state.counter());
               receiptPdfProgressStateEvent.fireAsync(state);
 
               return PdfReceiptItem.builder()

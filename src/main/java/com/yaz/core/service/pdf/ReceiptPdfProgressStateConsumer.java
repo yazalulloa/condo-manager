@@ -50,7 +50,7 @@ public class ReceiptPdfProgressStateConsumer {
             .subscribe()
             .with(
                 html -> sseHelper.sendEvent(clientId, EVENT_NAME_RECEIPT_PROGRESS, html),
-                e -> log.error("Error sending receipt apt info", e));
+                e -> log.error("Error sending receipt apt error", e));
       }
 
       final var div = new Element("div").id("sse-receipt-progress-bar-" + clientId)

@@ -2,9 +2,7 @@ package com.yaz.core.event;
 
 import com.yaz.core.event.domain.BuildingDeleted;
 import com.yaz.core.event.domain.EmailConfigDeleted;
-import com.yaz.core.event.domain.TelegramWebhookRequest;
 import com.yaz.core.event.domain.UserDeleted;
-import com.yaz.core.service.TelegramCommandResolver;
 import com.yaz.core.service.entity.BuildingService;
 import com.yaz.core.service.entity.DebtService;
 import com.yaz.core.service.entity.EmailConfigService;
@@ -31,7 +29,6 @@ public class EventConsumer {
   private final BuildingService buildingService;
   private final ExtraChargeService extraChargeService;
   private final ReserveFundService reserveFundService;
-  private final TelegramCommandResolver telegramCommandResolver;
   private final EmailConfigService emailConfigService;
   private final OidcDbTokenService tokenService;
   private final NotificationEventService notificationEventService;
@@ -69,21 +66,6 @@ public class EventConsumer {
             e -> {
               log.error("ERROR deleting extra charge BuildingDeleted: {}", task.id(), e);
             });
-  }
-
-  public void telegramMessageReceived(@ObservesAsync TelegramWebhookRequest task) {
-    try {
-
-      telegramCommandResolver.resolve(task)
-          .subscribe()
-          .with(
-              i -> {
-              },
-              e -> log.error("ERROR telegramMessageReceived: {}", task, e));
-    } catch (Exception e) {
-      log.error("telegramMessageReceived: {}", task, e);
-    }
-
   }
 
 

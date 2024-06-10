@@ -11,7 +11,6 @@ import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.GmailScopes;
 import com.yaz.core.service.gmail.domain.GmailConfig;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.List;
@@ -22,6 +21,7 @@ import lombok.experimental.Accessors;
 @Accessors(fluent = true)
 @RequiredArgsConstructor
 public final class GoogleHelper {
+
   public static final List<String> SCOPES = List.of("openid", "email", "profile", GmailScopes.GMAIL_LABELS,
       GmailScopes.GMAIL_SEND);
 
@@ -34,7 +34,7 @@ public final class GoogleHelper {
   private final GsonFactory jsonFactory = initJsonFactory();
 
   @Getter(lazy = true)
-  private final GooglePublicKeysManager publicKeysManager= initGooglePublicKeysManager();
+  private final GooglePublicKeysManager publicKeysManager = initGooglePublicKeysManager();
 
   @Getter(lazy = true)
   private final GoogleIdTokenVerifier googleIdTokenVerifier = initGoogleIdTokenVerifier();
@@ -76,7 +76,6 @@ public final class GoogleHelper {
         .setApplicationName(gmailConfig.appName())
         .build();
   }
-
 
 
 }

@@ -3,15 +3,16 @@ package com.yaz.core.service;
 import com.yaz.core.client.domain.telegram.Chat;
 import com.yaz.core.client.domain.telegram.TelegramUpdate;
 import com.yaz.core.client.domain.telegram.TelegramUser;
+import com.yaz.core.event.domain.TelegramWebhookRequest;
 import com.yaz.core.service.entity.TelegramChatService;
 import com.yaz.core.service.entity.UserService;
 import com.yaz.core.util.ConvertUtil;
-import com.yaz.core.event.domain.TelegramWebhookRequest;
 import com.yaz.persistence.entities.TelegramChat;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.ObservesAsync;
 import jakarta.inject.Inject;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,20 @@ public class TelegramCommandResolver {
   private final UserService userService;
   private final TelegramChatService chatService;
   private final TelegramRestService restService;
+
+  public void telegramMessageReceived(@ObservesAsync TelegramWebhookRequest task) {
+    try {
+      resolve(task)
+          .subscribe()
+          .with(
+              i -> {
+              },
+              e -> log.error("ERROR telegramMessageReceived: {}", task, e));
+    } catch (Exception e) {
+      log.error("telegramMessageReceived: {}", task, e);
+    }
+
+  }
 
   public Uni<Void> resolve(TelegramWebhookRequest webhookRequest) {
 

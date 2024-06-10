@@ -58,7 +58,6 @@ gmail-configs
 native-config
 src/main/resources/cv
 db
-test.xml
 
 grafana/
 prometheus/
