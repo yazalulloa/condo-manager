@@ -1,8 +1,11 @@
 package com.yaz.core.service;
 
 import com.yaz.core.client.TelegramClient;
+import com.yaz.core.client.TelegramClient.GetUpdatesRequest;
+import com.yaz.core.client.TelegramClient.TelegramUpdateResponse;
 import com.yaz.core.client.domain.telegram.ParseMode;
 import com.yaz.core.client.domain.telegram.SendMessage;
+import com.yaz.core.client.domain.telegram.TelegramUpdate;
 import com.yaz.core.client.domain.telegram.WebHookRequest;
 import com.yaz.core.util.RxUtil;
 import io.reactivex.rxjava3.core.Completable;
@@ -10,6 +13,7 @@ import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.net.URI;
+import java.util.List;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
@@ -59,53 +63,30 @@ public class TelegramRestService {
     return client.setWebhook(webHookRequest);
   }
 
-  /*public Single<HttpClientResponse> editMessageText(EditMessageText editMessageText) {
-    return vertxHandler.get(TelegramVerticle.EDIT_MESSAGE_TEXT, editMessageText);
-
-      *//*  return HttpUtil.single(this.editMessageText, webTarget -> webTarget.request(MediaType.APPLICATION_JSON_TYPE)
-                .post(Entity.json(editMessageText)));*//*
+  public Uni<String> deleteWebhook() {
+    return client.deleteWebhook(false);
   }
 
-  public Single<HttpClientResponse> getWebhookInfo() {
-    return vertxHandler.get(TelegramVerticle.GET_WEBHOOK_INFO);
+  public Uni<String> getWebhookInfo() {
+    return client.getWebhookInfo();
   }
 
-  public Single<HttpClientResponse> deleteWebhook() {
-    return vertxHandler.get(TelegramVerticle.DELETE_WEBHOOK);
+  public Uni<String> me() {
+    return client.getMe();
   }
 
-  public Single<HttpClientResponse> setDefaultWebhook() {
-    return vertxHandler.get(TelegramVerticle.SET_DEFAULT_WEBHOOK);
+  public Uni<List<TelegramUpdate>> getUpdates(GetUpdatesRequest getUpdatesRequest) {
+    return client.getUpdates(getUpdatesRequest)
+        .map(TelegramUpdateResponse::result);
   }
 
-  public Single<HttpClientResponse> sendDocument(long chatId, String caption, FileResponse fileResponse) {
-    return sendDocument(chatId, caption, fileResponse.fileName(), fileResponse.path(), fileResponse.contentType());
+  public Uni<List<TelegramUpdate>> getUpdates() {
+    return getUpdates(new GetUpdatesRequest(null, null, null, null));
   }
 
-  public Single<HttpClientResponse> sendDocument(long chatId, String caption, String fileName, String path,
-      String mediaType) {
-
-    final var multipartForm = MultipartForm.create()
-        .binaryFileUpload("document",
-            fileName,
-            path,
-            mediaType);
-
-    return sendDocument(chatId, caption, multipartForm);
+  public Uni<List<TelegramUpdate>> getUpdates(Long offset) {
+    return getUpdates(GetUpdatesRequest.builder()
+        .offset(offset)
+        .build());
   }
-
-  public Single<HttpClientResponse> sendDocument(long chatId, String caption, MultipartForm multipartForm) {
-    final var sendDocument = SendDocument.builder()
-        .chatId(chatId)
-        .caption(caption)
-        .multipartForm(multipartForm)
-        .build();
-
-    return sendDocument(sendDocument);
-  }
-
-  public Single<HttpClientResponse> sendDocument(SendDocument sendDocument) {
-    return vertxHandler.get(TelegramVerticle.SEND_DOCUMENT, sendDocument);
-
-  }*/
 }

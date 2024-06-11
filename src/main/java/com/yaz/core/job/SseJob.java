@@ -7,8 +7,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import com.yaz.core.service.ServerSideEventHelper;
 
-@ApplicationScoped
 @Slf4j
+@ApplicationScoped
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class SseJob {
 

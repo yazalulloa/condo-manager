@@ -207,7 +207,7 @@ public class CreatePdfAptReceipt extends CreatePdfReceipt {
         addCell.accept(amountToPay);
         addCell.accept(newReserveFund);
 
-        if (fund.name().equals("FONDO DE RESERVA") && !debtTableAdded.get()) {
+        if ((fund.name().equals("FONDO DE RESERVA") || fund.name().equals("FONDO/RESERVA")) && !debtTableAdded.get()) {
           final var totalDebt = receipt().totalDebt();
           final var debt = building.debtCurrency().format(totalDebt);
 

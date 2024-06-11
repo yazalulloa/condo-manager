@@ -117,7 +117,6 @@ public class JacksonUtil {
         //.setSerializationInclusion(JsonInclude.Include.NON_DEFAULT)
         .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
         .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
         .enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS)
         .enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS);
   }

@@ -4,9 +4,12 @@ import com.yaz.core.client.domain.telegram.Chat;
 import com.yaz.core.client.domain.telegram.TelegramUpdate;
 import com.yaz.core.client.domain.telegram.TelegramUser;
 import com.yaz.core.event.domain.TelegramWebhookRequest;
+import com.yaz.core.service.entity.RateService;
 import com.yaz.core.service.entity.TelegramChatService;
 import com.yaz.core.service.entity.UserService;
 import com.yaz.core.util.ConvertUtil;
+import com.yaz.core.util.DateUtil;
+import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.entities.TelegramChat;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.json.Json;
@@ -14,6 +17,7 @@ import io.vertx.core.json.JsonObject;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.ObservesAsync;
 import jakarta.inject.Inject;
+import java.time.ZoneOffset;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,13 +27,18 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class TelegramCommandResolver {
 
+  private static final String LAST_RATE_MSG = "TASA:%s%nFECHA: %s%nCREADO: %s%nID: %s";
+
   private final UserService userService;
+  private final RateService rateService;
   private final TelegramChatService chatService;
   private final TelegramRestService restService;
 
   public void telegramMessageReceived(@ObservesAsync TelegramWebhookRequest task) {
     try {
-      resolve(task)
+
+      final var update = Json.decodeValue(task.body(), TelegramUpdate.class);
+      resolve(update)
           .subscribe()
           .with(
               i -> {
@@ -41,57 +50,57 @@ public class TelegramCommandResolver {
 
   }
 
-  public Uni<Void> resolve(TelegramWebhookRequest webhookRequest) {
+  public Uni<Void> resolve(TelegramUpdate update) {
 
     return Uni.createFrom().deferred(() -> {
-
-      final var update = Json.decodeValue(webhookRequest.body(), TelegramUpdate.class);
+      log.debug("update: {}", update.updateId());
 
       final var message = update.message();
-      if (message != null) {
-        final var text = message.text();
-        final var from = message.from();
-        final var chat = message.chat();
 
-        if (text != null && from != null) {
+      if (message == null) {
+        return Uni.createFrom().voidItem();
+      }
 
-          if (text.startsWith("/start") && text.length() > 8 && !from.isBot() && chat != null) {
-            final var formatUserId = text.substring(7).trim();
-            final var userId = ConvertUtil.getUserId(formatUserId);
+      final var text = message.text();
+      final var from = message.from();
+      final var chat = message.chat();
 
-            log.info("formatUserId: {} userId: {}", formatUserId, userId);
-            return addAccount(userId, from, chat);
-          }
+      if (text != null && from != null) {
 
-          if (text.startsWith("/log")) {
-            // return sendLogs.sendLogs(chatId, "logs");
-          }
+        if (text.startsWith("/start") && text.length() > 8 && !from.isBot() && chat != null) {
+          final var formatUserId = text.substring(7).trim();
+          final var userId = ConvertUtil.getUserId(formatUserId);
 
-          if (text.startsWith("/system_info")) {
+          log.info("formatUserId: {} userId: {}", formatUserId, userId);
+          return addAccount(userId, from, chat);
+        }
+
+        if (text.startsWith("/log")) {
+          // return sendLogs.sendLogs(chatId, "logs");
+        }
+
+        if (text.startsWith("/system_info")) {
 //          return telegramRestApi.sendMessage(chatId, SystemUtil.systemInfo().collect(Collectors.joining("\n")))
 //              .ignoreElement();
-          }
+        }
 
-          if (text.startsWith("/tasa")) {
+        if (text.startsWith("/tasa") && chat != null) {
 
-//          return rateService.last(Currency.USD, Currency.VED)
-//              .toSingle()
-//              .map(rate -> "TASA:%s\nFECHA: %s\nCREADO: %s\nID: %s".formatted(rate.rate(), rate.dateOfRate(),
-//                  DateUtil.formatVe(rate.createdAt()), rate.id()))
-//              .flatMap(msg -> telegramRestApi.sendMessage(chatId, msg))
-//              .ignoreElement();
-          }
+          return rateService.lastUni(Currency.USD, Currency.VED)
+              .map(opt -> opt.map(rate -> LAST_RATE_MSG.formatted(rate.rate(), rate.dateOfRate(),
+                  DateUtil.formatVe(rate.createdAt().atZone(ZoneOffset.UTC)), rate.id())).orElse("No hay tasa"))
+              .flatMap(msg -> restService.sendMessage(chat.id(), msg))
+              .replaceWithVoid();
+        }
 
-          if (text.startsWith("/backups")) {
-            //  return sendEntityBackups.sendAvailableBackups(chatId);
-          }
+        if (text.startsWith("/backups")) {
+          //  return sendEntityBackups.sendAvailableBackups(chatId);
         }
       }
 
       final var callbackQuery = update.callbackQuery();
 
       if (callbackQuery != null) {
-        final var from = callbackQuery.from();
 //      if (callbackQuery.data().startsWith(TelegramSendEntityBackups.CALLBACK_KEY)) {
 //        return sendEntityBackups.resolve(from.id(),
 //            callbackQuery.data().replace(TelegramSendEntityBackups.CALLBACK_KEY, "").trim());
