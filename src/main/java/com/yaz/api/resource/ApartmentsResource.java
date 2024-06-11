@@ -49,7 +49,7 @@ import org.jboss.resteasy.reactive.RestQuery;
 
 @Slf4j
 @Path(ApartmentsResource.PATH)
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
+@RequiredArgsConstructor
 public class ApartmentsResource {
 
   public static final String PATH = "/api/apartments";

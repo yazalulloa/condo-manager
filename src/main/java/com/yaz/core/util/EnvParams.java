@@ -3,6 +3,7 @@ package com.yaz.core.util;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.Optional;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -46,6 +47,12 @@ public class EnvParams {
   public Long getAppStartedAt() {
     return Optional.ofNullable(System.getProperty(APP_STARTED_AT))
         .map(Long::valueOf)
+        .orElse(null);
+  }
+
+  public ZonedDateTime getAppStartedAtZonedDateTime() {
+    return Optional.ofNullable(getAppStartedAt())
+        .map(millis -> Instant.ofEpochMilli(millis).atZone(DateUtil.VE_ZONE))
         .orElse(null);
   }
 

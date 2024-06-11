@@ -97,8 +97,7 @@ public class ReceiptPdfService {
               .map(item -> {
 
                 final var s =
-                    fileName + (item.id().equals(calculatedReceipt.building().id()) ? "" : "_" + item.id())
-                        + ".pdf";
+                    fileName + (item.id().equals(calculatedReceipt.building().id()) ? "" : "_" + item.id()) + ".pdf";
 
                 return Tab.builder()
                     .name(item.id())

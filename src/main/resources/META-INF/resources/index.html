@@ -21,6 +21,7 @@
   <link rel="prefetch" href="/stc/receipts/new_file/" />
   <link rel="prefetch" href="/stc/receipts/pdfs/" />
   <link rel="prefetch" href="/stc/users/" />
+  <link rel="prefetch" href="/stc/resources/" />
 </head>
 <body >
 
@@ -106,6 +107,15 @@
               hx-swap="innerHTML"
               hx-on::after-request="saveNavState(this)"
           >Recibos</a>
+          </li>
+          <li><a
+              id="nav-resources"
+              hx-get="/stc/resources/"
+              hx-target="#container"
+              hx-trigger="click, navigate"
+              hx-swap="innerHTML"
+              hx-on::after-request="saveNavState(this)"
+          >Resources</a>
           </li>
         </ul>
       </div>

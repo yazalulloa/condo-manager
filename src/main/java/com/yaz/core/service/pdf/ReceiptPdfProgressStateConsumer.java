@@ -21,7 +21,6 @@ public class ReceiptPdfProgressStateConsumer {
 
   private static final String EVENT_NAME_RECEIPT_PROGRESS = "receipt-progress";
 
-
   private final Vertx vertx;
   private final ServerSideEventHelper sseHelper;
 
@@ -31,8 +30,7 @@ public class ReceiptPdfProgressStateConsumer {
     final var left = state.apt().equals(state.name()) ? state.apt() : state.apt() + " " + state.name();
     final var right = "%s/%s".formatted(state.counter(), state.totalSize());
 
-    ReceiptResource.Templates.progressUpdate(
-            new ReceiptProgressUpdate(left, right, state.counter(), state.totalSize()))
+    ReceiptResource.Templates.progressUpdate(new ReceiptProgressUpdate(left, right, state.counter(), state.totalSize()))
         .createUni()
         .subscribe()
         .with(
@@ -49,15 +47,14 @@ public class ReceiptPdfProgressStateConsumer {
             .createUni()
             .subscribe()
             .with(
-                html -> sseHelper.sendEvent(clientId, EVENT_NAME_RECEIPT_PROGRESS, html),
+                html -> sendReceiptProgress(html, clientId),
                 e -> log.error("Error sending receipt apt error", e));
       }
 
       final var div = new Element("div").id("sse-receipt-progress-bar-" + clientId)
           .attr("hx-swap-oob", "true")
           .toString();
-
-      sseHelper.sendEvent(clientId, EVENT_NAME_RECEIPT_PROGRESS, div);
+      sendReceiptProgress(div, clientId);
       vertx.setTimer(TimeUnit.SECONDS.toMillis(1), l -> sseHelper.close(clientId));
       return;
     }
@@ -66,7 +63,7 @@ public class ReceiptPdfProgressStateConsumer {
       Templates.sentInfo(event.item()).createUni()
           .subscribe()
           .with(
-              html -> sseHelper.sendEvent(clientId, EVENT_NAME_RECEIPT_PROGRESS, html),
+              html -> sendReceiptProgress(html, clientId),
               e -> log.error("Error sending receipt apt info", e));
       return;
     }
@@ -79,17 +76,18 @@ public class ReceiptPdfProgressStateConsumer {
       right = "APT: %s %s %s -> %s".formatted(event.apt(), event.name(), event.from(), String.join(",", event.to()));
     }
 
-    ReceiptResource.Templates.progressUpdate(
-            new ReceiptProgressUpdate(left, right, event.counter(), event.size()))
+    ReceiptResource.Templates.progressUpdate(new ReceiptProgressUpdate(left, right, event.counter(), event.size()))
         .createUni()
         .subscribe()
         .with(
-            html -> sseHelper.sendEvent(clientId, EVENT_NAME_RECEIPT_PROGRESS, html),
+            html -> sendReceiptProgress(html, clientId),
             e -> log.error("Error sending receipt apt info", e));
 
   }
 
   public void sendReceiptProgress(String html, String clientId) {
-    sseHelper.sendEvent(clientId, EVENT_NAME_RECEIPT_PROGRESS, html);
+    if (clientId != null) {
+      sseHelper.sendEvent(clientId, EVENT_NAME_RECEIPT_PROGRESS, html);
+    }
   }
 }

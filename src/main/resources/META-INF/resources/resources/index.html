@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Resources</title>
+  <link href="/out/css/output.css" rel="stylesheet"/>
+  <script src="/out/js/index.js" defer></script>
+</head>
+<body>
+
+<div class="header bg-base-100" id="header-container" hx-swap-oob="true">
+  <img class="htmx-indicator white-filter center" src="/assets/bars.svg" alt="spinner">
+</div>
+
+<div id="container" hx-swap-oob="true" class="p-2 gap-1 flex flex-col">
+  <div hx-get="/api/resources"
+       hx-indicator=".htmx-indicator"
+       hx-trigger="load"
+       hx-swap="outerHTML">
+  </div>
+</div>
+
+</body>
+</html>

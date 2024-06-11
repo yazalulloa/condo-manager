@@ -34,8 +34,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
+import lombok.extern.slf4j.Slf4j;
 
-
+@Slf4j
 @Builder(toBuilder = true)
 @Accessors(fluent = true)
 @ToString
@@ -124,11 +125,6 @@ public class CreatePdfAptReceipt extends CreatePdfReceipt {
     document.add(new Paragraph(new Text("\n")));
 
     if (!aptTotal.extraCharges().isEmpty()) {
-      final var div = new Div()
-          //.setKeepTogether(true)
-          ;
-      div.add(new Paragraph("\n"));
-      div.add(new Paragraph(new Text("CARGOS EXTRA").setBold().setUnderline()));
 
       final var table = PdfUtil.table(2);
       table.addHeaderCell(PdfUtil.tableCell().add(new Paragraph("DESCRIPCIÓN")));
@@ -136,9 +132,15 @@ public class CreatePdfAptReceipt extends CreatePdfReceipt {
       aptTotal.extraCharges().forEach(charge -> {
 
         table.addCell(PdfUtil.tableCell().add(new Paragraph(charge.description())));
-        table.addCell(PdfUtil.tableCell().add(new Paragraph(ConvertUtil.format(BigDecimal.valueOf(charge.amount()), charge.currency()))));
+        table.addCell(PdfUtil.tableCell()
+            .add(new Paragraph(ConvertUtil.format(BigDecimal.valueOf(charge.amount()), charge.currency()))));
       });
 
+      final var div = new Div()
+          //.setKeepTogether(true)
+          ;
+      div.add(new Paragraph("\n"));
+      div.add(new Paragraph(new Text("CARGOS EXTRA").setBold().setUnderline()));
       div.add(table);
       document.add(div);
     }
@@ -163,7 +165,17 @@ public class CreatePdfAptReceipt extends CreatePdfReceipt {
           .stream()
           .anyMatch(reserveFundTotal -> reserveFundTotal.expense() != null);
 
-      final var table = reserveFundTable(thereIsReserveFundExpense ? 5 : 4);
+      final var tableSize = thereIsReserveFundExpense ? 5 : 4;
+
+      final var table = PdfUtil.table(tableSize);
+
+      table.addHeaderCell(PdfUtil.tableCell().add(new Paragraph("PATRIMONIO")));
+      table.addHeaderCell(PdfUtil.tableCell().add(new Paragraph("+FACT.MES.ANT")));
+      if (tableSize > 4) {
+        table.addHeaderCell(PdfUtil.tableCell().add(new Paragraph("CARGOS")));
+      }
+      table.addHeaderCell(PdfUtil.tableCell().add(new Paragraph("+FAC.MES.ACT")));
+      table.addHeaderCell(PdfUtil.tableCell().add(new Paragraph("SALDO/MES")));
       table.setFontSize(9);
 
       for (ReserveFundTotal fund : receipt().reserveFundTotals()) {
@@ -205,7 +217,10 @@ public class CreatePdfAptReceipt extends CreatePdfReceipt {
 
           addCell.accept("P/Cobrar > Recibos  %s".formatted(receipt.debtReceiptsAmount()));
           addCell.accept(debt);
-          addCell.accept("Patrimonio");
+          if (thereIsReserveFundExpense) {
+            addCell.accept("");
+          }
+          addCell.accept("DEFICIT/Patrimonio");
           addCell.accept(fundAfterDebt);
 
           debtTableAdded.set(true);
@@ -244,24 +259,11 @@ public class CreatePdfAptReceipt extends CreatePdfReceipt {
 
   }
 
-  private Table reserveFundTable(int size) {
-    final var table = PdfUtil.table(size);
-
-    table.addHeaderCell(PdfUtil.tableCell().add(new Paragraph("PATRIMONIO")));
-    table.addHeaderCell(PdfUtil.tableCell().add(new Paragraph("+FACT.MES.ANT")));
-    if (size > 4) {
-      table.addHeaderCell(PdfUtil.tableCell().add(new Paragraph("CARGOS")));
-    }
-    table.addHeaderCell(PdfUtil.tableCell().add(new Paragraph("+FAC.MES.ACT")));
-    table.addHeaderCell(PdfUtil.tableCell().add(new Paragraph("SALDO/MES")));
-
-    return table;
-  }
-
 
   private Table debtTable(List<CalculatedReceipt.AptDebt> debts) {
 
-    final var bool = debts.stream().map(CalculatedReceipt.AptDebt::previousPaymentAmount).map(Objects::nonNull).reduce(Boolean::logicalOr)
+    final var bool = debts.stream().map(CalculatedReceipt.AptDebt::previousPaymentAmount).map(Objects::nonNull)
+        .reduce(Boolean::logicalOr)
         .orElse(false);
 
     final var table = PdfUtil.table(bool ? 6 : 5);
@@ -275,8 +277,6 @@ public class CreatePdfAptReceipt extends CreatePdfReceipt {
     if (bool) {
       table.addHeaderCell(PdfUtil.tableCell().add(new Paragraph("ABONO")));
     }
-
-
 
     debts.stream().sorted(Comparator.comparing(CalculatedReceipt.AptDebt::aptNumber)).forEach(debt -> {
       table.addCell(PdfUtil.tableCell().add(new Paragraph(debt.aptNumber())));

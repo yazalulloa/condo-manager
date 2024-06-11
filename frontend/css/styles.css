@@ -341,6 +341,12 @@ textarea, input {
   grid-template-columns: 1fr 2fr 1fr;
 }
 
+
+
+.apt-email-dialog-grid {
+  grid-template-columns: 5fr 1fr;
+}
+
 .receipt-grid-container {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 1fr 1fr;

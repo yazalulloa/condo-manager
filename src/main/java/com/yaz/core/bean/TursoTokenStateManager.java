@@ -74,7 +74,8 @@ public class TursoTokenStateManager implements TokenStateManager {
           return Uni.createFrom().failure(new AuthenticationCompletionException(FAILED_TO_ACQUIRE_TOKEN));
 
         })
-        .memoize().indefinitely();
+        .memoize().indefinitely()
+        ;
   }
 
   @Override
