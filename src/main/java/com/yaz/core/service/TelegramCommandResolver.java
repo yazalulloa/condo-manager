@@ -1,6 +1,8 @@
 package com.yaz.core.service;
 
+import com.yaz.core.client.domain.telegram.CallbackQuery;
 import com.yaz.core.client.domain.telegram.Chat;
+import com.yaz.core.client.domain.telegram.TelegramMessage;
 import com.yaz.core.client.domain.telegram.TelegramUpdate;
 import com.yaz.core.client.domain.telegram.TelegramUser;
 import com.yaz.core.event.domain.TelegramWebhookRequest;
@@ -9,6 +11,7 @@ import com.yaz.core.service.entity.TelegramChatService;
 import com.yaz.core.service.entity.UserService;
 import com.yaz.core.util.ConvertUtil;
 import com.yaz.core.util.DateUtil;
+import com.yaz.core.util.SystemUtil;
 import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.entities.TelegramChat;
 import io.smallrye.mutiny.Uni;
@@ -19,6 +22,7 @@ import jakarta.enterprise.event.ObservesAsync;
 import jakarta.inject.Inject;
 import java.time.ZoneOffset;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -55,64 +59,79 @@ public class TelegramCommandResolver {
     return Uni.createFrom().deferred(() -> {
       log.debug("update: {}", update.updateId());
 
-      final var message = update.message();
-
-      if (message == null) {
-        return Uni.createFrom().voidItem();
-      }
-
-      final var text = message.text();
-      final var from = message.from();
-      final var chat = message.chat();
-
-      if (text != null && from != null) {
-
-        if (text.startsWith("/start") && text.length() > 8 && !from.isBot() && chat != null) {
-          final var formatUserId = text.substring(7).trim();
-          final var userId = ConvertUtil.getUserId(formatUserId);
-
-          log.info("formatUserId: {} userId: {}", formatUserId, userId);
-          return addAccount(userId, from, chat);
-        }
-
-        if (text.startsWith("/log")) {
-          // return sendLogs.sendLogs(chatId, "logs");
-        }
-
-        if (text.startsWith("/system_info")) {
-//          return telegramRestApi.sendMessage(chatId, SystemUtil.systemInfo().collect(Collectors.joining("\n")))
-//              .ignoreElement();
-        }
-
-        if (text.startsWith("/tasa") && chat != null) {
-
-          return rateService.lastUni(Currency.USD, Currency.VED)
-              .map(opt -> opt.map(rate -> LAST_RATE_MSG.formatted(rate.rate(), rate.dateOfRate(),
-                  DateUtil.formatVe(rate.createdAt().atZone(ZoneOffset.UTC)), rate.id())).orElse("No hay tasa"))
-              .flatMap(msg -> restService.sendMessage(chat.id(), msg))
-              .replaceWithVoid();
-        }
-
-        if (text.startsWith("/backups")) {
-          //  return sendEntityBackups.sendAvailableBackups(chatId);
-        }
-      }
-
-      final var callbackQuery = update.callbackQuery();
-
-      if (callbackQuery != null) {
-//      if (callbackQuery.data().startsWith(TelegramSendEntityBackups.CALLBACK_KEY)) {
-//        return sendEntityBackups.resolve(from.id(),
-//            callbackQuery.data().replace(TelegramSendEntityBackups.CALLBACK_KEY, "").trim());
-//      }
-
-      }
-
-      return Uni.createFrom().voidItem();
+      return Uni.combine().all()
+          .unis(command(update.message()), callbackQuery(update.callbackQuery()))
+          .discardItems();
     });
 
   }
 
+  public Uni<Void> command(TelegramMessage message) {
+    if (message == null || message.entities() == null || message.entities().isEmpty()) {
+      return Uni.createFrom().voidItem();
+    }
+
+    final var entitiesItem = message.entities().getFirst();
+    if (entitiesItem.type().equals("bot_command")) {
+      return Uni.createFrom().voidItem();
+    }
+
+    final var text = message.text();
+    final var from = message.from();
+    final var chat = message.chat();
+
+    if (text == null || from == null || chat == null) {
+      return Uni.createFrom().voidItem();
+    }
+
+    final var chatId = chat.id();
+
+    if (text.startsWith("/start") && text.length() > 8 && !from.isBot()) {
+      final var formatUserId = text.substring(7).trim();
+      final var userId = ConvertUtil.getUserId(formatUserId);
+
+      log.info("formatUserId: {} userId: {}", formatUserId, userId);
+      return addAccount(userId, from, chat);
+    }
+
+    if (text.startsWith("/log")) {
+      // return sendLogs.sendLogs(chatId, "logs");
+    }
+
+    if (text.startsWith("/system_info")) {
+      return restService.sendMessage(chatId, SystemUtil.systemInfo().collect(Collectors.joining("\n")))
+          .replaceWithVoid();
+    }
+
+    if (text.startsWith("/tasa")) {
+
+      return rateService.lastUni(Currency.USD, Currency.VED)
+          .map(opt -> opt.map(rate -> LAST_RATE_MSG.formatted(rate.rate(), rate.dateOfRate(),
+                  DateUtil.formatVe(rate.createdAt().atZone(ZoneOffset.UTC)), rate.id()))
+              .orElse("No hay tasa"))
+          .flatMap(msg -> restService.sendMessage(chatId, msg))
+          .replaceWithVoid();
+    }
+
+    if (text.startsWith("/backups")) {
+      //  return sendEntityBackups.sendAvailableBackups(chatId);
+    }
+
+    return Uni.createFrom().voidItem();
+  }
+
+  public Uni<Void> callbackQuery(CallbackQuery callbackQuery) {
+    if (callbackQuery == null) {
+      return Uni.createFrom().voidItem();
+    }
+
+    //      if (callbackQuery.data().startsWith(TelegramSendEntityBackups.CALLBACK_KEY)) {
+//        return sendEntityBackups.resolve(from.id(),
+//            callbackQuery.data().replace(TelegramSendEntityBackups.CALLBACK_KEY, "").trim());
+//      }
+
+    return Uni.createFrom().voidItem();
+  }
 
   private Uni<Void> sendMessage(long chatId, String msg) {
     return restService.sendMessage(chatId, msg)

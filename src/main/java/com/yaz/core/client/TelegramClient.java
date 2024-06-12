@@ -83,6 +83,12 @@ public interface TelegramClient {
   @Produces(MediaType.APPLICATION_JSON)
   Uni<TelegramUpdateResponse> getUpdates(GetUpdatesRequest getUpdatesRequest);
 
+  @POST
+  @Path("getUpdates")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  Uni<String> getUpdatesStr();
+
   record TelegramUpdateResponse(
       boolean ok,
       List<TelegramUpdate> result
