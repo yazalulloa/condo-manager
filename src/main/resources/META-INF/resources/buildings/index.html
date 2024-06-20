@@ -13,7 +13,7 @@
   <button class="btn btn-primary"
           hx-get="/stc/buildings/new/"
           hx-swap="none"
-          hx-on::before-request="modifyUrl(this)">
+          hx-on:htmx:before-request="modifyUrl(this)">
     Nuevo Edificio
   </button>
 

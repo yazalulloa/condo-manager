@@ -1,7 +1,9 @@
 package com.yaz.core.job;
 
 import com.yaz.core.service.gmail.GmailChecker;
+import com.yaz.core.util.MutinyUtil;
 import io.quarkus.scheduler.Scheduled;
+import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import lombok.RequiredArgsConstructor;
@@ -15,16 +17,7 @@ public class EmailConfigJob {
   private final GmailChecker gmailChecker;
 
   @Scheduled(delay = 1, every = "30M")
-  public void runAsStart() {
-    log.debug("Checking emails...");
-    checkAll();
+  Uni<Void> runAsStart() {
+    return MutinyUtil.toUni(gmailChecker.checkAll());
   }
-
-  private void checkAll() {
-
-    gmailChecker.checkAll()
-        .subscribe(() -> {
-        }, throwable -> log.error("ERROR", throwable));
-  }
-
 }

@@ -1,9 +1,8 @@
 {
   "dependencies": {
-    "alpinejs": "^3.14.0",
+    "alpinejs": "^3.14.1",
     "daisyui": "^4.12.2",
     "franken-ui": "^0.0.7",
-    "htmx.org": "latest",
     "hyperscript.org": "latest",
     "tw-elements": "1.1.0"
   },

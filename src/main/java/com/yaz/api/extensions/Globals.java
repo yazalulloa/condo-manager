@@ -9,7 +9,7 @@ import io.quarkus.qute.TemplateGlobal;
 @TemplateGlobal
 public class Globals {
 
-  public static Currency[] GLO_CURRENCIES = Currency.values;
+  public static Currency[] GLO_CURRENCIES = Currency.VALUES;
   public static NotificationEvent.Event[] GLO_NOTIFICATION_EVENTS = NotificationEvent.Event.VALUES;
 
   public static ReserveFundType[] GLO_RESERVE_FUND_TYPES = ReserveFundType.VALUES;

@@ -8,13 +8,13 @@
 </head>
 <body>
 
-<div class="flex flex-row justify-between px-6 bg-base-100 text-center items-center" id="header-container" hx-swap-oob="true">
+<div class="flex flex-row justify-between px-6 p-2 bg-base-100 text-center items-center" id="header-container" hx-swap-oob="true">
   <button class="btn btn-square btn-outline"
           hx-get="/stc/buildings/"
           hx-swap="none"
           hx-trigger="click"
-          hx-on::before-request="modifyUrl(this)">
-    <img src="/assets/left-arrow.svg" style="width: 1.5rem; height: 1.5rem;" alt="back to buildings">
+          hx-on:htmx:before-request="modifyUrl(this)">
+    <img src="/assets/left-arrow.svg" class="h-4 w-4" alt="back to buildings">
   </button>
   <h2><strong>Nuevo Edificio</strong></h2>
   <div>
@@ -22,10 +22,14 @@
   </div>
 </div>
 
-<div id="container" hx-swap-oob="true" class="p-12">
+<div id="container" hx-swap-oob="true" class="p-2">
+<!--  <form-->
+<!--      hx-get="/api/buildings/new"-->
+<!--      hx-trigger="load"-->
+<!--      hx-swap="outerHTML">-->
+<!--  </form>-->
   <form
-      hx-get="/api/buildings/new"
-      hx-indicator=".htmx-indicator"
+      hx-get="/stc/buildings/form/"
       hx-trigger="load"
       hx-swap="outerHTML">
   </form>

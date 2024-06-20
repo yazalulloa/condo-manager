@@ -6,6 +6,7 @@ Technologies used:
 - Java 21
 - Quarkus
 - [HTMX](https://htmx.org/)
+- [AlpineJs](https://alpinejs.dev/)
 - TailwindCSS
 - [DaisyUI](https://daisyui.com/)
 - ~~PlanetScale~~

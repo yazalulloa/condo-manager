@@ -266,7 +266,7 @@
         <div class="pb-2">
           <template x-for="value in Array.from(emails)">
             <div class="flex flex-row justify-between apt-emails-form p-2">
-              <input type="text" name="emails" hidden="hidden" :value="value">
+              <input type="text" name="emails" hidden="hidden" x-bind:value="value">
               <div class="flex align-middle" x-text="value"></div>
               <button type="button" @click.prevent="emails.delete(value)"><img class="h-6 w-6" src="/assets/trash.svg"
                                                                                alt="delete-email"></button>

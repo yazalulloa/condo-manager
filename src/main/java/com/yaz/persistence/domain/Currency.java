@@ -1,19 +1,18 @@
 package com.yaz.persistence.domain;
 
 
+import com.yaz.core.util.ConvertUtil;
 import io.quarkus.qute.TemplateEnum;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
-import com.yaz.core.util.ConvertUtil;
 
 @TemplateEnum
 public enum Currency {
 
+  VED, USD;
 
-  USD, VED;
-
-  public static final Currency[] values = values();
+  public static final Currency[] VALUES = values();
 
   public static BigDecimal toCurrency(BigDecimal amount, Currency currencyAmount, BigDecimal rate,
       Currency currencyRate) {

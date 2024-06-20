@@ -13,8 +13,8 @@
             hx-get="/stc/receipts/"
             hx-swap="none"
             hx-trigger="click"
-            hx-on::before-request="modifyUrl(this)">
-        <img src="/assets/left-arrow.svg" style="width: 1.5rem; height: 1.5rem;" alt="back to buildings">
+            hx-on:htmx:before-request="modifyUrl(this)">
+        <img src="/assets/left-arrow.svg" class="h-4 w-4" alt="back to buildings">
     </button>
     <h1 class="font-bold">Recibo de Pago PDF &ndash; {res.building} {res.month} {res.date}</h1>
     <button class="btn btn-primary"

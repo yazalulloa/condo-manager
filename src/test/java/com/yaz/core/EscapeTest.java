@@ -11,7 +11,7 @@ public class EscapeTest {
 
   @Test
   void test() {
-    final var str = "El intrépido capitán Ramón Pérez Nuñez, con su brújula en mano, dirigió intrépidamente la pequeña embarcación a través de la tempestuosa tormenta.";
+    final var str = "I'll do this, El intrépido capitán Ramón Pérez Nuñez, con su brújula en mano, dirigió intrépidamente la pequeña embarcación a través de la tempestuosa tormenta.";
     final var escapeHtml4 = StringEscapeUtils.escapeHtml4(str);
     final var escapeEcmaScript = StringEscapeUtils.escapeEcmaScript(str);
     final var escapeXml11 = StringEscapeUtils.escapeXml11(str);

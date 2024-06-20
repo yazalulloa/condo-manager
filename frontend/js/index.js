@@ -10,10 +10,10 @@ import {
   Validation,
 } from "tw-elements";
 
-import './loader.js';
-import './sse.js';
+// import './loader.js';
 // import './components.js';
 import './elements.js';
+// import './sse.js';
 
 import Alpine from 'alpinejs'
 
@@ -78,7 +78,7 @@ window.addEventListener("popstate", (event) => {
 
 initComponents();
 
-htmx.config.useTemplateFragments = true;
+// htmx.config.useTemplateFragments = true;
 // htmx.logAll();
 
 window.onload = function () {
@@ -568,10 +568,12 @@ window.getResource = function (key, path) {
 
   let value = storageValue ?? segmentValue;
 
-  if (storageValue) {
+  if (storageValue && path) {
     let pathname = window.location.href + path  + value;
     window.history.pushState(window.history.state, document.title, pathname);
   }
+
+
   return value;
 }
 

@@ -1,11 +1,11 @@
 package com.yaz.core.service.gmail;
 
 import com.google.api.client.auth.oauth2.TokenResponseException;
+import com.yaz.core.helper.VertxHelper;
+import com.yaz.core.service.entity.EmailConfigService;
 import com.yaz.core.util.DateUtil;
 import com.yaz.core.util.RxUtil;
-import com.yaz.core.helper.VertxHelper;
 import com.yaz.persistence.entities.EmailConfig;
-import com.yaz.core.service.entity.EmailConfigService;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Observable;
@@ -90,7 +90,8 @@ public class GmailChecker {
               .toSingleDefault(Optional.<Throwable>empty())
               .doOnError(throwable -> {
 
-                if (!(throwable instanceof TokenResponseException)) {
+                if (!(throwable instanceof TokenResponseException)
+                    && !(throwable.getCause() instanceof TokenResponseException)) {
                   log.error("Error while testing credential", throwable);
                 }
               })

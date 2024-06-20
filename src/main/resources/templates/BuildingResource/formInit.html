@@ -1,0 +1,31 @@
+{@com.yaz.api.domain.response.building.BuildingInitFormDto dto}
+
+<div hidden="hidden" x-init="
+emailConfigs = [
+{#for item in dto.emailConfigs}
+{ value: '{item.id}',name: '{item.name} {item.email}',},
+{/for}
+];
+
+is_edit = {dto.isEdit};
+
+buildingId = '{dto.id}';
+buildingName = '{dto.name}';
+buildingRif = '{dto.rif}';
+mainCurrency = '{dto.mainCurrency}';
+debtCurrency = '{dto.debtCurrency}';
+currenciesToShowAmountToPay = {dto.currenciesToShowAmountToPay};
+fixedPay = {dto.fixedPay};
+{#if dto.fixedPayAmount}
+fixedPayAmount = {dto.fixedPayAmount};
+{/if}
+roundUpPayments = {dto.roundUpPayments};
+{#if dto.emailConfigId}
+emailConfigId = '{dto.emailConfigId}';
+{/if}
+{#if dto.key}
+key = '{dto.key}';
+{/if}
+">
+    <input type="hidden" name="{inject:csrf.parameterName}" value="{inject:csrf.token}"/>
+</div>

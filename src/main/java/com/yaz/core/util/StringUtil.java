@@ -158,7 +158,6 @@ public class StringUtil {
   }
 
   public static String escapeInput(String str) {
-
     return Optional.ofNullable(str)
         .map(String::trim)
         .filter(s -> !s.isEmpty())
@@ -168,6 +167,8 @@ public class StringUtil {
 //        .map(StringEscapeUtils::escapeHtml4)
 //        .map(StringEscapeUtils::escapeEcmaScript)
 //        .map(StringEscapeUtils::escapeXml11)
+        .map(String::trim)
+        .filter(s -> !s.isEmpty())
         .orElse(null);
   }
 

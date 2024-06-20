@@ -1,9 +1,10 @@
 package com.yaz.core.job;
 
-import com.yaz.core.util.RxUtil;
+import com.yaz.core.util.MutinyUtil;
 import io.quarkus.scheduler.Scheduled;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
+import io.smallrye.mutiny.Uni;
 import io.vertx.rxjava3.core.Vertx;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -20,22 +21,19 @@ public class DeleteTmpDirJob {
   private final Vertx vertx;
 
   @Scheduled(delay = 5, every = "1H")
-  public void deleteDir() {
-    deleteDirNow("tmp/receipts");
+  Uni<Void> deleteDir() {
+    return deleteDirNow("tmp/receipts");
   }
 
-  public void deleteDirNow(String path) {
+  Uni<Void> deleteDirNow(String path) {
 
-    vertx.fileSystem().exists(path)
+    final var completable = vertx.fileSystem().exists(path)
         .filter(b -> b)
         .flatMapSingle(b -> vertx.fileSystem().readDir(path))
         .flatMapObservable(Observable::fromIterable)
-        .flatMapCompletable(this::deleteFile)
-        .subscribe(RxUtil.completableObserver(
-            () -> {
-            },
-            t -> {
-            }));
+        .flatMapCompletable(this::deleteFile);
+
+    return MutinyUtil.toUni(completable);
   }
 
   private Completable deleteFile(String file) {

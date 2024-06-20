@@ -127,7 +127,7 @@ CREATE TABLE IF NOT EXISTS buildings
 (
     id                               CHAR(20)                                       NOT NULL UNIQUE PRIMARY KEY,
     name                             VARCHAR(100)                                   NOT NULL,
-    rif                              CHAR(20)                                       NOT NULL UNIQUE,
+    rif                              CHAR(20)                                       NOT NULL,
     main_currency                    TEXT CHECK ( main_currency IN ('USD', 'VED') ) NOT NULL,
     debt_currency                    TEXT CHECK ( debt_currency IN ('USD', 'VED') ) NOT NULL,
     currencies_to_show_amount_to_pay TEXT                                           NOT NULL,

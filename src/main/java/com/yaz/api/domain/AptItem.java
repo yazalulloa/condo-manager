@@ -53,7 +53,7 @@ public class AptItem {
 //  }
 
   public String genDeleteUrl() {
-    return ApartmentsResource.PATH + "?=id" + key;
+    return ApartmentsResource.PATH + "?id=" + key;
   }
 
   public String genCardIdRef() {

@@ -1,0 +1,16 @@
+{@com.yaz.api.domain.response.building.BuildingFormResponse dto}
+
+<div x-init="
+{#if dto.key}
+key = '{dto.key}';
+{/if}
+generalFieldError = '{dto.generalFieldError}';
+buildingIdError = '{dto.idFieldError}';
+buildingNameError = '{dto.nameFieldError}';
+fixedPayAmountError = '{dto.fixedPayAmountFieldError}';
+currenciesToShowAmountToPay = {dto.currenciesToShowAmountToPay};
+
+{!setTimeout(() => { generalFieldError = ''; }, 3000);!}
+">
+
+</div>

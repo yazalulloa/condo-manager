@@ -9,6 +9,8 @@ import com.yaz.api.domain.response.ExtraChargeFormDto;
 import com.yaz.api.domain.response.ExtraChargeTableItem;
 import com.yaz.api.domain.response.ReserveFundFormDto;
 import com.yaz.api.domain.response.ReserveFundTableItem;
+import com.yaz.api.domain.response.building.BuildingFormResponse;
+import com.yaz.api.domain.response.building.BuildingInitFormDto;
 import com.yaz.core.service.EncryptionService;
 import com.yaz.core.service.entity.ApartmentService;
 import com.yaz.core.service.entity.BuildingService;
@@ -17,6 +19,7 @@ import com.yaz.core.service.entity.ExtraChargeService;
 import com.yaz.core.service.entity.ReserveFundService;
 import com.yaz.core.util.DecimalUtil;
 import com.yaz.core.util.StringUtil;
+import com.yaz.core.util.TemplateUtil;
 import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.domain.query.BuildingQuery;
 import com.yaz.persistence.entities.Building;
@@ -33,6 +36,7 @@ import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
@@ -76,9 +80,11 @@ public class BuildingResource {
     public static native TemplateInstance counters(BuildingCountersDto dto);
 
     public static native TemplateInstance edit_init(BuildingEditFormInit res);
+
+    public static native TemplateInstance formInit(BuildingInitFormDto dto);
+
+    public static native TemplateInstance responseForm(BuildingFormResponse dto);
   }
-
-
 
 
   @GET
@@ -99,12 +105,15 @@ public class BuildingResource {
   }
 
   @DELETE
-  @Path("{buildingId}")
+  @Path("{key}")
   @Produces(MediaType.TEXT_HTML)
-  public Uni<TemplateInstance> delete(@RestPath String buildingId) {
-
-    return service.delete(buildingId)
-        .replaceWith(counters());
+  public Uni<TemplateInstance> delete(@RestPath String key) {
+    final var buildingId = encryptionService.decryptObj(key, Keys.class).id();
+    return Uni.combine().all()
+        .unis(service.delete(buildingId), service.count())
+        .with((i, count) -> count - i)
+        .map(BuildingCountersDto::new)
+        .map(Templates::counters);
   }
 
   @GET
@@ -131,6 +140,149 @@ public class BuildingResource {
             .emailConfigs(emailConfigs)
             .build())
         .map(Templates::form);
+  }
+
+  private String fixedPayAmountFieldError(BuildingRequest request) {
+    if (!request.isFixedPay()) {
+      return null;
+    }
+
+    if (request.getFixedPayAmount() == null || request.getFixedPayAmount().isBlank()) {
+      return "Monto fijo no puede estar vacio";
+    }
+
+    final var requestFixedPayAmount = DecimalUtil.ofString(request.getFixedPayAmount());
+
+    if (requestFixedPayAmount == null || !DecimalUtil.greaterThanZero(requestFixedPayAmount)) {
+      return "Monto fijo invalido";
+    }
+
+    return null;
+  }
+
+  @PUT
+  @Produces(MediaType.TEXT_HTML)
+  public Uni<TemplateInstance> upsert(@BeanParam BuildingRequest request) {
+    log.info("Upsert: {}", request);
+
+    final var keysOpt = Optional.ofNullable(StringUtil.trimFilter(request.getKey()))
+        .map(str -> encryptionService.decryptObj(str, Keys.class));
+
+    keysOpt.ifPresent(keys -> request.setId(keys.id()));
+
+    final var currenciesToShowAmountToPay = Optional.ofNullable(request.getCurrenciesToShowAmountToPay())
+        .filter(set -> !set.isEmpty())
+        .orElseGet(() -> Set.of(request.getMainCurrency()));
+
+    final var requestFixedPayAmount = DecimalUtil.ofString(request.getFixedPayAmount());
+
+    final var id = StringUtil.trimFilter(request.getId());
+    final var name = StringUtil.trimFilter(request.getName());
+    final var currenciesToShowAmountToPayStringArray = TemplateUtil.toStringArray(currenciesToShowAmountToPay);
+    var formResponse = BuildingFormResponse.builder()
+        .key(request.getKey())
+        .idFieldError(id == null ? "ID no puede estar vacio" : null)
+        .nameFieldError(name == null ? "Nombre no puede estar vacio" : null)
+        .fixedPayAmountFieldError(fixedPayAmountFieldError(request))
+        .currenciesToShowAmountToPay(currenciesToShowAmountToPayStringArray)
+        .build();
+
+    if (!formResponse.isSuccess()) {
+      return Uni.createFrom().item(Templates.responseForm(formResponse));
+    }
+
+    final var building = Building.builder()
+        .id(id)
+        .name(name)
+        .rif(request.getRif())
+        .mainCurrency(request.getMainCurrency())
+        .debtCurrency(request.getDebtCurrency())
+        .currenciesToShowAmountToPay(currenciesToShowAmountToPay)
+        .fixedPay(request.isFixedPay())
+        .fixedPayAmount(requestFixedPayAmount)
+        .roundUpPayments(request.isRoundUpPayments())
+        .emailConfigId(request.getEmailConfig())
+        .build();
+
+    if (keysOpt.map(Keys::hash).map(hash -> hash == building.keysWithHash().hash()).orElse(false)) {
+      formResponse = formResponse.toBuilder()
+          .generalFieldError("No se ha modificado nada")
+          .build();
+    }
+
+    if (!formResponse.isSuccess()) {
+      return Uni.createFrom().item(Templates.responseForm(formResponse));
+    }
+
+    if (keysOpt.isPresent()) {
+      return service.update(building)
+          .map(b -> BuildingFormResponse.builder()
+              .key(encryptionService.encryptObj(b.keysWithHash()))
+              .generalFieldError("Actualizado")
+              .currenciesToShowAmountToPay(currenciesToShowAmountToPayStringArray)
+              .build())
+          .map(Templates::responseForm);
+    }
+
+    return service.exists(building.id())
+        .flatMap(bool -> {
+          if (bool) {
+            return Uni.createFrom().item(BuildingFormResponse.builder()
+                .idFieldError("ID ya existe")
+                .currenciesToShowAmountToPay(currenciesToShowAmountToPayStringArray)
+                .build());
+          }
+
+          return service.create(building)
+              .map(b -> BuildingFormResponse.builder()
+                  .key(encryptionService.encryptObj(b.keysWithHash()))
+                  .generalFieldError("Creado")
+                  .currenciesToShowAmountToPay(currenciesToShowAmountToPayStringArray)
+                  .build());
+        })
+        .map(Templates::responseForm);
+  }
+
+  @GET
+  @Path("form_init")
+  @Produces(MediaType.TEXT_HTML)
+  public Uni<TemplateInstance> formInit(@RestQuery String id) {
+    final var buildingUni = Optional.ofNullable(id)
+        .map(StringUtil::escapeInput)
+        .map(String::trim)
+        .filter(s -> !s.isEmpty())
+        .map(service::read)
+        .orElse(Uni.createFrom().item(Optional.empty()));
+
+    return Uni.combine().all()
+        .unis(buildingUni, emailConfigService.displayList())
+        .with((buildingOpt, emailConfigs) -> {
+
+          final var key = buildingOpt.map(building -> encryptionService.encryptObj(building.keysWithHash()))
+              .orElse(null);
+
+          final var currenciesToShowAmountToPay = TemplateUtil.toStringArray(
+              buildingOpt.map(Building::currenciesToShowAmountToPay)
+                  .orElse(Set.of(Currency.VALUES)));
+
+          return BuildingInitFormDto.builder()
+              .isEdit(buildingOpt.isPresent())
+              .key(key)
+              .emailConfigs(emailConfigs)
+
+              .id(buildingOpt.map(Building::id).orElse(""))
+              .name(buildingOpt.map(Building::name).map(str -> str.replace("'", "\\'")).orElse(""))
+              .rif(buildingOpt.map(Building::rif).orElse(""))
+              .mainCurrency(buildingOpt.map(Building::mainCurrency).orElse(Currency.VED))
+              .debtCurrency(buildingOpt.map(Building::debtCurrency).orElse(Currency.VED))
+              .currenciesToShowAmountToPay(currenciesToShowAmountToPay)
+              .fixedPay(buildingOpt.map(Building::fixedPay).orElse(false))
+              .fixedPayAmount(buildingOpt.map(Building::fixedPayAmount).orElse(null))
+              .roundUpPayments(buildingOpt.map(Building::roundUpPayments).orElse(false))
+              .emailConfigId(buildingOpt.map(Building::emailConfigId).orElse(null))
+              .build();
+        })
+        .map(Templates::formInit);
   }
 
   @GET

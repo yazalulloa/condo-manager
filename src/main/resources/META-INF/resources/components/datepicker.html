@@ -4,7 +4,7 @@
       <div class="mb-5 w-64">
         <label for="datepicker" class="font-bold mb-1 text-gray-700 block">Select Date</label>
         <div class="relative">
-          <input type="hidden" name="date" x-ref="date" :value="datepickerValue" />
+          <input type="hidden" name="date" x-ref="date" x-bind:value="datepickerValue" />
           <input type="text" x-on:click="showDatepicker = !showDatepicker" x-model="datepickerValue" x-on:keydown.escape="showDatepicker = false" class="w-full pl-4 pr-10 py-3 leading-none rounded-lg shadow-sm focus:outline-none text-gray-600 font-medium focus:ring focus:ring-blue-600 focus:ring-opacity-50" placeholder="Select date" readonly />
 
           <div class="absolute top-0 right-0 px-3 py-2">

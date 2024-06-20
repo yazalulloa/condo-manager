@@ -1,0 +1,184 @@
+<form class="flex flex-col min-w-3/5 w-fit align-middle gap-4 m-auto"
+      hx-put="/api/buildings"
+      hx-indicator=".htmx-indicator"
+      hx-target="#building-form-error"
+      hx-swap="innerHTML"
+      hx-disabled-elt="this, input:not([disabled]), button:not([disabled])"
+      x-data="{is_edit: false, key: null, buildingId: '', buildingIdError: '', buildingName: '', buildingNameError: '',
+        buildingRif: '', buildingRifError: '', currencies: [], mainCurrency: '', debtCurrency: '',
+        currenciesToShowAmountToPay: [], fixedPay: false, fixedPayAmount: '', fixedPayAmountError: '',
+         roundUpPayments: false, emailConfigId: '', emailConfigs: [], generalFieldError: ''}">
+
+  <div hx-get="/api/stc/currencies"
+       hx-trigger="load"
+       hx-disabled-elt="this, input:not([disabled]), button:not([disabled])"
+       hx-target="this"
+       hx-swap="outerHTML">
+  </div>
+
+  <div hx-get="/api/buildings/form_init"
+       hx-trigger="load"
+       hx-vals="js:{id: getResource('building', 'edit/')}"
+       hx-disabled-elt="this, input:not([disabled]), button:not([disabled])"
+       hx-target="this"
+       hx-swap="outerHTML">
+  </div>
+
+  <div id="building-form-error" hidden="hidden"></div>
+
+  <input hidden="hidden" name="key" x-model="key">
+
+  <label class="form-control w-full">
+    <div class="label">
+      <span class="label-text">ID</span>
+    </div>
+    <input required placeholder="ID" class="input input-bordered w-full" name="id"
+           x-model="buildingId"
+           x-bind:disabled="is_edit"/>
+    <div class="label">
+      <span class="label-text-alt error-message" x-text="buildingIdError"></span>
+    </div>
+  </label>
+
+  <label class="form-control w-full">
+    <div class="label">
+      <span class="label-text">Nombre</span>
+    </div>
+    <input required placeholder="Nombre" class="input input-bordered w-full" name="name"
+           x-model="buildingName"/>
+    <div class="label">
+      <span class="label-text-alt error-message" x-text="buildingNameError"></span>
+    </div>
+  </label>
+
+  <label class="form-control w-full">
+    <div class="label">
+      <span class="label-text">RIF</span>
+    </div>
+    <input placeholder="RIF" class="input input-bordered w-full" name="rif"
+           x-model="buildingRif"/>
+    <div class="label">
+      <span class="label-text-alt error-message" x-text="buildingRifError"></span>
+    </div>
+  </label>
+
+  <div class="flex gap-8 justify-center flex-wrap">
+    <label class="form-control">
+      <div class="label">
+        <span class="label-text">Moneda Principal</span>
+      </div>
+      <select x-ref="buildingMainCurrencySelect" name="mainCurrency"
+              class="select select-bordered w-full"
+              x-model="mainCurrency"
+      >
+        <template x-for="value in currencies">
+          <option x-bind:value="value" x-text="value"></option>
+        </template>
+      </select>
+      <div class="label">
+        <span class="label-text-alt error-message"></span>
+      </div>
+    </label>
+
+    <label class="form-control">
+      <div class="label">
+        <span class="label-text">Moneda Deudas</span>
+      </div>
+      <select x-ref="buildingDebtCurrencySelect" name="debtCurrency"
+              class="select select-bordered w-full"
+              x-model="debtCurrency"
+      >
+        <template x-for="value in currencies">
+          <option x-bind:value="value" x-text="value"></option>
+        </template>
+      </select>
+      <div class="label">
+        <span class="label-text-alt error-message"></span>
+      </div>
+    </label>
+
+    <div class="form-control justify-center text-center gap-2">
+      <span class="label-text">Monedas a mostrar al pagar</span>
+      <div class="flex flex-row gap-4">
+        <template x-for="value in currencies">
+          <label class="label cursor-pointer justify-center gap-4">
+            <span class="label-text" x-text="value"></span>
+            <input type="checkbox" class="checkbox" x-bind:value="value"
+                   x-bind:checked="currenciesToShowAmountToPay.includes(value)"
+                   x-effect="$el.checked=currenciesToShowAmountToPay.includes($el.value)"
+                   name="currenciesToShowAmountToPay"/>
+          </label>
+        </template>
+      </div>
+    </div>
+
+    <label class="label cursor-pointer justify-center gap-4">
+      <span class="label-text">Redondear Pagos</span>
+      <input type="checkbox" class="checkbox" name="roundUpPayments" value="true"
+             x-bind:checked="roundUpPayments"/>
+    </label>
+
+    <div class="flex flex-row gap-2 flex-wrap justify-center">
+      <label class="label cursor-pointer justify-center gap-4">
+        <span class="label-text">Monto Fijo</span>
+        <input type="checkbox" class="checkbox" name="fixedPay"
+               x-bind:checked="fixedPay" value="true"
+               @click="fixedPay=!fixedPay"/>
+      </label>
+
+      <label class="form-control justify-center" x-show="fixedPay" x-transition>
+        <div class="label">
+        </div>
+        <input placeholder="Monto fijo" class="input input-bordered w-full" name="fixedPayAmount"
+               type="number"
+               min="1"
+               maxlength="10"
+               step=".01"
+               onchange="limitInputToMaxLength(this)"
+               x-model="fixedPayAmount"
+        />
+        <div class="label">
+          <span class="label-text-alt error-message" x-text="fixedPayAmountError"></span>
+        </div>
+      </label>
+    </div>
+  </div>
+
+  <div>
+    <label class="form-control w-full">
+
+      <div class="label">
+        <span class="label-text">Configuración email</span>
+      </div>
+      <select class="select select-bordered w-full" name="emailConfig" x-model="emailConfigId">
+
+        <template x-for="item in emailConfigs">
+          <option x-bind:value="item.value" x-text="item.name"></option>
+        </template>
+      </select>
+    </label>
+
+  </div>
+
+  <div class="label">
+    <span x-transition class="label-text-alt" x-text="generalFieldError"></span>
+  </div>
+
+  <div class="flex flex-row gap-4">
+    <button type="submit" class="btn btn-primary"
+            x-init="$watch('is_edit', value => $el.childNodes[0].nodeValue = (value ? 'Editar' : 'Crear'))"
+            x-effect="
+                  let v = !(buildingId?.trim()?.length > 0 && buildingName?.trim()?.length > 0);
+                  $el.disabled=v;
+                  "
+    >
+      Crear
+    </button>
+
+    <button type="button" class="btn btn-accent"
+            @click.prevent="">
+      Cancelar
+    </button>
+    <img class="htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">
+  </div>
+</form>
