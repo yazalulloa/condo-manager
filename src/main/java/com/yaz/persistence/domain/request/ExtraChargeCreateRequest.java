@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.entities.ExtraCharge;
-import java.util.Set;
+import java.util.Collection;
 import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -28,5 +28,5 @@ public class ExtraChargeCreateRequest {
   private final double amount;
   private final Currency currency;
   private final boolean active;
-  private final Set<String> apartments;
+  private final Collection<String> apartments;
 }

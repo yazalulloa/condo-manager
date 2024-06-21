@@ -22,7 +22,7 @@
   </div>
 </div>
 
-<div id="container" hx-swap-oob="true" class="h-full p-4">
+<div id="container" hx-swap-oob="true" class="h-full p-4" x-data="{currencies: []}">
 <!--  <div-->
 <!--      hx-get="/api/buildings/edit_form"-->
 <!--      hx-indicator=".htmx-indicator"-->
@@ -40,6 +40,8 @@
       hx-trigger="load"
       hx-swap="outerHTML">
   </form>
+
+  <div hidden="hidden" id="building-info"></div>
 </div>
 
 </body>

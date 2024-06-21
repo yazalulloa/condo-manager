@@ -1,7 +1,9 @@
 package com.yaz.core.util;
 
+import io.quarkus.qute.TemplateInstance;
+import io.smallrye.mutiny.Uni;
+import jakarta.ws.rs.core.Response;
 import java.util.Collection;
-import org.apache.poi.ss.formula.functions.T;
 
 public class TemplateUtil {
 
@@ -23,6 +25,14 @@ public class TemplateUtil {
     }
     sb.append("]");
     return sb.toString();
+  }
+
+  public static Uni<Response> responseUni(TemplateInstance templateInstance) {
+    return Uni.createFrom().item(Response.ok(templateInstance).build());
+  }
+
+  public static Uni<TemplateInstance> templateUni(TemplateInstance templateInstance) {
+    return Uni.createFrom().item(templateInstance);
   }
 
 }

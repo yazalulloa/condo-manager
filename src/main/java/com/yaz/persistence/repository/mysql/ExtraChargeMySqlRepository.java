@@ -16,6 +16,7 @@ import io.vertx.sqlclient.impl.ArrayTuple;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -173,7 +174,7 @@ public class ExtraChargeMySqlRepository {
         });
   }
 
-  private MySqlQueryRequest insertApts(String parentReference, String id, Set<String> apartments) {
+  private MySqlQueryRequest insertApts(String parentReference, String id, Collection<String> apartments) {
     log.info("insertApts {} {} {}", parentReference, id, apartments);
     final var tuples = apartments.stream()
         .map(apt -> Tuple.of(parentReference, id, apt))

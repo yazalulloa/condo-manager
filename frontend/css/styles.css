@@ -322,7 +322,7 @@ textarea, input {
 }
 
 .extra-charges-grid {
-  grid-template-columns: 2fr 2fr 4fr 2fr;
+  grid-template-columns: 1fr 1fr 2fr 1fr;
 }
 
 .expenses-grid {
@@ -338,10 +338,8 @@ textarea, input {
 }
 
 .apt-receipt-dialog-grid {
-  grid-template-columns: 1fr 2fr 1fr;
+  grid-template-columns: 1fr 4fr 1fr;
 }
-
-
 
 .apt-email-dialog-grid {
   grid-template-columns: 5fr 1fr;

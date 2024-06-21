@@ -36,6 +36,10 @@ public record ExtraCharge(
     return new Keys(id, parentReference, buildingId, type, 0, cardId());
   }
 
+  public Keys keysWithHash() {
+    return keysWithHash(cardId());
+  }
+
   public Keys keysWithHash(String cardId) {
 
     return new Keys(id, parentReference, buildingId, type, StringUtil.objHash(this), cardId);

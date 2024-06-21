@@ -4,6 +4,7 @@ import lombok.Builder;
 
 @Builder(toBuilder = true)
 public record BuildingFormResponse(
+    boolean createdNew,
     String key,
     String idFieldError,
     String generalFieldError,

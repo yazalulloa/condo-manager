@@ -1,0 +1,125 @@
+<div>
+
+  <label class="form-control w-full">
+    <div class="label">
+      <span class="label-text">Descripción</span>
+    </div>
+    <input required placeholder="Descripción" class="input input-bordered w-full" name="description"
+           x-model="description"/>
+    <div class="label">
+      <span class="label-text-alt error-message" x-text="descriptionFieldError"></span>
+    </div>
+  </label>
+
+  <label class="form-control w-full">
+    <div class="label">
+      <span class="label-text">Monto</span>
+    </div>
+    <input placeholder="Monto" class="input input-bordered w-full" name="amount"
+           x-model="amount"
+           type="number"
+           min="1"
+           maxlength="20"
+           step=".01"
+           onchange="limitInputToMaxLength(this)"
+    />
+    <div class="label">
+      <span class="label-text-alt error-message" x-text="amountFieldError"></span>
+    </div>
+  </label>
+
+  <div class="flex gap-4 justify-between items-center text-center">
+    <label class="form-control w-full">
+      <select x-ref="extraChargeCurrencySelect" name="currency"
+              class="select select-bordered w-full"
+              x-model="currency"
+      >
+        <template x-for="value in currencies">
+          <option x-bind:value="value" x-text="value"></option>
+        </template>
+      </select>
+    </label>
+
+    <label class="label cursor-pointer justify-center gap-4">
+      <span class="label-text">Activo</span>
+      <input type="checkbox" class="checkbox" name="active" value="true"
+             @click="active=!active"
+             x-bind:checked="active"/>
+    </label>
+  </div>
+
+  <div class="pt-4">
+    <button class="btn btn-outline w-full" @click.prevent="$el.nextElementSibling.showModal()">
+      <h2 class="text-center">Apartamentos: <span x-text="apt_selected.length"></span></h2>
+    </button>
+    <dialog class="modal modal-bottom sm:modal-middle">
+      <div class="modal-box">
+        <div class="flex flex-row gap-2 justify-around text-center items-center">
+          <div></div>
+          <h2 class="text-center">Apartamentos: <span x-text="apt_selected.length"></span></h2>
+          <div>
+            <form method="dialog">
+              <button class="btn btn-circle btn-outline">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+              </button>
+            </form>
+          </div>
+        </div>
+        <label class="label justify-center gap-4 cursor-pointer p-2">
+          <span class="label-text">Seleccionar todos</span>
+          <input type="checkbox" class="toggle"
+                 @click="select_all=!select_all"
+                 x-bind:checked="select_all"
+                 x-effect="
+                 if (select_all) {
+                   apt_selected = apts.map(apt => apt.number);
+                 } else {
+                   apt_selected = [];
+                 }
+                 "
+          />
+        </label>
+
+        <template x-for="apt in apts">
+          <label class="grid apt-receipt-dialog-grid gap-2 cursor-pointer p-1 hover:alert-info">
+            <span class="flex justify-center" x-text="apt.number"></span>
+            <span class="flex justify-center" x-text="apt.name"></span>
+            <input type="checkbox" class="checkbox m-auto" name="apts"
+                   @click="apt_selected.includes(apt.number) ? apt_selected = apt_selected.filter(a => a !== apt.number) : apt_selected.push(apt.number);"
+                   x-bind:checked="apt_selected.includes(apt.number)"
+                   x-bind:value="apt.number"/>
+          </label>
+        </template>
+      </div>
+      <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+      </form>
+    </dialog>
+  </div>
+
+  <div class="label">
+    <span x-transition class="label-text-alt" x-text="generalFieldError"></span>
+  </div>
+
+  <div class="flex flex-row gap-4 pt-4">
+    <button type="submit" class="btn btn-primary"
+            x-init="$watch('is_edit', value => $el.childNodes[0].nodeValue = (value ? 'Editar' : 'Crear'))"
+            x-effect="
+                  let v = !(description?.trim()?.length > 0 && amount?.trim()?.length > 0 && apt_selected?.length > 0);
+                  $el.disabled=v;
+                  "
+    >
+      Crear
+    </button>
+
+    <button type="button" class="btn btn-secondary"
+            @click.prevent="$dispatch('event-extra-charge-building-reset')">
+      Limpiar
+    </button>
+    <img class="htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">
+  </div>
+
+</div>

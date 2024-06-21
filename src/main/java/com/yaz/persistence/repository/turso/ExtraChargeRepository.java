@@ -14,10 +14,10 @@ import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -185,7 +185,7 @@ public class ExtraChargeRepository {
 
   }
 
-  public Uni<InsertResult> insert(ExtraCharge extraCharge, Set<String> apartments) {
+  public Uni<InsertResult> insert(ExtraCharge extraCharge, Collection<String> apartments) {
 
     final var insertStmt = Stmt.stmt(INSERT, Value.text(extraCharge.parentReference()),
         Value.text(extraCharge.buildingId()),

@@ -4,6 +4,11 @@
 {#if dto.key}
 key = '{dto.key}';
 {/if}
+
+{#if dto.createdNew}
+is_edit = true;
+{/if}
+
 generalFieldError = '{dto.generalFieldError}';
 buildingIdError = '{dto.idFieldError}';
 buildingNameError = '{dto.nameFieldError}';

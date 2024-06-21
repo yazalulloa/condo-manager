@@ -41,6 +41,7 @@ public class ConvertUtil {
 
     final var veSymbols = new DecimalFormatSymbols(Locale.of("es", "VE"));
     veSymbols.setCurrencySymbol("Bs. ");
+
     VE_FORMAT = new DecimalFormat("¤#,##0.00;¤-#,##0.00", veSymbols);
 
     //veFormat = DecimalFormat.getCurrencyInstance(locale);

@@ -42,6 +42,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.time.Duration;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -162,7 +163,7 @@ public class BuildingResource {
 
   @PUT
   @Produces(MediaType.TEXT_HTML)
-  public Uni<TemplateInstance> upsert(@BeanParam BuildingRequest request) {
+  public Uni<Response> upsert(@BeanParam BuildingRequest request) {
     log.info("Upsert: {}", request);
 
     final var keysOpt = Optional.ofNullable(StringUtil.trimFilter(request.getKey()))
@@ -188,7 +189,7 @@ public class BuildingResource {
         .build();
 
     if (!formResponse.isSuccess()) {
-      return Uni.createFrom().item(Templates.responseForm(formResponse));
+      return TemplateUtil.responseUni(Templates.responseForm(formResponse));
     }
 
     final var building = Building.builder()
@@ -211,7 +212,7 @@ public class BuildingResource {
     }
 
     if (!formResponse.isSuccess()) {
-      return Uni.createFrom().item(Templates.responseForm(formResponse));
+      return TemplateUtil.responseUni(Templates.responseForm(formResponse));
     }
 
     if (keysOpt.isPresent()) {
@@ -221,26 +222,25 @@ public class BuildingResource {
               .generalFieldError("Actualizado")
               .currenciesToShowAmountToPay(currenciesToShowAmountToPayStringArray)
               .build())
-          .map(Templates::responseForm);
+          .map(Templates::responseForm)
+          .map(t -> Response.ok(t).build());
     }
 
     return service.exists(building.id())
         .flatMap(bool -> {
           if (bool) {
-            return Uni.createFrom().item(BuildingFormResponse.builder()
+            final var response = BuildingFormResponse.builder()
                 .idFieldError("ID ya existe")
                 .currenciesToShowAmountToPay(currenciesToShowAmountToPayStringArray)
-                .build());
+                .build();
+            return TemplateUtil.responseUni(Templates.responseForm(response));
           }
 
           return service.create(building)
-              .map(b -> BuildingFormResponse.builder()
-                  .key(encryptionService.encryptObj(b.keysWithHash()))
-                  .generalFieldError("Creado")
-                  .currenciesToShowAmountToPay(currenciesToShowAmountToPayStringArray)
+              .map(b -> Response.noContent()
+                  .header("HX-Redirect", "/buildings/edit/" + b.id())
                   .build());
-        })
-        .map(Templates::responseForm);
+        });
   }
 
   @GET
@@ -254,9 +254,32 @@ public class BuildingResource {
         .map(service::read)
         .orElse(Uni.createFrom().item(Optional.empty()));
 
+    final var extraChargesUni = buildingUni.flatMap(opt -> {
+
+      return opt.map(Building::id)
+          .map(buildingId -> extraChargeService.by(buildingId, buildingId)
+              .map(list -> list.stream()
+                  .map(extraCharge -> {
+
+                    final var keys = extraCharge.keysWithHash();
+
+                    return ExtraChargeTableItem.builder()
+                        .item(extraCharge)
+                        .key(encryptionService.encryptObj(keys))
+                        .cardId(keys.cardId())
+                        .build();
+                  })
+                  .toList()))
+          .orElse(Uni.createFrom().item(Collections.emptyList()));
+    });
+
+    final var aptsUni = buildingUni.flatMap(opt -> opt.map(Building::id)
+        .map(apartmentService::aptByBuildings)
+        .orElse(Uni.createFrom().item(Collections.emptyList())));
+
     return Uni.combine().all()
-        .unis(buildingUni, emailConfigService.displayList())
-        .with((buildingOpt, emailConfigs) -> {
+        .unis(buildingUni, emailConfigService.displayList(), extraChargesUni, aptsUni)
+        .with((buildingOpt, emailConfigs, extraCharges, apts) -> {
 
           final var key = buildingOpt.map(building -> encryptionService.encryptObj(building.keysWithHash()))
               .orElse(null);
@@ -280,6 +303,12 @@ public class BuildingResource {
               .fixedPayAmount(buildingOpt.map(Building::fixedPayAmount).orElse(null))
               .roundUpPayments(buildingOpt.map(Building::roundUpPayments).orElse(false))
               .emailConfigId(buildingOpt.map(Building::emailConfigId).orElse(null))
+
+              .extraChargeKey(buildingOpt.map(Building::id).map(ExtraCharge.Keys::newBuilding)
+                  .map(encryptionService::encryptObj).orElse(""))
+              .extraCharges(extraCharges)
+
+              .apts(apts)
               .build();
         })
         .map(Templates::formInit);

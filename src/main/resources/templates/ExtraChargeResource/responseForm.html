@@ -1,0 +1,31 @@
+{@com.yaz.api.domain.response.extra.charge.ExtraChargeFormResponse dto}
+
+<div x-init="
+
+descriptionFieldError = '{dto.descriptionFieldError}';
+amountFieldError = '{dto.amountFieldError}';
+generalFieldError = '{dto.generalFieldError}';
+
+{#if dto.tableItem}
+$dispatch('event-extra-charge-building-reset');
+{/if}
+
+">
+
+</div>
+
+
+{#if dto.tableItem}
+
+    {#if dto.tableItem.addAfterEnd}
+      <div id="extra-charges-table-item-grid" hx-swap-oob="beforeend">
+              {#include ExtraChargeResource/item item = dto.tableItem /}
+      </div>
+    {#else}
+            {#include ExtraChargeResource/item item = dto.tableItem /}
+    {/if}
+{/if}
+
+{#if dto.count}
+        {#include ExtraChargeResource/counters count = dto.count /}
+{/if}
