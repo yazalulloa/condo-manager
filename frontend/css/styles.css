@@ -321,16 +321,47 @@ textarea, input {
   width: 100%;
 }
 
-.extra-charges-grid {
-  grid-template-columns: 1fr 1fr 2fr 1fr;
+.item-grid-cm {
+  display: grid;
+  grid-template-rows: auto;
+  grid-gap: 1rem;
+  width: 100%;
+  text-align: center;
+}
+
+.item-grid-cm > * {
+  text-align: center;
+  margin: auto;
+  align-items: center;
+  width: 100%;
+}
+
+.extra-charges-grid-header {
+  grid-template-columns: 2fr 2fr 3fr 1fr;
+}
+
+.extra-charges-grid-item {
+  grid-template-columns: 7fr 1fr;
+}
+
+.extra-charges-grid-content {
+  grid-template-columns: 2fr 2fr 3fr;
 }
 
 .expenses-grid {
   grid-template-columns: 3fr 1fr 1fr 1fr;
 }
 
-.reserve-funds-grid {
+.reserve-funds-grid-header {
   grid-template-columns: 2fr 1fr 1fr 1fr;
+}
+
+.reserve-funds-grid-item {
+  grid-template-columns: 4fr 1fr;
+}
+
+.reserve-funds-grid-content {
+  grid-template-columns: 2fr 1fr 1fr;
 }
 
 .debt-grid {

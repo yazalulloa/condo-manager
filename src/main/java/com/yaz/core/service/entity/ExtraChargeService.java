@@ -1,8 +1,6 @@
 package com.yaz.core.service.entity;
 
 import com.yaz.core.service.entity.cache.ExtraChargesCache;
-import com.yaz.core.service.entity.cache.ExtraChargesCache;
-import com.yaz.core.service.entity.cache.ReserveFundCache;
 import com.yaz.core.util.Constants;
 import com.yaz.core.util.MutinyUtil;
 import com.yaz.persistence.domain.request.ExtraChargeCreateRequest;
@@ -110,11 +108,12 @@ public class ExtraChargeService {
         .flatMap(MutinyUtil.cacheCall(invalidateAll()));
   }
 
-  
+
   public Uni<Integer> deleteByReceipt(String buildingId, String parentReference) {
     return repository.deleteByReceipt(buildingId, parentReference)
         .flatMap(MutinyUtil.cacheCall(invalidateAll()));
   }
+
   public Uni<Integer> deleteByApartment(String buildingId, String aptNumber) {
     return repository.deleteByApartment(buildingId, aptNumber)
         .flatMap(MutinyUtil.cacheCall(invalidateAll()));

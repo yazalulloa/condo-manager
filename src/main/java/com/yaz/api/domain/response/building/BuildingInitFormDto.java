@@ -1,7 +1,8 @@
 package com.yaz.api.domain.response.building;
 
 import com.yaz.api.domain.response.EmailConfigDto;
-import com.yaz.api.domain.response.ExtraChargeTableItem;
+import com.yaz.api.domain.response.extra.charge.ExtraChargeInitFormDto;
+import com.yaz.api.domain.response.reserve.funds.ReserveFundInitFormDto;
 import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.entities.ExtraCharge;
 import java.math.BigDecimal;
@@ -25,10 +26,11 @@ public record BuildingInitFormDto(
     Boolean roundUpPayments,
     String emailConfigId,
 
-    String extraChargeKey,
-    List<ExtraChargeTableItem> extraCharges,
+    List<ExtraCharge.Apt> apts,
 
-    List<ExtraCharge.Apt> apts
+    ExtraChargeInitFormDto extraChargeDto,
+
+    ReserveFundInitFormDto reserveFundDto
 ) {
 
 }

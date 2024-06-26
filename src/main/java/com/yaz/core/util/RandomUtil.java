@@ -112,6 +112,10 @@ public class RandomUtil {
     return getInstance().nextBoolean();
   }
 
+  public static <T> T randomFromArray(T[] array) {
+    return array[getInstance().nextInt(array.length)];
+  }
+
   public enum Type {
     ALPHANUMERIC, HEXADECIMAL, NUMERIC, CHARS
   }

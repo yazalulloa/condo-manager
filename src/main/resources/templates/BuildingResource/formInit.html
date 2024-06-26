@@ -31,7 +31,7 @@ key = '{dto.key}';
 </div>
 
 {#if dto.isEdit}
-    <div id="building-info" hx-swap-oob="true" class="pt-6" x-data="{
+    <div id="building-info" hx-swap-oob="true" class="pt-6 flex flex-col gap-6" x-data="{
     apts: [
 {#for item in dto.apts}
 { number: '{item.number}',name: '{item.name}',},
@@ -39,68 +39,13 @@ key = '{dto.key}';
 ]
     }">
 
-        <hr class="p-3 w-3/4 center">
+        <hr class="w-3/4 center">
 
-        <div class="text-center">Cargos Extra: <span id="extra-charges-form-counter">{dto.extraCharges.size}</span>
-        </div>
+            {#include ExtraChargeResource/newForm dto = dto.extraChargeDto /}
 
-        <div class="flex flex-row flex-wrap gap-6 justify-center pt-4"
-             x-data="{ is_edit: false, buildingKey: '{dto.extraChargeKey}', key: '{dto.extraChargeKey}', description: '', descriptionError: '', amount: '', amountError: '',
-              active: true, currency: '', select_all: false, apt_selected: [], descriptionFieldError: '', amountFieldError: '', generalFieldError: ''
-             }"
-             @event-extra-charge-building-clean-errors="
-              generalFieldError = '';
-              descriptionFieldError = '';
-              amountFieldError = '';
-             "
-             @event-extra-charge-building-reset="
-              description = '';
-              amount = '';
-              currency = '';
-              active = true;
-              descriptionError = '';
-              amountError = '';
-              apt_selected = [];
-              select_all = false;
-              is_edit = false;
-              key = buildingKey;
-              generalFieldError = '';
-              descriptionFieldError = '';
-              amountFieldError = '';
-             "
-        >
+        <hr class="w-3/4 center">
 
-            <div id="extra-charges-table-item-grid">
-                <div class="extra-charges-grid base-grid-cm p-1 font-bold">
-                    <span>Descripción</span>
-                    <span>Monto</span>
-                    <span>Apartamentos</span>
-                    <span>Acciones</span>
-                </div>
-
-                {#for item in dto.extraCharges}
-
-                        {#include ExtraChargeResource/item item = item /}
-                {/for}
-            </div>
-
-            <form hx-put="/api/extra_charges"
-                  hx-indicator=".htmx-indicator"
-                  hx-target="#extra-charge-form-error"
-                  hx-swap="innerHTML"
-                  hx-disabled-elt="this, input:not([disabled]), button:not([disabled])">
-
-                <div id="extra-charge-form-error" hidden="hidden"></div>
-                <input hidden="hidden" name="key" x-model="key">
-                <input type="hidden" name="{inject:csrf.parameterName}" value="{inject:csrf.token}"/>
-
-                <div hx-get="/stc/extraCharges/form/"
-                     hx-target="this"
-                     hx-trigger="load"
-                     hx-swap="outerHTML">
-                </div>
-            </form>
-        </div>
+            {#include ReserveFundResource/newForm dto = dto.reserveFundDto /}
 
     </div>
 

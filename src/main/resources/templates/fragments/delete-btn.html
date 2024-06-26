@@ -1,12 +1,21 @@
 <div class="block">
-  <button class="btn btn-circle"
-          hx-headers='{"{inject:csrf.headerName}":"{inject:csrf.token}"}'
-          hx-delete="{deleteUrl}"
-          hx-target="{cardIdRef}"
-          hx-indicator=".htmx-indicator"
-          hx-disabled-elt="this"
-          hx-trigger="click"
-          hx-swap="delete swap:300ms">
-    <img class="h-6 w-6" src="/assets/trash.svg" alt="delete-item">
-  </button>
+    <button class="btn-sm btn btn-circle btn-outline btn-error"
+            hx-headers='{"{inject:csrf.headerName}":"{inject:csrf.token}"}'
+            hx-delete="{deleteUrl}"
+            hx-target="{cardIdRef}"
+            hx-indicator=".htmx-indicator"
+            hx-disabled-elt="this"
+            hx-trigger="click"
+            hx-swap="delete swap:300ms"
+            {#if afterRequest && afterRequest != ''}
+                 hx-on:htmx:after-request="{afterRequest}"
+            {/if}
+    >
+        <div hx-get="/assets/delete-cross.svg"
+             hx-trigger="load"
+             hx-target="this"
+             hx-swap="outerHTML">
+
+        </div>
+    </button>
 </div>

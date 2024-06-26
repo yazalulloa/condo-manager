@@ -16,7 +16,7 @@
         x-data="{is_checked: true, name: ''}"
         hx-post="https://http.cat/200"
         hx-indicator=".htmx-indicator"
-        hx-disabled-elt="button"
+        hx-disabled-elt="this, input:not([disabled]), button:not([disabled]), select:not([disabled])"
         hx-swap="none">
 
     <input type="text"
@@ -40,6 +40,71 @@
      <img class="htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">
    </div>
   </form>
+
+  <hr>
+
+  <form class="flex flex-col gap-4"
+        x-data="{is_checked: true, name: ''}"
+        hx-post="https://http.cat/200"
+        hx-indicator=".htmx-indicator"
+        hx-disabled-elt="this, input:not([disabled]), button:not([disabled]), select:not([disabled])"
+        hx-swap="none">
+
+    <input type="text"
+           x-model="name"
+           placeholder="Name"
+           required
+           class="input input-bordered"/>
+
+    <input type="checkbox" class="toggle"
+           @click="is_checked=!is_checked"
+           x-bind:checked="is_checked"/>
+
+    <div class="flex flex-col gap-2">
+      <button class="btn btn-primary"
+              type="submit"
+              x-effect="$el.disabled = !(is_checked && name?.trim()?.length > 0)"
+      >
+        Submit
+      </button>
+
+      <img class="htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">
+    </div>
+  </form>
+
+
+
+  <hr>
+
+  <form class="flex flex-col gap-4"
+        x-data="{is_checked: true, name: ''}"
+        hx-post="https://http.cat/200"
+        hx-indicator=".htmx-indicator"
+        hx-disabled-elt="this, input:not([disabled]), button:not([disabled]), select:not([disabled])"
+        hx-swap="none">
+
+    <input type="text"
+           x-model="name"
+           placeholder="Name"
+           required
+           class="input input-bordered"/>
+
+    <input type="checkbox" class="toggle"
+           @click="is_checked=!is_checked"
+           x-bind:checked="is_checked"/>
+
+    <div class="flex flex-col gap-2">
+      <button class="btn btn-primary"
+              type="submit"
+              x-effect="$el.disabled = !(is_checked && name?.trim()?.length > 0)"
+      >
+        Submit
+      </button>
+
+      <img class="htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">
+    </div>
+  </form>
+
 </div>
 
 </body>

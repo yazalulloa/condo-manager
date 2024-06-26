@@ -65,7 +65,7 @@
       <span>Último acceso {item.user.lastLoginAt.formatDate}</span>
     </div>
 
-    {#include fragments/delete-btn deleteUrl=item.deleteUrl cardIdRef=item.cardIdRef/}
+    {#include fragments/delete-btn deleteUrl=item.deleteUrl cardIdRef=item.cardIdRef afterRequest=''/}
     </div>
     </summary>
     <div class="flex flex-col gap-2 p-2">

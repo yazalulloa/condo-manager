@@ -13,19 +13,41 @@ import org.jboss.resteasy.reactive.Cache;
 @Path("/api/stc")
 public class fragments {
 
+  public static final int CACHE_MAX_AGE = 21600;
+
   @CheckedTemplate
   public static class Fragments {
 
     public static native TemplateInstance rateInfo(String msg);
 
     public static native TemplateInstance currencyData();
+
+    public static native TemplateInstance reserveFundTypes();
+
+    public static native TemplateInstance expenseTypes();
   }
 
   @GET
   @Path("/currencies")
-  @Cache(maxAge = 21600)
+  @Cache(maxAge = CACHE_MAX_AGE)
   @Produces(MediaType.TEXT_HTML)
   public TemplateInstance currencyData() {
     return Fragments.currencyData();
+  }
+
+  @GET
+  @Path("/reserveFundTypes")
+  @Cache(maxAge = CACHE_MAX_AGE)
+  @Produces(MediaType.TEXT_HTML)
+  public TemplateInstance reserveFundTypes() {
+    return Fragments.reserveFundTypes();
+  }
+
+  @GET
+  @Path("/expenseTypes")
+  @Cache(maxAge = CACHE_MAX_AGE)
+  @Produces(MediaType.TEXT_HTML)
+  public TemplateInstance expenseTypes() {
+    return Fragments.expenseTypes();
   }
 }

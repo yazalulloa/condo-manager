@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>hx-disable-example</title>
+  <script defer src="https://unpkg.com/htmx.org@1.9.12"></script>
+  <!--  <script defer src="https://unpkg.com/htmx.org@2.0.0"></script>-->
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.2/dist/full.min.css" rel="stylesheet" type="text/css"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+
+<div class="flex flex-col gap-6 p-8">
+
+  <p id="form-error" hidden="hidden"></p>
+
+  <div>
+    <form
+        id="first-form"
+        hx-put="https://hub.dummyapis.com/delay?seconds=1"
+        hx-put="/api/some"
+        hx-disabled-elt="this, #first-form * > input:not([disabled]), #first-form * > button:not([disabled]), #first-form * > select:not([disabled])"
+        hx-target="#form-error"
+        hx-swap="innerHTML"
+    >
+
+      <p>First Form</p>
+
+      <div class="flex gap-2 items-center">
+        <input type="text"
+               name="name"
+               hx-disabled-elt="this"
+               placeholder="Name"
+               class="input input-bordered"/>
+
+        <input type="checkbox" class="toggle" value="true" name="check" checked/>
+
+        <select class="select select-bordered" name="choice">
+          <option value="1">1</option>
+          <option value="2">2</option>
+        </select>
+
+        <button class="btn btn-primary">
+          Submit
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+
+  <form
+      id="second-form"
+      class="flex gap-2 items-center"
+      hx-post="https://hub.dummyapis.com/delay?seconds=1"
+      hx-disabled-elt="this, #second-form > input:not([disabled]), #second-form > button:not([disabled]), #second-form > select:not([disabled])"
+      hx-swap="none">
+
+    <p>Second Form</p>
+
+    <input type="text"
+           name="name"
+           hx-disabled-elt="this"
+           placeholder="Name"
+           class="input input-bordered"/>
+
+    <input type="checkbox" class="toggle" value="true" name="check" checked/>
+
+    <select class="select select-bordered" name="choice">
+      <option value="1">1</option>
+      <option value="2">2</option>
+    </select>
+
+    <button class="btn btn-primary">
+      Submit
+    </button>
+
+  </form>
+
+
+  <form
+      hx-post="https://hub.dummyapis.com/delay?seconds=1"
+      hx-disabled-elt="this, input:not([disabled]), button:not([disabled]), select:not([disabled])"
+      hx-swap="none">
+
+    <p>Third Form</p>
+
+    <div class="flex gap-2 items-center">
+     <input type="text"
+            name="name"
+            hx-disabled-elt="this"
+            placeholder="Name"
+            class="input input-bordered"/>
+
+     <input type="checkbox" class="toggle" value="true" name="check" checked/>
+
+     <select class="select select-bordered" name="choice">
+       <option value="1">1</option>
+       <option value="2">2</option>
+     </select>
+
+     <button class="btn btn-primary">
+       Submit
+     </button>
+   </div>
+
+  </form>
+
+</div>
+
+</body>
+</html>

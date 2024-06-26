@@ -1,11 +1,14 @@
 {@com.yaz.api.domain.response.ExtraChargeTableItem item}
 
-  <div class="extra-charges-grid base-grid-cm hover:alert-info p-1 fade-me-out fade-me-in"
-     id="{item.cardId}"
+<div id="{item.cardId}"
+     class="extra-charges-grid-item base-grid-cm hover:alert-info p-1 fade-me-out fade-me-in"
+
         {#if item.outOfBoundsUpdate}
             hx-swap-oob="true"
         {/if}
-     @click.prevent="
+>
+    <div class="extra-charges-grid-content item-grid-cm"
+         @click.prevent="
             description = '{item.item.description}';
             amount = '{item.item.amount}';
             active = {item.item.active};
@@ -15,30 +18,49 @@
             is_edit = true;
             select_all = false;
             $dispatch('event-extra-charge-building-clean-errors');
-     "
->
-    <div>
-        <span>{item.item.description}</span>
-
+     ">
         <div>
+            <span>{item.item.description}</span>
+
+            <div>
   <span
           class="inline-block whitespace-nowrap rounded-full px-[0.65em] pb-[0.25em] pt-[0.35em] text-center align-baseline text-[0.75em] font-bold leading-none
 {item.item.active ? 'bg-success-100 text-success-700' : 'bg-danger-100 text-danger-700'}
 ">
     {item.item.active ? 'Activo' : 'Desactivado'}
   </span>
+            </div>
+        </div>
+        <div>{item.item.formatAmount}</div>
+        <div class="flex flex-col text-sm items-center gap-1">
+            {#for apt in item.item.apartments}
+                <div class="flex flex-row gap-2 justify-start text-start w-full">
+                    <span class="break-normal">{apt.number}</span>
+                    <span>{apt.name}</span>
+                </div>
+            {/for}
         </div>
     </div>
-    <div>{item.item.formatAmount}</div>
-    <div class="flex flex-col text-sm items-center gap-1">
-        {#for apt in item.item.apartments}
-            <div class="flex flex-row gap-2 justify-start text-start w-full">
-                <span class="break-normal">{apt.number}</span>
-                <span>{apt.name}</span>
-            </div>
-        {/for}
-    </div>
 
-        {#include fragments/delete-btn deleteUrl = item.deleteUrl cardIdRef = item.cardIdRef/}
+
+    <div class="block">
+        <button class="btn-sm btn btn-circle btn-outline btn-error"
+                hx-headers='{"{inject:csrf.headerName}":"{inject:csrf.token}"}'
+                hx-delete="{item.deleteUrl}"
+                hx-target="{item.cardIdRef}"
+                hx-indicator=".htmx-indicator"
+                hx-disabled-elt="this"
+                hx-trigger="click"
+                hx-swap="delete swap:300ms"
+                hx-on:htmx:after-request="event.target.dispatchEvent(new CustomEvent('event-extra-charge-building-restart-after-deletion', { bubbles: true, detail: { key: '{item.key}'} }))"
+        >
+            <div hx-get="/assets/delete-cross.svg"
+                 hx-trigger="load"
+                 hx-target="this"
+                 hx-swap="outerHTML">
+
+            </div>
+        </button>
+    </div>
 
 </div>

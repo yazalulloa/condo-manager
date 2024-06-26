@@ -1,60 +1,78 @@
 {@com.yaz.api.domain.response.ReserveFundTableItem item}
 
 <div id="{item.cardId}"
-     class="reserve-funds-grid base-grid-cm hover:bg-[#00000014] p-2 fade-me-out fade-me-in"
+     class="reserve-funds-grid-item base-grid-cm hover:alert-info p-1 fade-me-out fade-me-in"
 
-  {#if item.outOfBoundsUpdate}
-     hx-swap-oob="true"
-  {/if}
-  >
+        {#if item.outOfBoundsUpdate}
+            hx-swap-oob="true"
+        {/if}
+>
 
-  <div class="flex flex-col gap-2 items-center text-center">
-  <span>{item.item.name}</span>
-  <span>{item.item.fund}</span>
-</div>
+   <div class="reserve-funds-grid-content item-grid-cm"
+        @click.prevent="
+        is_edit = true;
+        key = '{item.key}';
+        name = '{item.item.name}';
+        fund = '{item.item.fund}';
+        type = '{item.item.type}';
+        pay = '{item.item.pay}';
+        expense = '{item.item.expense}';
+        active = {item.item.active};
+        addToExpenses = {item.item.addToExpenses};
+        expenseType = '{item.item.expenseType}';
+        "
+   >
+     <div class="flex flex-col gap-2 items-center text-center">
+       <span>{item.item.name}</span>
+       <span>{item.item.fund}</span>
+     </div>
 
-  <div class="flex flex-col gap-1 items-center text-center">
-  <div>
+     <div class="flex flex-col gap-1 items-center text-center">
+       <div>
   <span
       class="inline-block whitespace-nowrap rounded-full px-[0.65em] pb-[0.25em] pt-[0.35em] text-center align-baseline font-bold leading-none text-sm
 {item.item.active ? 'bg-success-100 text-success-700' : 'bg-danger-100 text-danger-700'}
 ">
     {item.item.pay}
-    {#if item.item.type.name == 'PERCENTAGE'}
-      %
-    {/if}
+      {#if item.item.type.name == 'PERCENTAGE'}
+        %
+      {/if}
     </span>
-    </div>
+       </div>
 
-    <div>
+       <div>
         <span
-        class="inline-block whitespace-nowrap rounded-full px-[0.65em] pb-[0.25em] pt-[0.35em] text-center align-baseline font-bold leading-none text-sm
+            class="inline-block whitespace-nowrap rounded-full px-[0.65em] pb-[0.25em] pt-[0.35em] text-center align-baseline font-bold leading-none text-sm
 {item.item.addToExpenses ? 'bg-success-100 text-success-700' : 'bg-danger-100 text-danger-700'}
 ">
     {item.item.expenseType}
   </span>
-  </div>
+       </div>
 
-  </div>
+     </div>
 
-  <div class="flex flex-col gap-1 items-center text-center">
-    <span>{item.item.expense}</span>
-  </div>
+     <div class="flex flex-col gap-1 items-center text-center">
+       <span>{item.item.expense}</span>
+     </div>
+   </div>
 
+    <div class="block">
+      <button class="btn-sm btn btn-circle btn-outline btn-error"
+                hx-headers='{"{inject:csrf.headerName}":"{inject:csrf.token}"}'
+                hx-delete="{item.deleteUrl}"
+                hx-target="{item.cardIdRef}"
+                hx-indicator=".htmx-indicator"
+                hx-disabled-elt="this"
+                hx-trigger="click"
+                hx-swap="delete swap:300ms"
+                hx-on:htmx:after-request="event.target.dispatchEvent(new CustomEvent('event-reserve-fund-form-restart-after-deletion', { bubbles: true, detail: { key: '{item.key}'} }))"
+        >
+          <div hx-get="/assets/delete-cross.svg"
+               hx-trigger="load"
+               hx-target="this"
+               hx-swap="outerHTML">
+          </div>
+        </button>
+    </div>
 
-<div class="flex flex-row gap-2 justify-center">
-
-  <button class="btn btn-circle"
-          hx-get="{item.editUrl}"
-          hx-headers='{"card-id":"{item.cardId}"}'
-          hx-indicator=".htmx-indicator"
-          hx-trigger="click"
-          hx-swap="none">
-
-    <img class="h-6 w-6" src="/assets/edit_icon.svg" alt="edit-reserve-fund">
-  </button>
-
-  {#include fragments/delete-btn deleteUrl=item.deleteUrl cardIdRef=item.cardIdRef/}
-  </div>
-
-  </div>
+</div>

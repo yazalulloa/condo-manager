@@ -1,0 +1,94 @@
+{@com.yaz.api.domain.response.reserve.funds.ReserveFundInitFormDto dto}
+
+<div class="text-center">Fondos de Reserva: <span id="reserve-funds-form-counter">{dto.reserveFunds.size}</span>
+</div>
+
+<div class="flex flex-row flex-wrap gap-6 justify-center"
+     x-data="{
+        is_edit: false, buildingKey: '{dto.key}', key: '{dto.key}', name: '', nameFieldError: '', fund: '', fundFieldError: '',
+         pay: '', payFieldError: '', type: '', expense: '', expenseFieldError: '', expenseType: '', active: true, addToExpenses: true, generalFieldError: '',
+         reserveFundTypes: [], expenseTypes: []
+         }"
+     @event-reserve-fund-building-restart-after-deletion="
+              let v = $event.detail?.key?.trim();
+              if (v && v === key) {
+                $dispatch('event-reserve-fund-form-reset');
+              }
+             "
+     @event-reserve-fund-form-clean-errors="
+              nameFieldError = '';
+              fundFieldError = '';
+              payFieldError = '';
+              expenseFieldError = '';
+              generalFieldError = '';
+             "
+     @event-reserve-fund-form-restart-after-deletion="
+              let v = $event.detail?.key?.trim();
+              if (v && v === key) {
+                $dispatch('event-reserve-fund-form-reset');
+              }"
+     @event-reserve-fund-form-reset="
+              is_edit = false;
+              name = '';
+              fund = '';
+              pay = '';
+              expense = '';
+              active = true;
+              addToExpenses = true;
+              nameFieldError = '';
+              fundFieldError = '';
+              payFieldError = '';
+              key = buildingKey;
+              $dispatch('event-reserve-fund-form-clean-errors');
+             "
+>
+
+  <div hx-get="/api/stc/reserveFundTypes"
+       hx-trigger="load"
+       hx-disabled-elt="this"
+       hx-target="this"
+       hx-swap="outerHTML">
+  </div>
+
+  <div hx-get="/api/stc/expenseTypes"
+       hx-trigger="load"
+       hx-disabled-elt="this"
+       hx-target="this"
+       hx-swap="outerHTML">
+  </div>
+
+
+  <div id="reserve-fund-table-item-grid">
+    <div class="reserve-funds-grid-header base-grid-cm p-1 font-bold">
+      <span>Fondo</span>
+      <span>Monto</span>
+      <span>Gasto</span>
+      <span>Acciones</span>
+    </div>
+
+      {#for item in dto.reserveFunds}
+
+              {#include ReserveFundResource/item item = item /}
+      {/for}
+  </div>
+
+  <form id="reserve-fund-form"
+        hx-put="/api/reserve_funds"
+        hx-indicator=".htmx-indicator"
+        hx-target="#reserve-funds-form-error"
+        hx-swap="innerHTML"
+        hx-disabled-elt="this, #reserve-fund-form * > input:not([disabled]), #reserve-fund-form * > button:not([disabled]), #reserve-fund-form * > select:not([disabled])"
+        class="flex flex-col w-fit">
+
+    <div id="reserve-funds-form-error" hidden="hidden"></div>
+    <input hidden="hidden" name="key" x-model="key">
+    <input type="hidden" name="{inject:csrf.parameterName}" value="{inject:csrf.token}"/>
+
+    <div hx-get="/stc/reserveFunds/form/"
+         hx-target="this"
+         hx-disabled-elt="this"
+         hx-trigger="load"
+         hx-swap="outerHTML">
+    </div>
+  </form>
+</div>

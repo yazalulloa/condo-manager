@@ -1,25 +1,32 @@
-<form class="flex flex-col min-w-3/5 w-fit align-middle gap-4 m-auto"
+<div hx-get="/api/stc/currencies"
+     hx-trigger="load"
+     hx-disabled-elt="this"
+     hx-target="this"
+     hx-swap="outerHTML">
+</div>
+
+<form id="buildings-form"
+      class="flex flex-col min-w-3/5 w-fit align-middle gap-4 m-auto"
       hx-put="/api/buildings"
+      hx-disabled-elt="this, #buildings-form * > input:not([disabled]), #buildings-form * > button:not([disabled]), #buildings-form * > select:not([disabled])"
       hx-indicator=".htmx-indicator"
       hx-target="#building-form-error"
       hx-swap="innerHTML"
-      hx-disabled-elt="this, input:not([disabled]), button:not([disabled])"
       x-data="{is_edit: false, key: null, buildingId: '', buildingIdError: '', buildingName: '', buildingNameError: '',
         buildingRif: '', buildingRifError: '', mainCurrency: '', debtCurrency: '',
         currenciesToShowAmountToPay: [], fixedPay: false, fixedPayAmount: '', fixedPayAmountError: '',
-         roundUpPayments: false, emailConfigId: '', emailConfigs: [], generalFieldError: ''}">
-
-  <div hx-get="/api/stc/currencies"
-       hx-trigger="load"
-       hx-disabled-elt="this, input:not([disabled]), button:not([disabled])"
-       hx-target="this"
-       hx-swap="outerHTML">
-  </div>
+         roundUpPayments: false, emailConfigId: '', emailConfigs: [], generalFieldError: ''}"
+      @event-building-form-errors-reset="
+        buildingIdError = '';
+        buildingNameError = '';
+        buildingRifError = '';
+        fixedPayAmountError = '';
+        generalFieldError = '';
+      ">
 
   <div hx-get="/api/buildings/form_init"
        hx-trigger="load"
        hx-vals="js:{id: getResource('building', 'edit/')}"
-       hx-disabled-elt="this, input:not([disabled]), button:not([disabled])"
        hx-target="this"
        hx-swap="outerHTML">
   </div>
@@ -171,6 +178,7 @@
                   let v = !(buildingId?.trim()?.length > 0 && buildingName?.trim()?.length > 0);
                   $el.disabled=v;
                   "
+            @click="$dispatch('event-building-form-errors-reset')"
     >
       Crear
     </button>

@@ -21,7 +21,6 @@ import lombok.extern.slf4j.Slf4j;
 @ApplicationScoped
 public class EncryptionService {
 
-
   private final SecretKey secretKey;
   private final String separator;
   private final String quotedSeparator;
@@ -48,7 +47,10 @@ public class EncryptionService {
     return encrypt(json);
   }
 
-
+  public <T> T decryptObj(String json, Class<T> clazz) {
+    final var decrypt = decrypt(json);
+    return Json.decodeValue(decrypt, clazz);
+  }
 
   @Timed(value = "app.cipher.encryption", description = "Encrypts a string")
   public String encrypt(String original) {
@@ -83,10 +85,5 @@ public class EncryptionService {
     } catch (Exception e) {
       throw new RuntimeException(cypher, e);
     }
-  }
-
-  public <T> T decryptObj(String json, Class<T> clazz) {
-    final var decrypt = decrypt(json);
-    return Json.decodeValue(decrypt, clazz);
   }
 }

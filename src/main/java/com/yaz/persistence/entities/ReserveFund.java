@@ -44,6 +44,10 @@ public record ReserveFund(
     return new Keys(buildingId, id, receiptId, cardId, StringUtil.objHash(this));
   }
 
+  public Keys keysWithHash() {
+    return keysWithHash(0, cardId());
+  }
+
   public Keys keys(long receiptId) {
     return keys(receiptId, cardId());
   }

@@ -11,6 +11,8 @@ import com.yaz.api.domain.response.ReserveFundFormDto;
 import com.yaz.api.domain.response.ReserveFundTableItem;
 import com.yaz.api.domain.response.building.BuildingFormResponse;
 import com.yaz.api.domain.response.building.BuildingInitFormDto;
+import com.yaz.api.domain.response.extra.charge.ExtraChargeInitFormDto;
+import com.yaz.api.domain.response.reserve.funds.ReserveFundInitFormDto;
 import com.yaz.core.service.EncryptionService;
 import com.yaz.core.service.entity.ApartmentService;
 import com.yaz.core.service.entity.BuildingService;
@@ -164,7 +166,6 @@ public class BuildingResource {
   @PUT
   @Produces(MediaType.TEXT_HTML)
   public Uni<Response> upsert(@BeanParam BuildingRequest request) {
-    log.info("Upsert: {}", request);
 
     final var keysOpt = Optional.ofNullable(StringUtil.trimFilter(request.getKey()))
         .map(str -> encryptionService.decryptObj(str, Keys.class));
@@ -277,9 +278,23 @@ public class BuildingResource {
         .map(apartmentService::aptByBuildings)
         .orElse(Uni.createFrom().item(Collections.emptyList())));
 
+    final var reserveFundsUni = reserveFundService.listByBuilding(id)
+        .map(list -> {
+          return list.stream()
+              .map(reserveFund -> {
+                final var keys = reserveFund.keysWithHash();
+                return ReserveFundTableItem.builder()
+                    .key(encryptionService.encryptObj(keys))
+                    .item(reserveFund)
+                    .cardId(keys.cardId())
+                    .build();
+              })
+              .toList();
+        });
+
     return Uni.combine().all()
-        .unis(buildingUni, emailConfigService.displayList(), extraChargesUni, aptsUni)
-        .with((buildingOpt, emailConfigs, extraCharges, apts) -> {
+        .unis(buildingUni, emailConfigService.displayList(), extraChargesUni, aptsUni, reserveFundsUni)
+        .with((buildingOpt, emailConfigs, extraCharges, apts, reserveFunds) -> {
 
           final var key = buildingOpt.map(building -> encryptionService.encryptObj(building.keysWithHash()))
               .orElse(null);
@@ -304,11 +319,20 @@ public class BuildingResource {
               .roundUpPayments(buildingOpt.map(Building::roundUpPayments).orElse(false))
               .emailConfigId(buildingOpt.map(Building::emailConfigId).orElse(null))
 
-              .extraChargeKey(buildingOpt.map(Building::id).map(ExtraCharge.Keys::newBuilding)
-                  .map(encryptionService::encryptObj).orElse(""))
-              .extraCharges(extraCharges)
-
               .apts(apts)
+
+              .extraChargeDto(ExtraChargeInitFormDto.builder()
+                  .key(buildingOpt.map(Building::id).map(ExtraCharge.Keys::newBuilding)
+                      .map(encryptionService::encryptObj).orElse(""))
+                  .extraCharges(extraCharges)
+                  .build())
+
+              .reserveFundDto(ReserveFundInitFormDto.builder()
+                  .key(buildingOpt.map(Building::id).map(ReserveFund.Keys::ofBuilding)
+                      .map(encryptionService::encryptObj).orElse(""))
+                  .reserveFunds(reserveFunds)
+                  .build())
+
               .build();
         })
         .map(Templates::formInit);
@@ -363,14 +387,16 @@ public class BuildingResource {
               })
               .toList();
 
-          final var reserveFundTableItems = reserveFunds.stream().map(reserveFund -> {
-            final var keys = reserveFund.keys();
-            return ReserveFundTableItem.builder()
-                .key(encryptionService.encryptObj(keys))
-                .item(reserveFund)
-                .cardId(keys.cardId())
-                .build();
-          }).toList();
+          final var reserveFundTableItems = reserveFunds.stream()
+              .map(reserveFund -> {
+                final var keys = reserveFund.keys();
+                return ReserveFundTableItem.builder()
+                    .key(encryptionService.encryptObj(keys))
+                    .item(reserveFund)
+                    .cardId(keys.cardId())
+                    .build();
+              })
+              .toList();
 
           return BuildingEditFormInit.builder()
               .buildingFormDto(supplier.get())

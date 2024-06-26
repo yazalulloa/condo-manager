@@ -1,0 +1,36 @@
+{@com.yaz.api.domain.response.reserve.funds.ReserveFundFormResponse dto}
+
+<div x-init="
+
+nameFieldError = '{dto.nameFieldError}';
+fundFieldError = '{dto.fundFieldError}';
+expenseFieldError = '{dto.expenseFieldError}';
+payFieldError = '{dto.payFieldError}';
+generalFieldError = '{dto.generalFieldError}';
+
+{#if dto.tableItem}
+$dispatch('event-reserve-fund-form-reset');
+{/if}
+
+">
+
+</div>
+
+{#if dto.tableItem}
+
+    {#if dto.tableItem.addAfterEnd}
+        <div id="reserve-fund-table-item-grid" hx-swap-oob="beforeend">
+                {#include ReserveFundResource/item item = dto.tableItem /}
+        </div>
+    {#else}
+            {#include ReserveFundResource/item item = dto.tableItem /}
+    {/if}
+{/if}
+
+{#if dto.counters}
+        {#include ReserveFundResource/counters dto = dto.counters /}
+{/if}
+
+{#if dto.expenseCountersDto}
+        {#include ExpenseResource/counters dto = dto.expenseCountersDto /}
+{/if}

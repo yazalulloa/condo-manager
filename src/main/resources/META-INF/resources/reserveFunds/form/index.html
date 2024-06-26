@@ -1,0 +1,137 @@
+<label class="form-control ">
+  <div class="label">
+    <span class="label-text">Nombre</span>
+  </div>
+  <input required placeholder="Nombre" class="input input-bordered " name="name"
+         x-model="name"/>
+  <div class="label">
+    <span class="label-text-alt error-message" x-text="nameFieldError"></span>
+  </div>
+</label>
+
+<label class="form-control ">
+  <div class="label">
+    <span class="label-text">Fondo</span>
+  </div>
+  <input placeholder="Fondo" class="input input-bordered " name="fund"
+         x-model="fund"
+         type="number"
+         min="1"
+         maxlength="20"
+         step=".01"
+         onchange="limitInputToMaxLength(this)"
+  />
+  <div class="label">
+    <span class="label-text-alt error-message" x-text="fundFieldError"></span>
+  </div>
+</label>
+
+<label class="form-control" x-data="{placeholder: ''}"
+       x-effect="placeholder = type === 'PERCENTAGE' ? 'Porcentaje' : 'Monto'">
+  <div class="flex flex-row gap-2">
+    <div>
+      <div class="label">
+        <span class="label-text" x-text="placeholder"> </span>
+      </div>
+      <input class="input input-bordered flex-grow" name="pay"
+             x-model="pay"
+             type="number"
+             min="1"
+             maxlength="20"
+             step=".01"
+             onchange="limitInputToMaxLength(this)"
+             x-bind:placeholder="placeholder"
+      />
+    </div>
+    <div>
+      <div class="label">
+        <span class="label-text">Tipo de Fondo</span>
+      </div>
+      <select x-ref="reserveFundTypeSelect" name="type"
+              class="select select-bordered w-fit"
+              x-model="type"
+      >
+        <template x-for="value in reserveFundTypes">
+          <option x-bind:value="value" x-text="value"></option>
+        </template>
+      </select>
+    </div>
+  </div>
+  <div class="label">
+    <span class="label-text-alt error-message" x-text="payFieldError"></span>
+  </div>
+</label>
+
+<div class="flex flex-row gap-2 justify-center text-center items-center">
+  <label class="label cursor-pointer justify-center gap-4">
+    <span class="label-text">Activo</span>
+    <input type="checkbox" class="checkbox" name="active" value="true"
+           @click="active=!active"
+           x-bind:checked="active"/>
+  </label>
+
+  <label class="label cursor-pointer justify-center gap-4">
+    <span class="label-text">Añadir a gastos</span>
+    <input type="checkbox" class="checkbox" name="addToExpenses" value="true"
+           @click="addToExpenses=!addToExpenses"
+           x-bind:checked="addToExpenses"/>
+  </label>
+
+  <label class="form-control">
+    <div class="label">
+      <span class="label-text">Tipo de Gasto  (Recibo)</span>
+    </div>
+    <select x-ref="expenseTypeSelect" name="expenseType"
+            class="select select-bordered w-fit"
+            x-model="expenseType"
+    >
+      <template x-for="value in expenseTypes">
+        <option x-bind:value="value" x-text="value"></option>
+      </template>
+    </select>
+  </label>
+</div>
+
+
+<label class="form-control">
+  <div class="label">
+    <span class="label-text">Gasto</span>
+  </div>
+  <div class="flex flex-row gap-2">
+    <input placeholder="Gasto" class="input input-bordered flex-grow" name="expense"
+           x-model="expense"
+           type="number"
+           min="1"
+           maxlength="20"
+           step=".01"
+           onchange="limitInputToMaxLength(this)"
+    />
+  </div>
+  <div class="label">
+    <span class="label-text-alt error-message" x-text="expenseFieldError"></span>
+  </div>
+</label>
+
+
+<div class="label">
+  <span x-transition class="label-text-alt" x-text="generalFieldError"></span>
+</div>
+
+<div class="flex flex-row gap-4">
+  <button type="submit" class="btn btn-primary"
+          x-init="$watch('is_edit', value => $el.childNodes[0].nodeValue = (value ? 'Editar' : 'Crear'))"
+          x-effect="
+                  let v = !(name?.trim()?.length > 0);
+                  $el.disabled=v;
+                  "
+          @click="$dispatch('event-reserve-fund-form-clean-errors')"
+  >
+    Crear
+  </button>
+
+  <button type="button" class="btn btn-secondary"
+          @click.prevent="$dispatch('event-reserve-fund-form-reset')">
+    Limpiar
+  </button>
+  <img class="htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">
+</div>

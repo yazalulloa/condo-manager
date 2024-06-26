@@ -5,6 +5,7 @@ import com.yaz.api.domain.response.ExpenseCountersDto;
 import com.yaz.api.domain.response.ReserveFundCountersDto;
 import com.yaz.api.domain.response.ReserveFundFormDto;
 import com.yaz.api.domain.response.ReserveFundTableItem;
+import com.yaz.api.domain.response.reserve.funds.ReserveFundFormResponse;
 import com.yaz.core.service.EncryptionService;
 import com.yaz.core.service.entity.ExpenseService;
 import com.yaz.core.service.entity.RateService;
@@ -13,6 +14,7 @@ import com.yaz.core.service.entity.ReserveFundService;
 import com.yaz.core.util.ConvertUtil;
 import com.yaz.core.util.DecimalUtil;
 import com.yaz.core.util.StringUtil;
+import com.yaz.core.util.TemplateUtil;
 import com.yaz.persistence.domain.ExpenseType;
 import com.yaz.persistence.domain.ReserveFundType;
 import com.yaz.persistence.entities.Expense;
@@ -24,10 +26,13 @@ import io.quarkus.qute.TemplateInstance;
 import io.smallrye.mutiny.Uni;
 import jakarta.inject.Inject;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
@@ -35,9 +40,11 @@ import jakarta.ws.rs.core.Response;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jboss.resteasy.reactive.Cache;
+import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.RestPath;
 
 @Path(ReserveFundResource.PATH)
@@ -61,6 +68,8 @@ public class ReserveFundResource {
     public static native TemplateInstance form(ReserveFundFormDto dto);
 
     public static native TemplateInstance counters(ReserveFundCountersDto dto);
+
+    public static native TemplateInstance responseForm(ReserveFundFormResponse dto);
   }
 
   private Uni<Optional<Rate>> rateUni(long receiptId) {
@@ -86,6 +95,14 @@ public class ReserveFundResource {
       return Uni.createFrom().item(Response.status(Response.Status.BAD_REQUEST).build());
     }
 
+    if (keys.receiptId() == 0) {
+      return Uni.combine().all()
+          .unis(service.count(keys.buildingId()), service.delete(keys.buildingId(), keys.id()))
+          .with((count, i) -> ReserveFundCountersDto.count(count - i))
+          .map(Templates::counters)
+          .map(templateInstance -> Response.ok(templateInstance).build());
+    }
+
     return Uni.combine().all()
         .unis(rateUni(keys.receiptId()),
             expenseService.readByReceipt(keys.receiptId()), service.listByBuilding(keys.buildingId()),
@@ -105,6 +122,130 @@ public class ReserveFundResource {
         })
         .map(Templates::counters)
         .map(templateInstance -> Response.ok(templateInstance).build());
+  }
+
+  @Data
+  public static class ReserveFundBeanRequest {
+
+    @RestForm
+    @NotNull
+    private String key;
+    @RestForm
+    String name;
+    @RestForm
+    String fund;
+    @RestForm
+    String expense;
+    @RestForm
+    String pay;
+    @RestForm
+    boolean active;
+    @RestForm
+    ReserveFundType type;
+    @RestForm
+    ExpenseType expenseType;
+    @RestForm
+    boolean addToExpenses;
+  }
+
+  @PUT
+  @Produces(MediaType.TEXT_HTML)
+  public Uni<TemplateInstance> upsert(@BeanParam ReserveFundBeanRequest request) {
+    log.info("PUT request: {}", request);
+
+    final var keys = encryptionService.decryptObj(request.getKey(), Keys.class);
+    log.info("PUT keys: {}", keys);
+
+    final var name = StringUtil.trimFilter(request.getName());
+
+    final var fund = Optional.ofNullable(request.getFund())
+        .map(StringUtil::trimFilter)
+        .map(DecimalUtil::ofString)
+        .orElse(BigDecimal.ZERO);
+
+    final var expense = Optional.ofNullable(request.getExpense())
+        .map(StringUtil::trimFilter)
+        .map(DecimalUtil::ofString)
+        .orElse(BigDecimal.ZERO);
+
+    final var pay = Optional.ofNullable(request.getPay())
+        .map(StringUtil::trimFilter)
+        .map(DecimalUtil::ofString)
+        .orElse(null);
+
+    final var reserveFundType = Optional.ofNullable(request.getType())
+        .orElse(ReserveFundType.PERCENTAGE);
+
+    final var expenseType = Optional.ofNullable(request.getExpenseType())
+        .orElse(ExpenseType.COMMON);
+
+    var reserveFundFormResponse = ReserveFundFormResponse.builder()
+        .nameFieldError(name == null || name.isEmpty() ? "No puede estar vacio" : null)
+        .payFieldError(pay == null || DecimalUtil.zeroOrLess(pay) ? "Debe ser mayor a 0" : null)
+        .build();
+
+    if (!reserveFundFormResponse.isSuccess()) {
+      return TemplateUtil.templateUni(Templates.responseForm(reserveFundFormResponse));
+    }
+
+    final var reserveFund = ReserveFund.builder()
+        .buildingId(keys.buildingId())
+        .id(keys.id())
+        .name(name)
+        .fund(fund)
+        .expense(expense)
+        .pay(pay)
+        .active(request.isActive())
+        .type(reserveFundType)
+        .expenseType(expenseType)
+        .addToExpenses(request.isAddToExpenses())
+        .build();
+
+    if (keys.id() > 0) {
+      final var newKeys = reserveFund.keysWithHash(keys.receiptId(), keys.cardId());
+      if (newKeys.hash() == keys.hash()) {
+        reserveFundFormResponse = reserveFundFormResponse.toBuilder()
+            .generalFieldError("No hay cambios para guardar")
+            .build();
+
+        return TemplateUtil.templateUni(Templates.responseForm(reserveFundFormResponse));
+      }
+
+      return service.update(reserveFund)
+          .map(i -> {
+            final var newKey = encryptionService.encryptObj(newKeys);
+            return ReserveFundFormResponse.builder()
+                .tableItem(ReserveFundTableItem.builder()
+                    .key(newKey)
+                    .item(reserveFund)
+                    .outOfBoundsUpdate(true)
+                    .cardId(newKeys.cardId())
+                    .build())
+                .build();
+          })
+          .map(Templates::responseForm);
+    }
+
+    return Uni.combine().all()
+        .unis(service.count(keys.buildingId()), service.insert(reserveFund))
+        .with((count, id) -> {
+
+          final var built = reserveFund.toBuilder()
+              .id(id)
+              .build();
+          final var newKeys = built.keysWithHash();
+          final var newKey = encryptionService.encryptObj(newKeys);
+          return ReserveFundFormResponse.builder()
+              .tableItem(ReserveFundTableItem.builder()
+                  .key(newKey)
+                  .item(built)
+                  .addAfterEnd(true)
+                  .cardId(newKeys.cardId())
+                  .build())
+              .counters(ReserveFundCountersDto.count(count + 1))
+              .build();
+        })
+        .map(Templates::responseForm);
   }
 
   @GET
