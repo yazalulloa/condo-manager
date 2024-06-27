@@ -27,59 +27,14 @@
 
     <div id="receipts-counters"></div>
 
-    <div x-data="{
-    buildings: [],
-    buildings_selected: []
-    }"
-         x-init="$watch('buildings_selected', value => document.getElementById('receipts-updater').dispatchEvent(new CustomEvent('update_receipts')))"
-    >
-      <div hx-get="/api/buildings/ids"
+    <div data-change-element="receipts-updater"
+         data-change-event="update_receipts">
+
+      <div hx-get="/buildings/dialogSelector.html"
            hx-trigger="load"
-           hx-swap="outerHTML"
-      >
-
+           hx-swap="outerHTML">
       </div>
-      <button class="btn btn-outline" @click.prevent="$el.nextElementSibling.showModal()">
-        <h2 class="text-center">EDIFICIOS: <span x-text="buildings_selected.length"></span></h2>
-      </button>
-      <dialog class="modal modal-bottom sm:modal-middle">
-        <div class="modal-box">
-          <div class="flex flex-row gap-2 justify-around">
-            <div class="w-fit">
-              <template x-for="building in buildings">
-                <label class="label justify-start gap-4 cursor-pointer">
-                  <input type="checkbox" class="checkbox" name="building_input"
-                         @click="buildings_selected.includes(building) ? buildings_selected = buildings_selected.filter(a => a !== building) : buildings_selected.push(building);"
-                         x-bind:checked="buildings_selected.includes(building)"
-                         x-bind:value="building"/>
-                  <span class="label-text" x-text="building"></span>
-                </label>
-              </template>
-            </div>
 
-            <div class="flex flex-col justify-between">
-              <div class="modal-action mt-0">
-                <form method="dialog">
-                  <button class="btn btn-circle btn-outline">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                         stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                  </button>
-                </form>
-              </div>
-
-              <button class="btn btn-outline"
-                      @click.prevent="if (buildings_selected.length > 0) buildings_selected = []">
-                Limpiar
-              </button>
-            </div>
-          </div>
-        </div>
-        <form method="dialog" class="modal-backdrop">
-          <button>close</button>
-        </form>
-      </dialog>
     </div>
 
     <div x-data="{

@@ -123,6 +123,8 @@ document.body.addEventListener("htmx:afterProcessNode", function (configEvent) {
   addDisableEventToButtons();
   disableBtnInsideForm();
 
+
+
   let selectElem = document.getElementsByTagName("select");
   for (let i = 0; i < selectElem.length; i++) {
     let select = selectElem[i];
