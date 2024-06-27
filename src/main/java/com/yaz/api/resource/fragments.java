@@ -25,6 +25,8 @@ public class fragments {
     public static native TemplateInstance reserveFundTypes();
 
     public static native TemplateInstance expenseTypes();
+
+    public static native TemplateInstance csrf();
   }
 
   @GET
@@ -49,5 +51,12 @@ public class fragments {
   @Produces(MediaType.TEXT_HTML)
   public TemplateInstance expenseTypes() {
     return Fragments.expenseTypes();
+  }
+
+  @GET
+  @Path("csrf")
+  @Produces(MediaType.TEXT_HTML)
+  public TemplateInstance csrf() {
+    return Fragments.csrf();
   }
 }

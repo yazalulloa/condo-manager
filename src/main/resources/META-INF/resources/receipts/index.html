@@ -69,7 +69,8 @@
                 </form>
               </div>
 
-              <button class="btn btn-outline" @click.prevent="if (buildings_selected.length > 0) buildings_selected = []">
+              <button class="btn btn-outline"
+                      @click.prevent="if (buildings_selected.length > 0) buildings_selected = []">
                 Limpiar
               </button>
             </div>
@@ -82,7 +83,7 @@
     </div>
 
     <div x-data="{
-    months: [
+      months: [
     {name: 'ENERO', month: 1},
     {name: 'FEBRERO', month: 2},
     {name: 'MARZO', month: 3},
@@ -149,7 +150,24 @@
            placeholder="YYYY-MM-DD"
            script="on change send 'update_receipts' to #receipts-updater">
 
-    <input id="file-input" hidden="hidden"/>
+    <form hx-post="/api/receipts/file"
+          hx-encoding='multipart/form-data'
+          hx-disabled-elt="this, input:not([disabled])"
+          hx-swap="none"
+          hx-trigger="send-file"
+          hx-indicator=".htmx-indicator">
+
+      <input class="file-input file-input-bordered w-full max-w-xs"
+             type="file"
+             accept=".xlsx,.xls"
+             name="file"
+             onchange="this.parentElement.dispatchEvent(new CustomEvent('send-file'))"
+      />
+
+      <div hidden="hidden" id="csrf-input-file-input"></div>
+
+
+    </form>
 
     <img class="htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">
   </div>
