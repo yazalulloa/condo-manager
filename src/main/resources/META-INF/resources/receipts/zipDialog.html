@@ -1,0 +1,136 @@
+<dialog
+    class="modal modal-bottom sm:modal-middle"
+    x-data="{email_input: '', disable_btn: false, emails: new Set(), zip_msg: ''}"
+    @event-receipt-zip-dialog-open.window="
+        zip_msg = '';
+        email_input = '';
+        emails.clear();
+        $el.showModal();
+      "
+    @event-receipt-zip-dialog-close="
+        zip_msg = '';
+        email_input = '';
+        emails.clear();
+        $el.close();
+      "
+    @add-receipt-zip-dialog-email="
+          let v = $event.detail?.email?.trim();
+          if (v && v.length > 0 && validateEmail(v)) {
+            emails.add(v);
+          }
+          "
+>
+
+  <div class="modal-box p-4">
+    <div class="flex flex-row justify-between">
+      <div style="height: 3rem; width: 3rem;">
+
+      </div>
+      <h2 class="font-bold m-auto">ENVIAR ZIP</h2>
+      <div>
+        <form method="dialog">
+          <button class="btn btn-circle btn-outline">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                 stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-2 font-bold pb-2 text-center">
+      <div>
+        <span x-text="zip_dialog_building"></span>
+      </div>
+
+      <div class="flex flex-row gap-2 justify-center">
+        <span x-text="zip_dialog_year"></span>
+        <span x-text="zip_dialog_month"></span>
+        <span x-text="zip_dialog_date"></span>
+      </div>
+    </div>
+
+    <form id="send-zip-form"
+          hx-post="/api/receipts/send_zip"
+          hx-disabled-elt="this, button"
+          hx-swap="none"
+          hx-indicator=".htmx-indicator">
+
+      <script>
+        document.currentScript.parentElement.addEventListener("keypress", (event) => {
+          event.key === "Enter" && event.preventDefault();
+        });
+
+      </script>
+
+      <div id="receipt-dialog-content-zip" class="p-2 h-full text-center align-middle flex flex-col gap-4">
+
+        <input type="hidden" type="text" name="key" x-bind:value="zip_dialog_receipt_key">
+
+        <div id="csrf-input" hidden="hidden"></div>
+
+        <div class="pb-2">
+          <template x-for="value in Array.from(emails)">
+            <div class="flex flex-row justify-between apt-emails-form p-2">
+              <input type="text" name="emails" hidden="hidden" x-bind:value="value">
+              <div class="flex align-middle" x-text="value"></div>
+              <button class="btn-sm btn btn-circle btn-outline btn-error"
+                      type="button" @click.prevent="emails.delete(value)">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor">
+                  <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+              </button>
+            </div>
+          </template>
+
+        </div>
+
+        <div id="emails-zip" class="">
+
+        </div>
+
+        <div class="flex flex-row gap-4">
+          <input id="email-zip-input" class="input input-bordered w-full" placeholder="Email"
+                 type="email"
+                 x-model="email_input"
+                 @keyup.enter="$dispatch('add-receipt-zip-dialog-email', { email: $el?.value?.trim() })"
+                 autocomplete="email">
+          <button type="button"
+                  class="btn btn-primary"
+                  @click.prevent="$dispatch('add-receipt-zip-dialog-email', { email: $el.previousElementSibling?.value?.trim() })">
+            Añadir
+          </button>
+        </div>
+
+        <div id="zip-dialog-error">
+        </div>
+
+        <div class="flex flex-row gap-4">
+          <button type="submit" class="btn btn-primary"
+                  x-effect="$el.disabled=emails.size === 0">
+            Enviar
+          </button>
+          <button type="button" class="btn btn-secondary"
+                  @click.prevent="$dispatch('event-receipt-zip-dialog-close')">
+            Cancelar
+          </button>
+          <img class="htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">
+        </div>
+
+      </div>
+    </form>
+  </div>
+  <form method="dialog" class="modal-backdrop">
+    <button>close</button>
+  </form>
+</dialog>

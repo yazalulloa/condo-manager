@@ -45,7 +45,7 @@
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
     </label>
-    <ul tabindex="0" class="menu menu-sm dropdown-content gap-2 mt-3 z-10 p-2 shadow bg-base-100 rounded-box w-52 border-gray-400 border-[1px]">
+    <ul tabindex="0" class="menu menu-sm dropdown-content gap-2 mt-3 z-10 p-2 shadow bg-base-100 rounded-box w-52 border border-[1px]">
       <li>
         <a hx-delete="{item.deleteUrl}"
            hx-headers='{"{inject:csrf.headerName}":"{inject:csrf.token}"}'
@@ -77,8 +77,10 @@
       </li>
 
       <li>
-        <a @click.prevent="zip_dialog_receipt_key='{item.key}'; zip_dialog_open=true; zip_dialog_building='{item.item.buildingId}';
-        zip_dialog_year='{item.item.year}'; zip_dialog_month='{item.item.month.monthFromInt}'; zip_dialog_date='{item.item.date}'" >
+        <a @click.prevent="zip_dialog_receipt_key='{item.key}'; zip_dialog_building='{item.item.buildingId}';
+        zip_dialog_year='{item.item.year}'; zip_dialog_month='{item.item.month.monthFromInt}'; zip_dialog_date='{item.item.date}';
+        $dispatch('event-receipt-zip-dialog-open');
+        " >
           <img src="/assets/send-mail.svg" style="width:25px;height:25px;" alt="download-zip-pdfs">
           Enviar ZIP
         </a>
@@ -95,7 +97,7 @@
       <li>
           <a @click.prevent="send_dialog_receipt_key='{item.key}'; send_dialog_building='{item.item.buildingId}'; send_dialog_year='{item.item.year}';
           send_dialog_month='{item.item.month.monthFromInt}'; send_dialog_date='{item.item.date}';
-          $dispatch('event-receipt-send-dialog')
+          $dispatch('event-receipt-send-dialog-open')
           ">
           <img src="/assets/send-mail.svg" style="width:25px;height:25px;" alt="send-receipt">
           Enviar recibos

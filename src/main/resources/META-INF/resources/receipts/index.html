@@ -29,13 +29,7 @@
 
     </div>
 
-    <input class="datepicker"
-           type="date"
-           name="date_input"
-           placeholder="YYYY-MM-DD"
-           script="on change send 'update_receipts' to #receipts-updater">
-
-    <div>
+    <div hidden="hidden">
 
       <select name="month_input"
               script="on change send 'update_receipts' to #receipts-updater"
@@ -58,6 +52,72 @@
       <label data-te-select-label-ref>Mes</label>
     </div>
 
+    <div x-data="{
+    months: [
+    {name: 'ENERO', month: 1},
+    {name: 'FEBRERO', month: 2},
+    {name: 'MARZO', month: 3},
+    {name: 'ABRIL', month: 4},
+    {name: 'MAYO', month: 5},
+    {name: 'JUNIO', month: 6},
+    {name: 'JULIO', month: 7},
+    {name: 'AGOSTO', month: 8},
+    {name: 'SEPTIEMBRE', month: 9},
+    {name: 'OCTUBRE', month: 10},
+    {name: 'NOVIEMBRE', month: 11},
+    {name: 'DICIEMBRE', month: 12}
+    ],
+    select_all: false
+    }">
+
+      <button class="btn btn-outline" @click.prevent="$el.nextElementSibling.showModal()">
+        <h2 class="text-center">MES</h2>
+      </button>
+      <dialog class="modal modal-bottom sm:modal-middle">
+        <div class="modal-box">
+         <div class="flex flex-row gap-2 justify-around">
+           <div class="w-fit">
+             <template x-for="value in months">
+               <label class="label justify-start gap-4 cursor-pointer">
+                 <input type="checkbox" class="checkbox" name="month_input"
+                        script="on change send 'update_receipts' to #receipts-updater"
+                        x-effect="$el.checked = select_all"
+                        x-bind:value="value.month"/>
+                 <span class="label-text" x-text="value.name"></span>
+               </label>
+             </template>
+           </div>
+
+          <div class="flex flex-col justify-between">
+            <div class="modal-action mt-0">
+              <form method="dialog">
+                <button class="btn btn-circle btn-outline">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                       stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                </button>
+              </form>
+            </div>
+
+            <button class="btn btn-outline" @click.prevent="select_all = false">
+              Limpiar
+            </button>
+          </div>
+         </div>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+          <button>close</button>
+        </form>
+      </dialog>
+    </div>
+
+    <input class="datepicker"
+           type="date"
+           name="date_input"
+           placeholder="YYYY-MM-DD"
+           script="on change send 'update_receipts' to #receipts-updater">
+
     <input id="file-input" hidden="hidden"/>
 
     <img class="htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">
@@ -66,125 +126,11 @@
 
 <div id="container" hx-swap-oob="true" class="p-2 gap-1 flex flex-col"
      x-data="{
-     zip_dialog_open: false, zip_dialog_receipt_key: '', zip_dialog_building: '', zip_dialog_date: '', zip_dialog_year: 0, zip_dialog_month: '',
-     send_dialog_open: false, send_dialog_receipt_key: '', send_dialog_building: '', send_dialog_date: '', send_dialog_year: 0, send_dialog_month: '',
+     zip_dialog_receipt_key: '', zip_dialog_building: '', zip_dialog_date: '', zip_dialog_year: 0, zip_dialog_month: '',
+     send_dialog_receipt_key: '', send_dialog_building: '', send_dialog_date: '', send_dialog_year: 0, send_dialog_month: '',
      send_dialog_receipt_select_all : true, send_dialog_apts: []}">
 
-  <div id="dialog-helper"></div>
-
-  <dialog id="receipt-send-dialog"
-          class="z-30 form-container rounded border-2 border-gray-400 bg-base-100 m-0 top-1/2 left-1/2 p-2 max-h-95per"
-          @event-receipt-send-dialog.window="
-          $dispatch('event-set-receipt-send-dialog-apt-' + send_dialog_building.toLowerCase());
-          document.getElementById('dialog-error').innerHTML = '';
-          send_dialog_open = true;
-          "
-          x-effect="
-           if (send_dialog_open) {
-            send_dialog_receipt_select_all = true;
-            $el.show();
-          } else {
-            $el.close();
-          }"
-  >
-    <div class="p-2 h-full">
-
-      <form class="items-center text-center overflow-hidden h-full"
-            hx-post="/api/receipts/send_receipt"
-            hx-disabled-elt="this, button"
-            hx-swap="none"
-            hx-indicator=".htmx-indicator">
-
-        <input type="hidden" type="text" name="key" x-bind:value="send_dialog_receipt_key">
-
-        <div id="send-receipt-dialog-csrf" hidden="hidden"></div>
-
-        <div class="flex flex-row justify-between">
-          <div style="height: 3rem; width: 3rem;">
-
-          </div>
-          <h2 class="font-bold m-auto">ENVIAR RECIBO</h2>
-          <div>
-            <button type="button" class="btn btn-square btn-outline btn-error" style="height: 3rem; width: 3rem;"
-                    @click="send_dialog_open = false"
-            >
-              <img src="/assets/cross-svgrepo-com.svg" alt="remove-email" style="height: 1.5rem; width: 1.5rem">
-            </button>
-          </div>
-        </div>
-
-        <div class="flex flex-col gap-2 font-bold pb-2">
-          <div>
-            <span x-text="send_dialog_building"></span>
-          </div>
-
-          <div class="flex flex-row gap-2 justify-center">
-            <span x-text="send_dialog_year"></span>
-            <span x-text="send_dialog_month"></span>
-            <span x-text="send_dialog_date"></span>
-          </div>
-        </div>
-
-        <cm-form-input
-            class=""
-            name="subject"
-            maxlength="100"
-            placeholder="Sujeto"
-            value="AVISO DE COBRO"
-        >
-
-        </cm-form-input>
-
-        <label class="form-control">
-          <div class="label">
-            <span class="label-text">Mensaje</span>
-          </div>
-          <textarea class="textarea textarea-bordered" name="msg" autocomplete="on">AVISO DE COBRO</textarea>
-        </label>
-
-        <div id="send-dialog-error" hidden="hidden">
-        </div>
-
-
-        <label class="label justify-center gap-4 cursor-pointer">
-          <span class="label-text">Seleccionar todos</span>
-          <input type="checkbox" class="toggle"
-                 @click="send_dialog_receipt_select_all=!send_dialog_receipt_select_all"
-                 x-bind:checked="send_dialog_receipt_select_all"/>
-        </label>
-
-        <div class="pb-2">
-          <template x-for="apt in send_dialog_apts">
-            <div class="grid apt-receipt-dialog-grid gap-2">
-              <div x-text="apt.number"></div>
-              <div x-text="apt.name"></div>
-              <div>
-                <input type="checkbox" checked="checked" class="receipt-sent-checkbox checkbox" name="apts"
-                       x-effect="$el.checked = send_dialog_receipt_select_all"
-                       x-bind:value="apt.number"/>
-              </div>
-            </div>
-          </template>
-
-        </div>
-
-        <div id="dialog-error" hidden="hidden">
-        </div>
-
-        <div class="flex flex-row gap-4">
-          <button type="submit" class="btn btn-primary">
-            Enviar
-          </button>
-          <button type="button" class="btn btn-secondary"
-                  @click="send_dialog_open = false">
-            Cancelar
-          </button>
-          <img class="htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">
-        </div>
-
-      </form>
-    </div>
-  </dialog>
+  <div id="dialog-helper" hidden="hidden"></div>
 
   <div id="receipt-grid">
     <div hx-get="/api/receipts/init" hx-indicator=".htmx-indicator" hx-trigger="load" hx-swap="outerHTML"></div>
@@ -198,119 +144,20 @@
 
   </dialog>
 
-  <dialog
-      class="z-30 form-container rounded border-2 border-gray-400 bg-base-100 m-0 top-1/2 left-1/2 p-2 max-h-95per min-w-1/2"
-      x-data="{email_input: '', disable_btn: false, emails: new Set(), zip_msg: ''}"
-      x-effect="
-          zip_msg = '';
-          email_input = '';
-          emails.clear();
-           if (zip_dialog_open) {
-            $el.show();
-          } else {
-            $el.close();
-          }"
-      @add-receipt-zip-dialog-email="
-          let v = $event.detail?.email?.trim();
-          if (v && v.length > 0 && validateEmail(v)) {
-            emails.add(v);
-          }
-          "
+  <div hx-get="/receipts/zipDialog.html"
+       hx-trigger="load"
+       hx-swap="outerHTML"
   >
 
-    <form id="send-zip-form"
-          hx-post="/api/receipts/send_zip"
-          hx-disabled-elt="this, button"
-          hx-swap="none"
-          hx-indicator=".htmx-indicator">
+  </div>
 
-      <script>
-        document.currentScript.parentElement.addEventListener("keypress", (event) => {
-          event.key === "Enter" && event.preventDefault();
-        });
+  <div hx-get="/receipts/sendDialog.html"
+       hx-trigger="load"
+       hx-swap="outerHTML"
+  >
 
-      </script>
+  </div>
 
-      <div id="receipt-dialog-content-zip" class="p-2 h-full text-center align-middle flex flex-col gap-4">
-
-        <input type="hidden" type="text" name="key" x-bind:value="zip_dialog_receipt_key">
-
-        <div id="csrf-input" hidden="hidden"></div>
-
-        <div class="flex flex-row justify-between">
-          <div style="height: 3rem; width: 3rem;">
-
-          </div>
-          <h2 class="font-bold m-auto">ENVIAR ZIP</h2>
-          <div>
-            <button type="button" class="btn btn-square btn-outline btn-error" style="height: 3rem; width: 3rem;"
-                    @click="zip_dialog_open = false"
-            >
-              <img src="/assets/cross-svgrepo-com.svg" alt="remove-email" style="height: 1.5rem; width: 1.5rem">
-            </button>
-          </div>
-        </div>
-
-        <div class="flex flex-col gap-2 font-bold pb-2">
-          <div>
-            <span x-text="zip_dialog_building"></span>
-          </div>
-
-          <div class="flex flex-row gap-2 justify-center">
-            <span x-text="zip_dialog_year"></span>
-            <span x-text="zip_dialog_month"></span>
-            <span x-text="zip_dialog_date"></span>
-          </div>
-        </div>
-
-        <div class="pb-2">
-          <template x-for="value in Array.from(emails)">
-            <div class="flex flex-row justify-between apt-emails-form p-2">
-              <input type="text" name="emails" hidden="hidden" x-bind:value="value">
-              <div class="flex align-middle" x-text="value"></div>
-              <button type="button" @click.prevent="emails.delete(value)"><img class="h-6 w-6" src="/assets/trash.svg"
-                                                                               alt="delete-email"></button>
-            </div>
-          </template>
-
-        </div>
-
-        <div id="emails-zip" class="">
-
-        </div>
-
-        <div class="flex flex-row gap-4">
-          <input id="email-zip-input" class="input input-bordered w-full" placeholder="Email"
-                 type="email"
-                 x-model="email_input"
-                 @keyup.enter="$dispatch('add-receipt-zip-dialog-email', { email: $el?.value?.trim() })"
-                 autocomplete="email">
-          <button type="button"
-                  class="btn btn-primary"
-                  @click.prevent="$dispatch('add-receipt-zip-dialog-email', { email: $el.previousElementSibling?.value?.trim() })">
-            Añadir
-          </button>
-        </div>
-
-        <div id="zip-dialog-error">
-        </div>
-
-        <div class="flex flex-row gap-4">
-          <button type="submit" class="btn btn-primary"
-                  x-effect="$el.disabled=emails.size === 0">
-            Enviar
-          </button>
-          <button type="button" class="btn btn-secondary"
-                  @click="zip_dialog_open = false">
-            Cancelar
-          </button>
-          <img class="htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">
-        </div>
-
-      </div>
-    </form>
-
-  </dialog>
 </div>
 
 

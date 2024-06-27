@@ -376,6 +376,10 @@ textarea, input {
   grid-template-columns: 5fr 1fr;
 }
 
+.month-input-grid {
+  grid-template-columns: 4fr 1fr;
+}
+
 .receipt-grid-container {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 1fr 1fr;

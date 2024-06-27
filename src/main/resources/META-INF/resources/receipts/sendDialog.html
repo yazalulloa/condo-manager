@@ -1,0 +1,113 @@
+<dialog class="modal modal-bottom sm:modal-middle"
+        @event-receipt-send-dialog-open.window="
+          $dispatch('event-set-receipt-send-dialog-apt-' + send_dialog_building.toLowerCase());
+          document.getElementById('dialog-error').innerHTML = '';
+          $el.showModal();
+          "
+        @event-receipt-send-dialog-close.window="$el.close()"
+>
+
+  <div class="modal-box p-4">
+
+    <div class="flex flex-row justify-between">
+      <div style="height: 3rem; width: 3rem;">
+
+      </div>
+      <h2 class="font-bold m-auto">ENVIAR RECIBO</h2>
+      <div>
+        <form method="dialog">
+          <button class="btn btn-circle btn-outline">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                 stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-2 font-bold pb-2 text-center">
+      <div>
+        <span x-text="send_dialog_building"></span>
+      </div>
+
+      <div class="flex flex-row gap-2 justify-center">
+        <span x-text="send_dialog_year"></span>
+        <span x-text="send_dialog_month"></span>
+        <span x-text="send_dialog_date"></span>
+      </div>
+    </div>
+
+    <form class="items-center text-center"
+          hx-post="/api/receipts/send_receipt"
+          hx-disabled-elt="this, button"
+          hx-swap="none"
+          hx-indicator=".htmx-indicator">
+
+      <input type="hidden" type="text" name="key" x-bind:value="send_dialog_receipt_key">
+
+      <div id="send-receipt-dialog-csrf" hidden="hidden"></div>
+
+      <cm-form-input
+          class=""
+          name="subject"
+          maxlength="100"
+          placeholder="Sujeto"
+          value="AVISO DE COBRO"
+      >
+
+      </cm-form-input>
+
+      <label class="form-control">
+        <div class="label">
+          <span class="label-text">Mensaje</span>
+        </div>
+        <textarea class="textarea textarea-bordered" name="msg" autocomplete="on">AVISO DE COBRO</textarea>
+      </label>
+
+      <div id="send-dialog-error" hidden="hidden">
+      </div>
+
+
+      <label class="label justify-center gap-4 cursor-pointer">
+        <span class="label-text">Seleccionar todos</span>
+        <input type="checkbox" class="toggle"
+               @click="send_dialog_receipt_select_all=!send_dialog_receipt_select_all"
+               x-bind:checked="send_dialog_receipt_select_all"/>
+      </label>
+
+      <div class="pb-2">
+        <template x-for="apt in send_dialog_apts">
+          <div class="grid apt-receipt-dialog-grid gap-2">
+            <div x-text="apt.number"></div>
+            <div x-text="apt.name"></div>
+            <div>
+              <input type="checkbox" checked="checked" class="receipt-sent-checkbox checkbox" name="apts"
+                     x-effect="$el.checked = send_dialog_receipt_select_all"
+                     x-bind:value="apt.number"/>
+            </div>
+          </div>
+        </template>
+
+      </div>
+
+      <div id="dialog-error" hidden="hidden">
+      </div>
+
+      <div class="flex flex-row gap-4">
+        <button type="submit" class="btn btn-primary">
+          Enviar
+        </button>
+        <button type="button" class="btn btn-secondary"
+                @click.prevent="$dispatch('event-receipt-send-dialog-close')">
+          Cancelar
+        </button>
+        <img class="htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">
+      </div>
+
+    </form>
+  </div>
+  <form method="dialog" class="modal-backdrop">
+    <button>close</button>
+  </form>
+</dialog>

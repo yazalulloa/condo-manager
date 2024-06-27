@@ -76,11 +76,12 @@ public class StaticReactiveRoutes {
     }
 
     if (path.startsWith("/stc/")) {
-      //log.info("Returning STC {}", path);
+
       var newPath = path.replace("/stc/", "/");
       if (path.endsWith("/")) {
         newPath += INDEX_HTML;
       }
+      log.info("Returning STC {}", newPath);
       rc.reroute(newPath);
       return;
     }

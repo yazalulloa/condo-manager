@@ -13,8 +13,8 @@
 </div>
 
 {#if dto.clearDialog}
-  <dialog id="dialog-helper" hx-swap-oob="true"
-          x-init="zip_dialog_open = false; send_dialog_open = false;"
+  <dialog id="dialog-helper" hx-swap-oob="true" hidden="hidden"
+          x-init="$dispatch('event-receipt-send-dialog-close');"
   >
 
   </dialog>

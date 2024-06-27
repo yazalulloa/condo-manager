@@ -1,6 +1,5 @@
 package com.yaz.api.domain.response;
 
-import java.util.List;
 import lombok.Builder;
 
 @Builder
