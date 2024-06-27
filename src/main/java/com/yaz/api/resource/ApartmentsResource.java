@@ -35,7 +35,6 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import java.math.BigDecimal;
-import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -43,7 +42,6 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.jwt.JsonWebToken;
-import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.RestPath;
 import org.jboss.resteasy.reactive.RestQuery;
 
@@ -119,7 +117,7 @@ public class ApartmentsResource {
   public Uni<TemplateInstance> grid(
       @RestQuery String nextPage,
       @RestQuery String q,
-      @RestQuery Set<String> building) {
+      @RestQuery("building_input") Set<String> building) {
 
     final var keys = Optional.ofNullable(nextPage)
         .map(StringUtil::trimFilter)
@@ -141,7 +139,7 @@ public class ApartmentsResource {
   public Uni<TemplateInstance> apartments(
       @RestQuery String nextPage,
       @RestQuery String q,
-      @RestQuery Set<String> building) {
+      @RestQuery("building_input") Set<String> building) {
 
     final var keys = Optional.ofNullable(nextPage)
         .map(StringUtil::trimFilter)
@@ -175,7 +173,7 @@ public class ApartmentsResource {
   @Produces(MediaType.TEXT_HTML)
   public Uni<TemplateInstance> counters(
       @RestQuery String q,
-      @RestQuery Set<String> building) {
+      @RestQuery("building_input") Set<String> building) {
 
     final var apartmentQuery = ApartmentQuery.builder()
         .q(StringUtil.trimFilter(q))
@@ -200,19 +198,30 @@ public class ApartmentsResource {
   @DELETE
   @Produces(MediaType.TEXT_HTML)
   public Uni<TemplateInstance> delete(
-      @RestForm String q,
-      @RestForm Set<String> building,
+      @RestQuery("apt-search-input") String q,
+      @RestQuery("building_input") Set<String> building,
       @RestQuery @NotBlank String id) {
 
     final var keys = encryptionService.decryptObj(id, Keys.class);
 
-    return apartmentService.delete(keys)
-        //.invoke(l -> log.info("Apartment delete {} deleted {} {}", l, buildingId, number))
-        /*.map(l -> {
-          log.info("Apartment delete {} deleted {} {}", l, buildingId, number);
-          return Response.ok().build();
-        })*/
-        .replaceWith(counters(q, building));
+    log.info("Deleting apartment {}", keys);
+    final var apartmentQuery = ApartmentQuery.builder()
+        .q(StringUtil.trimFilter(q))
+        .buildings(building)
+        .build();
+
+    return Uni.combine().all()
+        .unis(apartmentService.counters(apartmentQuery), apartmentService.delete(keys))
+        .with((counters, i) -> {
+          log.info("Deleted apartment {} {}", keys, i);
+
+          if (i > 0) {
+            return counters.minusOne();
+          }
+
+          return counters;
+        })
+        .map(Templates::counters);
   }
 
   private Uni<ApartmentFormDto> fromRequest(ApartmentRequest request, boolean isUpdate) {

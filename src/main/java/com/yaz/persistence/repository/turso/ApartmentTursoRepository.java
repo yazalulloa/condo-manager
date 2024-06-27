@@ -63,35 +63,15 @@ public class ApartmentTursoRepository implements ApartmentRepository {
       LIMIT ?
       """;
 
-//  private static final String SELECT_FULL_WITH_LIKE = """
-//      SELECT apartments.*, GROUP_CONCAT(apartment_emails.email) as emails
-//      FROM apartments
-//               INNER JOIN (SELECT apartments.building_id, apartments.number
-//                           FROM apartments
-//                                    LEFT JOIN apartment_emails ON apartments.building_id = apartment_emails.building_id AND
-//                                                                  apartments.number = apartment_emails.apt_number
-//                           %s
-//                           GROUP BY apartments.building_id, apartments.number) AS matched_apartments
-//                          ON matched_apartments.building_id = apartments.building_id AND
-//                             matched_apartments.number = apartments.number
-//               INNER JOIN apartment_emails ON apartments.building_id = apartment_emails.building_id AND
-//                                              apartments.number = apartment_emails.apt_number
-//      GROUP BY apartments.building_id, apartments.number
-//      ORDER BY apartments.building_id, apartments.number
-//      LIMIT ?;
-//            """;
-
   private static final String UPDATE = """
       UPDATE %s SET name = ?, aliquot = ? WHERE building_id = ? AND number = ?;
       """.formatted(COLLECTION);
 
   private static final String QUERY_COUNT_WHERE = """
-      SELECT COUNT(*) AS query_count
+      SELECT 
+      COUNT(distinct CONCAT (apartments.building_id, apartments.number)) AS query_count
       FROM apartments
-      INNER JOIN apartment_emails
-      ON apartments.building_id = apartment_emails.building_id
-      AND apartments.number = apartment_emails.apt_number
-      %s;
+      %s %s
       """;
 
   private static final String CURSOR_QUERY = "(apartments.building_id,apartments.number) > (?,?)";
@@ -268,6 +248,7 @@ public class ApartmentTursoRepository implements ApartmentRepository {
       final var values = new Value[i];
 
       final var params = new ArrayList<String>();
+
       if (!buildings.isEmpty()) {
         params.add("apartments.building_id IN (" + SqlUtil.params(buildings.size()) + ")");
         var j = 0;
@@ -282,8 +263,17 @@ public class ApartmentTursoRepository implements ApartmentRepository {
       }
 
       final var queryParams = params.isEmpty() ? "" : " WHERE " + String.join(SqlUtil.AND, params);
+      var includeEmails = "";
 
-      return tursoWsService.count(QUERY_COUNT_WHERE.formatted(queryParams), values)
+      if (q != null) {
+        includeEmails = """
+             LEFT JOIN apartment_emails ON apartments.building_id = apartment_emails.building_id AND apartments.number = apartment_emails.apt_number
+            """;
+      }
+
+      final var sql = QUERY_COUNT_WHERE.formatted(includeEmails, queryParams);
+      log.info("queryCount: {}", sql);
+      return tursoWsService.count(sql, values)
           .map(Optional::of);
     }
 

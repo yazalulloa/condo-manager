@@ -9,7 +9,7 @@
         {/if}
 >
     <div class="apartment-grid-content p-1"
-         @click.prevent="$dispatch('edit-apt', '{item.editAttr.format}')"
+         @click.prevent="$dispatch('event-edit-apt-modal', '{item.editAttr.format}')"
     >
         <div>{item.apt.buildingId}</div>
         <div>{item.apt.number}</div>
@@ -27,7 +27,7 @@
                 hx-headers='{"{inject:csrf.headerName}":"{inject:csrf.token}"}'
                 hx-delete="{item.deleteUrl}"
                 hx-target="{item.cardIdRef}"
-                hx-vals="js:\{building: document.querySelector('#buildings-selector select').value, q: document.querySelector('#apt-search-input').value\}"
+                hx-include="[name='building_input'],[name='apt-search-input']"
                 hx-indicator=".htmx-indicator"
                 hx-disabled-elt="this"
                 hx-trigger="click"

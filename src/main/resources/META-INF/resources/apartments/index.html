@@ -12,24 +12,24 @@
 
   <div class="header">
 
-    <div id="apartment-counters-container"
-         hx-get="/api/apartments/counters"
-         hx-vals="js:{building: document.querySelector('#buildings-selector select').value, q: document.querySelector('#apt-search-input').value}"
-         hx-target="#apartment-counters"
-         hx-indicator=".htmx-indicator"
-         hx-trigger="get_counters">
-      <div id="apartment-counters">
-      </div>
+    <div id="apartment-counters">
     </div>
 
-    <label>
-      <div id="buildings-selector"></div>
-    </label>
+
+    <div data-change-element="apt-search-input"
+         data-change-event="new_apt">
+
+      <div hx-get="/buildings/dialogSelector.html"
+           hx-trigger="load"
+           hx-swap="outerHTML">
+      </div>
+
+    </div>
 
     <label for="apt-search-input">
-      <input class="input input-bordered w-full max-w-xs" id="apt-search-input" type="search" name="q"
+      <input id="apt-search-input" class="input input-bordered w-full max-w-xs" type="search" name="q"
              hx-get="/api/apartments/grid"
-             hx-include="[name='building']"
+             hx-include="[name='building_input']"
              hx-trigger="keyup changed delay:300ms, search, new_apt"
              hx-target="#apartment-rows"
              hx-swap="innerHTML"
@@ -38,7 +38,7 @@
       >
     </label>
 
-    <button @click.prevent="$dispatch('new-apt')"
+    <button @click.prevent="$dispatch('event-open-apt-modal')"
             class="btn btn-primary">
       Nuevo
     </button>
@@ -67,225 +67,10 @@
     <img class="htmx-indicator white-filter img-medium-size center" src="/assets/bars.svg" alt="spinner">
   </div>
 
-  <dialog id="apt-form-dialog"
-          open
-          x-data="{is_edit: false, emails: new Set()}"
-          @add-apt-form-email="
-          let v = $event.detail?.email?.trim();
-          if (v && v.length > 0 && validateEmail(v)) {
-            emails.add(v);
-          }
-          "
-          class="z-30 form-container rounded border-2 bg-base-100 m-0 top-1/2 left-1/2 max-h-95per max-w-95per w-fit min-w-9/10 md:min-w-1/2 lg:min-w-1/2">
-
-    <div class="h-fit w-full"
-         x-data="{dialog_open: false}" x-effect=" if (dialog_open) {
-            document.getElementById('apt-form-dialog').show();
-          } else {
-            document.getElementById('apt-form-dialog').close();
-          }">
-
-
-      <form class="pb-2 px-3 flex flex-col"
-            hx-put="/api/apartments/upsert"
-            hx-target="#apt-form-error"
-            hx-swap="innerHTML"
-            hx-indicator=".htmx-indicator"
-            x-data="{ key: '', building_id: '', number: '', name: '', aliquot: 0, buildingError: null, numberError: null,
-            nameError: null, aliquotError: null, generalError: null }"
-            @new-apt.window="
-            is_edit = false;
-            emails.clear();
-            key = '';
-            number = '';
-            name = '';
-            aliquot = 0;
-            $dispatch('clear-apt-errors')
-            dialog_open = true;
-            "
-            @edit-apt.window="
-           let base64 = $event.detail;
-           let decodedString = atob(base64);
-           let jsonObject = JSON.parse(decodedString);
-
-           is_edit = true;
-           emails.clear();
-           key = jsonObject.key;
-           $refs.aptBuildingSelect.value = jsonObject.buildingId;
-           number = jsonObject.number;
-           name = jsonObject.name;
-           aliquot = jsonObject.aliquot;
-           jsonObject.emails.forEach((email) => emails.add(email));
-           $dispatch('clear-apt-errors')
-           dialog_open = true;
-          "
-            @clear-apt-errors.window="
-            buildingError = null;
-            numberError = null;
-            nameError = null;
-            aliquotError = null;
-            generalError = null;
-            "
-      >
-
-        <div id="apt-form-error"></div>
-
-        <div id="apt-csrf-input" hidden="hidden"></div>
-
-        <input hidden="hidden" name="key" x-model="key">
-
-        <script>
-          document.currentScript.parentElement.addEventListener("keypress", (event) => {
-            event.key === "Enter" && event.preventDefault();
-          });
-
-
-        </script>
-
-        <div class="h-full text-center align-middle flex flex-col gap-4">
-
-          <div class="flex flex-row justify-between">
-            <div style="height: 3rem; width: 3rem;">
-
-            </div>
-            <h2 class="font-bold m-auto">Nuevo Apartamento</h2>
-            <div>
-              <button type="button" class="btn btn-square btn-outline btn-error" style="height: 3rem; width: 3rem;"
-                      @click="dialog_open = false"
-              >
-                <img src="/assets/cross-svgrepo-com.svg" alt="remove-email" style="height: 1.5rem; width: 1.5rem">
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <label class="form-control w-full">
-          <div class="label">
-            <span class="label-text">Edificio</span>
-          </div>
-          <select x-ref="aptBuildingSelect" name="buildingId"
-                  class="select select-bordered w-full"
-                  x-model="building_id"
-                  x-bind:disabled="is_edit"
-          >
-            <option hx-get="/api/buildings/selector" hx-indicator=".htmx-indicator" hx-trigger="load"
-                    hx-target="this"
-                    hx-swap="outerHTML">
-            </option>
-          </select>
-          <div class="label">
-            <span class="label-text-alt error-message" x-text="buildingError">Alt label</span>
-            <span class="label-text-alt" hidden="hidden">Alt label</span>
-          </div>
-        </label>
-
-        <label class="form-control w-full">
-          <div class="label">
-            <span class="label-text">Nro. Apt</span>
-          </div>
-          <input placeholder="Nro. Apt" class="input input-bordered w-full" name="number"
-                 x-model="number"
-                 x-bind:disabled="is_edit"/>
-          <div class="label">
-            <span class="label-text-alt error-message" x-text="numberError">Bottom Left label</span>
-          </div>
-        </label>
-
-        <label class="form-control w-full">
-          <div class="label">
-            <span class="label-text">Nombre</span>
-          </div>
-          <input type="text" placeholder="Nombre" class="input input-bordered w-full" name="name"
-                 x-model="name"/>
-          <div class="label">
-            <span class="label-text-alt error-message" x-text="nameError">Bottom Left label</span>
-          </div>
-        </label>
-
-        <label class="form-control w-full">
-          <div class="label">
-            <span class="label-text">Alícuota</span>
-          </div>
-          <input type="number" placeholder="Alícuota" class="input input-bordered w-full" name="aliquot" min="0"
-                 step=".01" maxlength="5" max="100" x-model="aliquot"/>
-          <div class="label">
-            <span class="label-text-alt error-message" x-text="aliquotError">Bottom Left label</span>
-          </div>
-        </label>
-
-        <div class="pb-2">
-          <template x-for="value in Array.from(emails)">
-            <!--            <div class="flex flex-row justify-between p-1">-->
-            <div class="grid apt-email-dialog-grid p-1 text-center">
-              <input type="text" name="emails" hidden="hidden" x-bind:value="value">
-              <div class="truncate" x-text="value"></div>
-              <button class="btn-sm btn btn-circle btn-outline btn-error" type="button" @click.prevent="emails.delete(value)">
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-5 w-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor">
-                  <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-              </button>
-            </div>
-          </template>
-
-        </div>
-
-        <div class="flex flex-row gap-4">
-          <label class="input input-bordered flex items-center gap-2 w-full">
-            <input type="email" class="grow" placeholder="Email" autocomplete="email"
-                   maxlength="320"
-                   oninput="limitInputToMaxLength(this)"
-                   @keyup.enter="$dispatch('add-apt-form-email', { email: $el?.value?.trim() })"/>
-            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="w-6 h-6 opacity-70"
-                 @click.prevent="$el.previousElementSibling.value = ''">
-              <path
-                  d="M6.99486 7.00636C6.60433 7.39689 6.60433 8.03005 6.99486 8.42058L10.58 12.0057L6.99486 15.5909C6.60433 15.9814 6.60433 16.6146 6.99486 17.0051C7.38538 17.3956 8.01855 17.3956 8.40907 17.0051L11.9942 13.4199L15.5794 17.0051C15.9699 17.3956 16.6031 17.3956 16.9936 17.0051C17.3841 16.6146 17.3841 15.9814 16.9936 15.5909L13.4084 12.0057L16.9936 8.42059C17.3841 8.03007 17.3841 7.3969 16.9936 7.00638C16.603 6.61585 15.9699 6.61585 15.5794 7.00638L11.9942 10.5915L8.40907 7.00636C8.01855 6.61584 7.38538 6.61584 6.99486 7.00636Z"
-                  clip-rule="evenodd"/>
-            </svg>
-          </label>
-
-          <button type="button"
-                  class="btn btn-primary"
-                  @click.prevent="$dispatch('add-apt-form-email', { email: $el.previousElementSibling?.value?.trim() })">
-            Añadir
-          </button>
-        </div>
-
-
-        <div class="label">
-          <span x-transition class="label-text-alt error-message" x-text="generalError"></span>
-        </div>
-
-        <div class="flex flex-row gap-4">
-          <button type="submit" class="btn btn-primary"
-                  x-init="$watch('is_edit', value => $el.childNodes[0].nodeValue = (value ? 'Editar' : 'Crear'))"
-                  x-effect="
-                  let v = !(number?.trim()?.length > 0 && name?.trim()?.length > 0 && aliquot && aliquot > 0 );
-                  $el.disabled=v;
-                  ">
-            Crear
-          </button>
-
-          <button type="button" class="btn btn-secondary"
-                  @click.prevent="dialog_open = false">
-            Cancelar
-          </button>
-          <img class="htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">
-        </div>
-
-      </form>
-    </div>
-
-
-  </dialog>
+  <div hx-get="/apartments/formDialog.html"
+        hx-trigger="load"
+        hx-swap="outerHTML"
+  ></div>
 </div>
 
 </body>

@@ -4,7 +4,7 @@
 generalError='{dto.generalError}';
 
 {#if dto.isSuccess}
-dialog_open = false;
+$dispatch('event-close-apt-modal');
 
 {#if dto.item == null}
 sendEvent('apt-search-input', 'new_apt');
