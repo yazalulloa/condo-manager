@@ -12,18 +12,6 @@
     </div>
 {/for}
 
-
-<div id="buildings-selector" hx-swap-oob="true" class="p-2" hidden="hidden"
-     script="init add .fade-me-in then wait 20 then toggle @hidden"
->
-    <select name="building_input"
-            script="on change send 'update_receipts' to #receipts-updater"
-            data-te-select-init multiple>
-            {#include BuildingResource/selector.html list = dto.buildings /}
-    </select>
-    <label data-te-select-label-ref>Edificio</label>
-</div>
-
     {#include ReceiptResource/receipts res = dto.table /}
 
 <input id="file-input"

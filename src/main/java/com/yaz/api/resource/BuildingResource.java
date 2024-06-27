@@ -30,7 +30,12 @@ import com.yaz.persistence.entities.ExtraCharge;
 import com.yaz.persistence.entities.ReserveFund;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
+import io.quarkus.vertx.web.Route;
+import io.quarkus.vertx.web.Route.HttpMethod;
 import io.smallrye.mutiny.Uni;
+import io.vertx.ext.web.RoutingContext;
+import io.vertx.mutiny.core.Vertx;
+import io.vertx.mutiny.core.buffer.Buffer;
 import jakarta.inject.Inject;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.ws.rs.BeanParam;
@@ -63,6 +68,7 @@ public class BuildingResource {
   public static final String PATH = "/api/buildings";
   public static final String DELETE_PATH = PATH + "/";
 
+  private final Vertx vertx;
   private final BuildingService service;
   private final EmailConfigService emailConfigService;
   private final ApartmentService apartmentService;
@@ -87,8 +93,41 @@ public class BuildingResource {
     public static native TemplateInstance formInit(BuildingInitFormDto dto);
 
     public static native TemplateInstance responseForm(BuildingFormResponse dto);
+
+    public static native TemplateInstance ids(List<String> list);
   }
 
+  @Route(path = PATH + "/ids", methods = HttpMethod.GET)
+  public void getIds(RoutingContext rc) {
+    final var dirPath = StaticReactiveRoutes.TMP_STATIC_PATH + "buildings/";
+    final var filePath = dirPath + "ids.html";
+
+    vertx.fileSystem().exists(filePath)
+        .flatMap(bool -> {
+          if (bool) {
+            return Uni.createFrom().voidItem();
+          } else {
+
+            return service.ids()
+                .map(Templates::ids)
+                .flatMap(TemplateInstance::createUni)
+                .flatMap(str -> {
+                  return vertx.fileSystem().mkdirs(dirPath)
+                      .flatMap(v -> vertx.fileSystem().createFile(filePath))
+                      .flatMap(v -> vertx.fileSystem().writeFile(filePath, Buffer.buffer(str)));
+                });
+
+          }
+        })
+        .subscribe()
+        .with(v -> {
+          rc.reroute("/" + filePath);
+        }, e -> {
+          log.error("Error getting ids", e);
+          rc.response().setStatusCode(500)
+              .end();
+        });
+  }
 
   @GET
   @Path("selector")

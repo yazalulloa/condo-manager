@@ -1,11 +1,17 @@
 package com.yaz.api.resource;
 
+import com.yaz.core.util.RandomUtil;
 import com.yaz.core.util.StringUtil;
+import io.quarkus.runtime.StartupEvent;
 import io.quarkus.vertx.web.Route;
 import io.quarkus.vertx.web.Route.HttpMethod;
 import io.quarkus.vertx.web.RouteFilter;
+import io.vertx.core.Vertx;
+import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.StaticHandler;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -17,13 +23,16 @@ public class StaticReactiveRoutes {
 
   private static final String INDEX_HTML = "index.html";
 
+  public static final String TMP_STATIC_PATH = "tmp/stc/" + RandomUtil.randomIntStr(6) + "/";
+
   public static final String BUILDING_EDIT = "/buildings/edit/";
   public static final String RECEIPT_EDIT = "/receipts/edit/";
   public static final String RECEIPT_PDF_VIEW = "/receipts/pdfs/";
   public static final String RECEIPT_NEW_FILE = "/receipts/new_file/";
   public static final String EMAIL_CONFIGS_ERROR = "/email_configs/error/";
 
-  private static final String[] DEEP_LINKING_ROUTES = {BUILDING_EDIT, RECEIPT_EDIT, RECEIPT_PDF_VIEW, RECEIPT_NEW_FILE, EMAIL_CONFIGS_ERROR};
+  private static final String[] DEEP_LINKING_ROUTES = {BUILDING_EDIT, RECEIPT_EDIT, RECEIPT_PDF_VIEW, RECEIPT_NEW_FILE,
+      EMAIL_CONFIGS_ERROR};
   private static final String[] FILES_EXTENSIONS = {".html", ".js", ".css", ".svg", ".png", ".ico"};
 
   private final String[] nextPaths;
@@ -81,7 +90,7 @@ public class StaticReactiveRoutes {
       if (path.endsWith("/")) {
         newPath += INDEX_HTML;
       }
-      log.info("Returning STC {}", newPath);
+      //log.info("Returning STC {}", newPath);
       rc.reroute(newPath);
       return;
     }
@@ -140,6 +149,14 @@ public class StaticReactiveRoutes {
     } else {
       rc.reroute(value);
     }
+  }
+
+  void installRoute(@Observes StartupEvent startupEvent, Vertx vertx, Router router) {
+    vertx.fileSystem().mkdirs(TMP_STATIC_PATH);
+
+    router.route()
+        .path("/" + TMP_STATIC_PATH + "*")
+        .handler(StaticHandler.create(TMP_STATIC_PATH));
   }
 
 }
