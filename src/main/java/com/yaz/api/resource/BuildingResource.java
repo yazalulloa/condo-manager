@@ -35,7 +35,6 @@ import io.quarkus.vertx.web.Route.HttpMethod;
 import io.smallrye.mutiny.Uni;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.mutiny.core.Vertx;
-import io.vertx.mutiny.core.buffer.Buffer;
 import jakarta.inject.Inject;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.ws.rs.BeanParam;
@@ -99,34 +98,14 @@ public class BuildingResource {
 
   @Route(path = PATH + "/ids", methods = HttpMethod.GET)
   public void getIds(RoutingContext rc) {
-    final var dirPath = StaticReactiveRoutes.TMP_STATIC_PATH + "buildings/";
-    final var filePath = dirPath + "ids.html";
-
-    vertx.fileSystem().exists(filePath)
-        .flatMap(bool -> {
-          if (bool) {
-            return Uni.createFrom().voidItem();
-          } else {
-
-            return service.ids()
-                .map(Templates::ids)
-                .flatMap(TemplateInstance::createUni)
-                .flatMap(str -> {
-                  return vertx.fileSystem().mkdirs(dirPath)
-                      .flatMap(v -> vertx.fileSystem().createFile(filePath))
-                      .flatMap(v -> vertx.fileSystem().writeFile(filePath, Buffer.buffer(str)));
-                });
-
-          }
-        })
+    service.buildIds()
         .subscribe()
-        .with(v -> {
-          rc.reroute("/" + filePath);
-        }, e -> {
-          log.error("Error getting ids", e);
-          rc.response().setStatusCode(500)
-              .end();
-        });
+        .with(filePath -> rc.reroute("/" + filePath),
+            e -> {
+              log.error("Error getting ids", e);
+              rc.response().setStatusCode(500)
+                  .end();
+            });
   }
 
   @GET

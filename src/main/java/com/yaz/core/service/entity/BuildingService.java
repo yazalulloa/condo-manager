@@ -3,6 +3,8 @@ package com.yaz.core.service.entity;
 
 import com.yaz.api.domain.response.BuildingReportResponse;
 import com.yaz.api.resource.BuildingResource;
+import com.yaz.api.resource.BuildingResource.Templates;
+import com.yaz.api.resource.StaticReactiveRoutes;
 import com.yaz.core.event.domain.BuildingDeleted;
 import com.yaz.core.service.EncryptionService;
 import com.yaz.core.service.entity.cache.BuildingCache;
@@ -13,8 +15,11 @@ import com.yaz.persistence.repository.BuildingRepository;
 import io.quarkus.cache.CacheInvalidate;
 import io.quarkus.cache.CacheInvalidateAll;
 import io.quarkus.cache.CacheResult;
+import io.quarkus.qute.TemplateInstance;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
+import io.vertx.mutiny.core.Vertx;
+import io.vertx.mutiny.core.buffer.Buffer;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
@@ -30,10 +35,14 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class BuildingService {
 
+  private static final String dirPath = StaticReactiveRoutes.TMP_STATIC_PATH + "buildings/ids/";
+  private static final String filePath = dirPath + "ids.html";
+
   //private final Instance<BuildingRepository> repository;
   private final BuildingRepository repository;
   private final EncryptionService encryptionService;
   private final Event<BuildingDeleted> buildingDeletedEvent;
+  private final Vertx vertx;
 
   private BuildingRepository repository() {
     //return repository.get();
@@ -64,6 +73,7 @@ public class BuildingService {
   @CacheInvalidateAll(cacheName = BuildingCache.IDS)
   @CacheInvalidate(cacheName = BuildingCache.EXISTS)
   public Uni<Void> invalidateOne(String id) {
+    vertx.fileSystem().deleteRecursiveAndForget(filePath, true);
     return invalidateGet(id);
   }
 
@@ -87,6 +97,27 @@ public class BuildingService {
   @CacheResult(cacheName = BuildingCache.EXISTS, lockTimeout = Constants.CACHE_TIMEOUT)
   public Uni<Boolean> exists(String buildingId) {
     return repository().exists(buildingId);
+  }
+
+  public Uni<String> buildIds() {
+    return vertx.fileSystem().exists(filePath)
+        .flatMap(bool -> {
+          if (bool) {
+            return Uni.createFrom().voidItem();
+          } else {
+
+            return ids()
+                .map(Templates::ids)
+                .flatMap(TemplateInstance::createUni)
+                .flatMap(str -> {
+                  return vertx.fileSystem().mkdirs(dirPath)
+                      .flatMap(v -> vertx.fileSystem().createFile(filePath))
+                      .flatMap(v -> vertx.fileSystem().writeFile(filePath, Buffer.buffer(str)));
+                });
+
+          }
+        })
+        .replaceWith(filePath);
   }
 
   public Uni<BuildingReportResponse> report(BuildingQuery buildingQuery) {
