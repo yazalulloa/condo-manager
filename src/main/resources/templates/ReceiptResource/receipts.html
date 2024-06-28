@@ -60,6 +60,7 @@
       </li>
       <li>
         <a hx-get="/api/receipts/download_zip/{item.key}"
+           hx-disabled-elt="this"
            hx-indicator=".htmx-indicator"
            hx-swap="none">
           <img src="/assets/pdf-logo.svg" style="width:25px;height:25px;" alt="download-zip-pdfs">

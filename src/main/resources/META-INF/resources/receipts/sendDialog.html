@@ -1,7 +1,16 @@
 <dialog class="modal modal-bottom sm:modal-middle"
+        x-data="{
+        apt_selected: []
+        }"
         @event-receipt-send-dialog-open.window="
           $dispatch('event-set-receipt-send-dialog-apt-' + send_dialog_building.toLowerCase());
           document.getElementById('dialog-error').innerHTML = '';
+          send_dialog_receipt_select_all = true;
+          if (!send_dialog_receipt_select_all) {
+            -send_dialog_receipt_select_all = true;
+          } else {
+            apt_selected = send_dialog_apts.map(apt => apt.number);
+          }
           $el.showModal();
           "
         @event-receipt-send-dialog-close.window="$el.close()"
@@ -38,9 +47,10 @@
       </div>
     </div>
 
-    <form class="items-center text-center"
+    <form id="receipts-send-form-dialog"
+          class="items-center text-center"
           hx-post="/api/receipts/send_receipt"
-          hx-disabled-elt="this, button"
+          hx-disabled-elt="this, #receipts-send-form-dialog * > input:not([disabled]), #receipts-send-form-dialog * > button:not([disabled]), #receipts-send-form-dialog * > select:not([disabled])"
           hx-swap="none"
           hx-indicator=".htmx-indicator">
 
@@ -48,15 +58,17 @@
 
       <div id="send-receipt-dialog-csrf" hidden="hidden"></div>
 
-      <cm-form-input
-          class=""
-          name="subject"
-          maxlength="100"
-          placeholder="Sujeto"
-          value="AVISO DE COBRO"
-      >
-
-      </cm-form-input>
+      <label class="form-control">
+        <div class="label">
+          <span class="label-text">Sujeto</span>
+        </div>
+        <input type="text" class="input input-bordered"
+               name="subject"
+               maxlength="100"
+               placeholder="Sujeto"
+               value="AVISO DE COBRO"
+        />
+      </label>
 
       <label class="form-control">
         <div class="label">
@@ -73,20 +85,27 @@
         <span class="label-text">Seleccionar todos</span>
         <input type="checkbox" class="toggle"
                @click="send_dialog_receipt_select_all=!send_dialog_receipt_select_all"
-               x-bind:checked="send_dialog_receipt_select_all"/>
+               x-bind:checked="send_dialog_receipt_select_all"
+               x-effect="
+                 if (send_dialog_receipt_select_all) {
+                   apt_selected = send_dialog_apts.map(apt => apt.number);
+                 } else {
+                   apt_selected = [];
+                 }
+                 "
+        />
       </label>
 
       <div class="pb-2">
         <template x-for="apt in send_dialog_apts">
-          <div class="grid apt-receipt-dialog-grid gap-2">
-            <div x-text="apt.number"></div>
-            <div x-text="apt.name"></div>
-            <div>
-              <input type="checkbox" checked="checked" class="receipt-sent-checkbox checkbox" name="apts"
-                     x-effect="$el.checked = send_dialog_receipt_select_all"
-                     x-bind:value="apt.number"/>
-            </div>
-          </div>
+          <label class="grid apt-receipt-dialog-grid justify-around p-1 gap-2 hover:alert-info">
+            <span x-text="apt.number"></span>
+            <span x-text="apt.name"></span>
+            <input type="checkbox" checked="checked" class="receipt-sent-checkbox checkbox" name="apts"
+                   @click="apt_selected.includes(apt.number) ? apt_selected = apt_selected.filter(a => a !== apt.number) : apt_selected.push(apt.number);"
+                   x-bind:checked="apt_selected.includes(apt.number)"
+                   x-bind:value="apt.number"/>
+          </label>
         </template>
 
       </div>
@@ -95,7 +114,11 @@
       </div>
 
       <div class="flex flex-row gap-4">
-        <button type="submit" class="btn btn-primary">
+        <button type="submit" class="btn btn-primary"
+                x-effect="
+                  let v = !(apt_selected?.length > 0);
+                  $el.disabled=v;
+                  ">
           Enviar
         </button>
         <button type="button" class="btn btn-secondary"

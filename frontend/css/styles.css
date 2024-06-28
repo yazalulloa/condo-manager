@@ -369,7 +369,7 @@ textarea, input {
 }
 
 .apt-receipt-dialog-grid {
-  grid-template-columns: 1fr 4fr 1fr;
+  grid-template-columns: 2fr 5fr 1fr;
 }
 
 .apt-email-dialog-grid {

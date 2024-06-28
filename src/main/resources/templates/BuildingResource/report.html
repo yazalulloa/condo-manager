@@ -4,65 +4,57 @@
 
 {#for item in res.results}
     <div id="{item.cardId}"
-    class="hover:bg-[#00000014] gap-4 rounded-lg bg-neutral flex flex-row justify-between fade-me-out fade-me-in">
-  <div hx-get="/stc/buildings/edit/"
-       hx-on:htmx:before-request="saveResource('building', '{item.building.id}')"
-       hx-trigger="dblclick"
-       class="flex-wrap flex-row flex justify-between gap-2 w-full items-center py-3 pl-3"
-  >
-  <div class="flex flex-col gap-2">
-  <div class="flex flex-row gap-2 text-sm">
-  <span>{item.building.id}</span>
-    <span>{item.building.rif}</span>
-</div>
+         class="hover:bg-[#00000014] gap-4 rounded-lg bg-neutral flex flex-row justify-between items-center fade-me-out fade-me-in">
+        <div hx-get="/stc/buildings/edit/"
+             hx-on:htmx:before-request="saveResource('building', '{item.building.id}')"
+             hx-trigger="dblclick"
+             class="flex-wrap flex-row flex justify-between gap-2 w-full items-center py-3 pl-3"
+        >
+            <div class="flex flex-col gap-2">
+                <div class="flex flex-row gap-2 text-sm">
+                    <span>{item.building.id}</span>
+                    <span>{item.building.rif}</span>
+                </div>
 
-    <span>{item.building.name}</span>
+                <span>{item.building.name}</span>
 
-</div>
+            </div>
 
-<div class="flex flex-col gap-2 text-sm">
-<span>Moneda Principal: {item.building.mainCurrency}</span>
-    <span>Moneda Deuda: {item.building.debtCurrency}</span>
-    <span>Monedas a mostrar {item.building.currenciesToShowAmountToPay}</span>
-</div>
+            <div class="flex flex-col gap-2 text-sm">
+                <span>Moneda Principal: {item.building.mainCurrency}</span>
+                <span>Moneda Deuda: {item.building.debtCurrency}</span>
+                <span>Monedas a mostrar {item.building.currenciesToShowAmountToPay}</span>
+            </div>
 
-    {#if item.building.fixedPay}
-    <span>Monto fijo: {item.building.fixedPayAmount}</span>
-    {/if}
+            {#if item.building.fixedPay}
+                <span>Monto fijo: {item.building.fixedPayAmount}</span>
+            {/if}
 
-    <div>
+            <div>
   <span
-      class="inline-block whitespace-nowrap rounded-full px-[0.65em] pb-[0.25em] pt-[0.35em] text-center align-baseline text-[0.75em] font-bold leading-none
+          class="inline-block whitespace-nowrap rounded-full px-[0.65em] pb-[0.25em] pt-[0.35em] text-center align-baseline text-[0.75em] font-bold leading-none
 {item.building.roundUpPayments ? 'bg-success-100 text-success-700' : 'bg-danger-100 text-danger-700'}
 ">
     Redondear pagos
   </span>
+            </div>
+
+            <span>Apartmentos: {item.building.aptCount}</span>
+            {#if item.building.configEmail}
+                <span>Configuracion de email: {item.building.configEmail}</span>
+            {/if}
+
+            <div class="flex flex-col gap-2">
+                <span>Creado: {item.building.createdAt.formatDate}</span>
+                {#if item.building.updatedAt}
+                    <span>Actualizado: {item.building.updatedAt.formatDate}</span>
+                {/if}
+            </div>
+        </div>
+
+
+            {#include fragments/delete-btn deleteUrl = item.deleteUrl cardIdRef = item.cardIdRef afterRequest = ''/}
     </div>
-
-    <span>Apartmentos: {item.building.aptCount}</span>
-    {#if item.building.configEmail}
-    <span>Configuracion de email: {item.building.configEmail}</span>
-    {/if}
-
-    <div class="flex flex-col gap-2">
-    <span>Creado: {item.building.createdAt.formatDate}</span>
-    {#if item.building.updatedAt}
-    <span>Actualizado: {item.building.updatedAt.formatDate}</span>
-    {/if}
-</div>
-  </div>
-
-  <div class="flex justify-center items-center min-h-10 min-w-10 py-3 pr-3">
-    <button class="delete-btn"
-            hx-headers='{"{inject:csrf.headerName}":"{inject:csrf.token}"}'
-            hx-delete="{item.deleteUrl}"
-            hx-target="{item.cardIdRef}"
-            hx-trigger="click"
-            hx-swap="delete">
-      <img class="h-6 w-6" src="/assets/trash.svg" alt="delete-item">
-    </button>
-  </div>
-</div>
 {/for}
 
-{#include fragments/next-page.html url = res.nextPageUrl /}
+    {#include fragments/next-page.html url = res.nextPageUrl /}

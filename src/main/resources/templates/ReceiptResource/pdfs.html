@@ -19,6 +19,7 @@
     <h1 class="font-bold">Recibo de Pago PDF &ndash; {res.building} {res.month} {res.date}</h1>
     <button class="btn btn-primary"
             hx-get="/api/receipts/zip_download/{res.zipPath}"
+            hx-disabled-elt="this"
             hx-indicator=".htmx-indicator"
             hx-swap="none">
         Descargar zip

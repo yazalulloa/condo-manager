@@ -51,10 +51,10 @@
       </div>
     </div>
 
-    <form id="send-zip-form"
+    <form id="send-zip-receipt-form"
           hx-post="/api/receipts/send_zip"
-          hx-disabled-elt="this, button"
           hx-swap="none"
+          hx-disabled-elt="this, #send-zip-receipt-form * > input:not([disabled]), #send-zip-receipt-form * > button:not([disabled]), #send-zip-receipt-form * > select:not([disabled])"
           hx-indicator=".htmx-indicator">
 
       <script>

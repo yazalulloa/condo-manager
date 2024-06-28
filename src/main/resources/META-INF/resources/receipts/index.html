@@ -105,9 +105,10 @@
            placeholder="YYYY-MM-DD"
            script="on change send 'update_receipts' to #receipts-updater">
 
-    <form hx-post="/api/receipts/file"
+    <form id="receipt-file-uploader"
+          hx-post="/api/receipts/file"
           hx-encoding='multipart/form-data'
-          hx-disabled-elt="this, input:not([disabled])"
+          hx-disabled-elt="this, #eceipt-file-uploader * > input:not([disabled])"
           hx-swap="none"
           hx-trigger="send-file"
           hx-indicator=".htmx-indicator">
