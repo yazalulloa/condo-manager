@@ -219,7 +219,7 @@ textarea, input {
 }
 
 .datepicker {
-  padding: 8px;
+  padding: 0.75rem
 }
 
 .form-container {
@@ -364,8 +364,8 @@ textarea, input {
   grid-template-columns: 2fr 1fr 1fr;
 }
 
-.debt-grid {
-  grid-template-columns: 3fr 1fr 1fr 3fr 1fr 1fr;
+.debts-grid {
+  grid-template-columns: 4fr 1fr 1fr 3fr 1fr;
 }
 
 .apt-receipt-dialog-grid {

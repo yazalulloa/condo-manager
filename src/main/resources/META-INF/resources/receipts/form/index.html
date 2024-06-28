@@ -1,0 +1,117 @@
+<div hx-get="/api/stc/currencies"
+     hx-trigger="load"
+     hx-disabled-elt="this"
+     hx-target="this"
+     hx-swap="outerHTML">
+</div>
+
+<form id="receipts-form"
+      class="flex flex-col min-w-3/5 w-fit align-middle gap-4 m-auto"
+      hx-put="/api/receipts"
+      hx-disabled-elt="this, #receipts-form * > input:not([disabled]), #receipts-form * > button:not([disabled]), #receipts-form * > select:not([disabled])"
+      hx-indicator=".htmx-indicator"
+      hx-target="#receipt-form-error"
+      hx-swap="innerHTML"
+      x-data="{
+        key: '',
+        date: '',
+        month: '',
+        year: '',
+        rateId: '',
+        years: [],
+        generalFieldError: ''
+
+      }">
+
+  <div hx-get="/api/receipts/form_init"
+       hx-trigger="load"
+       hx-vals="js:{id: getResource('receipt', 'edit/')}"
+       hx-target="this"
+       hx-swap="outerHTML">
+  </div>
+
+  <div id="receipt-form-error" hidden="hidden"></div>
+
+  <input hidden="hidden" name="key" x-model="key">
+
+  <div class="flex flex-wrap flex-row gap-6 w-fit justify-center items-center m-auto">
+
+    <label class="form-control">
+      <div class="label">
+        <span class="label-text">Año</span>
+      </div>
+      <select class="select select-bordered " name="year" x-bind:value="year">
+        <template x-for="value in years">
+          <option x-bind:value="value" x-text="value"></option>
+        </template>
+      </select>
+    </label>
+
+
+    <div x-data="{
+         months: [
+    {name: 'ENERO', month: 1},
+    {name: 'FEBRERO', month: 2},
+    {name: 'MARZO', month: 3},
+    {name: 'ABRIL', month: 4},
+    {name: 'MAYO', month: 5},
+    {name: 'JUNIO', month: 6},
+    {name: 'JULIO', month: 7},
+    {name: 'AGOSTO', month: 8},
+    {name: 'SEPTIEMBRE', month: 9},
+    {name: 'OCTUBRE', month: 10},
+    {name: 'NOVIEMBRE', month: 11},
+    {name: 'DICIEMBRE', month: 12}
+    ]
+         }">
+
+
+      <label class="form-control">
+        <div class="label">
+          <span class="label-text">Mes</span>
+        </div>
+        <select id="month-input" class="select select-bordered " name="month" x-bind:value="month">
+          <template x-for="value in months">
+            <option x-bind:value="value.month" x-text="value.name"></option>
+          </template>
+        </select>
+      </label>
+    </div>
+
+
+    <label class="label-text text-end">
+      <div class="label">
+        <span class="label-text">Fecha de recibo</span>
+      </div>
+      <input class="datepicker"
+             type="date"
+             name="date"
+             placeholder="YYYY-MM-DD"
+             x-bind:value="date"
+             required>
+    </label>
+
+
+    <label class="label-text text-end">
+      <div class="label">
+        <span class="label-text">Tasa de cambio</span>
+      </div>
+      <select id="rate-input" class="select select-bordered" name="rateInput" x-bind:value="rateId">
+      </select>
+    </label>
+
+
+  </div>
+
+  <div class="label">
+    <span x-transition class="label-text-alt" x-text="generalFieldError"></span>
+  </div>
+
+  <div class="flex flex-row gap-4 justify-center">
+    <button type="submit" class="btn btn-primary">
+      Editar
+    </button>
+    <img class="htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">
+  </div>
+
+</form>

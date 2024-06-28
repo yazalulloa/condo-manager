@@ -1,0 +1,75 @@
+{@com.yaz.api.domain.response.debt.DebtInitFormDto dto}
+
+<details open>
+    <summary class="hover:bg-[#00000014]">
+        <div class="flex flex-row flex-wrap gap-6 justify-center p-2">
+            <div class="text-center">Deudas: <span id="debts-form-counter">{dto.debts.size}</span></div>
+            <div class="text-center">Recibos: <span id="debt-receipts-counter">{dto.debtReceiptsTotal}</span></div>
+            <div class="text-center">Total: <span id="debts-total">{dto.debtTotal}</span></div>
+        </div>
+    </summary>
+    <div class="flex flex-row flex-wrap gap-6 justify-center"
+         id="debts-content"
+         x-data="{ open_form: false, restartKey: '{dto.key}', key: '{dto.key}', apartment: '', receipts: '', receiptsFieldError: '',
+          amount: '', amountFieldError: '', months_selected: [],
+     previousPaymentAmount: '', previousPaymentAmountFieldError: '', previousPaymentAmountCurrency: '',  generalFieldError: ''
+             }"
+         @event-debt-form-restart-after-deletion="
+              let v = $event.detail?.key?.trim();
+              if (v && v === key) {
+                $dispatch('event-debt-form-reset');
+              }
+             "
+         @event-debt-form-clean-errors="
+              generalFieldError = '';
+              previousPaymentAmountFieldError = '';
+              receiptsFieldError = '';
+              amountFieldError = '';
+             "
+         @event-debt-form-reset="
+              open_form = false;
+              receipts = '';
+              amount = '';
+              previousPaymentAmount = '';
+              months_selected = [];
+              key = restartKey;
+              $dispatch('event-debt-form-clean-errors');
+             "
+    >
+
+        <div id="debts-table-item-grid" class="max-w-3/5">
+            <div class="debts-grid base-grid-cm p-1 font-bold">
+                <span>Apt</span>
+                <span>Recibos</span>
+                <span>Monto</span>
+                <span>Meses</span>
+                <span>Abono</span>
+            </div>
+
+            {#for item in dto.debts}
+
+                    {#include DebtResource/item item = item /}
+            {/for}
+        </div>
+
+        <form id="debts-form"
+              x-show="open_form" x-transition
+              hx-put="/api/debts"
+              hx-indicator=".htmx-indicator"
+              hx-target="#debts-form-error"
+              hx-swap="innerHTML"
+              hx-disabled-elt="this, #debts-form * > input:not([disabled]), #debts-form * > button:not([disabled]), #debts-form * > select:not([disabled])">
+
+            <div id="debts-form-error" hidden="hidden"></div>
+            <input hidden="hidden" name="key" x-model="key">
+            <input type="hidden" name="{inject:csrf.parameterName}" value="{inject:csrf.token}"/>
+
+            <div hx-get="/stc/debts/form/"
+                 hx-target="this"
+                 hx-disabled-elt="this"
+                 hx-trigger="load"
+                 hx-swap="outerHTML">
+            </div>
+        </form>
+    </div>
+</details>

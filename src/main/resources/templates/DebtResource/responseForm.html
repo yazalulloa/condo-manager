@@ -1,0 +1,20 @@
+{@com.yaz.api.domain.response.debt.DebtFormResponse dto}
+
+<div x-init="
+generalFieldError = '{dto.generalFieldError}';
+
+{#if dto.tableItem}
+$dispatch('event-debt-form-reset');
+{/if}
+">
+
+</div>
+
+
+{#if dto.tableItem}
+        {#include DebtResource/item item = dto.tableItem /}
+{/if}
+
+{#if dto.counters}
+        {#include DebtResource/counters dto = dto.counters /}
+{/if}

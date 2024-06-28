@@ -1,0 +1,91 @@
+<div class="p-2">
+  <p x-text="apartment"></p>
+</div>
+
+<label class="form-control w-full">
+  <div class="label">
+    <span class="label-text">Recibos</span>
+  </div>
+  <input placeholder="Recibos" class="input input-bordered w-full" name="receipts"
+         x-model="receipts"
+         type="number"
+         min="0"
+         maxlength="20"
+         step="1"
+         onchange="limitInputToMaxLength(this)"
+  />
+  <div class="label">
+    <span class="label-text-alt error-message" x-text="receiptsFieldError"></span>
+  </div>
+</label>
+
+<label class="form-control w-full">
+  <div class="label">
+    <span class="label-text">Monto</span>
+  </div>
+  <input placeholder="Monto" class="input input-bordered w-full" name="amount"
+         x-model="amount"
+         type="number"
+         min="0"
+         maxlength="20"
+         step=".01"
+         onchange="limitInputToMaxLength(this)"
+  />
+  <div class="label">
+    <span class="label-text-alt error-message" x-text="amountFieldError"></span>
+  </div>
+</label>
+
+<div>
+
+  <div hx-get="/components/monthDialogPicker.html"
+       hx-trigger="load"
+       hx-disabled-elt="this"
+       hx-target="this"
+       hx-swap="outerHTML">
+  </div>
+
+</div>
+
+<label class="form-control w-full">
+  <div class="label">
+    <span class="label-text">Abono</span>
+  </div>
+  <div class="flex flex-row gap-2">
+    <input placeholder="Monto" class="input input-bordered w-full" name="previousPaymentAmount"
+           x-model="previousPaymentAmount"
+           type="number"
+           min="0"
+           maxlength="20"
+           step=".01"
+           onchange="limitInputToMaxLength(this)"
+    />
+    <select name="previousPaymentAmountCurrency"
+            class="select select-bordered w-fit"
+            x-model="previousPaymentAmountCurrency"
+    >
+      <template x-for="value in currencies">
+        <option x-bind:value="value" x-text="value"></option>
+      </template>
+    </select>
+  </div>
+  <div class="label">
+    <span class="label-text-alt error-message" x-text="previousPaymentAmountFieldError"></span>
+  </div>
+</label>
+
+<div class="label">
+  <span x-transition class="label-text-alt" x-text="generalFieldError"></span>
+</div>
+
+<div class="flex flex-row gap-4 pt-4">
+  <button type="submit" class="btn btn-primary">
+    Editar
+  </button>
+
+  <button type="button" class="btn btn-secondary"
+          @click.prevent="$dispatch('event-debt-form-reset')">
+    Cancelar
+  </button>
+  <img class="htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">
+</div>

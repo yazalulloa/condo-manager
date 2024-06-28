@@ -2,7 +2,7 @@ package com.yaz.api.domain.response;
 
 import lombok.Builder;
 
-@Builder
+@Builder(toBuilder = true)
 public record ReceiptFormDto(
     String key,
     int month,
@@ -10,7 +10,6 @@ public record ReceiptFormDto(
     int[] years,
     String buildingName,
     String date,
-    long rateId,
     RateTableResponse rates,
     String generalError
 ) {

@@ -37,6 +37,7 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.OutputStream;
+import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -295,12 +296,14 @@ public class LoadBackupService {
                                       .buildingId(mongoReceipt.buildingId())
                                       .aptNumber(debt.aptNumber())
                                       .receipts(debt.receipts())
-                                      .amount(debt.amount())
+                                      .amount(Optional.ofNullable(debt.amount()).orElse(BigDecimal.ZERO))
                                       .months(
                                           Optional.ofNullable(debt.months()).stream().flatMap(Collection::stream).map(
                                               Month::getValue).collect(Collectors.toSet()))
-                                      .previousPaymentAmount(debt.previousPaymentAmount())
-                                      .previousPaymentAmountCurrency(debt.previousPaymentAmountCurrency())
+                                      .previousPaymentAmount(Optional.ofNullable(debt.previousPaymentAmount()).orElse(
+                                          BigDecimal.ZERO))
+                                      .previousPaymentAmountCurrency(
+                                          Optional.ofNullable(debt.previousPaymentAmountCurrency()).orElse(Currency.VED))
                                       .build())
                                   .toList();
 

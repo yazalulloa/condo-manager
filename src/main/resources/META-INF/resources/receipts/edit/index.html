@@ -6,9 +6,10 @@
   <link href="/out/css/output.css" rel="stylesheet"/>
   <script src="/out/js/index.js" defer></script>
 </head>
-<body >
+<body>
 
-<div class="flex flex-row justify-between px-6 p-2 bg-base-100 text-center items-center fade-me-in fade-me-out" id="header-container" hx-swap-oob="true">
+<div class="flex flex-row justify-between px-6 p-2 bg-base-100 text-center items-center fade-me-in fade-me-out"
+     id="header-container" hx-swap-oob="true">
   <button class="btn btn-square btn-outline"
           hx-get="/stc/receipts/"
           hx-swap="none"
@@ -22,17 +23,29 @@
   </div>
 </div>
 
-<div id="container" hx-swap-oob="true" class="h-full p-4">
+<div id="container" hx-swap-oob="true" class="h-full p-4 flex flex-col gap-4" x-data="{buildingName: '', currencies: []}">
+  <!--  <div-->
+  <!--      hx-get="/api/receipts/edit_form"-->
+  <!--      hx-indicator=".htmx-indicator"-->
+  <!--      hx-vals="js:{id: getResource('receipt', 'edit/')}"-->
+  <!--      hx-trigger="load"-->
+  <!--      hx-swap="outerHTML">-->
+  <!--    <div>-->
+  <!--      <img class="htmx-indicator white-filter img-medium-size center" src="/assets/bars.svg" alt="spinner">-->
+  <!--    </div>-->
+  <!--  </div>-->
+
+  <div class="flex justify-center">
+    <h3 x-text="buildingName"></h3>
+  </div>
+
   <div
-      hx-get="/api/receipts/edit_form"
-      hx-indicator=".htmx-indicator"
-      hx-vals="js:{id: getResource('receipt', 'edit/')}"
+      hx-get="/stc/receipts/form/"
       hx-trigger="load"
       hx-swap="outerHTML">
-    <div>
-      <img class="htmx-indicator white-filter img-medium-size center" src="/assets/bars.svg" alt="spinner">
-    </div>
   </div>
+
+  <div id="receipt-info"></div>
 </div>
 
 </body>

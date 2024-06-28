@@ -18,8 +18,12 @@ import com.yaz.api.domain.response.ReceiptTableItem;
 import com.yaz.api.domain.response.ReceiptTableResponse;
 import com.yaz.api.domain.response.ReserveFundFormDto;
 import com.yaz.api.domain.response.ReserveFundTableItem;
+import com.yaz.api.domain.response.debt.DebtInitFormDto;
+import com.yaz.api.domain.response.extra.charge.ExtraChargeInitFormDto;
+import com.yaz.api.domain.response.receipt.ReceiptInitFormDto;
 import com.yaz.api.domain.response.receipt.ReceiptPdfDto;
 import com.yaz.api.domain.response.receipt.ReceiptProgressDto;
+import com.yaz.api.domain.response.reserve.funds.ReserveFundInitFormDto;
 import com.yaz.api.resource.fragments.Fragments;
 import com.yaz.core.service.EncryptionService;
 import com.yaz.core.service.SendReceiptService;
@@ -150,6 +154,8 @@ public class ReceiptResource {
     public static native TemplateInstance dialogError(String error, boolean isZip);
 
     public static native TemplateInstance pdfReceipt(ReceiptPdfDto dto);
+
+    public static native TemplateInstance formInit(ReceiptInitFormDto dto);
   }
 
   public Uni<TemplateInstance> dialogError(String error, boolean isZip) {
@@ -920,6 +926,159 @@ public class ReceiptResource {
                 return Response.ok(templateInstance).build();
               });
         });
+  }
+
+  @GET
+  @Path("form_init")
+  @Produces(MediaType.TEXT_HTML)
+  public Uni<TemplateInstance> formInit(@RestQuery String id) {
+    final var keys = encryptionService.decryptObj(id, Receipt.Keys.class);
+
+    final var receiptUni = receiptService.read(keys.id())
+        .map(optional -> optional.orElseThrow(() -> new IllegalArgumentException("RECEIPT_NOT_FOUND")))
+        .memoize()
+        .forFixedDuration(Duration.ofSeconds(3));
+
+    final var buildingUni = buildingService.get(keys.buildingId());
+
+    final var rateUni = receiptUni.flatMap(receipt -> rateService.read(receipt.rateId()))
+        .map(optional -> optional.orElseThrow(() -> new IllegalArgumentException("RATE_NOT_FOUND")));
+
+    final var expensesListUni = expenseService.readByReceipt(keys.id());
+
+    final var extraChargesListUni = Uni.combine()
+        .all()
+        .unis(extraChargeService.by(keys.buildingId(), keys.buildingId()),
+            extraChargeService.by(keys.buildingId(), String.valueOf(keys.id())))
+        .with((building, receipt) -> {
+          return Stream.concat(building.stream(), receipt.stream())
+              .toList();
+        });
+
+    final var debtListUni = receiptUni.flatMap(
+        receipt -> debtService.readByReceipt(receipt.buildingId(), receipt.id()));
+
+    final var rateListUni = rateService.table(RateQuery.query(30, SortOrder.DESC), "/api/rates/options");
+
+    final var reserveFundUni = reserveFundService.listByBuilding(keys.buildingId());
+
+    return Uni.combine().all()
+        .unis(receiptUni, rateUni, expensesListUni, extraChargesListUni, debtListUni, rateListUni,
+            apartmentService.aptByBuildings(keys.buildingId()), buildingUni, reserveFundUni)
+        .with((receipt, rate, expenses, extraCharges, debts, rates, apartments, building, reserveFunds) -> {
+          final var expensesCount = expenses.size();
+          final var receiptForm = ReceiptFormDto.builder()
+              .key(encryptionService.encryptObj(receipt.keysWithHash()))
+              .buildingName(receipt.buildingId())
+              .month(receipt.month())
+              .year(receipt.year())
+              .years(DateUtil.yearsPicker())
+              .date(receipt.date().toString())
+              .rates(rates.toBuilder()
+                  .selected(rate.id())
+                  .nextPageUrl(null)
+                  .build())
+              .build();
+
+          final var extraChargeTableItems = extraCharges.stream()
+              .map(extraCharge -> {
+                final var keys1 = extraCharge.keys();
+                return ExtraChargeTableItem.builder()
+                    .item(extraCharge)
+                    .key(encryptionService.encryptObj(keys1))
+                    .cardId(keys1.cardId())
+                    .build();
+              })
+              .toList();
+
+          var debtReceiptsTotal = 0;
+          var debtTotal = BigDecimal.ZERO;
+
+          final var debtTableItems = new ArrayList<DebtTableItem>();
+          for (Debt debt : debts) {
+            final var keys1 = debt.keys();
+            final var item = DebtTableItem.builder()
+                .key(encryptionService.encryptObj(keys1))
+                .item(debt)
+                .currency(building.debtCurrency())
+                .cardId(keys1.cardId())
+                .build();
+
+            debtReceiptsTotal += debt.receipts();
+            debtTotal = debtTotal.add(debt.amount());
+
+            debtTableItems.add(item);
+          }
+
+          final var expenseTotalsBeforeReserveFunds = ConvertUtil.expenseTotals(rate.rate(), expenses);
+
+          final var reserveFundTableItems = reserveFunds.stream()
+              .map(reserveFund -> {
+
+                final var reserveFundExpense = ConvertUtil.reserveFundExpense(expenseTotalsBeforeReserveFunds,
+                    reserveFund);
+
+                if (reserveFundExpense != null) {
+                  expenses.add(reserveFundExpense.item());
+                }
+
+                final var keys1 = reserveFund.keys(receipt.id());
+                return ReserveFundTableItem.builder()
+                    .key(encryptionService.encryptObj(keys1))
+                    .item(reserveFund)
+                    .cardId(keys1.cardId())
+                    .build();
+              })
+              .toList();
+
+          final var expenseTotals = ConvertUtil.expenseTotals(rate.rate(), expenses);
+
+          final var expenseTableItems = expenses.stream()
+              .map(expense -> {
+
+                final var keys1 = expense.keys();
+                return ExpenseTableItem.builder()
+                    .key(encryptionService.encryptObj(keys1))
+                    .cardId(keys1.cardId())
+                    .item(expense)
+                    .build();
+              })
+              .toList();
+
+          return ReceiptInitFormDto.builder()
+              .receiptForm(receiptForm)
+              .apts(apartments)
+              .extraChargeDto(ExtraChargeInitFormDto.builder()
+                  .key(encryptionService.encryptObj(ExtraCharge.Keys.newReceipt(receipt.id(), receipt.buildingId())))
+                  .extraCharges(extraChargeTableItems)
+                  .build())
+
+//              .expenseFormDto(ExpenseFormDto.builder()
+//                  .isEdit(false)
+//                  .key(encryptionService.encryptObj(Expense.Keys.of(receipt.buildingId(), receipt.id())))
+//                  .build())
+//              .expenses(expenseTableItems)
+//              .expensesCount(expensesCount)
+//              .debts(debtTableItems)
+//              .totalCommonExpenses(expenseTotalsBeforeReserveFunds.formatCommon())
+//              .totalUnCommonExpenses(expenseTotalsBeforeReserveFunds.formatUnCommon())
+//              .totalCommonExpensesPlusReserveFunds(expenseTotals.formatCommon())
+//              .totalUnCommonExpensesPlusReserveFunds(expenseTotals.formatUnCommon())
+//              .debtReceiptsTotal(debtReceiptsTotal)
+//              .debtTotal(building.debtCurrency().format(debtTotal))
+              .reserveFundDto(ReserveFundInitFormDto.builder()
+                  .key(encryptionService.encryptObj(ReserveFund.Keys.newReceipt(receipt.id(), receipt.buildingId())))
+                  .reserveFunds(reserveFundTableItems)
+                  .build())
+
+              .debtDto(DebtInitFormDto.builder()
+                  .key("")
+                  .debts(debtTableItems)
+                  .debtReceiptsTotal(debtReceiptsTotal)
+                  .debtTotal(building.debtCurrency().format(debtTotal))
+                  .build())
+              .build();
+        }).map(Templates::formInit);
   }
 
   @Data

@@ -1,1 +1,45 @@
 {@com.yaz.api.domain.response.receipt.ReceiptInitFormDto dto}
+
+<div x-init="
+key = '{dto.receiptForm.key}';
+month = '{dto.receiptForm.month}';
+year = '{dto.receiptForm.year}';
+years = [
+{#for item in dto.receiptForm.years}
+ '{item}',
+{/for}
+];
+buildingName = '{dto.receiptForm.buildingName}';
+date = '{dto.receiptForm.date}';
+">
+
+</div>
+
+<select id="rate-input" class="select select-bordered" name="rateInput" hx-swap-oob="true">
+        {#include RateResource/options res = dto.receiptForm.rates /}
+</select>
+
+<div id="receipt-info" hx-swap-oob="true"
+     class="flex flex-col gap-4"
+     x-data="{
+apts: [
+{#for item in dto.apts}
+{ number: '{item.number}',name: '{item.name}',},
+{/for}
+]
+}">
+
+    <hr class="w-3/4 center">
+
+        {#include ExtraChargeResource/newForm dto = dto.extraChargeDto /}
+
+    <hr class="w-3/4 center">
+
+        {#include ReserveFundResource/newForm dto = dto.reserveFundDto /}
+
+    <hr class="w-3/4 center">
+
+        {#include DebtResource/newForm dto = dto.debtDto /}
+
+</div>
+

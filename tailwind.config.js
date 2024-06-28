@@ -25,7 +25,7 @@ module.exports = {
   darkMode: 'media',
   content: [
     "./src/main/resources/**/*.{html,js,ts}",
-    "./frontend/**/*.{html,js,ts}",
+    "./frontend/**/*.{html,js,ts,css}",
     "./node_modules/tw-elements/dist/js/**/*.js",
     "../node_modules/tw-elements/dist/js/tw-elements.umd.min.js"
   ],

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import com.yaz.core.util.StringUtil;
 import com.yaz.persistence.domain.Currency;
 import java.math.BigDecimal;
 import java.util.Set;
@@ -28,8 +29,16 @@ public record Debt(
     Currency previousPaymentAmountCurrency
 ) {
 
+
+  public Keys keys(String cardId) {
+    final var debt = this.toBuilder()
+        .aptName(null)
+        .build();
+    return new Keys(buildingId, receiptId, aptNumber, cardId, StringUtil.objHash(debt));
+  }
+
   public Keys keys() {
-    return Keys.of(buildingId, receiptId, aptNumber);
+    return keys(cardId());
   }
 
   private static final String CARD_ID_PREFIX = "debt-card-id-";
@@ -42,12 +51,10 @@ public record Debt(
       String buildingId,
       long receiptId,
       String aptNumber,
-      String cardId
+      String cardId,
+      long hash
   ) {
 
-    public static Keys of(String buildingId, long receiptId, String aptNumber) {
-      return new Keys(buildingId, receiptId, aptNumber, Debt.cardId());
-    }
   }
 
 }
