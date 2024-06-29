@@ -348,8 +348,16 @@ textarea, input {
   grid-template-columns: 2fr 2fr 3fr;
 }
 
-.expenses-grid {
-  grid-template-columns: 3fr 1fr 1fr 1fr;
+.expenses-grid-header {
+  grid-template-columns: 3fr 2fr 2fr 1fr;
+}
+
+.expenses-grid-item {
+  grid-template-columns: 7fr 1fr;
+}
+
+.expenses-grid-content {
+  grid-template-columns: 3fr 2fr 2fr;
 }
 
 .reserve-funds-grid-header {

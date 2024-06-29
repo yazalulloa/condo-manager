@@ -25,6 +25,7 @@
 
   <div hx-get="/api/receipts/form_init"
        hx-trigger="load"
+       hx-disabled-elt="this"
        hx-vals="js:{id: getResource('receipt', 'edit/')}"
        hx-target="this"
        hx-swap="outerHTML">

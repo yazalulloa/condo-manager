@@ -5,9 +5,9 @@
 
 <div class="flex flex-row flex-wrap gap-6 justify-center"
      x-data="{
-        is_edit: false, buildingKey: '{dto.key}', key: '{dto.key}', name: '', nameFieldError: '', fund: '', fundFieldError: '',
-         pay: '', payFieldError: '', type: '', expense: '', expenseFieldError: '', expenseType: '', active: true, addToExpenses: true, generalFieldError: '',
-         reserveFundTypes: [], expenseTypes: []
+         is_edit: false, buildingKey: '{dto.key}', key: '{dto.key}', name: '', nameFieldError: '', fund: '', fundFieldError: '',
+         pay: '', payFieldError: '', type: '', expense: '', expenseFieldError: '', expenseType: '', active: true, addToExpenses: true,
+         generalFieldError: '', reserveFundTypes: [], expenseTypes: []
          }"
      @event-reserve-fund-building-restart-after-deletion="
               let v = $event.detail?.key?.trim();

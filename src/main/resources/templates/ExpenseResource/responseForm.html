@@ -1,0 +1,31 @@
+{@com.yaz.api.domain.response.expense.ExpenseFormResponse dto}
+
+<div x-init="
+
+descriptionFieldError = '{dto.descriptionFieldError}';
+amountFieldError = '{dto.amountFieldError}';
+generalFieldError = '{dto.generalFieldError}';
+
+{#if dto.tableItem}
+$dispatch('event-expense-form-reset');
+{/if}
+
+">
+    
+</div>
+
+
+{#if dto.tableItem}
+
+    {#if dto.tableItem.addAfterEnd}
+        <div id="expenses-table-item-grid" hx-swap-oob="beforeend">
+                {#include ExpenseResource/item item = dto.tableItem /}
+        </div>
+    {#else}
+            {#include ExpenseResource/item item = dto.tableItem /}
+    {/if}
+{/if}
+
+{#if dto.counters}
+        {#include ExpenseResource/counters dto = dto.counters /}
+{/if}

@@ -1,0 +1,71 @@
+<label class="form-control w-full">
+  <div class="label">
+    <span class="label-text">Descripción</span>
+  </div>
+  <input required placeholder="Descripción" class="input input-bordered w-full" name="description"
+         x-model="description"/>
+  <div class="label">
+    <span class="label-text-alt error-message" x-text="descriptionFieldError"></span>
+  </div>
+</label>
+
+<label class="form-control w-full">
+  <div class="label">
+    <span class="label-text">Monto</span>
+  </div>
+  <input placeholder="Monto" class="input input-bordered w-full" name="amount"
+         x-model="amount"
+         type="number"
+         maxlength="20"
+         step=".01"
+         onchange="limitInputToMaxLength(this)"
+  />
+  <div class="label">
+    <span class="label-text-alt error-message" x-text="amountFieldError"></span>
+  </div>
+</label>
+
+<div class="flex flex-row gap-2 pt-2">
+  <label class="form-control w-fit">
+    <select name="currency"
+            class="select select-bordered w-fit"
+            x-model="currency"
+    >
+      <template x-for="value in currencies">
+        <option x-bind:value="value" x-text="value"></option>
+      </template>
+    </select>
+  </label>
+
+  <label class="form-control w-fit">
+    <select name="type"
+            class="select select-bordered w-fit"
+            x-model="expenseType">
+      <template x-for="value in expenseTypes">
+        <option x-bind:value="value" x-text="value"></option>
+      </template>
+    </select>
+  </label>
+</div>
+
+<div class="label">
+  <span x-transition class="label-text-alt" x-text="generalFieldError"></span>
+</div>
+
+<div class="flex flex-row gap-4 pt-4">
+  <button type="submit" class="btn btn-primary"
+          x-init="$watch('is_edit', value => $el.childNodes[0].nodeValue = (value ? 'Editar' : 'Crear'))"
+          x-effect="
+                  let v = !(description?.trim()?.length > 0 && amount?.trim()?.length > 0);
+                  $el.disabled=v;
+                  "
+  >
+    Crear
+  </button>
+
+  <button type="button" class="btn btn-secondary"
+          @click.prevent="$dispatch('event-expense-form-reset')">
+    Limpiar
+  </button>
+  <img class="htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">
+</div>

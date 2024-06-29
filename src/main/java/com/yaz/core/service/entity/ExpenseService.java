@@ -1,7 +1,6 @@
 package com.yaz.core.service.entity;
 
 import com.yaz.api.domain.response.ExpenseFormDto;
-import com.yaz.core.util.MutinyUtil;
 import com.yaz.persistence.entities.Expense;
 import com.yaz.persistence.entities.Expense.Keys;
 import com.yaz.persistence.repository.turso.ExpenseRepository;
@@ -55,8 +54,17 @@ public class ExpenseService {
         .type(formDto.type())
         .build();
 
+    return create(expense);
+  }
+
+  public Uni<Expense> create(Expense expense) {
     return repository.insert(expense)
         .map(id -> expense.toBuilder().id(id).build());
+  }
+
+  public Uni<Expense> update(Expense expense) {
+    return repository.update(expense)
+        .replaceWith(expense);
   }
 
   public Uni<Expense> update(Keys keys, ExpenseFormDto formDto) {

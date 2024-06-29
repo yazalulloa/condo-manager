@@ -1,0 +1,79 @@
+{@com.yaz.api.domain.response.expense.ExpenseInitFormDto dto}
+
+<details open>
+    <summary class="pb-2">
+        <div>
+            <div class="flex flex-row flex-wrap gap-6 justify-center">
+                <div class="text-center">Gastos: <span id="expenses-form-counter">{dto.expensesCount}</span></div>
+                <div class="text-center">Gastos comunes totales: <span
+                            id="expenses-total-common">{dto.totalCommonExpenses}</span></div>
+                <div class="text-center">Gastos no comunes totales: <span
+                            id="expenses-total-uncommon">{dto.totalUnCommonExpenses}</span></div>
+            </div>
+            <div class="flex flex-row flex-wrap gap-6 justify-center">
+                <div class="text-center">Gastos comunes totales + fondos de reserva: <span
+                            id="expenses-total-common-plus-reserve-funds">{dto.totalCommonExpensesPlusReserveFunds}</span>
+                </div>
+                <div class="text-center">Gastos no comunes totales + fondos de reserva: <span
+                            id="expenses-total-uncommon-plus-reserve-funds">{dto.totalUnCommonExpensesPlusReserveFunds}</span>
+                </div>
+            </div>
+        </div>
+    </summary>
+    <div class="flex flex-row flex-wrap gap-6 justify-center"
+         x-data="{ is_edit: false, restartKey: '{dto.key}', key: '{dto.key}', description: '', descriptionFieldError: '', amount: '', amountFieldError: '',
+              currency: '', expenseType: '', generalFieldError: ''
+             }"
+         @event-expense-form-restart-after-deletion="
+              let v = $event.detail?.key?.trim();
+              if (v && v === key) {
+                $dispatch('event-expense-form-reset');
+              }
+             "
+         @event-expense-form-clean-errors="
+              generalFieldError = '';
+              descriptionFieldError = '';
+              amountFieldError = '';
+             "
+         @event-expense-form-reset="
+              description = '';
+              amount = '';
+              currency = '';
+              expenseType = '';
+
+              is_edit = false;
+              key = restartKey;
+              $dispatch('event-expense-form-clean-errors');
+             ">
+
+
+            {#include ExpenseResource/grid list = dto.expenses /}
+
+        <div hidden="hidden" hx-get="/api/stc/expenseTypes"
+             hx-trigger="load"
+             hx-disabled-elt="this"
+             hx-target="this"
+             hx-swap="outerHTML">
+        </div>
+
+        <form id="expenses-form"
+              hx-put="/api/expenses"
+              hx-indicator=".htmx-indicator"
+              hx-target="#expenses-form-error"
+              hx-swap="innerHTML"
+              hx-disabled-elt="this, #expenses-form * > input:not([disabled]), #expenses-form * > button:not([disabled]), #expenses-form * > select:not([disabled])">
+
+            <div id="expenses-form-error" hidden="hidden"></div>
+            <input hidden="hidden" name="key" x-model="key">
+            <input type="hidden" name="{inject:csrf.parameterName}" value="{inject:csrf.token}"/>
+
+            <div hx-get="/stc/expenses/form/"
+                 hx-target="this"
+                 hx-disabled-elt="this"
+                 hx-trigger="load"
+                 hx-swap="outerHTML">
+            </div>
+        </form>
+
+    </div>
+</details>

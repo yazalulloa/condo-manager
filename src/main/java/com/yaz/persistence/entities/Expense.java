@@ -35,7 +35,11 @@ public record Expense(
   }
 
   public Keys keys() {
-    return new Keys(buildingId, receiptId, id, cardId(), StringUtil.objHash(this));
+    return keys(cardId());
+  }
+
+  public Keys keys(String cardId) {
+    return new Keys(buildingId, receiptId, id, cardId, StringUtil.objHash(this));
   }
 
 

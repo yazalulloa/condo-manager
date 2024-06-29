@@ -19,6 +19,7 @@ import com.yaz.api.domain.response.ReceiptTableResponse;
 import com.yaz.api.domain.response.ReserveFundFormDto;
 import com.yaz.api.domain.response.ReserveFundTableItem;
 import com.yaz.api.domain.response.debt.DebtInitFormDto;
+import com.yaz.api.domain.response.expense.ExpenseInitFormDto;
 import com.yaz.api.domain.response.extra.charge.ExtraChargeInitFormDto;
 import com.yaz.api.domain.response.receipt.ReceiptInitFormDto;
 import com.yaz.api.domain.response.receipt.ReceiptPdfDto;
@@ -1048,6 +1049,17 @@ public class ReceiptResource {
           return ReceiptInitFormDto.builder()
               .receiptForm(receiptForm)
               .apts(apartments)
+
+              .expenseDto(ExpenseInitFormDto.builder()
+                  .expensesCount(expensesCount)
+                  .totalCommonExpenses(expenseTotalsBeforeReserveFunds.formatCommon())
+                  .totalUnCommonExpenses(expenseTotalsBeforeReserveFunds.formatUnCommon())
+                  .totalCommonExpensesPlusReserveFunds(expenseTotals.formatCommon())
+                  .totalUnCommonExpensesPlusReserveFunds(expenseTotals.formatUnCommon())
+                  .key(encryptionService.encryptObj(Expense.Keys.of(receipt.buildingId(), receipt.id())))
+                  .expenses(expenseTableItems)
+                  .build())
+
               .extraChargeDto(ExtraChargeInitFormDto.builder()
                   .key(encryptionService.encryptObj(ExtraCharge.Keys.newReceipt(receipt.id(), receipt.buildingId())))
                   .extraCharges(extraChargeTableItems)
@@ -1064,8 +1076,7 @@ public class ReceiptResource {
 //              .totalUnCommonExpenses(expenseTotalsBeforeReserveFunds.formatUnCommon())
 //              .totalCommonExpensesPlusReserveFunds(expenseTotals.formatCommon())
 //              .totalUnCommonExpensesPlusReserveFunds(expenseTotals.formatUnCommon())
-//              .debtReceiptsTotal(debtReceiptsTotal)
-//              .debtTotal(building.debtCurrency().format(debtTotal))
+
               .reserveFundDto(ReserveFundInitFormDto.builder()
                   .key(encryptionService.encryptObj(ReserveFund.Keys.newReceipt(receipt.id(), receipt.buildingId())))
                   .reserveFunds(reserveFundTableItems)

@@ -1,26 +1,29 @@
 {@com.yaz.api.domain.response.extra.charge.ExtraChargeInitFormDto dto}
 
-<div class="text-center">Cargos Extra: <span id="extra-charges-form-counter">{dto.extraCharges.size}</span>
-</div>
+<details open>
+    <summary class="pb-2">
+        <div class="text-center">Cargos Extra: <span id="extra-charges-form-counter">{dto.extraCharges.size}</span>
+        </div>
+    </summary>
 
-<div class="flex flex-row flex-wrap gap-6 justify-center"
-     id="extra-charges-content"
-     x-data="{ is_edit: false, buildingKey: '{dto.key}', key: '{dto.key}', description: '', descriptionError: '', amount: '', amountError: '',
+    <div class="flex flex-row flex-wrap gap-6 justify-center"
+         id="extra-charges-content"
+         x-data="{ is_edit: false, buildingKey: '{dto.key}', key: '{dto.key}', description: '', descriptionError: '', amount: '', amountError: '',
               active: true, currency: '', select_all: false, apt_selected: [], descriptionFieldError: '', amountFieldError: '', generalFieldError: ''
              }"
-     @event-extra-charge-building-restart-after-deletion="
+         @event-extra-charge-building-restart-after-deletion="
               let v = $event.detail?.key?.trim();
               if (v && v === key) {
                 $dispatch('event-extra-charge-building-reset');
                 $dispatch('event-extra-charge-building-clean-errors');
               }
              "
-     @event-extra-charge-building-clean-errors="
+         @event-extra-charge-building-clean-errors="
               generalFieldError = '';
               descriptionFieldError = '';
               amountFieldError = '';
              "
-     @event-extra-charge-building-reset="
+         @event-extra-charge-building-reset="
               description = '';
               amount = '';
               currency = '';
@@ -35,38 +38,39 @@
               descriptionFieldError = '';
               amountFieldError = '';
              "
->
+    >
 
-    <div id="extra-charges-table-item-grid">
-        <div class="extra-charges-grid-header base-grid-cm p-1 font-bold">
-            <span>Descripción</span>
-            <span>Monto</span>
-            <span>Apartamentos</span>
-            <span>Acciones</span>
+        <div id="extra-charges-table-item-grid">
+            <div class="extra-charges-grid-header base-grid-cm p-1 font-bold">
+                <span>Descripción</span>
+                <span>Monto</span>
+                <span>Apartamentos</span>
+                <span>Acciones</span>
+            </div>
+
+            {#for item in dto.extraCharges}
+
+                    {#include ExtraChargeResource/item item = item /}
+            {/for}
         </div>
 
-        {#for item in dto.extraCharges}
+        <form id="extra-charges-form"
+              hx-put="/api/extra_charges"
+              hx-indicator=".htmx-indicator"
+              hx-target="#extra-charge-form-error"
+              hx-swap="innerHTML"
+              hx-disabled-elt="this, #extra-charges-form * > input:not([disabled]), #extra-charges-form * > button:not([disabled]), #extra-charges-form * > select:not([disabled])">
 
-                {#include ExtraChargeResource/item item = item /}
-        {/for}
+            <div id="extra-charge-form-error" hidden="hidden"></div>
+            <input hidden="hidden" name="key" x-model="key">
+            <input type="hidden" name="{inject:csrf.parameterName}" value="{inject:csrf.token}"/>
+
+            <div hx-get="/stc/extraCharges/form/"
+                 hx-target="this"
+                 hx-disabled-elt="this"
+                 hx-trigger="load"
+                 hx-swap="outerHTML">
+            </div>
+        </form>
     </div>
-
-    <form id="extra-charges-form"
-          hx-put="/api/extra_charges"
-          hx-indicator=".htmx-indicator"
-          hx-target="#extra-charge-form-error"
-          hx-swap="innerHTML"
-          hx-disabled-elt="this, #extra-charges-form * > input:not([disabled]), #extra-charges-form * > button:not([disabled]), #extra-charges-form * > select:not([disabled])">
-
-        <div id="extra-charge-form-error" hidden="hidden"></div>
-        <input hidden="hidden" name="key" x-model="key">
-        <input type="hidden" name="{inject:csrf.parameterName}" value="{inject:csrf.token}"/>
-
-        <div hx-get="/stc/extraCharges/form/"
-             hx-target="this"
-             hx-disabled-elt="this"
-             hx-trigger="load"
-             hx-swap="outerHTML">
-        </div>
-    </form>
-</div>
+</details>
