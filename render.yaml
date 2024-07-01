@@ -1,0 +1,13 @@
+  services:
+  - type: web
+    name: condo-manager
+    runtime: docker
+    repo: https://github.com/yazalulloa/condo-manager
+    plan: free
+    envVars:
+      - key: local.env
+        sync: false
+    region: ohio
+    dockerContext: .
+    dockerfilePath: ./Dockerfile.jvm
+version: "1"

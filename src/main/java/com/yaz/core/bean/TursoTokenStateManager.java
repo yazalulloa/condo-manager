@@ -1,13 +1,12 @@
 package com.yaz.core.bean;
 
-import static io.quarkus.oidc.runtime.CodeAuthenticationMechanism.SESSION_MAX_AGE_PARAM;
-
 import com.yaz.core.service.entity.OidcDbTokenService;
 import com.yaz.core.util.DateUtil;
 import io.quarkus.oidc.AuthorizationCodeTokens;
 import io.quarkus.oidc.OidcRequestContext;
 import io.quarkus.oidc.OidcTenantConfig;
 import io.quarkus.oidc.TokenStateManager;
+import io.quarkus.oidc.runtime.CodeAuthenticationMechanism;
 import io.quarkus.security.AuthenticationCompletionException;
 import io.quarkus.security.AuthenticationFailedException;
 import io.smallrye.mutiny.Uni;
@@ -38,7 +37,10 @@ public class TursoTokenStateManager implements TokenStateManager {
 
     final var now = DateUtil.epochSecond();
     final String id = now + UUID.randomUUID().toString();
-    final var expiresIn = now + event.<Long>get(SESSION_MAX_AGE_PARAM);
+    final var expiresIn = now + event.<Long>get(CodeAuthenticationMechanism.SESSION_MAX_AGE_PARAM);
+
+    log.debug("AuthorizationCodeTokens: {} {} {}", tokens.getIdToken(), tokens.getAccessToken(),
+        tokens.getAccessTokenExpiresIn());
 
     return service.insert(tokens.getIdToken(), tokens.getAccessToken(),
             tokens.getRefreshToken(), expiresIn, id)
@@ -61,7 +63,8 @@ public class TursoTokenStateManager implements TokenStateManager {
       OidcRequestContext<AuthorizationCodeTokens> requestContext) {
 
     return service.read(tokenState)
-        .onFailure().transform(throwable -> new AuthenticationCompletionException(FAILED_TO_ACQUIRE_TOKEN, throwable))
+        .onFailure()
+        .transform(throwable -> new AuthenticationCompletionException(FAILED_TO_ACQUIRE_TOKEN, throwable))
         .flatMap(optional -> {
           if (optional.isPresent()) {
             final var tokens = optional.get();
