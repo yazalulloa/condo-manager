@@ -22,22 +22,11 @@
         <div>{item.apt.aliquot}</div>
 
     </div>
-    <div class="block">
-        <button class="btn-sm btn btn-circle btn-outline btn-error"
-                hx-headers='{"{inject:csrf.headerName}":"{inject:csrf.token}"}'
-                hx-delete="{item.deleteUrl}"
-                hx-target="{item.cardIdRef}"
-                hx-include="[name='building_input'],[name='apt-search-input']"
-                hx-indicator=".htmx-indicator"
-                hx-disabled-elt="this"
-                hx-trigger="click"
-                hx-swap="delete swap:300ms">
-            <div hx-get="/assets/delete-cross.svg"
-                 hx-trigger="load"
-                 hx-target="this"
-                 hx-swap="outerHTML">
 
-            </div>
-        </button>
-    </div>
+    {#include fragments/delete-btn deleteUrl=item.deleteUrl cardIdRef=item.cardIdRef}
+        {#extraAttributes}
+            hx-include="[name='building_input'],[name='apt_search_input']"
+        {/extraAttributes}
+    {/include}
+
 </div>

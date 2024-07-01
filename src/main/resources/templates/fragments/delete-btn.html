@@ -7,9 +7,7 @@
             hx-disabled-elt="this"
             hx-trigger="click"
             hx-swap="delete swap:300ms"
-            {#if afterRequest && afterRequest != ''}
-                 hx-on:htmx:after-request="{afterRequest}"
-            {/if}
+            {#insert extraAttributes}{/}
     >
         <div hx-get="/assets/delete-cross.svg"
              hx-trigger="load"

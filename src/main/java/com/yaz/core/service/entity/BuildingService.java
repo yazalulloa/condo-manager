@@ -18,6 +18,7 @@ import io.quarkus.cache.CacheResult;
 import io.quarkus.qute.TemplateInstance;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
+import io.smallrye.mutiny.infrastructure.Infrastructure;
 import io.vertx.mutiny.core.Vertx;
 import io.vertx.mutiny.core.buffer.Buffer;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -73,8 +74,30 @@ public class BuildingService {
   @CacheInvalidateAll(cacheName = BuildingCache.IDS)
   @CacheInvalidate(cacheName = BuildingCache.EXISTS)
   public Uni<Void> invalidateOne(String id) {
-    vertx.fileSystem().deleteRecursiveAndForget(filePath, true);
-    return invalidateGet(id);
+    return invalidateGet(id)
+        .eventually(() -> {
+          vertx.fileSystem().exists(dirPath)
+              .flatMap(b -> {
+                if (!b) {
+                  return Uni.createFrom().voidItem();
+                }
+
+                return vertx.fileSystem().readDir(dirPath)
+                    .toMulti()
+                    .flatMap(Multi.createFrom()::iterable)
+                    .onItem()
+                    .transformToUni(str -> vertx.fileSystem().delete(str))
+                    .merge()
+                    .toUni();
+              })
+              .runSubscriptionOn(Infrastructure.getDefaultWorkerPool())
+              .subscribe()
+              .with(v -> {
+                log.info("Deleted file: {}", filePath);
+              }, t -> {
+                log.error("Error deleting file: {}", filePath, t);
+              });
+        });
   }
 
   @CacheInvalidateAll(cacheName = BuildingCache.SELECT)

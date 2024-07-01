@@ -10,4 +10,12 @@
     region: ohio
     dockerContext: .
     dockerfilePath: ./Dockerfile.jvm
+
+  - type: web
+    name: condo-manager
+    runtime: image
+    image:
+      url: quay.io/keycloak/keycloak:25.0.1
+
+
 version: "1"

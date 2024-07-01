@@ -116,7 +116,7 @@ public class ApartmentsResource {
   @Produces(MediaType.TEXT_HTML)
   public Uni<TemplateInstance> grid(
       @RestQuery String nextPage,
-      @RestQuery String q,
+      @RestQuery("apt_search_input") String q,
       @RestQuery("building_input") Set<String> building) {
 
     final var keys = Optional.ofNullable(nextPage)
@@ -138,7 +138,7 @@ public class ApartmentsResource {
   @Produces(MediaType.TEXT_HTML)
   public Uni<TemplateInstance> apartments(
       @RestQuery String nextPage,
-      @RestQuery String q,
+      @RestQuery("apt_search_input") String q,
       @RestQuery("building_input") Set<String> building) {
 
     final var keys = Optional.ofNullable(nextPage)
@@ -172,7 +172,7 @@ public class ApartmentsResource {
   @Path("counters")
   @Produces(MediaType.TEXT_HTML)
   public Uni<TemplateInstance> counters(
-      @RestQuery String q,
+      @RestQuery("apt_search_input") String q,
       @RestQuery("building_input") Set<String> building) {
 
     final var apartmentQuery = ApartmentQuery.builder()
@@ -198,7 +198,7 @@ public class ApartmentsResource {
   @DELETE
   @Produces(MediaType.TEXT_HTML)
   public Uni<TemplateInstance> delete(
-      @RestQuery("apt-search-input") String q,
+      @RestQuery("apt_search_input") String q,
       @RestQuery("building_input") Set<String> building,
       @RestQuery @NotBlank String id) {
 

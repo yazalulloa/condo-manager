@@ -31,6 +31,7 @@ key = '{dto.key}';
 </div>
 
 {#if dto.isEdit}
+    <title>Editar Edificio | {dto.id}</title>
     <div id="building-info" hx-swap-oob="true" class="pt-6 flex flex-col gap-6" x-data="{
     apts: [
 {#for item in dto.apts}

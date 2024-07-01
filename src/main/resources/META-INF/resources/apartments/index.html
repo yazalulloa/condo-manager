@@ -27,7 +27,7 @@
     </div>
 
     <label for="apt-search-input">
-      <input id="apt-search-input" class="input input-bordered w-full max-w-xs" type="search" name="q"
+      <input id="apt-search-input" class="input input-bordered w-full max-w-xs" type="search" name="apt_search_input"
              hx-get="/api/apartments/grid"
              hx-include="[name='building_input']"
              hx-trigger="keyup changed delay:300ms, search, new_apt"
