@@ -31,7 +31,7 @@ public class ExceptionMappers {
 
   @ServerExceptionMapper
   public RestResponse<String> mapException(UriInfo uriInfo, AuthenticationCompletionException x) {
-    //log.info("AuthenticationCompletionException {}", uriInfo.getAbsolutePath());
+    //log.info("AuthenticationCompletionException {}", uriInfo.getAbsolutePath(), x);
     final var response = RestResponse.ok("");
     response.getHeaders().add("HX-Redirect", "/login.html");
     return response;

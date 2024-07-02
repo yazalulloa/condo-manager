@@ -31,7 +31,7 @@ public class CustomSecurityIdentityAugmentor implements SecurityIdentityAugmento
     RoutingContext routingContext = identity.getAttribute(RoutingContext.class.getName());
     final var userIdAttr = identity.getAttribute("userId");
     if (identity.getPrincipal() instanceof OidcJwtCallerPrincipal principal && userIdAttr == null) {
-      log.info("CustomSecurityIdentityAugmentor.augment OidcJwtCallerPrincipal {}", principal.getIssuer());
+      //log.info("CustomSecurityIdentityAugmentor.augment OidcJwtCallerPrincipal {}", principal.getIssuer());
       if (principal.getIssuer().equals("https://accounts.google.com")) {
         final var subject = principal.getSubject();
         QuarkusSecurityIdentity.Builder builder = QuarkusSecurityIdentity.builder(identity);
@@ -49,7 +49,7 @@ public class CustomSecurityIdentityAugmentor implements SecurityIdentityAugmento
             });
       }
 
-      log.info("CustomSecurityIdentityAugmentor.augment OidcJwtCallerPrincipal {}", principal.getIssuer());
+      //log.info("CustomSecurityIdentityAugmentor.augment OidcJwtCallerPrincipal {}", principal.getIssuer());
     }
 
 

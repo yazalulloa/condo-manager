@@ -86,6 +86,7 @@ public class StaticReactiveRoutes {
       if (authSession) {
         rc.next();
       } else {
+        log.info("Redirecting to login.html {}", path);
         rc.response()
             .putHeader("HX-Redirect", "/login.html")
             .end();

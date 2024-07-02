@@ -39,7 +39,7 @@ public class TursoTokenStateManager implements TokenStateManager {
     final String id = now + UUID.randomUUID().toString();
     final var expiresIn = now + event.<Long>get(CodeAuthenticationMechanism.SESSION_MAX_AGE_PARAM);
 
-    log.debug("AuthorizationCodeTokens: {} {} {}", tokens.getIdToken(), tokens.getAccessToken(),
+    log.info("AuthorizationCodeTokens: {} {} {}", tokens.getIdToken(), tokens.getAccessToken(),
         tokens.getAccessTokenExpiresIn());
 
     return service.insert(tokens.getIdToken(), tokens.getAccessToken(),
