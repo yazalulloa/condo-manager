@@ -30,6 +30,7 @@ import com.yaz.persistence.entities.ExtraCharge;
 import com.yaz.persistence.entities.ReserveFund;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
+import io.quarkus.security.Authenticated;
 import io.quarkus.vertx.web.Route;
 import io.quarkus.vertx.web.Route.HttpMethod;
 import io.smallrye.mutiny.Uni;
@@ -60,6 +61,7 @@ import org.jboss.resteasy.reactive.RestPath;
 import org.jboss.resteasy.reactive.RestQuery;
 
 @Slf4j
+@Authenticated
 @Path(BuildingResource.PATH)
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class BuildingResource {

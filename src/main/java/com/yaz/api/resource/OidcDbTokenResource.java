@@ -5,6 +5,7 @@ import com.yaz.api.domain.response.OidcDbTokenTableResponse;
 import com.yaz.core.service.entity.OidcDbTokenService;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
+import io.quarkus.security.Authenticated;
 import io.smallrye.mutiny.Uni;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.DELETE;
@@ -18,6 +19,7 @@ import org.jboss.resteasy.reactive.RestPath;
 import org.jboss.resteasy.reactive.RestQuery;
 
 @Slf4j
+@Authenticated
 @Path(OidcDbTokenResource.PATH)
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class OidcDbTokenResource {

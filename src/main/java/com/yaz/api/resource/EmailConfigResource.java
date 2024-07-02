@@ -20,6 +20,7 @@ import com.yaz.persistence.domain.query.EmailConfigQuery;
 import com.yaz.persistence.entities.EmailConfig;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
+import io.quarkus.security.Authenticated;
 import io.reactivex.rxjava3.core.Single;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
@@ -46,6 +47,7 @@ import org.jboss.resteasy.reactive.RestPath;
 import org.jboss.resteasy.reactive.RestQuery;
 
 @Slf4j
+@Authenticated
 @Path(EmailConfigResource.PATH)
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class EmailConfigResource {

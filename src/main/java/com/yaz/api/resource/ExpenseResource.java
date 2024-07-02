@@ -22,6 +22,7 @@ import com.yaz.persistence.entities.Rate;
 import com.yaz.persistence.entities.Receipt;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
+import io.quarkus.security.Authenticated;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.json.Json;
 import jakarta.inject.Inject;
@@ -46,6 +47,7 @@ import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.RestPath;
 
 @Slf4j
+@Authenticated
 @Path(ExpenseResource.PATH)
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class ExpenseResource {

@@ -2,6 +2,7 @@ package com.yaz.api.resource;
 
 
 import com.yaz.core.util.ConvertUtil;
+import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
@@ -14,6 +15,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 @Path(TelegramChatResource.PATH)
 @Slf4j
+@Authenticated
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class TelegramChatResource {
 

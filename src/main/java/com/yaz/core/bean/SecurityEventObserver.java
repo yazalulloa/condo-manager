@@ -14,24 +14,24 @@ import lombok.extern.slf4j.Slf4j;
 public class SecurityEventObserver {
 
 //  void observeAuthenticationSuccess(@ObservesAsync AuthenticationSuccessEvent event) {
-//    log.info("User {} has authenticated successfully", event.getSecurityIdentity().getPrincipal().getName());
+//    log.info("User '{}' has authenticated successfully", event.getSecurityIdentity().getPrincipal().getName());
 //  }
 //
 //  void observeAuthenticationFailure(@ObservesAsync AuthenticationFailureEvent event) {
 //    RoutingContext routingContext = (RoutingContext) event.getEventProperties().get(RoutingContext.class.getName());
-//    log.info("Authentication failed, request path: {}", routingContext.request().path());
+//    log.info("Authentication failed, request path: '{}'", routingContext.request().path());
 //  }
 //
 //  void observeAuthorizationSuccess(@ObservesAsync AuthorizationSuccessEvent event) {
 //    String principalName = getPrincipalName(event);
 //    if (principalName != null) {
-//      log.info("User {} has been authorized successfully", principalName);
+//      log.info("User '{}' has been authorized successfully", principalName);
 //    }
 //  }
 //
 //  void observeAuthorizationFailure(@Observes AuthorizationFailureEvent event) {
-//    log.error("User {} authorization failed", event.getSecurityIdentity().getPrincipal().getName(),
-//        event.getAuthorizationFailure());
+//    final var name = event.getSecurityIdentity().getPrincipal().getName();
+//    log.error("User '{}' authorization failed: {}", name, event.getAuthorizationFailure().getMessage());
 //  }
 //
 //  private static String getPrincipalName(SecurityEvent event) {

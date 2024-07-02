@@ -3,6 +3,7 @@ package com.yaz.api.resource;
 import com.yaz.core.util.EnvParams;
 import com.yaz.core.util.SystemUtil;
 import io.quarkus.cache.CacheManager;
+import io.quarkus.security.Authenticated;
 import io.smallrye.mutiny.Uni;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -13,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jsoup.nodes.Element;
 
 @Slf4j
+@Authenticated
 @Path(ResourcesResource.PATH)
 @RequiredArgsConstructor
 public class ResourcesResource {

@@ -7,6 +7,7 @@ import io.quarkus.vertx.web.Route;
 import io.quarkus.vertx.web.Route.HttpMethod;
 import io.quarkus.vertx.web.RouteFilter;
 import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.StaticHandler;
@@ -78,9 +79,18 @@ public class StaticReactiveRoutes {
       rc.next();
       return;
     }
+    final var authSession = rc.request().cookies().stream()
+        .anyMatch(cookie -> cookie.getName().endsWith("auth_session"));
 
     if (isNextPath(path)) {
-      rc.next();
+      if (authSession) {
+        rc.next();
+      } else {
+        rc.response()
+            .putHeader("HX-Redirect", "/login.html")
+            .end();
+      }
+
       return;
     }
 
@@ -123,6 +133,13 @@ public class StaticReactiveRoutes {
 
     if (path.endsWith("/")) {
       rc.reroute(path + INDEX_HTML);
+      return;
+    }
+
+    if (authSession && path.equals("/oauth2/authorization/google")) {
+      rc.response()
+          .putHeader("HX-Redirect", "/")
+          .end();
       return;
     }
 

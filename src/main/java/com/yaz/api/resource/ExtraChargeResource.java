@@ -19,6 +19,7 @@ import com.yaz.persistence.entities.ExtraCharge.Keys;
 import com.yaz.persistence.entities.ExtraCharge.Type;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
+import io.quarkus.security.Authenticated;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.json.Json;
 import jakarta.inject.Inject;
@@ -49,6 +50,7 @@ import org.jboss.resteasy.reactive.RestPath;
 import org.jboss.resteasy.reactive.RestQuery;
 
 @Slf4j
+@Authenticated
 @Path(ExtraChargeResource.PATH)
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class ExtraChargeResource {

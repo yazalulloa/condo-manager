@@ -23,6 +23,7 @@ import com.yaz.persistence.entities.ReserveFund;
 import com.yaz.persistence.entities.ReserveFund.Keys;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
+import io.quarkus.security.Authenticated;
 import io.smallrye.mutiny.Uni;
 import jakarta.inject.Inject;
 import jakarta.validation.constraints.NotBlank;
@@ -49,7 +50,7 @@ import org.jboss.resteasy.reactive.RestPath;
 
 @Path(ReserveFundResource.PATH)
 @Slf4j
-//@Authenticated
+@Authenticated
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class ReserveFundResource {
 

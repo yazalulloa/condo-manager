@@ -60,6 +60,7 @@ import com.yaz.persistence.entities.Receipt.Keys;
 import com.yaz.persistence.entities.ReserveFund;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
+import io.quarkus.security.Authenticated;
 import io.reactivex.rxjava3.core.Single;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
@@ -104,7 +105,7 @@ import org.jboss.resteasy.reactive.multipart.FileUpload;
 
 @Path(ReceiptResource.PATH)
 @Slf4j
-//@Authenticated
+@Authenticated
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class ReceiptResource {
 

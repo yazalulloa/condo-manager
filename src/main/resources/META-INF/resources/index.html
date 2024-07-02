@@ -27,6 +27,15 @@
   <link rel="prefetch" href="/stc/receipts/pdfs/"/>
   <link rel="prefetch" href="/stc/users/"/>
   <link rel="prefetch" href="/stc/resources/"/>
+
+
+  <script>
+    let redirectTo = window.localStorage.getItem("redirect_to");
+    if (redirectTo && redirectTo.length > 1 && redirectTo.startsWith("/")) {
+      window.localStorage.setItem("redirect_to", null);
+      window.location.href = redirectTo
+    }
+  </script>
 </head>
 <body>
 
@@ -164,6 +173,27 @@
         </svg>
 
       </label>
+      <div class="dropdown dropdown-end">
+        <div tabindex="0" role="button" class="btn btn-ghost btn-circle">
+          <div hx-get="/api/users/picture"
+               hx-trigger="load"
+               hx-swap="outerHTML">
+
+          </div>
+        </div>
+        <ul
+            tabindex="0"
+            class="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow">
+          <li>
+            <a class="justify-between">
+              Profile
+              <span class="badge">New</span>
+            </a>
+          </li>
+          <li><a>Settings</a></li>
+          <li><a href="/login.html">Logout</a></li>
+        </ul>
+      </div>
     </div>
   </nav>
 

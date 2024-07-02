@@ -12,6 +12,7 @@ import com.yaz.persistence.domain.query.RateQuery;
 import com.yaz.persistence.entities.Rate;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
+import io.quarkus.security.Authenticated;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Inject;
@@ -34,6 +35,7 @@ import org.jboss.resteasy.reactive.RestResponse.ResponseBuilder;
 
 @Path(RateResource.PATH)
 @Slf4j
+@Authenticated
 //@Authenticated
 @RequiredArgsConstructor
 public class RateResource {

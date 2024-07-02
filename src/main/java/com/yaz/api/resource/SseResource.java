@@ -1,6 +1,7 @@
 package com.yaz.api.resource;
 
 import com.yaz.core.service.ServerSideEventHelper;
+import io.quarkus.security.Authenticated;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -12,8 +13,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jboss.resteasy.reactive.RestPath;
 
-@Path("/api/sse")
+
 @Slf4j
+@Authenticated
+@Path("/api/sse")
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class SseResource {
 

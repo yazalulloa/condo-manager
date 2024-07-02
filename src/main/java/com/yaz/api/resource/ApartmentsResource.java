@@ -21,6 +21,7 @@ import io.quarkus.oidc.IdToken;
 import io.quarkus.oidc.UserInfo;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
+import io.quarkus.security.Authenticated;
 import io.smallrye.mutiny.Uni;
 import jakarta.inject.Inject;
 import jakarta.validation.constraints.NotBlank;
@@ -47,6 +48,7 @@ import org.jboss.resteasy.reactive.RestQuery;
 
 
 @Slf4j
+@Authenticated
 @Path(ApartmentsResource.PATH)
 @RequiredArgsConstructor
 public class ApartmentsResource {

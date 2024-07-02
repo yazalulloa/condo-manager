@@ -2,6 +2,7 @@ package com.yaz.api.resource;
 
 import com.yaz.persistence.entities.NotificationEvent;
 import com.yaz.core.service.entity.NotificationEventService;
+import io.quarkus.security.Authenticated;
 import io.smallrye.mutiny.Uni;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.POST;
@@ -15,6 +16,7 @@ import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.RestPath;
 
 @Slf4j
+@Authenticated
 @Path(NotificationEventResource.PATH)
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class NotificationEventResource {

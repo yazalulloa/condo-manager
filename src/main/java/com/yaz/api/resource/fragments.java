@@ -2,6 +2,7 @@ package com.yaz.api.resource;
 
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
+import io.quarkus.security.Authenticated;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -10,6 +11,7 @@ import jakarta.ws.rs.core.MediaType;
 import org.jboss.resteasy.reactive.Cache;
 
 @ApplicationScoped
+@Authenticated
 @Path("/api/stc")
 public class fragments {
 
