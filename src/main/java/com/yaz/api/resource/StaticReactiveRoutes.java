@@ -137,11 +137,22 @@ public class StaticReactiveRoutes {
       return;
     }
 
-    if (authSession && path.equals("/oauth2/authorization/google")) {
-      rc.response()
-          .putHeader("HX-Redirect", "/")
-          .end();
-      return;
+//    if (authSession && path.equals("/oauth2/authorization/google")) {
+//      rc.response()
+//          .putHeader("HX-Redirect", "/")
+//          .end();
+//      return;
+//    }
+
+    if (path.equals("/oauth2/authorization/google")) {
+      if (authSession) {
+        rc.response()
+            .putHeader("HX-Redirect", "/")
+            .end();
+        return;
+      }
+
+      log.info("is not authSession {}", path);
     }
 
     rc.next();
