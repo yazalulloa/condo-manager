@@ -1,24 +1,16 @@
 package com.yaz.core.bean;
 
-import com.yaz.core.domain.GoogleUserData;
-import com.yaz.persistence.domain.IdentityProvider;
-import com.yaz.persistence.entities.User;
 import com.yaz.core.service.entity.OidcDbTokenService;
 import com.yaz.core.service.entity.UserService;
-import com.yaz.core.util.DateUtil;
 import io.quarkus.oidc.SecurityEvent;
 import io.quarkus.oidc.runtime.OidcJwtCallerPrincipal;
 import io.vertx.core.http.Cookie;
-import io.vertx.core.json.Json;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.microprofile.jwt.Claims;
 
 @Slf4j
 @ApplicationScoped
@@ -30,7 +22,8 @@ public class SecurityEventListener {
 
   public void event(@Observes SecurityEvent event) {
     final var securityIdentity = event.getSecurityIdentity();
-    final var principal = (OidcJwtCallerPrincipal) securityIdentity.getPrincipal();
+    final var tenant = securityIdentity.getAttribute("tenant");
+    final var userId = securityIdentity.<String>getAttribute("userId");
 
     final var tenantId = securityIdentity.getAttribute("tenant-id");
     final RoutingContext routingContext = securityIdentity.getAttribute(RoutingContext.class.getName());
@@ -38,66 +31,24 @@ public class SecurityEventListener {
     final var format = String.format("event:%s,tenantId:%s", event.getEventType().name(), tenantId);
     routingContext.put("listener-message", format);
 
-    //  log.info("SecurityEventListener.event {}", format);
+    final var sessionId = routingContext.request().cookies().stream()
+        .filter(cookie -> cookie.getName().startsWith("q_session"))
+        .map(Cookie::getValue)
+        .findFirst()
+        .orElse(null);
 
-    if (event.getEventType() == SecurityEvent.Type.OIDC_LOGIN
-        || event.getEventType() == SecurityEvent.Type.OIDC_SESSION_REFRESHED
-        || event.getEventType() == SecurityEvent.Type.OIDC_SESSION_EXPIRED_AND_REFRESHED) {
-      final var userData = GoogleUserData.builder()
-          .sub(principal.getSubject())
-          .givenName(principal.getClaim(Claims.given_name))
-          .name(principal.getName())
-          .email(principal.getClaim(Claims.email))
-          .emailVerified(principal.getClaim(Claims.email_verified))
-          .picture(principal.getClaim("picture"))
-          .locale(principal.getClaim(Claims.locale))
-          .iat(principal.getClaim(Claims.iat))
-          .exp(principal.getClaim(Claims.exp))
-          .atHash(principal.getClaim(Claims.at_hash))
-          .accessToken(principal.getRawToken())
-          .expiresIn(principal.getClaim(Claims.exp))
-          //.scope()
-          //.tokenType()
-          .idToken(principal.getRawToken())
-          .build();
-      routingContext.put("user-data", userData);
+    if (userId != null && sessionId != null) {
+      if (event.getEventType() == SecurityEvent.Type.OIDC_LOGIN
+          || event.getEventType() == SecurityEvent.Type.OIDC_SESSION_REFRESHED
+          || event.getEventType() == SecurityEvent.Type.OIDC_SESSION_EXPIRED_AND_REFRESHED) {
+        log.debug("updateUserId {} tenant {} sessionId {}", userId, tenant, sessionId);
+        tokenService.updateUserId(sessionId, userId)
+            .subscribe()
+            .with(i -> {
+              log.debug("session updated {} {} {}", sessionId, userId, i);
+            }, t -> log.error("Error update oidc token {} {}", sessionId, userId, t));
 
-      //log.info("userData {}", userData);
-
-      final var user = User.builder()
-          .provider(IdentityProvider.GOOGLE)
-          .providerId(userData.sub())
-          .email(userData.email())
-          .username(userData.givenName())
-          .name(userData.name())
-          .picture(userData.picture())
-          .data(new JsonObject(Json.encode(userData)))
-          .createdAt(DateUtil.utcLocalDateTime())
-          .lastLoginAt(DateUtil.utcLocalDateTime())
-          .build();
-
-      final var sessionId = Optional.ofNullable(routingContext.request().getCookie("q_session"))
-          .map(Cookie::getValue)
-          .orElse(null);
-
-      userService.saveIfExists(user)
-          .subscribe()
-          .with(
-              userId -> {
-                log.debug("User saved {}", userId);
-
-                if (sessionId != null && userId != null) {
-                  tokenService.updateUserId(sessionId, userId)
-                      .subscribe()
-                      .with(i -> {
-                        log.debug("session updated {} {} {}", sessionId, userId, i);
-                      }, t -> log.error("Error update oidc token {} {}", sessionId, userId, t));
-                }
-              },
-              throwable -> log.error("Error saving user", throwable)
-          );
+      }
     }
-
-
   }
 }

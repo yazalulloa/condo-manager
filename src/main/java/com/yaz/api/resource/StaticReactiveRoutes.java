@@ -68,9 +68,11 @@ public class StaticReactiveRoutes {
   public void all(RoutingContext rc) {
 
     final var path = rc.request().path();
+    final var uri = rc.request().uri();
 
     if (path.equals("/")
         || path.isEmpty()) {
+      log.debug("path first {}", path);
       rc.next();
       return;
     }
@@ -79,14 +81,17 @@ public class StaticReactiveRoutes {
       rc.next();
       return;
     }
+
+    log.debug("path {} uri {}", path, uri);
     final var authSession = rc.request().cookies().stream()
-        .anyMatch(cookie -> cookie.getName().endsWith("auth_session"));
+        .anyMatch(cookie -> cookie.getName().contains("auth_session"));
 
     if (isNextPath(path)) {
       if (authSession) {
+          log.debug("is authSession {} {}", path, uri);
         rc.next();
       } else {
-        log.info("Redirecting to login.html {}", path);
+        log.debug("Redirecting to login.html {} {}", path, uri);
         rc.response()
             .putHeader("HX-Redirect", "/login.html")
             .end();
@@ -101,16 +106,16 @@ public class StaticReactiveRoutes {
       if (path.endsWith("/")) {
         newPath += INDEX_HTML;
       }
-      //log.info("Returning STC {}", newPath);
+      //log.debug("Returning STC {}", newPath);
       rc.reroute(newPath);
       return;
     }
 
-    //log.info("path {}", path);
+    //log.debug("path {}", path);
 
     final var purpose = rc.request().getHeader("purpose");
     final var hxCurrentUrl = rc.request().getHeader("Hx-Current-Url");
-    //log.info("hxCurrentUrl {}", hxCurrentUrl);
+    //log.debug("hxCurrentUrl {}", hxCurrentUrl);
 
     if (hxCurrentUrl == null && (purpose == null || !purpose.equals("prefetch"))) {
       //log.error("hxCurrentUrl is null {}", path);
@@ -144,15 +149,16 @@ public class StaticReactiveRoutes {
 //      return;
 //    }
 
-    if (path.equals("/oauth2/authorization/google")) {
+    if (path.equals("/oauth2/authorization/google") || path.equals("/signed_in")) {
       if (authSession) {
+        log.debug("Redirecting to / {} {}", path, uri);
         rc.response()
             .putHeader("HX-Redirect", "/")
             .end();
         return;
       }
 
-      log.info("is not authSession {}", path);
+      log.debug("is not authSession {} {}", path, uri);
     }
 
     rc.next();
@@ -173,9 +179,10 @@ public class StaticReactiveRoutes {
     final var value = StringUtil.trimFilter(rc.request().getParam("v"));
 
     if (value == null) {
-      log.info("redirect {}", rc.request().uri());
+      log.debug("redirect 404 {}", rc.request().uri());
       rc.response().setStatusCode(404).end();
     } else {
+      log.debug("reroute {}", value);
       rc.reroute(value);
     }
   }

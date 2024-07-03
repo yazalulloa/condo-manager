@@ -1,8 +1,8 @@
 package com.yaz.api.resource;
 
-import com.yaz.persistence.domain.OidcDbTokenQueryRequest;
 import com.yaz.api.domain.response.OidcDbTokenTableResponse;
 import com.yaz.core.service.entity.OidcDbTokenService;
+import com.yaz.persistence.domain.OidcDbTokenQueryRequest;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
@@ -64,9 +64,8 @@ public class OidcDbTokenResource {
   @Produces(MediaType.TEXT_HTML)
   public Uni<TemplateInstance> delete(@RestPath String id) {
 
-    log.info("Deleting {}", id);
-    return service.delete(id)
-        .invoke(l -> log.info("OidcDbToken delete {} deleted {}", id, l))
-        .replaceWith(counters());
+    return Uni.combine().all()
+        .unis(service.delete(id), service.count())
+        .with((i, count) -> Templates.counters(count - i));
   }
 }

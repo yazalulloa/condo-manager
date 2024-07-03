@@ -39,8 +39,9 @@ public class TursoTokenStateManager implements TokenStateManager {
     final String id = now + UUID.randomUUID().toString();
     final var expiresIn = now + event.<Long>get(CodeAuthenticationMechanism.SESSION_MAX_AGE_PARAM);
 
-    log.info("AuthorizationCodeTokens: {} {} {}", tokens.getIdToken(), tokens.getAccessToken(),
+    log.debug("AuthorizationCodeTokens: {} {} {} {}", id, tokens.getIdToken(), tokens.getAccessToken(),
         tokens.getAccessTokenExpiresIn());
+    log.debug("Inserting token state into database: {}", id);
 
     return service.insert(tokens.getIdToken(), tokens.getAccessToken(),
             tokens.getRefreshToken(), expiresIn, id)
@@ -50,8 +51,10 @@ public class TursoTokenStateManager implements TokenStateManager {
         .transform(throwable -> new AuthenticationFailedException(TOKEN_STATE_INSERT_FAILED, throwable))
         .flatMap(affected -> {
           if (true) {
+            log.debug("Token state inserted: {} {}", id, affected);
             return Uni.createFrom().item(id);
           }
+          log.debug(TOKEN_STATE_INSERT_FAILED + " {}", id);
           return Uni.createFrom().failure(new AuthenticationFailedException(TOKEN_STATE_INSERT_FAILED));
         })
         .memoize().indefinitely();
@@ -73,7 +76,7 @@ public class TursoTokenStateManager implements TokenStateManager {
                 tokens.accessToken(),
                 tokens.refreshToken()));
           }
-          log.info(FAILED_TO_ACQUIRE_TOKEN);
+          log.debug(FAILED_TO_ACQUIRE_TOKEN);
           return Uni.createFrom().failure(new AuthenticationCompletionException(FAILED_TO_ACQUIRE_TOKEN));
 
         })

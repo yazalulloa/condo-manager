@@ -37,7 +37,7 @@ public class GoogleUserData {
   private final String email;
 
   @JsonProperty
-  private final boolean emailVerified;
+  private final Boolean emailVerified;
 
   @JsonProperty
   private final String picture;
