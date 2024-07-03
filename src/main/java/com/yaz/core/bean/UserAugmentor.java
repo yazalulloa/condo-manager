@@ -1,10 +1,13 @@
 package com.yaz.core.bean;
 
 import com.yaz.persistence.domain.IdentityProvider;
+import io.quarkus.oidc.OidcTenantConfig;
 import io.quarkus.oidc.UserInfo;
 import io.quarkus.oidc.runtime.OidcJwtCallerPrincipal;
 import io.quarkus.security.identity.SecurityIdentity;
+import io.vertx.core.json.Json;
 import io.vertx.ext.web.RoutingContext;
+import java.util.Optional;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,6 +27,9 @@ public class UserAugmentor {
     this.routingContext = securityIdentity.getAttribute(RoutingContext.class.getName());
 
     if (routingContext != null) {
+      //log.info("Data keys: {}", routingContext.data().keySet());
+      final var tenantConfig = (OidcTenantConfig) routingContext.data().get("io.quarkus.oidc.OidcTenantConfig");
+      //log.info("Tenant config: {}", Optional.ofNullable(tenantConfig).map(Json::encode).orElse("is null"));
       this.tenant = (String) routingContext.data().get("static.tenant.id");
       if (securityIdentity.getPrincipal() instanceof OidcJwtCallerPrincipal principal && tenant != null) {
         this.principal = principal;
