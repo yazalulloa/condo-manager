@@ -19,3 +19,4 @@ Features:
 - Telegram notification
 - Cron jobs
 - Excel parsing
+- Google, Github Oauth2 Login
