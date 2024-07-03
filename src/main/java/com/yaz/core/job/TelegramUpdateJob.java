@@ -2,8 +2,10 @@ package com.yaz.core.job;
 
 import com.yaz.core.service.TelegramCommandResolver;
 import com.yaz.core.service.TelegramRestService;
+import io.micrometer.core.annotation.Timed;
 import io.quarkus.scheduler.Scheduled;
 import io.smallrye.mutiny.Multi;
+import io.smallrye.mutiny.Uni;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -30,23 +32,27 @@ public class TelegramUpdateJob {
     if (!RUNNING.get() && getUpdatesJob) {
       final var offset = updateIds.stream().max(Long::compareTo).map(i -> i + 1).orElse(null);
       updateIds.clear();
-      restService.getUpdates(offset)
-          .toMulti()
-          .flatMap(Multi.createFrom()::iterable)
-          .filter(up -> updateIds.add(up.updateId()))
-          .onItem()
-          .transformToUni(commandResolver::resolve)
-          .merge()
+      processUpdates(offset)
+          .onTermination()
+          .invoke(() -> RUNNING.set(false))
           .subscribe()
           .with(
-              subscription -> RUNNING.set(true),
               v -> {
               },
-              e -> log.error("ERROR TelegramUpdateJob offset: {}", offset, e),
-              () -> {
-                RUNNING.set(false);
-              });
+              e -> log.error("ERROR TelegramUpdateJob offset: {}", offset, e));
     }
+  }
+
+  @Timed(value = "telegram_job.updates_processing", description = "[Telegram Job] A measure of how long it takes to process Telegram updates")
+  Uni<Void> processUpdates(Long offset) {
+    return restService.getUpdates(offset)
+        .toMulti()
+        .flatMap(Multi.createFrom()::iterable)
+        .filter(up -> updateIds.add(up.updateId()))
+        .onItem()
+        .transformToUni(commandResolver::resolve)
+        .merge()
+        .toUni();
   }
 
 }

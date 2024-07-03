@@ -2,6 +2,7 @@ package com.yaz.core.job;
 
 import com.yaz.core.service.SaveNewBcvRate;
 import com.yaz.core.util.MutinyUtil;
+import io.micrometer.core.annotation.Timed;
 import io.quarkus.scheduler.Scheduled;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -28,6 +29,7 @@ public class BcvJob {
     return saveNewBcvRate();
   }
 
+  @Timed(value = "bcv_job", description = "[BCV Job] A measure of how long it takes to save new BCV rate")
   Uni<Void> saveNewBcvRate() {
     //log.info("RUN_JOB {} counter: {}", Thread.currentThread(), counter.incrementAndGet());
 
