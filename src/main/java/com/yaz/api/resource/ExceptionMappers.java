@@ -1,6 +1,7 @@
 package com.yaz.api.resource;
 
 import io.quarkus.security.AuthenticationCompletionException;
+import io.quarkus.security.ForbiddenException;
 import io.quarkus.security.UnauthorizedException;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.container.ContainerRequestContext;
@@ -9,10 +10,17 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import lombok.extern.slf4j.Slf4j;
 import org.jboss.resteasy.reactive.RestResponse;
+import org.jboss.resteasy.reactive.RestResponse.Status;
 import org.jboss.resteasy.reactive.server.ServerExceptionMapper;
 
 @Slf4j
 public class ExceptionMappers {
+
+  @ServerExceptionMapper
+  public RestResponse<String> forbiddenException(UriInfo uriInfo, ForbiddenException e) {
+    log.error("ForbiddenException {}", uriInfo.getAbsolutePath(), e);
+    return RestResponse.status(Status.FORBIDDEN);
+  }
 
   @ServerExceptionMapper
   public RestResponse<String> mapException(UriInfo uriInfo, UnauthorizedException x) throws URISyntaxException {
@@ -31,7 +39,8 @@ public class ExceptionMappers {
   }
 
   @ServerExceptionMapper
-  public RestResponse<String> mapException(UriInfo uriInfo,  ContainerRequestContext requestContext, AuthenticationCompletionException x)
+  public RestResponse<String> mapException(UriInfo uriInfo, ContainerRequestContext requestContext,
+      AuthenticationCompletionException x)
       throws URISyntaxException {
 
     final var hxCurrent = requestContext.getHeaders().getFirst("Hx-Current-Url");
@@ -42,7 +51,6 @@ public class ExceptionMappers {
       response.getHeaders().add("HX-Redirect", "/login.html");
       return response;
     }
-
 
     return RestResponse.temporaryRedirect(new URI("/login.html"));
   }

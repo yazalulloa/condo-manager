@@ -88,7 +88,7 @@ public class StaticReactiveRoutes {
 
     if (isNextPath(path)) {
       if (authSession) {
-          log.debug("is authSession {} {}", path, uri);
+          log.info("is authSession {} {}", path, uri);
         rc.next();
       } else {
         log.debug("Redirecting to login.html {} {}", path, uri);

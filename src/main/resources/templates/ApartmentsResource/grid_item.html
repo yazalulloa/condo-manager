@@ -9,7 +9,7 @@
         {/if}
 >
     <div class="apartment-grid-content p-1"
-         @click.prevent="$dispatch('event-edit-apt-modal', '{item.editAttr.format}')"
+         @dblclick.prevent="$dispatch('event-edit-apt-modal', '{item.editAttr.format}')"
     >
         <div>{item.apt.buildingId}</div>
         <div>{item.apt.number}</div>

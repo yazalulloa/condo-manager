@@ -15,12 +15,13 @@ public class ApiCheckHttpSecurityPolicy implements HttpSecurityPolicy {
   public Uni<CheckResult> checkPermission(RoutingContext event, Uni<SecurityIdentity> identity,
       AuthorizationRequestContext requestContext) {
 
-    //log.info("checkPermission");
+    log.info("checkPermission {}", event.request().uri());
 
     if (customRequestAuthorization(event)) {
       return Uni.createFrom().item(CheckResult.PERMIT);
     }
 
+    log.info("checkPermission DENY {}", event.request().uri());
     return Uni.createFrom().item(CheckResult.DENY);
   }
 

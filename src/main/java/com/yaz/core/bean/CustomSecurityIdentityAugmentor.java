@@ -17,9 +17,7 @@ import io.quarkus.security.runtime.QuarkusSecurityIdentity;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.RoutingContext;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import java.util.Optional;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
@@ -30,23 +28,28 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 @ApplicationScoped
 public class CustomSecurityIdentityAugmentor implements SecurityIdentityAugmentor {
 
-  @Inject
-  UserService userService;
 
-  @Inject
-  @RestClient
-  RestGithubClient githubClient;
+  private final UserService userService;
+  private final RestGithubClient githubClient;
+
+  public CustomSecurityIdentityAugmentor(UserService userService, @RestClient RestGithubClient githubClient) {
+    this.userService = userService;
+    this.githubClient = githubClient;
+  }
 
   @Override
   public Uni<SecurityIdentity> augment(SecurityIdentity identity, AuthenticationRequestContext context) {
-
     final var userAugmentor = new UserAugmentor(identity);
 
     if (!userAugmentor.canAugment()) {
+      log.info("Cannot augment user {}", userAugmentor);
       return Uni.createFrom().item(identity);
     }
 
-    log.debug("Augmenting user {}", userAugmentor);
+    final var requestUri = userAugmentor.routingContext().request().uri();
+
+
+    log.debug("Augmenting user {} {}", userAugmentor, requestUri);
     return userService.getIdFromProvider(userAugmentor.identityProvider(), userAugmentor.providerId())
         .<SecurityIdentity>flatMap(opt -> {
           if (opt.isEmpty()) {
@@ -62,14 +65,17 @@ public class CustomSecurityIdentityAugmentor implements SecurityIdentityAugmento
                         return builder.build();
                       });
                 });
-          } else {
-            QuarkusSecurityIdentity.Builder builder = QuarkusSecurityIdentity.builder(identity);
-            builder.addAttribute("userId", opt.get());
-            builder.addAttribute("tenant", userAugmentor.tenant());
-            builder.addRole("RECEIPTS_READ");
-            return Uni.createFrom().item(builder.build());
           }
 
+          log.debug("User found {}", opt.get());
+          QuarkusSecurityIdentity.Builder builder = QuarkusSecurityIdentity.builder(identity);
+          builder.addAttribute("userId", opt.get());
+          builder.addAttribute("tenant", userAugmentor.tenant());
+          builder.addRole("RECEIPTS_READ");
+          return Uni.createFrom().item(builder.build());
+        })
+        .invoke(securityIdentity -> {
+          log.debug("Roles user {} {}", securityIdentity.getRoles(), requestUri);
         })
         .onFailure()
         .invoke(throwable -> {
@@ -117,7 +123,7 @@ public class CustomSecurityIdentityAugmentor implements SecurityIdentityAugmento
       case "github": {
 
         UserInfo userInfo = userAugmentor.securityIdentity().getAttribute("userinfo");
-        log.info("userinfo {}", userInfo.getJsonObject());
+        log.debug("userinfo {}", userInfo.getJsonObject());
 
         Set<String> audSet = principal.getClaim(Claims.aud);
         final var aud = Optional.ofNullable(audSet)
