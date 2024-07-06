@@ -152,10 +152,7 @@ public class ReserveFundResource {
   @PUT
   @Produces(MediaType.TEXT_HTML)
   public Uni<TemplateInstance> upsert(@BeanParam ReserveFundBeanRequest request) {
-    log.info("PUT request: {}", request);
-
     final var keys = encryptionService.decryptObj(request.getKey(), Keys.class);
-    log.info("PUT keys: {}", keys);
 
     final var name = StringUtil.trimFilter(request.getName());
 
