@@ -1,5 +1,6 @@
 package com.yaz.api.resource;
 
+import com.yaz.core.service.entity.OidcDbTokenService;
 import io.quarkus.qute.Template;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.vertx.web.Route;
@@ -21,16 +22,21 @@ import org.jboss.resteasy.reactive.NoCache;
 public class LoginController {
 
   private final Template login;
+  private final OidcDbTokenService tokenService;
 
   @Priority(0)
   @Route(path = "/login.html", methods = HttpMethod.GET)
   public void login(RoutingContext rc) {
-    //log.info("login.html");
+
     for (Cookie cookie : rc.request().cookies()) {
       final var name = cookie.getName();
       if (name.endsWith("auth_session")) {
-        log.info("Removing cookie: {}", name);
+        final var value = cookie.getValue();
         rc.response().removeCookie(name);
+        tokenService.delete(value)
+            .subscribe().with(
+            i -> log.debug("Deleted token: {} {} {}", name, value, i),
+            e -> log.error("ERROR deleting token: {} {}", name, value, e));
       }
     }
 

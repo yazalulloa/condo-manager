@@ -272,7 +272,7 @@ public class ApartmentTursoRepository implements ApartmentRepository {
       }
 
       final var sql = QUERY_COUNT_WHERE.formatted(includeEmails, queryParams);
-      log.info("queryCount: {}", sql);
+
       return tursoWsService.count(sql, values)
           .map(Optional::of);
     }
