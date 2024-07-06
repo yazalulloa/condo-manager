@@ -1,5 +1,8 @@
 package com.yaz.persistence.repository.turso;
 
+import com.yaz.core.util.DateUtil;
+import com.yaz.core.util.SqlUtil;
+import com.yaz.core.util.StringUtil;
 import com.yaz.persistence.domain.IdentityProvider;
 import com.yaz.persistence.domain.query.SortOrder;
 import com.yaz.persistence.domain.query.UserQuery;
@@ -10,12 +13,8 @@ import com.yaz.persistence.repository.turso.client.TursoWsService;
 import com.yaz.persistence.repository.turso.client.ws.request.Stmt;
 import com.yaz.persistence.repository.turso.client.ws.request.Value;
 import com.yaz.persistence.repository.turso.client.ws.response.ExecuteResp.Row;
-import com.yaz.core.util.DateUtil;
-import com.yaz.core.util.SqlUtil;
-import com.yaz.core.util.StringUtil;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -30,7 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 //@LookupIfProperty(name = "app.repository.impl", stringValue = "turso")
 //@Named("turso")
 @ApplicationScoped
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
+@RequiredArgsConstructor
 public class UserTursoRepository implements UserRepository {
 
   private static final String COLLECTION = "users";
@@ -51,7 +50,8 @@ public class UserTursoRepository implements UserRepository {
   private static final String INSERT = """
       INSERT INTO %s (id, provider_id, provider, email, username, name, picture, data) VALUES (%s)
       """.formatted(COLLECTION, SqlUtil.params(8));
-  private static final String UPDATE = "UPDATE %s SET last_login_at = datetime() WHERE id = ?".formatted(COLLECTION);
+  private static final String UPDATE_LAST_LOGIN_AT = "UPDATE %s SET last_login_at = datetime() WHERE id = ?".formatted(
+      COLLECTION);
   private static final String LIKE_QUERY = " concat(email, name, username) LIKE ? ";
   private static final String SELECT_ID_FROM_PROVIDER = "SELECT id FROM %s WHERE provider = ? AND provider_id = ?".formatted(
       COLLECTION);
@@ -85,7 +85,7 @@ public class UserTursoRepository implements UserRepository {
   @Override
   public Uni<Integer> updateLastLoginAt(String id) {
 
-    return tursoWsService.executeQuery(UPDATE, Value.text(id))
+    return tursoWsService.executeQuery(UPDATE_LAST_LOGIN_AT, Value.text(id))
         .map(executeResp -> executeResp.result().rowCount());
   }
 
@@ -149,6 +149,18 @@ public class UserTursoRepository implements UserRepository {
   public Uni<Boolean> exists(String id) {
     return tursoWsService.selectOne(Stmt.stmt(EXISTS, Value.text(id)), row -> row.getString("id"))
         .map(Optional::isPresent);
+  }
+
+  @Override
+  public Uni<Integer> update(User user) {
+    final var update = """
+        UPDATE %s SET email = ?, username = ?, name = ?, picture = ?, data = ?
+        WHERE id = ?
+        """.formatted(COLLECTION);
+
+    return tursoWsService.executeQuery(update, Value.text(user.email()), Value.text(user.username()),
+            Value.text(user.name()), Value.text(user.picture()), Value.text(user.data().encode()), Value.text(user.id()))
+        .map(executeResp -> executeResp.result().rowCount());
   }
 
   private User from(Row row) {

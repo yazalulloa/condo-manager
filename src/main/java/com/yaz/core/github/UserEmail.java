@@ -11,4 +11,7 @@ public record UserEmail(
     String visibility
 ) {
 
+  public static UserEmail email(String email) {
+    return new UserEmail(email, true, true, "public");
+  }
 }

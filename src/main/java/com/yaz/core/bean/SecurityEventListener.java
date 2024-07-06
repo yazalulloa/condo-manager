@@ -3,21 +3,21 @@ package com.yaz.core.bean;
 import com.yaz.core.service.entity.OidcDbTokenService;
 import com.yaz.core.service.entity.UserService;
 import io.quarkus.oidc.SecurityEvent;
-import io.quarkus.oidc.runtime.OidcJwtCallerPrincipal;
+import io.smallrye.mutiny.Uni;
 import io.vertx.core.http.Cookie;
 import io.vertx.ext.web.RoutingContext;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
-import jakarta.inject.Inject;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @ApplicationScoped
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
+@RequiredArgsConstructor
 public class SecurityEventListener {
 
   private final UserService userService;
+  private final UserAugmentService userAugmentService;
   private final OidcDbTokenService tokenService;
 
   public void event(@Observes SecurityEvent event) {
@@ -48,7 +48,25 @@ public class SecurityEventListener {
               log.debug("session updated {} {} {}", sessionId, userId, i);
             }, t -> log.error("Error update oidc token {} {}", sessionId, userId, t));
 
+        final var userAugmentor = new UserAugmentor(securityIdentity);
+        if (userAugmentor.canAugment()) {
+
+          userAugmentService.getUser(userAugmentor)
+              .map(user -> user.toBuilder()
+                  .id(userId)
+                  .build())
+              .flatMap(userService::update)
+              .subscribe()
+              .with(i -> {
+                log.debug("User updated {}", i);
+              }, t -> log.error("Error update user {}", userAugmentor, t));
+        }
+
+
+
       }
     }
   }
+
+
 }

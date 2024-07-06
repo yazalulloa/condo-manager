@@ -139,4 +139,8 @@ public class UserService {
   public Uni<Boolean> exists(String userId) {
     return repository().exists(userId);
   }
+
+  public Uni<Integer> update(User user) {
+    return repository().update(user);
+  }
 }

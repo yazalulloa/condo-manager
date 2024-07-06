@@ -24,4 +24,6 @@ public interface UserRepository {
   Uni<Optional<User>> read(String userId);
 
   Uni<Boolean> exists(String userId);
+
+  Uni<Integer> update(User user);
 }
