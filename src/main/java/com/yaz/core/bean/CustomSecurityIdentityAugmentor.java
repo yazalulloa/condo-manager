@@ -42,7 +42,7 @@ public class CustomSecurityIdentityAugmentor implements SecurityIdentityAugmento
     final var userAugmentor = new UserAugmentor(identity);
 
     if (!userAugmentor.canAugment()) {
-      log.info("Cannot augment user {}", userAugmentor);
+      log.debug("Cannot augment user {}", userAugmentor);
       return Uni.createFrom().item(identity);
     }
 
