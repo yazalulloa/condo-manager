@@ -16,13 +16,12 @@
         {/for}
     </div>
 
-    <div id="expenses-table-item-grid">
-
+    <ol type="1" class="list-decimal custom-hover" id="expenses-table-item-grid">
 
         {#for item in list}
             {#if item.item.reserveFund == false}
-                    {#include ExpenseResource/item item = item /}
+                {#include ExpenseResource/listItem item = item /}
             {/if}
         {/for}
-    </div>
+    </ol>
 </div>

@@ -1,0 +1,34 @@
+{@com.yaz.api.domain.response.ExpenseTableItem item}
+
+<div class="expenses-grid-content item-grid-cm p-1"
+    {#if item.item.reserveFund == false}
+        @click.prevent="
+            is_edit = true;
+            key = '{item.key}';
+            description = '{item.item.description}';
+            amount = '{item.item.amount}';
+            currency = '{item.item.currency}';
+            expenseType = '{item.item.type}';
+            "
+    {/if}
+>
+    <div class="flex"><span>{item.item.description}</span></div>
+    <div class="flex justify-end"><span class="text-end">{item.item.formatAmount}</span></div>
+    <div>{item.item.type}</div>
+</div>
+
+<div class="flex flex-row gap-2 justify-center p-1">
+    {#if item.item.reserveFund == false}
+
+        {#include fragments/delete-btn deleteUrl=item.deleteUrl cardIdRef=item.cardIdRef}
+            {#extraAttributes}
+                hx-on:htmx:after-request="event.target.dispatchEvent(new CustomEvent('event-expense-form-restart-after-deletion', { bubbles: true, detail: { key: '{item.key}'} }))"
+            {/extraAttributes}
+        {/include}
+    {#else}
+        <div style="height: 2rem">
+
+        </div>
+    {/if}
+
+</div>

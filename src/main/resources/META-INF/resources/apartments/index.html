@@ -46,6 +46,26 @@
     <img class="htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">
   </div>
 
+  <div class="flex justify-center">
+    <ol type="1" class="list-decimal">
+      <li><a>
+        <div>
+          Coffee
+        </div>
+      </a></li>
+      <li><a>
+        <div>
+          Tea
+        </div>
+      </a></li>
+      <li><a>
+        <div>
+          Milk
+        </div>
+      </a></li>
+    </ol>
+  </div>
+
   <div class="apartment-grid-header p-2 font-bold">
     <span>Edificio</span>
     <span>Apto</span>
@@ -68,8 +88,8 @@
   </div>
 
   <div hx-get="/apartments/formDialog.html"
-        hx-trigger="load"
-        hx-swap="outerHTML"
+       hx-trigger="load"
+       hx-swap="outerHTML"
   ></div>
 </div>
 

@@ -1,18 +1,16 @@
 {@com.yaz.api.domain.response.ExpenseTableItem item}
 
-<div class="expenses-grid-item base-grid-cm
+<li class="
 {#if item.item.reserveFund == false}
-    hover:alert-info
+    hover:asd-alert-info
 {/if}
 fade-me-out fade-me-in"
-     id="{item.cardId}"
+    id="{item.cardId}"
         {#if item.outOfBoundsUpdate}
             hx-swap-oob="true"
         {/if}
 >
-
-
+<a class="expenses-grid-item base-grid-cm">
         {#include ExpenseResource/itemContent item = item /}
-
-
-</div>
+</a>
+</li>

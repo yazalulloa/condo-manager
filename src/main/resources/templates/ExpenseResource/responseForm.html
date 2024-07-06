@@ -19,10 +19,10 @@ $dispatch('event-expense-form-reset');
 
     {#if dto.tableItem.addAfterEnd}
         <div id="expenses-table-item-grid" hx-swap-oob="beforeend">
-                {#include ExpenseResource/item item = dto.tableItem /}
+                {#include ExpenseResource/listItem item = dto.tableItem /}
         </div>
     {#else}
-            {#include ExpenseResource/item item = dto.tableItem /}
+            {#include ExpenseResource/listItem item = dto.tableItem /}
     {/if}
 {/if}
 

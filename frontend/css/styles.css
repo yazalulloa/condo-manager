@@ -503,3 +503,42 @@ details > summary::-webkit-details-marker {
   top: 50%;
   transform: translateY(-50%);
 }
+
+.custom-hover {
+
+}
+
+
+@media (hover: hover) {
+  :where(.custom-hover li:not(.custom-hover-title, .disabled) > *:not(ul, details, .custom-hover-title)):not(.active, .btn):hover, :where(.custom-hover li:not(.custom-hover-title, .disabled) > details > summary:not(.custom-hover-title)):not(.active, .btn):hover {
+    cursor: pointer;
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+  }
+  @supports (color: oklch(0% 0 0)) {
+    :where(.custom-hover li:not(.custom-hover-title, .disabled) > *:not(ul, details, .custom-hover-title)):not(.active, .btn):hover, :where(.custom-hover li:not(.custom-hover-title, .disabled) > details > summary:not(.custom-hover-title)):not(.active, .btn):hover {
+      background-color: var(--fallback-bc,oklch(var(--bc)/0.1));
+    }
+  }
+}
+.custom-hover li > *:not(ul, .custom-hover-title, details, .btn):active,
+.custom-hover li > *:not(ul, .custom-hover-title, details, .btn).active,
+.custom-hover li > details > summary:active {
+  --tw-bg-opacity: 1;
+  background-color: var(--fallback-n,oklch(var(--n)/var(--tw-bg-opacity)));
+  --tw-text-opacity: 1;
+  color: var(--fallback-nc,oklch(var(--nc)/var(--tw-text-opacity)));
+}
+@media(hover:hover) {
+  .custom-hover li > *:not(ul, .custom-hover-title, details, .btn):active,
+  .custom-hover li > *:not(ul, .custom-hover-title, details, .btn).active,
+  .custom-hover li > details > summary:active {
+    --tw-bg-opacity: 1;
+    background-color: var(--fallback-n,oklch(var(--n)/var(--tw-bg-opacity)));
+    --tw-text-opacity: 1;
+    color: var(--fallback-nc,oklch(var(--nc)/var(--tw-text-opacity)));
+  }
+}
+.custom-hover li.disabled {
+  color: var(--fallback-bc,oklch(var(--bc)/0.3));
+}
