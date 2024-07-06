@@ -97,16 +97,20 @@
       </label>
 
       <div class="pb-2">
-        <template x-for="apt in send_dialog_apts">
-          <label class="grid apt-receipt-dialog-grid justify-around p-1 gap-2 hover:alert-info">
-            <span x-text="apt.number"></span>
-            <span x-text="apt.name"></span>
-            <input type="checkbox" checked="checked" class="receipt-sent-checkbox checkbox" name="apts"
-                   @click="apt_selected.includes(apt.number) ? apt_selected = apt_selected.filter(a => a !== apt.number) : apt_selected.push(apt.number);"
-                   x-bind:checked="apt_selected.includes(apt.number)"
-                   x-bind:value="apt.number"/>
-          </label>
-        </template>
+        <ol class="custom-hover">
+          <template x-for="apt in send_dialog_apts">
+            <li>
+              <label class="grid apt-receipt-dialog-grid justify-around p-1 gap-2 rounded">
+                <span x-text="apt.number"></span>
+                <span x-text="apt.name"></span>
+                <input type="checkbox" checked="checked" class="receipt-sent-checkbox checkbox" name="apts"
+                       @click="apt_selected.includes(apt.number) ? apt_selected = apt_selected.filter(a => a !== apt.number) : apt_selected.push(apt.number);"
+                       x-bind:checked="apt_selected.includes(apt.number)"
+                       x-bind:value="apt.number"/>
+              </label>
+            </li>
+          </template>
+        </ol>
 
       </div>
 

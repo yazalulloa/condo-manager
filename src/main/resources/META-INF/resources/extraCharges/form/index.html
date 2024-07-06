@@ -83,16 +83,20 @@
           />
         </label>
 
-        <template x-for="apt in apts">
-          <label class="grid apt-receipt-dialog-grid gap-2 cursor-pointer p-1 hover:alert-info">
-            <span class="flex justify-center" x-text="apt.number"></span>
-            <span class="flex justify-center" x-text="apt.name"></span>
-            <input type="checkbox" class="checkbox m-auto" name="apts"
-                   @click="apt_selected.includes(apt.number) ? apt_selected = apt_selected.filter(a => a !== apt.number) : apt_selected.push(apt.number);"
-                   x-bind:checked="apt_selected.includes(apt.number)"
-                   x-bind:value="apt.number"/>
-          </label>
-        </template>
+       <ol class="custom-hover">
+         <template x-for="apt in apts">
+           <li>
+             <label class="grid apt-receipt-dialog-grid gap-2 cursor-pointer p-1 rounded">
+               <span class="flex justify-center" x-text="apt.number"></span>
+               <span class="flex justify-center" x-text="apt.name"></span>
+               <input type="checkbox" class="checkbox m-auto" name="apts"
+                      @click="apt_selected.includes(apt.number) ? apt_selected = apt_selected.filter(a => a !== apt.number) : apt_selected.push(apt.number);"
+                      x-bind:checked="apt_selected.includes(apt.number)"
+                      x-bind:value="apt.number"/>
+             </label>
+           </li>
+         </template>
+       </ol>
       </div>
       <form method="dialog" class="modal-backdrop">
         <button>close</button>

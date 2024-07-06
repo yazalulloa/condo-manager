@@ -1,11 +1,13 @@
 {@com.yaz.api.domain.response.DebtTableItem item}
 
-<div class="debts-grid base-grid-cm hover:alert-info p-1 fade-me-out fade-me-in"
-     id="{item.cardId}"
-        {#if item.outOfBoundsUpdate}
-            hx-swap-oob="true"
-        {/if}
-     @click.prevent="
+<li id="{item.cardId}"
+    class="fade-me-out fade-me-in"
+{#if item.outOfBoundsUpdate}
+    hx-swap-oob="true"
+        {/if}>
+
+    <a class="debts-grid base-grid-cm p-1"
+       @click.prevent="
     key = '{item.key}'
     open_form = true;
     apartment = '{item.item.aptNumber} {item.item.aptName}'
@@ -21,23 +23,13 @@
     is_edit = true;
     $dispatch('event-debt-form-clean-errors');
     "
->
+    >
 
-    <div class="flex"><span>{item.item.aptNumber} {item.item.aptName}</span></div>
-    <div><span>{item.item.receipts}</span></div>
-    <div class="flex justify-end"><span class="text-end">{item.formatAmount}</span></div>
-    <span class="text-wrap" script="init call monthsToStr({item.item.months}) then put it into my.innerHTML"></span>
-    <div>{item.item.formatPreviousPaymentAmount}</div>
+        <div class="flex"><span>{item.item.aptNumber} {item.item.aptName}</span></div>
+        <div><span>{item.item.receipts}</span></div>
+        <div class="flex justify-end"><span class="text-end">{item.formatAmount}</span></div>
+        <span class="text-wrap" script="init call monthsToStr({item.item.months}) then put it into my.innerHTML"></span>
+        <div>{item.item.formatPreviousPaymentAmount}</div>
 
-    {!<div class="flex flex-row gap-2 justify-center">!}
-    {!<button class="btn btn-circle"!}
-    {!hx-get="{item.editUrl}"!}
-    {!hx-indicator=".htmx-indicator"!}
-    {!hx-trigger="click"!}
-    {!hx-swap="none">!}
-    {!!}
-    {!<img class="h-6 w-6" src="/assets/edit_icon.svg" alt="edit-debt">!}
-    {!</button>!}
-    {!</div>!}
-
-</div>
+    </a>
+</li>

@@ -1,15 +1,13 @@
 {@com.yaz.api.domain.response.ReserveFundTableItem item}
 
-<div id="{item.cardId}"
-     class="reserve-funds-grid-item base-grid-cm hover:alert-info p-1 fade-me-out fade-me-in"
+<li id="{item.cardId}" class="fade-me-out fade-me-in"
+{#if item.outOfBoundsUpdate}
+    hx-swap-oob="true"
+        {/if}>
+    <a class="reserve-funds-grid-item base-grid-cm p-1">
 
-        {#if item.outOfBoundsUpdate}
-            hx-swap-oob="true"
-        {/if}
->
-
-   <div class="reserve-funds-grid-content item-grid-cm"
-        @click.prevent="
+        <div class="reserve-funds-grid-content item-grid-cm"
+             @click.prevent="
         is_edit = true;
         key = '{item.key}';
         name = '{item.item.name}';
@@ -21,45 +19,46 @@
         addToExpenses = {item.item.addToExpenses};
         expenseType = '{item.item.expenseType}';
         "
-   >
-     <div class="flex flex-col gap-2 items-center text-center">
-       <span>{item.item.name}</span>
-       <span>{item.item.fund}</span>
-     </div>
+        >
+            <div class="flex flex-col gap-2 items-center text-center">
+                <span>{item.item.name}</span>
+                <span>{item.item.fund}</span>
+            </div>
 
-     <div class="flex flex-col gap-1 items-center text-center">
-       <div>
+            <div class="flex flex-col gap-1 items-center text-center">
+                <div>
   <span
-      class="inline-block whitespace-nowrap rounded-full px-[0.65em] pb-[0.25em] pt-[0.35em] text-center align-baseline font-bold leading-none text-sm
+          class="inline-block whitespace-nowrap rounded-full px-[0.65em] pb-[0.25em] pt-[0.35em] text-center align-baseline font-bold leading-none text-sm
 {item.item.active ? 'bg-success-100 text-success-700' : 'bg-danger-100 text-danger-700'}
 ">
     {item.item.pay}
       {#if item.item.type.name == 'PERCENTAGE'}
-        %
+          %
       {/if}
     </span>
-       </div>
+                </div>
 
-       <div>
+                <div>
         <span
-            class="inline-block whitespace-nowrap rounded-full px-[0.65em] pb-[0.25em] pt-[0.35em] text-center align-baseline font-bold leading-none text-sm
+                class="inline-block whitespace-nowrap rounded-full px-[0.65em] pb-[0.25em] pt-[0.35em] text-center align-baseline font-bold leading-none text-sm
 {item.item.addToExpenses ? 'bg-success-100 text-success-700' : 'bg-danger-100 text-danger-700'}
 ">
     {item.item.expenseType}
   </span>
-       </div>
+                </div>
 
-     </div>
+            </div>
 
-     <div class="flex flex-col gap-1 items-center text-center">
-       <span>{item.item.expense}</span>
-     </div>
-   </div>
+            <div class="flex flex-col gap-1 items-center text-center">
+                <span>{item.item.expense}</span>
+            </div>
+        </div>
 
-    {#include fragments/delete-btn deleteUrl=item.deleteUrl cardIdRef=item.cardIdRef}
-        {#extraAttributes}
-          hx-on:htmx:after-request="event.target.dispatchEvent(new CustomEvent('event-reserve-fund-form-restart-after-deletion', { bubbles: true, detail: { key: '{item.key}'} }))"
-        {/extraAttributes}
-    {/include}
+        {#include fragments/delete-btn deleteUrl = item.deleteUrl cardIdRef = item.cardIdRef}
+            {#extraAttributes}
+                hx-on:htmx:after-request="event.target.dispatchEvent(new CustomEvent('event-reserve-fund-form-restart-after-deletion', { bubbles: true, detail: { key: '{item.key}'} }))"
+            {/extraAttributes}
+        {/include}
 
-</div>
+    </a>
+</li>

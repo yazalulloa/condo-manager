@@ -37,7 +37,7 @@
              "
     >
 
-        <div id="debts-table-item-grid" class="max-w-3/5">
+        <div class="max-w-3/5">
             <div class="debts-grid base-grid-cm p-1 font-bold">
                 <span>Apt</span>
                 <span>Recibos</span>
@@ -46,10 +46,12 @@
                 <span>Abono</span>
             </div>
 
-            {#for item in dto.debts}
+            <ol class="custom-hover">
+                {#for item in dto.debts}
 
-                    {#include DebtResource/item item = item /}
-            {/for}
+                        {#include DebtResource/item item = item /}
+                {/for}
+            </ol>
         </div>
 
         <form id="debts-form"

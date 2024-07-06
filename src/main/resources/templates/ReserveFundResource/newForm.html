@@ -58,7 +58,7 @@
   </div>
 
 
-  <div id="reserve-fund-table-item-grid">
+  <div>
     <div class="reserve-funds-grid-header base-grid-cm p-1 font-bold">
       <span>Fondo</span>
       <span>Monto</span>
@@ -66,10 +66,12 @@
       <span>Acciones</span>
     </div>
 
-      {#for item in dto.reserveFunds}
+      <ol id="reserve-fund-table-item-grid" class="custom-hover">
+          {#for item in dto.reserveFunds}
 
-              {#include ReserveFundResource/item item = item /}
-      {/for}
+                  {#include ReserveFundResource/item item = item /}
+          {/for}
+      </ol>
   </div>
 
   <form id="reserve-fund-form"

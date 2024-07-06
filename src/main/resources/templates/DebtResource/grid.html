@@ -1,6 +1,6 @@
 {@java.util.List<com.yaz.api.domain.response.DebtTableItem> list}
 
-<div id="debt-table-item-grid" class="min-w-3/5">
+<div class="min-w-3/5">
     <div class="debt-grid base-grid-cm p-2 font-bold">
         <span>Apt</span>
         <span>Recibos</span>
@@ -10,8 +10,10 @@
         <span>Acciones</span>
     </div>
 
-    {#for item in list}
+    <ul class="custom-hover">
+        {#for item in list}
 
-            {#include DebtResource/item item=item /}
-    {/for}
+                {#include DebtResource/item item=item /}
+        {/for}
+    </ul>
 </div>
