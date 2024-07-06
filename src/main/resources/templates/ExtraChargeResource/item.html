@@ -1,14 +1,15 @@
 {@com.yaz.api.domain.response.ExtraChargeTableItem item}
 
-<div id="{item.cardId}"
-     class="extra-charges-grid-item base-grid-cm hover:alert-info p-1 fade-me-out fade-me-in"
+<li id="{item.cardId}"
+    class="fade-me-out fade-me-in"
 
         {#if item.outOfBoundsUpdate}
             hx-swap-oob="true"
         {/if}
 >
-    <div class="extra-charges-grid-content item-grid-cm"
-         @click.prevent="
+    <a class="extra-charges-grid-item base-grid-cm p-1">
+        <div class="extra-charges-grid-content item-grid-cm"
+             @click.prevent="
             description = '{item.item.description}';
             amount = '{item.item.amount}';
             active = {item.item.active};
@@ -19,33 +20,34 @@
             select_all = false;
             $dispatch('event-extra-charge-building-clean-errors');
      ">
-        <div>
-            <span>{item.item.description}</span>
-
             <div>
+                <span>{item.item.description}</span>
+
+                <div>
   <span
           class="inline-block whitespace-nowrap rounded-full px-[0.65em] pb-[0.25em] pt-[0.35em] text-center align-baseline text-[0.75em] font-bold leading-none
 {item.item.active ? 'bg-success-100 text-success-700' : 'bg-danger-100 text-danger-700'}
 ">
     {item.item.active ? 'Activo' : 'Desactivado'}
   </span>
+                </div>
+            </div>
+            <div>{item.item.formatAmount}</div>
+            <div class="flex flex-col text-sm items-center gap-1">
+                {#for apt in item.item.apartments}
+                    <div class="flex flex-row gap-2 justify-start text-start w-full">
+                        <span class="break-normal">{apt.number}</span>
+                        <span>{apt.name}</span>
+                    </div>
+                {/for}
             </div>
         </div>
-        <div>{item.item.formatAmount}</div>
-        <div class="flex flex-col text-sm items-center gap-1">
-            {#for apt in item.item.apartments}
-                <div class="flex flex-row gap-2 justify-start text-start w-full">
-                    <span class="break-normal">{apt.number}</span>
-                    <span>{apt.name}</span>
-                </div>
-            {/for}
-        </div>
-    </div>
 
-    {#include fragments/delete-btn deleteUrl=item.deleteUrl cardIdRef=item.cardIdRef}
-        {#extraAttributes}
-          x-on:htmx:after-request="event.target.dispatchEvent(new CustomEvent('event-extra-charge-building-restart-after-deletion', { bubbles: true, detail: { key: '{item.key}'} }))"
-        {/extraAttributes}
-    {/include}
+        {#include fragments/delete-btn deleteUrl = item.deleteUrl cardIdRef = item.cardIdRef}
+            {#extraAttributes}
+                x-on:htmx:after-request="event.target.dispatchEvent(new CustomEvent('event-extra-charge-building-restart-after-deletion', { bubbles: true, detail: { key: '{item.key}'} }))"
+            {/extraAttributes}
+        {/include}
+    </a>
 
-</div>
+</li>

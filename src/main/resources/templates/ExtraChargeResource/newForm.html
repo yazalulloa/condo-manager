@@ -40,7 +40,7 @@
              "
     >
 
-        <div id="extra-charges-table-item-grid">
+        <div>
             <div class="extra-charges-grid-header base-grid-cm p-1 font-bold">
                 <span>Descripción</span>
                 <span>Monto</span>
@@ -48,10 +48,12 @@
                 <span>Acciones</span>
             </div>
 
-            {#for item in dto.extraCharges}
+            <ol id="extra-charges-table-item-grid" class="custom-hover">
+                {#for item in dto.extraCharges}
 
-                    {#include ExtraChargeResource/item item = item /}
-            {/for}
+                        {#include ExtraChargeResource/item item = item /}
+                {/for}
+            </ol>
         </div>
 
         <form id="extra-charges-form"
