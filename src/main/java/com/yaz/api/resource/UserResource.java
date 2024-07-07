@@ -86,6 +86,7 @@ public class UserResource {
   public Uni<TemplateInstance> picture(@Context SecurityIdentity identity) {
     final var userId = identity.getAttribute("userId");
     if (userId == null) {
+      log.info("User id not found in the security identity");
       return TemplateUtil.templateUni(Templates.picture(""));
     }
 

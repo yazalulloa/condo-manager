@@ -41,17 +41,13 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
-import jakarta.ws.rs.PATCH;
-import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -84,8 +80,6 @@ public class BuildingResource {
     public static native TemplateInstance selector(List<String> list);
 
     public static native TemplateInstance report(BuildingReportResponse res);
-
-    public static native TemplateInstance form(BuildingFormDto dto);
 
     public static native TemplateInstance counters(BuildingCountersDto dto);
 
@@ -149,21 +143,6 @@ public class BuildingResource {
         .map(Templates::counters);
   }
 
-
-  @GET
-  @Path("new")
-  @Produces(MediaType.TEXT_HTML)
-  public Uni<TemplateInstance> newForm() {
-    return emailConfigService.displayList()
-        .map(emailConfigs -> BuildingFormDto.builder()
-            .isNew(true)
-            .mainCurrency(Currency.VED)
-            .debtCurrency(Currency.VED)
-            .currenciesToShowAmountToPay(Set.of(Currency.VED))
-            .emailConfigs(emailConfigs)
-            .build())
-        .map(Templates::form);
-  }
 
   private String fixedPayAmountFieldError(BuildingRequest request) {
     if (!request.isFixedPay()) {
@@ -468,123 +447,6 @@ public class BuildingResource {
         .roundUpPayments(request.isRoundUpPayments())
         .emailConfig(request.getEmailConfig())
         .build();
-  }
-
-  @POST
-  @Path("new")
-  @Produces(MediaType.TEXT_HTML)
-  public Uni<TemplateInstance> create(@BeanParam BuildingRequest request) {
-
-    //log.info("request: {}", request);
-    final var buildingFormDto = formDto(request).toBuilder()
-        .build();
-
-    if (buildingFormDto.id() != null) {
-      return service.exists(buildingFormDto.id())
-          .map(bool -> {
-            if (bool) {
-              return buildingFormDto.toBuilder()
-                  .idFieldError("ID ya existe")
-                  .build();
-            }
-
-            return buildingFormDto;
-          })
-          .flatMap(dto -> {
-            if (!dto.isSuccess()) {
-              return emailConfigService.displayList()
-                  .map(emailConfigs -> dto.toBuilder()
-                      .emailConfigs(emailConfigs)
-                      .build());
-            }
-
-            final var building = Building.builder()
-                .id(dto.id())
-                .name(dto.name())
-                .rif(request.getRif())
-                .mainCurrency(request.getMainCurrency())
-                .debtCurrency(request.getDebtCurrency())
-                .currenciesToShowAmountToPay(request.getCurrenciesToShowAmountToPay())
-                .fixedPay(request.isFixedPay())
-                .fixedPayAmount(dto.fixedPayAmount())
-                .roundUpPayments(request.isRoundUpPayments())
-                .emailConfigId(request.getEmailConfig())
-                .build();
-
-            return service.create(building)
-                .replaceWith(dto.toBuilder()
-                    .shouldRedirect(true)
-                    .build());
-          })
-          .map(Templates::form);
-    }
-
-    return emailConfigService.displayList()
-        .map(emailConfigs -> buildingFormDto.toBuilder()
-            .emailConfigs(emailConfigs)
-            .build())
-        .map(Templates::form);
-
-  }
-
-  @PATCH
-  @Produces(MediaType.TEXT_HTML)
-  public Uni<Response> edit(@BeanParam BuildingRequest request) {
-
-    final var keys = encryptionService.decryptObj(Objects.requireNonNull(request.getKey()), Keys.class);
-    request.setId(keys.id());
-
-  /*  input.getValues().forEach((k, v) -> {
-      log.info("key: {} value: {}", k, v);
-    });*/
-
-    var buildingFormDto = formDto(request).toBuilder()
-        .isEdit(true)
-        .readOnlyId(true)
-        .build();
-
-    final var building = Building.builder()
-        .id(buildingFormDto.id())
-        .name(buildingFormDto.name())
-        .rif(request.getRif())
-        .mainCurrency(request.getMainCurrency())
-        .debtCurrency(request.getDebtCurrency())
-        .currenciesToShowAmountToPay(request.getCurrenciesToShowAmountToPay())
-        .fixedPay(request.isFixedPay())
-        .fixedPayAmount(buildingFormDto.fixedPayAmount())
-        .roundUpPayments(request.isRoundUpPayments())
-        .emailConfigId(request.getEmailConfig())
-        .build();
-
-    if (building.keysWithHash().hash() == keys.hash()) {
-      buildingFormDto = buildingFormDto.toBuilder()
-          .generalFieldError("No se ha modificado nada")
-          .build();
-    }
-
-    if (!buildingFormDto.isSuccess()) {
-
-      BuildingFormDto finalBuildingFormDto = buildingFormDto;
-      return emailConfigService.displayList()
-          .map(emailConfigs -> finalBuildingFormDto.toBuilder()
-              .emailConfigs(emailConfigs)
-              .build())
-          .map(Templates::form)
-          .onItem()
-          .delayIt()
-          .by(Duration.ofSeconds(1))
-          .map(t -> Response.ok(t).build());
-    }
-
-    return service.update(building)
-//        .replaceWith(Response.noContent()
-//            .header("HX-Redirect", "/buildings")
-//            .build());
-        .replaceWith(BuildingFormDto.builder()
-            .shouldRedirect(true)
-            .build())
-        .map(Templates::form)
-        .map(t -> Response.ok(t).build());
   }
 
 }
