@@ -2,12 +2,8 @@ package com.yaz.api.resource;
 
 import com.yaz.api.domain.request.BuildingRequest;
 import com.yaz.api.domain.response.BuildingCountersDto;
-import com.yaz.api.domain.response.BuildingEditFormInit;
-import com.yaz.api.domain.response.BuildingFormDto;
 import com.yaz.api.domain.response.BuildingReportResponse;
-import com.yaz.api.domain.response.ExtraChargeFormDto;
 import com.yaz.api.domain.response.ExtraChargeTableItem;
-import com.yaz.api.domain.response.ReserveFundFormDto;
 import com.yaz.api.domain.response.ReserveFundTableItem;
 import com.yaz.api.domain.response.building.BuildingFormResponse;
 import com.yaz.api.domain.response.building.BuildingInitFormDto;
@@ -37,7 +33,6 @@ import io.smallrye.mutiny.Uni;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.mutiny.core.Vertx;
 import jakarta.inject.Inject;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -50,7 +45,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jboss.resteasy.reactive.RestPath;
@@ -82,8 +76,6 @@ public class BuildingResource {
     public static native TemplateInstance report(BuildingReportResponse res);
 
     public static native TemplateInstance counters(BuildingCountersDto dto);
-
-    public static native TemplateInstance edit_init(BuildingEditFormInit res);
 
     public static native TemplateInstance formInit(BuildingInitFormDto dto);
 
@@ -335,118 +327,6 @@ public class BuildingResource {
               .build();
         })
         .map(Templates::formInit);
-  }
-
-  @GET
-  @Path("edit_form")
-  @Produces(MediaType.TEXT_HTML)
-  public Uni<TemplateInstance> editForm(@NotBlank @RestQuery String id) {
-
-    return Uni.combine().all()
-        .unis(service.read(id), emailConfigService.displayList(), apartmentService.aptByBuildings(id),
-            extraChargeService.by(id, id), reserveFundService.listByBuilding(id))
-        .with((optional, emailConfigs, apartments, extraCharges, reserveFunds) -> {
-
-          Supplier<BuildingFormDto> supplier = () -> {
-            if (optional.isEmpty()) {
-              return BuildingFormDto.builder()
-                  .shouldRedirect(true)
-                  .build();
-            }
-
-            final var building = optional.get();
-            final var key = encryptionService.encryptObj(building.keysWithHash());
-            return BuildingFormDto.builder()
-                .key(key)
-                .isEdit(true)
-                .id(building.id())
-                .readOnlyId(true)
-                .name(building.name())
-                .rif(building.rif())
-                .mainCurrency(building.mainCurrency())
-                .debtCurrency(building.debtCurrency())
-                .currenciesToShowAmountToPay(building.currenciesToShowAmountToPay())
-                .fixedPay(building.fixedPay())
-                .fixedPayAmount(building.fixedPayAmount())
-                .roundUpPayments(building.roundUpPayments())
-                .emailConfig(building.emailConfigId())
-                .emailConfigs(emailConfigs)
-                .build();
-          };
-
-          final var list = extraCharges.stream()
-              .map(extraCharge -> {
-                final var keys = extraCharge.keys();
-
-                return ExtraChargeTableItem.builder()
-                    .item(extraCharge)
-                    .key(encryptionService.encryptObj(keys))
-                    .cardId(keys.cardId())
-                    .build();
-              })
-              .toList();
-
-          final var reserveFundTableItems = reserveFunds.stream()
-              .map(reserveFund -> {
-                final var keys = reserveFund.keys();
-                return ReserveFundTableItem.builder()
-                    .key(encryptionService.encryptObj(keys))
-                    .item(reserveFund)
-                    .cardId(keys.cardId())
-                    .build();
-              })
-              .toList();
-
-          return BuildingEditFormInit.builder()
-              .buildingFormDto(supplier.get())
-              .extraCharges(list)
-              .extraChargeFormDto(ExtraChargeFormDto.builder()
-                  .isEdit(false)
-                  .key(encryptionService.encryptObj(ExtraCharge.Keys.newBuilding(id)))
-                  .apartments(apartments)
-                  .build())
-              .reserveFundFormDto(ReserveFundFormDto.builder()
-                  .isEdit(false)
-                  .key(encryptionService.encryptObj(ReserveFund.Keys.ofBuilding(id)))
-                  .build())
-              .reserveFunds(reserveFundTableItems)
-              .build();
-        })
-        .map(Templates::edit_init);
-  }
-
-  private BuildingFormDto formDto(BuildingRequest request) {
-    final var id = StringUtil.trimFilter(request.getId());
-    final var name = StringUtil.trimFilter(request.getName());
-
-    final var currenciesToShowAmountToPay = Optional.ofNullable(request.getCurrenciesToShowAmountToPay())
-        .orElseGet(() -> Set.of(request.getMainCurrency()));
-
-    final var requestFixedPayAmount = DecimalUtil.ofString(request.getFixedPayAmount());
-
-    final var fixedPayAmount =
-        request.isFixedPay() && requestFixedPayAmount != null && DecimalUtil.greaterThanZero(requestFixedPayAmount)
-            ? requestFixedPayAmount : null;
-
-    return BuildingFormDto.builder()
-        .key(request.getKey())
-        .id(id)
-        .idFieldError(id == null ? "ID no puede estar vacio" : null)
-        .name(name)
-        .nameFieldError(name == null ? "Nombre no puede estar vacio" : null)
-        .rif(request.getRif())
-        .mainCurrency(request.getMainCurrency())
-        .mainCurrencyFieldError(request.getMainCurrency() == null ? "Moneda principal no puede estar vacia" : null)
-        .debtCurrency(request.getDebtCurrency())
-        .debtCurrencyFieldError(request.getDebtCurrency() == null ? "Moneda deuda no puede estar vacia" : null)
-        .currenciesToShowAmountToPay(currenciesToShowAmountToPay)
-        .fixedPay(request.isFixedPay())
-        .fixedPayAmount(fixedPayAmount)
-        .fixedPayAmountFieldError(
-            request.isFixedPay() && fixedPayAmount == null ? "Monto fijo no puede estar vacio" : null)
-        .roundUpPayments(request.isRoundUpPayments())
-        .emailConfig(request.getEmailConfig())
-        .build();
   }
 
 }
