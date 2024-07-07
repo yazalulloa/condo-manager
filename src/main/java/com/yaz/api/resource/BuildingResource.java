@@ -31,7 +31,6 @@ import io.quarkus.vertx.web.Route;
 import io.quarkus.vertx.web.Route.HttpMethod;
 import io.smallrye.mutiny.Uni;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.mutiny.core.Vertx;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.DELETE;
@@ -59,7 +58,6 @@ public class BuildingResource {
   public static final String PATH = "/api/buildings";
   public static final String DELETE_PATH = PATH + "/";
 
-  private final Vertx vertx;
   private final BuildingService service;
   private final EmailConfigService emailConfigService;
   private final ApartmentService apartmentService;
