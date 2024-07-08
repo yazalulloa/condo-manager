@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Scroll form</title>
+  <link href="/out/css/output.css" rel="stylesheet"/>
+  <script defer src="/out/js/index.js"></script>
+  <style>
+    .container {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh; /* Set minimum height to viewport */
+      position: relative;
+    }
+
+    /*.flex {*/
+    /*  display: flex;*/
+    /*  flex-grow: 1; !* Allow form-wrapper to grow *!*/
+    /*}*/
+
+    /*.ol {*/
+    /*  overflow-y: auto;*/
+    /*  max-height: calc(100vh - 100px); !* Adjust height based on needs *!*/
+    /*}*/
+
+    .form-wrapper {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%); /* Center form vertically */
+      width: 100%;  /* Stretch form to full width */
+    }
+
+    .form-wrapper form {
+      /* Style your form elements here */
+    }
+  </style>
+</head>
+<body class="p-8" x-data="{
+array: [...Array(60).keys()]
+}"
+>
+<div class="flex flex-col gap-2 items-center text-center">
+
+  <div class="flex flex-row gap-2">
+
+    <ol>
+      <template x-for="value in array">
+        <li x-text="value"></li>
+      </template>
+    </ol>
+
+    <div class="items-center text-center fixed">
+      <form class="flex flex-col gap-2 justify-center">
+        <input placeholder="placeholder">
+        <button>
+          Submit
+        </button>
+      </form>
+    </div>
+
+  </div>
+
+  <div>
+    <details>
+    </details>
+  </div>
+</div>
+
+</body>
+</html>

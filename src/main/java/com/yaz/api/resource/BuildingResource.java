@@ -271,7 +271,7 @@ public class BuildingResource {
         .map(list -> {
           return list.stream()
               .map(reserveFund -> {
-                final var keys = reserveFund.keysWithHash();
+                final var keys = reserveFund.keys(0);
                 return ReserveFundTableItem.builder()
                     .key(encryptionService.encryptObj(keys))
                     .item(reserveFund)
