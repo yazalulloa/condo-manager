@@ -1,54 +1,16 @@
-import {
-  Carousel,
-  Datepicker,
-  initTE,
-  Input,
-  Ripple,
-  Select,
-  Sidenav,
-  Timepicker,
-  Validation,
-} from "tw-elements";
-
 // import './loader.js';
 // import './components.js';
 import './elements.js';
 // import './sse.js';
-
 import Alpine from 'alpinejs'
+import _hyperscript from 'hyperscript.org';
 
 window.Alpine = Alpine
 Alpine.start();
 
-import _hyperscript from 'hyperscript.org';
 _hyperscript.browserInit();
 
 window.initComponents = function () {
-  // console.log("INIT TW-ELEMENTS")
-  initTE({
-        Carousel,
-        Datepicker,
-        Input,
-        Ripple,
-        Select,
-        Sidenav,
-        Timepicker,
-        Validation,
-      },
-      {allowReinits: true}, true); // set second parameter to true if you want to use a debugger
-
-  let forms = document.getElementsByTagName('form');
-  // console.log("forms: {}", forms.length);
-  for (let i = 0; i < forms.length; i++) {
-    let form = forms[i];
-    let validation = new Validation(form);
-    form.addEventListener("dispose-validation", evt => {
-      evt.preventDefault();
-      // console.log("disposing validation");
-      validation.dispose();
-      validation.init();
-    });
-  }
 
   const scroll_stopper = document.getElementsByClassName('stop-vertical-scroll')
 
@@ -81,29 +43,6 @@ initComponents();
 // htmx.config.useTemplateFragments = true;
 // htmx.logAll();
 
-window.onload = function () {
-  if (false) {
-    const inputs = document.getElementsByTagName('input');
-    // console.log("inputs: {}", inputs.length);
-    for (let i = 0; i < inputs.length; i++) {
-      // console.log("input type: {}", inputs[i].type);
-      if (inputs[i].type === 'search') {
-        // console.log("setting trim")
-        inputs[i].onchange = function () {
-          let value = this.value;
-          // console.log("trimming {}", value);
-          this.value = this.value.replace(/^\s+/, '').replace(/\s+$/,
-              '').trim();
-          let val2 = this.value;
-          // console.log("trimmed {}", val2);
-        };
-      }
-    }
-  }
-
-  addDisableEventToButtons();
-}
-
 window.trimInput = function (input) {
   if (input && input.value) {
     console.log("trimming {}", input.value);
@@ -116,91 +55,6 @@ window.isInputEmpty = function (input) {
   trimInput(input);
   console.log("isInputEmpty: {}", input);
   return !input || !input.value || input.value === '';
-}
-
-document.body.addEventListener("htmx:afterProcessNode", function (configEvent) {
-  initComponents();
-  addDisableEventToButtons();
-  disableBtnInsideForm();
-
-  let selectElem = document.getElementsByTagName("select");
-  for (let i = 0; i < selectElem.length; i++) {
-    let select = selectElem[i];
-    if (select.hasAttribute("data-te-select-init")) {
-      const instance = Select.getInstance(select);
-      select.addEventListener("clear-value-cm", function (evt) {
-        evt.preventDefault();
-        instance.setValue([]);
-      });
-    }
-
-  }
-
-})
-
-document.body.addEventListener("htmx:afterSettle", function (configEvent) {
-
-  let elements = document.getElementsByClassName("hidden-to-be-removed");
-  for (let i = 0; i < elements.length; i++) {
-    let element = elements[i];
-    element.removeAttribute("hidden");
-
-  }
-
-});
-
-window.addDisableEventToButtons = function () {
-  if (true) {
-    return;
-  }
-
-  console.log("adding disable event to buttons");
-  const buttons = document.getElementsByTagName('button');
-
-  for (let i = 0; i < buttons.length; i++) {
-    disableButton(buttons[i]);
-  }
-}
-
-function disableButton(button) {
-  if (!button) {
-    throw new Error("form without button");
-  }
-
-  disableOnHtmxEvents(button, button);
-}
-
-function disableOnHtmxEvents(eventElement, btn) {
-  console.log("disableOnHtmxEvents");
-  // btn.removeAttribute("disabled");
-  eventElement.addEventListener("htmx:beforeRequest", function () {
-    btn.toggleAttribute("disabled", true);
-  })
-
-  eventElement.addEventListener("htmx:afterRequest", function () {
-    btn.toggleAttribute("disabled", false);
-  })
-
-  eventElement.addEventListener("htmx:beforeSwap", function () {
-    btn.toggleAttribute("disabled", true);
-  })
-
-}
-
-window.disableBtnInsideForm = function () {
-  if (true) {
-    return;
-  }
-
-  const forms = document.getElementsByTagName('form');
-  for (let i = 0; i < forms.length; i++) {
-    const form = forms[i];
-    const buttons = form.getElementsByTagName('button');
-    for (let j = 0; j < buttons.length; j++) {
-      const button = buttons[j];
-      disableOnHtmxEvents(form, button);
-    }
-  }
 }
 
 window.getLastUrlSegmentCurrent = function () {
@@ -344,109 +198,6 @@ function getCookie(name) {
 //
 // })
 
-/* Set the width of the side navigation to 250px and the left margin of the page content to 250px */
-function openNav() {
-  document.getElementById("mySidenav").style.width = "250px";
-  document.getElementById("main").style.marginLeft = "250px";
-}
-
-/* Set the width of the side navigation to 0 and the left margin of the page content to 0 */
-function closeNav() {
-  document.getElementById("mySidenav").style.width = "0";
-  document.getElementById("main").style.marginLeft = "0";
-}
-
-let datePicker = document.querySelector("#datepicker-translated");
-if (datePicker) {
-  const datepickerTranslated = new Datepicker(
-      datePicker,
-      {
-        title: "Seleccione una fecha",
-        monthsFull: [
-          "Enero",
-          "Febrero",
-          "Marzo",
-          "Abril",
-          "Mayo",
-          "Junio",
-          "Julio",
-          "Agosto",
-          "Septiembre",
-          "Octubre",
-          "Noviembre",
-          "Diciembre",
-        ],
-        monthsShort: [
-          "Ene",
-          "Feb",
-          "Mar",
-          "Abr",
-          "May",
-          "Jun",
-          "Jul",
-          "Aug",
-          "Sep",
-          "Oct",
-          "Nov",
-          "Dec",
-        ],
-        weekdaysFull: [
-          "Domingo",
-          "Lunes",
-          "Martes",
-          "Miércoles",
-          "Jueves",
-          "Viernes",
-          "Sábado",
-        ],
-        weekdaysShort: ["Dom", "Lun", "Mar", "Mie", "Jue", "Vie", "Sab"],
-        weekdaysNarrow: ["D", "L", "M", "M", "J", "V", "S"],
-        okBtnText: "Ok",
-        clearBtnText: "Borrar",
-        cancelBtnText: "Cancelar",
-      }
-  );
-}
-
-document
-.getElementById("slim-toggler")
-?.addEventListener("click", () => {
-  const instance = Sidenav.getInstance(
-      document.getElementById("sidenav-4")
-  );
-  instance.toggleSlim();
-});
-
-const sidenav2 = document.getElementById("sidenav-1");
-if (sidenav2) {
-  const sidenavInstance2 = Sidenav.getInstance(sidenav2);
-  let innerWidth2 = null;
-  const setMode2 = (e) => {
-    // Check necessary for Android devices
-    if (window.innerWidth === innerWidth2) {
-      return;
-    }
-
-    innerWidth2 = window.innerWidth;
-
-    if (window.innerWidth < sidenavInstance2.getBreakpoint("xl")) {
-      sidenavInstance2.changeMode("over");
-      sidenavInstance2.hide();
-    } else {
-      sidenavInstance2.changeMode("side");
-      sidenavInstance2.show();
-    }
-  };
-
-  if (window.innerWidth < sidenavInstance2.getBreakpoint("sm")) {
-    setMode2();
-  }
-
-  // Event listeners
-  window.addEventListener("resize", setMode2);
-
-}
-
 window.monthsToStr = function (months) {
   let str = "";
   for (let i = 0; i < months.length; i++) {
@@ -569,10 +320,9 @@ window.getResource = function (key, path) {
   let value = storageValue ?? segmentValue;
 
   if (storageValue && path) {
-    let pathname = window.location.href + path  + value;
+    let pathname = window.location.href + path + value;
     window.history.pushState(window.history.state, document.title, pathname);
   }
-
 
   return value;
 }

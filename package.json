@@ -2,9 +2,7 @@
   "dependencies": {
     "alpinejs": "^3.14.1",
     "daisyui": "^4.12.10",
-    "franken-ui": "^0.0.7",
-    "hyperscript.org": "latest",
-    "tw-elements": "1.1.0"
+    "hyperscript.org": "latest"
   },
   "devDependencies": {
     "tailwindcss": "^3.4.4"

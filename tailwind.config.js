@@ -1,24 +1,6 @@
-import preset from "franken-ui/shadcn-ui/preset";
-import variables from "franken-ui/shadcn-ui/variables";
-import ui from "franken-ui";
-import hooks from "franken-ui/shadcn-ui/hooks";
-
-const shadcn = hooks();
+/**    "tw-elements": "1.1.0" */
 
 /** @type {import('tailwindcss').Config} */
-export default {
-  presets: [preset],
-  plugins: [
-    variables(),
-    ui({
-      components: {
-        alert: {
-          hooks: shadcn.alert
-        }
-      }
-    }),
-  ],
-};
 
 module.exports = {
   // darkMode: 'class',
@@ -26,11 +8,8 @@ module.exports = {
   content: [
     "./src/main/resources/**/*.{html,js,ts}",
     "./frontend/**/*.{html,js,ts,css}",
-    "./node_modules/tw-elements/dist/js/**/*.js",
-    "../node_modules/tw-elements/dist/js/tw-elements.umd.min.js"
   ],
   plugins: [
-    require("tw-elements/dist/plugin.cjs"),
     require("daisyui")
   ],
   theme: {
