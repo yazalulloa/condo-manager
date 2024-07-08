@@ -251,7 +251,7 @@ public class BuildingResource {
               .map(list -> list.stream()
                   .map(extraCharge -> {
 
-                    final var keys = extraCharge.keysWithHash();
+                    final var keys = extraCharge.keys();
 
                     return ExtraChargeTableItem.builder()
                         .item(extraCharge)

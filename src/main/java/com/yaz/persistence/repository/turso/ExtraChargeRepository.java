@@ -97,6 +97,9 @@ public class ExtraChargeRepository {
   private static final String COUNT_BY = "SELECT COUNT(id) AS query_count FROM %s WHERE building_id = ? AND parent_reference = ?".formatted(
       COLLECTION);
 
+  private static final String COUNT_BY_BUILDING = "SELECT COUNT(id) AS query_count FROM %s WHERE building_id = ?".formatted(
+      COLLECTION);
+
   private final TursoWsService tursoWsService;
 
   @Inject
@@ -289,6 +292,11 @@ public class ExtraChargeRepository {
 
   public Uni<Long> count(String buildingId, String parentReference) {
     return tursoWsService.count(COUNT_BY, Value.text(buildingId), Value.text(parentReference));
+  }
+
+
+  public Uni<Long> countByBuilding(String buildingId) {
+    return tursoWsService.count(COUNT_BY_BUILDING, Value.text(buildingId));
   }
 
   public Uni<Integer> deleteByApartment(String buildingId, String aptNumber) {

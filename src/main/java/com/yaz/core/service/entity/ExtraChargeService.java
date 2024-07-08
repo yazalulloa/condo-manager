@@ -53,9 +53,22 @@ public class ExtraChargeService {
   }
 
 
-  @CacheResult(cacheName = ExtraChargesCache.QUERY_COUNT, lockTimeout = Constants.CACHE_TIMEOUT)
   public Uni<Long> count(Keys keys) {
-    return repository.count(keys.buildingId(), keys.parentReference());
+    final var receiptCount = Uni.createFrom().deferred(() -> {
+      if (keys.receiptId() != null) {
+        return count(keys.buildingId(), keys.receiptId());
+      }
+      return Uni.createFrom().item(0L);
+    });
+
+    return Uni.combine().all()
+        .unis(count(keys.buildingId(), keys.buildingId()), receiptCount)
+        .with(Long::sum);
+  }
+
+  @CacheResult(cacheName = ExtraChargesCache.QUERY_COUNT, lockTimeout = Constants.CACHE_TIMEOUT)
+  public Uni<Long> count(String buildingId, String parentReference) {
+    return repository.count(buildingId, parentReference);
   }
 
   public Uni<Optional<ExtraCharge>> read(ExtraCharge.Keys keys) {

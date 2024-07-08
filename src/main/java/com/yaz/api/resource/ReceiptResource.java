@@ -845,7 +845,7 @@ public class ReceiptResource {
 
           final var extraChargeTableItems = extraCharges.stream()
               .map(extraCharge -> {
-                final var keys1 = extraCharge.keys();
+                final var keys1 = extraCharge.keys(keys.id());
                 return ExtraChargeTableItem.builder()
                     .item(extraCharge)
                     .key(encryptionService.encryptObj(keys1))

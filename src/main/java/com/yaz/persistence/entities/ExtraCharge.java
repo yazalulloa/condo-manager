@@ -33,16 +33,21 @@ public record ExtraCharge(
   }
 
   public Keys keys() {
-    return new Keys(id, parentReference, buildingId, type, 0, cardId());
+    return keys(cardId(), null);
   }
 
-  public Keys keysWithHash() {
-    return keysWithHash(cardId());
+  public Keys keys(long receiptId) {
+    return keys(cardId(), receiptId != 0 ? String.valueOf(receiptId) : null);
   }
 
-  public Keys keysWithHash(String cardId) {
+  public Keys keys(String receiptId) {
+    return keys(cardId(), receiptId);
+  }
 
-    return new Keys(id, parentReference, buildingId, type, StringUtil.objHash(this), cardId);
+
+  public Keys keys(String cardId, String receiptId) {
+
+    return new Keys(id, parentReference, buildingId, type, StringUtil.objHash(this), cardId, receiptId);
   }
 
   public enum Type {
@@ -62,15 +67,17 @@ public record ExtraCharge(
       String buildingId,
       Type type,
       long hash,
-      String cardId
+      String cardId,
+      String receiptId
   ) {
 
     public static Keys newBuilding(String buildingId) {
-      return new Keys(0, buildingId, buildingId, Type.BUILDING, 0, ExtraCharge.cardId());
+      return new Keys(0, buildingId, buildingId, Type.BUILDING, 0, ExtraCharge.cardId(), null);
     }
 
     public static Keys newReceipt(long receiptId, String buildingId) {
-      return new Keys(0, String.valueOf(receiptId), buildingId, Type.RECEIPT, 0, ExtraCharge.cardId());
+      return new Keys(0, String.valueOf(receiptId), buildingId, Type.RECEIPT, 0, ExtraCharge.cardId(),
+          String.valueOf(receiptId));
     }
 
   }
