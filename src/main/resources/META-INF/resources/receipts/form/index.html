@@ -21,7 +21,10 @@
         years: [],
         generalFieldError: ''
 
-      }">
+      }"
+      @event-receipt-form-errors-reset="
+        generalFieldError = '';
+      ">
 
   <div hx-get="/api/receipts/form_init"
        hx-trigger="load"
@@ -109,7 +112,8 @@
   </div>
 
   <div class="flex flex-row gap-4 justify-center">
-    <button type="submit" class="btn btn-primary">
+    <button type="submit" class="btn btn-primary"
+            @click="$dispatch('event-receipt-form-errors-reset')">
       Editar
     </button>
     <img class="htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">

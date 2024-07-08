@@ -745,12 +745,17 @@ public class ReceiptResource {
       return TemplateUtil.templateUni(Templates.formResponse(ReceiptFormResponse.msg("No hay cambios")));
     }
 
+    final var formResponse = ReceiptFormResponse.builder()
+        .key(encryptionService.encryptObj(newKeys))
+        .generalFieldError("Actualizado")
+        .build();
+
     return Uni.combine().all()
         .unis(buildingService.get(keys.buildingId()), rateService.get(rateId), receiptService.get(keys.id()),
             receiptService.update(update))
         .withUni((building, rate, receipt, i) -> {
           if (Objects.equals(receipt.rateId(), rateId)) {
-            return TemplateUtil.templateUni(Templates.formResponse(ReceiptFormResponse.msg("Actualizado")));
+            return Uni.createFrom().item(formResponse);
           }
           return Uni.combine().all()
               .unis(expenseService.readByReceipt(keys.id()), reserveFundService.listByBuilding(keys.buildingId()))
@@ -760,7 +765,7 @@ public class ReceiptResource {
                     .anyMatch(currency -> rate.fromCurrency() == currency);
 
                 if (!isRateNeeded) {
-                  return ReceiptFormResponse.msg("Actualizado");
+                  return formResponse;
                 }
 
                 final var expenseTotalsBeforeReserveFunds = ConvertUtil.expenseTotals(rate.rate(), expenses);
@@ -778,13 +783,12 @@ public class ReceiptResource {
                     .reserveFundExpenses(reserveFundExpenses)
                     .build();
 
-                return ReceiptFormResponse.builder()
-                    .generalFieldError("Actualizado")
+                return formResponse.toBuilder()
                     .expenseCountersDto(countersDto)
                     .build();
-              })
-              .map(Templates::formResponse);
-        });
+              });
+        })
+        .map(Templates::formResponse);
   }
 
   @GET

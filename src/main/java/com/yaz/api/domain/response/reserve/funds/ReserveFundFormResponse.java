@@ -1,6 +1,7 @@
 package com.yaz.api.domain.response.reserve.funds;
 
 import com.yaz.api.domain.response.ExpenseCountersDto;
+import com.yaz.api.domain.response.ExpenseTableItem;
 import com.yaz.api.domain.response.ReserveFundCountersDto;
 import com.yaz.api.domain.response.ReserveFundTableItem;
 import lombok.Builder;
@@ -17,7 +18,9 @@ public record ReserveFundFormResponse(
     ReserveFundTableItem tableItem,
 
     ReserveFundCountersDto counters,
-    ExpenseCountersDto expenseCountersDto
+    ExpenseCountersDto expenseCountersDto,
+
+    ExpenseTableItem expenseTableItem
 ) {
 
   public boolean isSuccess() {

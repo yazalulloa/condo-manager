@@ -1,7 +1,7 @@
 {@com.yaz.api.domain.response.AptCountersDto dto}
 
 {#if dto}
-<div id="apartment-counters" hx-swap-oob="true">
+<div id="apartment-counters" class="fade-me-in fade-me-out" hx-swap-oob="true">
 
 <span id="apartment-total-count" hx-get="/api/apartments/total_count" hx-trigger="get_count">
   Apartamentos: {dto.totalCount}</span>

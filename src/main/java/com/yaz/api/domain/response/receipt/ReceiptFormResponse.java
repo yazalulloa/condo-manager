@@ -5,6 +5,7 @@ import lombok.Builder;
 
 @Builder(toBuilder = true)
 public record ReceiptFormResponse(
+    String key,
     String generalFieldError,
     boolean isError,
     ExpenseCountersDto expenseCountersDto

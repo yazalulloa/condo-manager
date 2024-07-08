@@ -32,20 +32,8 @@ public record ReserveFund(
     return CARD_ID_PREFIX + UUID.randomUUID();
   }
 
-  public Keys keys() {
-    return keys(0);
-  }
-
   public Keys keys(long receiptId, String cardId) {
-    return new Keys(buildingId, id, receiptId, cardId, 0);
-  }
-
-  public Keys keysWithHash(long receiptId, String cardId) {
     return new Keys(buildingId, id, receiptId, cardId, StringUtil.objHash(this));
-  }
-
-  public Keys keysWithHash() {
-    return keysWithHash(0, cardId());
   }
 
   public Keys keys(long receiptId) {

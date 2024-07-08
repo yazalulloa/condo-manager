@@ -2,27 +2,27 @@
 
 
 {#if dto.count}
-    <span id="expenses-form-counter" hx-swap-oob="true">{dto.count}</span>
+    <span id="expenses-form-counter" class="fade-me-in fade-me-out" hx-swap-oob="true">{dto.count}</span>
 {/if}
 
 {#if dto.commonTotal}
-    <span id="expenses-total-common" hx-swap-oob="true">{dto.commonTotal}</span>
+    <span id="expenses-total-common" class="fade-me-in fade-me-out" hx-swap-oob="true">{dto.commonTotal}</span>
 {/if}
 
 {#if dto.unCommonTotal}
-    <span id="expenses-total-uncommon" hx-swap-oob="true">{dto.unCommonTotal}</span>
+    <span id="expenses-total-uncommon" class="fade-me-in fade-me-out" hx-swap-oob="true">{dto.unCommonTotal}</span>
 {/if}
 
 {#if dto.commonTotalPlusReserveFunds}
-    <span id="expenses-total-common-plus-reserve-funds" hx-swap-oob="true">{dto.commonTotalPlusReserveFunds}</span>
+    <span id="expenses-total-common-plus-reserve-funds" class="fade-me-in fade-me-out" hx-swap-oob="true">{dto.commonTotalPlusReserveFunds}</span>
 {/if}
 
 {#if dto.unCommonTotalPlusReserveFunds}
-    <span id="expenses-total-uncommon-plus-reserve-funds" hx-swap-oob="true">{dto.unCommonTotalPlusReserveFunds}</span>
+    <span id="expenses-total-uncommon-plus-reserve-funds" class="fade-me-in fade-me-out" hx-swap-oob="true">{dto.unCommonTotalPlusReserveFunds}</span>
 {/if}
 
 {#if dto.reserveFundExpenses != null}
-    <div id="reserve-funds-expenses-table-item-grid" hx-swap-oob="true">
+    <div id="reserve-funds-expenses-table-item-grid" class="fade-me-in fade-me-out" hx-swap-oob="true">
         {#for item in dto.reserveFundExpenses}
                 {#include ExpenseResource/item item=item /}
         {/for}
