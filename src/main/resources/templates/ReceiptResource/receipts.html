@@ -110,5 +110,9 @@
 </div>
 {/for}
 
-{#include fragments/next-page.html url = res.nextPageUrl /}
+{#include fragments/next-page.html url = res.nextPageUrl}
+    {#extraAttributes}
+           hx-include="[name='date_input'],[name='building_input'],[name='month_input']"
+    {/extraAttributes}
+{/include}
 

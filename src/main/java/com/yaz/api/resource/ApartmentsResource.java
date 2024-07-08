@@ -26,24 +26,19 @@ import io.smallrye.mutiny.Uni;
 import jakarta.inject.Inject;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.ws.rs.BeanParam;
-import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
-import jakarta.ws.rs.PATCH;
-import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.jwt.JsonWebToken;
-import org.jboss.resteasy.reactive.RestPath;
 import org.jboss.resteasy.reactive.RestQuery;
 
 
@@ -72,15 +67,9 @@ public class ApartmentsResource {
 
     public static native TemplateInstance grid(ApartmentTableResponse res);
 
-    public static native TemplateInstance apartments(ApartmentTableResponse res);
-
-    public static native TemplateInstance form(ApartmentFormDto dto);
-
     public static native TemplateInstance init(ApartmentInitDto dto);
 
     public static native TemplateInstance counters(AptCountersDto dto);
-
-    public static native TemplateInstance grid_item(AptItem item);
 
     public static native TemplateInstance upsert(ApartmentUpsertFormDto dto);
   }
@@ -94,22 +83,10 @@ public class ApartmentsResource {
   @Produces(MediaType.TEXT_HTML)
   public Uni<TemplateInstance> init() {
 
-    return Uni.combine().all()
-        .unis(buildingService.ids(), apartmentService.tableResponse())
-        .asTuple()
-        .map(tuple -> {
-          final var buildings = tuple.getItem1();
-          final var tableRes = tuple.getItem2();
-          return ApartmentInitDto.builder()
-              .buildings(buildings)
-              .formDto(ApartmentFormDto.builder()
-                  .buildings(buildings)
-                  .aliquot(BigDecimal.ZERO)
-                  .emails(List.of(new EmailForm(null, null)))
-                  .build())
-              .tableRes(tableRes)
-              .build();
-        })
+    return apartmentService.tableResponse()
+        .map(tableRes -> ApartmentInitDto.builder()
+            .tableRes(tableRes)
+            .build())
         .map(Templates::init);
   }
 
@@ -134,67 +111,6 @@ public class ApartmentsResource {
 
     return apartmentService.tableResponse(apartmentQuery)
         .map(Templates::grid);
-  }
-
-  @GET
-  @Produces(MediaType.TEXT_HTML)
-  public Uni<TemplateInstance> apartments(
-      @RestQuery String nextPage,
-      @RestQuery("apt_search_input") String q,
-      @RestQuery("building_input") Set<String> building) {
-
-    final var keys = Optional.ofNullable(nextPage)
-        .map(StringUtil::trimFilter)
-        .map(str -> encryptionService.decryptObj(str, Keys.class));
-
-    final var apartmentQuery = ApartmentQuery.builder()
-        .lastBuildingId(keys.map(Keys::buildingId).orElse(null))
-        .lastNumber(keys.map(Keys::number).orElse(null))
-        .q(StringUtil.trimFilter(q))
-        .buildings(building)
-        .build();
-
-    return apartmentService.tableResponse(apartmentQuery)
-        .map(Templates::apartments);
-  }
-
-  @GET
-  @Path("form")
-  @Produces(MediaType.TEXT_HTML)
-  public Uni<TemplateInstance> form() {
-    return baseFormDto()
-        .map(dto -> dto.toBuilder()
-            .isNew(true)
-            .aliquot(BigDecimal.ZERO)
-            .build())
-        .map(Templates::form);
-  }
-
-  @GET
-  @Path("counters")
-  @Produces(MediaType.TEXT_HTML)
-  public Uni<TemplateInstance> counters(
-      @RestQuery("apt_search_input") String q,
-      @RestQuery("building_input") Set<String> building) {
-
-    final var apartmentQuery = ApartmentQuery.builder()
-        .q(StringUtil.trimFilter(q))
-        .buildings(building)
-        .build();
-
-    return apartmentService.counters(apartmentQuery)
-        .map(Templates::counters);
-  }
-
-  private Uni<ApartmentFormDto> baseFormDto() {
-    return buildingService.ids()
-        .map(buildingIds -> {
-          return ApartmentFormDto.builder()
-              .buildings(buildingIds)
-              .aliquot(BigDecimal.ZERO)
-              .emails(List.of(new EmailForm(null, null)))
-              .build();
-        });
   }
 
   @DELETE
@@ -306,124 +222,6 @@ public class ApartmentsResource {
               .isEdit(isUpdate)
               .build();
         });
-  }
-
-  @POST
-  @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-  @Produces(MediaType.TEXT_HTML)
-  public Uni<TemplateInstance> create(@BeanParam ApartmentRequest request) {
-    log.info("Creating apartment {}", request);
-    return fromRequest(request, false)
-        .flatMap(dto -> {
-          if (dto.isSuccess()) {
-            return apartmentService.create(request)
-                .flatMap(v -> baseFormDto())
-                .map(d -> d.toBuilder()
-                    .hideForm(true)
-                    .build());
-          }
-
-          return Uni.createFrom().item(dto);
-        })
-        .map(Templates::form);
-  }
-
-  @PATCH
-  @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-  @Produces(MediaType.TEXT_HTML)
-  public Uni<TemplateInstance> patch(@BeanParam ApartmentRequest request) {
-
-    final var key = Objects.requireNonNull(StringUtil.trimFilter(request.getKey()));
-    final var keys = encryptionService.decryptObj(key, Keys.class);
-
-    request.setBuildingId(keys.buildingId());
-    request.setNumber(keys.number());
-    return fromRequest(request, true)
-        .flatMap(dto -> {
-          dto = dto.toBuilder()
-              .readOnlyBuilding(true)
-              .readOnlyNumber(true)
-              .build();
-
-          final var apartment = Apartment.builder()
-              .buildingId(request.getBuildingId())
-              .number(request.getNumber())
-              .name(request.getName())
-              .aliquot(request.getAliquot())
-              .emails(request.getEmails())
-              .build();
-
-          if (apartment.keysWithHash(keys.cardId()).hash() == keys.hash()) {
-            dto = dto.toBuilder()
-                .generalFieldError(apartmentMessages.error_msg_apt_no_change())
-                .build();
-          }
-
-          if (!dto.isSuccess()) {
-            return Uni.createFrom().item(dto);
-          }
-
-          return apartmentService.update(apartment)
-              .flatMap(i -> baseFormDto()
-                  .map(apartmentFormDto -> {
-                    return apartmentFormDto.toBuilder()
-                        .hideForm(true)
-                        .item(AptItem.builder()
-                            .key(key)
-                            .cardId(keys.cardId())
-                            .apt(apartment)
-                            .isUpdate(true)
-                            .build())
-                        .build();
-                  }));
-
-        })
-        .map(Templates::form);
-  }
-
-  @GET
-  @Path("edit_form/{key}")
-  @Produces(MediaType.TEXT_HTML)
-  public Uni<TemplateInstance> editForm(@RestPath @NotBlank String key) {
-
-    final var keys = encryptionService.decryptObj(key, Keys.class);
-
-    return Uni.combine()
-        .all()
-        .unis(apartmentService.get(keys.buildingId(), keys.number()).map(Optional::get), buildingService.ids())
-        .with((apartment, buildings) -> {
-          final var keysWithHash = apartment.keysWithHash(keys.cardId());
-          return ApartmentFormDto.builder()
-              .key(encryptionService.encryptObj(keysWithHash))
-              .buildings(buildings)
-              .buildingId(apartment.buildingId())
-              .number(apartment.number())
-              .name(apartment.name())
-              .aliquot(apartment.aliquot())
-              .emails(apartment.emails().stream().map(EmailForm::ofValue).toList())
-              .isEdit(true)
-              .readOnlyBuilding(true)
-              .readOnlyNumber(true)
-              .showForm(true)
-              .build();
-        })
-        .map(Templates::form);
-  }
-
-  @GET
-  @Path("/item/{key}")
-  @Produces(MediaType.TEXT_HTML)
-  public Uni<TemplateInstance> item(@RestPath @NotBlank String key) {
-
-    final var keys = encryptionService.decryptObj(key, Keys.class);
-    return apartmentService.get(keys.buildingId(), keys.number())
-        .map(Optional::get)
-        .map(apartment -> AptItem.builder()
-            .key(key)
-            .cardId(keys.cardId())
-            .apt(apartment)
-            .build())
-        .map(Templates::grid_item);
   }
 
   @PUT

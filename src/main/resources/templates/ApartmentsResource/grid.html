@@ -3,10 +3,14 @@
 {#for item in res.results}
 
 
-{#include ApartmentsResource/grid_item item=item /}
+        {#include ApartmentsResource/grid_item item = item /}
 
 {/for}
 
-{#include fragments/next-page.html url = res.nextPageUrl /}
+{#include fragments/next-page.html url = res.nextPageUrl}
+    {#extraAttributes}
+        hx-include="[name='building_input'],[name='apt_search_input']"
+    {/extraAttributes}
+{/include}
 
-{#include ApartmentsResource/counters dto=res.countersDto /}
+    {#include ApartmentsResource/counters dto = res.countersDto /}
