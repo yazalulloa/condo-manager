@@ -24,17 +24,9 @@ window.initComponents = function () {
   }
 }
 
-// window.onpageshow = function(event) {
-//   console.log("pageshow event: ", event);
-//   if (event.persisted) {
-//     console.log("window reloading: ", event);
-//     window.location.reload();
-//   }
-// };
-
 window.addEventListener("popstate", (event) => {
 
-  console.log("popstate event: ", event);
+  // console.log("popstate event: ", event);
   window.location.reload();
 });
 
@@ -45,15 +37,15 @@ initComponents();
 
 window.trimInput = function (input) {
   if (input && input.value) {
-    console.log("trimming {}", input.value);
+    // console.log("trimming {}", input.value);
     input.value = input.value.replace(/^\s+/, '').replace(/\s+$/, '').trim();
-    console.log("trimmed {}", input.value);
+    // console.log("trimmed {}", input.value);
   }
 }
 
 window.isInputEmpty = function (input) {
   trimInput(input);
-  console.log("isInputEmpty: {}", input);
+  // console.log("isInputEmpty: {}", input);
   return !input || !input.value || input.value === '';
 }
 
