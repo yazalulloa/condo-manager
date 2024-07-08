@@ -6,8 +6,8 @@
 </div>
 
 <form id="receipts-form"
-      class="flex flex-col min-w-3/5 w-fit align-middle gap-4 m-auto"
-      hx-put="/api/receipts"
+      class="flex flex-col min-w-3/5 w-fit align-middle gap-4 m-auto text-center items-center"
+      hx-patch="/api/receipts"
       hx-disabled-elt="this, #receipts-form * > input:not([disabled]), #receipts-form * > button:not([disabled]), #receipts-form * > select:not([disabled])"
       hx-indicator=".htmx-indicator"
       hx-target="#receipt-form-error"

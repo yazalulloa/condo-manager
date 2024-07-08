@@ -1,0 +1,14 @@
+{@com.yaz.api.domain.response.receipt.ReceiptFormResponse dto}
+
+<div hidden="hidden" x-init="
+
+generalFieldError = '{dto.generalFieldError}';
+isError = '{dto.isError}';
+
+">
+
+</div>
+
+{#if dto.expenseCountersDto}
+        {#include ExpenseResource/counters dto = dto.expenseCountersDto /}
+{/if}

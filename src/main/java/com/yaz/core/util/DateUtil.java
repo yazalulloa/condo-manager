@@ -2,6 +2,7 @@ package com.yaz.core.util;
 
 import io.smallrye.config.common.utils.StringUtil;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.MonthDay;
 import java.time.Year;
@@ -90,6 +91,14 @@ public class DateUtil {
 
     return new int[]{value + 2, value + 1, value, value - 1, value - 2, value - 3, value - 4, value - 5, value - 6,
         value - 7};
+  }
+
+  public static LocalDate localDateParse(String str) {
+    try {
+      return LocalDate.parse(str);
+    } catch (Exception e) {
+      return null;
+    }
   }
 
 }

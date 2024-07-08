@@ -1,6 +1,6 @@
 {@com.yaz.api.domain.response.receipt.ReceiptInitFormDto dto}
 
-<div x-init="
+<div hidden="hidden" x-init="
 key = '{dto.receiptForm.key}';
 month = '{dto.receiptForm.month}';
 year = '{dto.receiptForm.year}';
@@ -12,6 +12,9 @@ years = [
 buildingName = '{dto.receiptForm.buildingName}';
 date = '{dto.receiptForm.date}';
 ">
+
+
+    <input type="hidden" name="{inject:csrf.parameterName}" value="{inject:csrf.token}"/>
 
 </div>
 
