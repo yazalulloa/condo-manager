@@ -12,16 +12,16 @@ _hyperscript.browserInit();
 
 window.initComponents = function () {
 
-  const scroll_stopper = document.getElementsByClassName('stop-vertical-scroll')
+}
 
-  for (let ele of scroll_stopper) {
-    ele.onmouseover = () => {
-      document.body.classList.add('noYScroll')
-    }
-    ele.onmouseout = () => {
-      document.body.classList.remove('noYScroll')
-    }
+window.disableScrollWhenHover = function (element) {
+  element.onmouseover = () => {
+    document.body.classList.add('noYScroll')
   }
+  element.onmouseout = () => {
+    document.body.classList.remove('noYScroll')
+  }
+
 }
 
 window.addEventListener("popstate", (event) => {

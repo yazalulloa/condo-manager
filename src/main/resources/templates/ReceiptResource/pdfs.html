@@ -28,11 +28,11 @@
 
 
 <div id="receipt-pdfs" class="overflow-hidden"
-    {#if res.outOfBounds}
-        hx-swap-oob="true"
-    {/if}
+        {#if res.outOfBounds}
+            hx-swap-oob="true"
+        {/if}
 >
-    <div class="rounded-box join max-w-full h-14 max-h-14 items-center stop-vertical-scroll">
+    <div class="rounded-box join max-w-full h-14 max-h-14 items-center" onload="disableScrollWhenHover(this)">
         <button class="join-item btn btn-outline"
                 onclick="slideTo('pdf_carousel', 'left')"
         >«
@@ -63,7 +63,8 @@
             <object data="/api/receipts/pdf/{tab.path}" type="application/pdf"
                     standby="Loading PDF file..."
                     style="min-height:100vh;max-height:100vh;width:100%;height:100%">
-                <p>Unable to display PDF file. <a class="link link-primary" href="/api/receipts/pdf/{tab.path}">Download</a> instead.</p>
+                <p>Unable to display PDF file. <a class="link link-primary"
+                                                  href="/api/receipts/pdf/{tab.path}">Download</a> instead.</p>
             </object>
         </div>
     {/for}
