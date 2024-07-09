@@ -10,6 +10,7 @@ module.exports = {
     "./frontend/**/*.{html,js,ts,css}",
   ],
   plugins: [
+    require("@tailwindcss/typography"),
     require("daisyui")
   ],
   theme: {
