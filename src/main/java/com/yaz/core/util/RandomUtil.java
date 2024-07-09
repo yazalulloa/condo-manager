@@ -6,15 +6,14 @@ import java.util.Random;
 
 public class RandomUtil {
 
-  private static Random INSTANCE;
   public static final char[] CHARS = "abcdefghjkmnpqrstuvwxyzABCDEFGHIJKMNPQRSTUVWXYZ".toCharArray();
   public static final char[] ALPHANUMERIC = "abcdefghjkmnpqrstuvwxyzABCDEFGHIJKMNPQRSTUVWXYZ0123456789".toCharArray();
   public static final char[] NUMERIC = "1234567890".toCharArray();
   public static final char[] HEXADECIMAL = "0123456789ABCDEF".toCharArray();
   private static final int DEFAULT_LENGTH = 6;
-
   private static final long UNSIGNED_LONG_19_MIN = 1000000000000000000L;
   private static final int UNSIGNED_INT_10_MIN = 1000000000;
+  private static Random INSTANCE;
 
   public static String getID() {
     return getID(DEFAULT_LENGTH, Type.ALPHANUMERIC);

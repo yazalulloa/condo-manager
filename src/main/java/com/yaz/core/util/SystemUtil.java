@@ -1,4 +1,4 @@
-  package com.yaz.core.util;
+package com.yaz.core.util;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -73,6 +73,7 @@ public class SystemUtil {
     results.add(usedSpaceStr());
     return results;
   }
+
   public static Stream<String> systemInfo() {
 
     return Stream.of(

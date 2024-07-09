@@ -126,34 +126,6 @@ public class ReceiptResource {
   private final EmailConfigService emailConfigService;
   private final ReceiptPdfProgressStateConsumer receiptPdfProgressStateConsumer;
 
-  @CheckedTemplate
-  public static class Templates {
-
-    public static native TemplateInstance receipts(ReceiptTableResponse res);
-
-    public static native TemplateInstance counters(ReceiptCountersDto dto);
-
-    public static native TemplateInstance pdfs(ReceiptPdfResponse res);
-
-    public static native TemplateInstance init(ReceiptInitDto dto);
-
-    public static native TemplateInstance progress(ReceiptProgressDto dto);
-
-    public static native TemplateInstance progressUpdate(ReceiptProgressUpdate res);
-
-    public static native TemplateInstance newFileDialog(ReceiptFileFormDto dto);
-
-    public static native TemplateInstance sentInfo(ReceiptTableItem item);
-
-    public static native TemplateInstance dialogError(String error, boolean isZip);
-
-    public static native TemplateInstance pdfReceipt(ReceiptPdfDto dto);
-
-    public static native TemplateInstance formInit(ReceiptInitFormDto dto);
-
-    public static native TemplateInstance formResponse(ReceiptFormResponse dto);
-  }
-
   public Uni<TemplateInstance> dialogError(String error, boolean isZip) {
     return Uni.createFrom().item(Templates.dialogError(error, isZip));
   }
@@ -572,27 +544,6 @@ public class ReceiptResource {
     return MutinyUtil.toUni(responseSingle);
   }
 
-  @Data
-  public static class FileReceiptRequest {
-
-    @NotBlank
-    @RestForm
-    private String data;
-    @NotBlank
-    @RestForm
-    private String building;
-    @RestForm
-    private int year;
-    @RestForm
-    private int month;
-    @NotBlank
-    @RestForm
-    private String date;
-    @NotBlank
-    @RestForm
-    private String rateInput;
-  }
-
   @POST
   @Path("new_receipt_file")
   @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
@@ -686,24 +637,6 @@ public class ReceiptResource {
                     .build();
               });
         });
-  }
-
-  @Data
-  public static class ReceiptEditRequest {
-
-    @RestForm
-    @NotBlank
-    private String key;
-    @RestForm
-    private int year;
-    @RestForm
-    private int month;
-    @NotBlank
-    @RestForm
-    private String date;
-    @NotBlank
-    @RestForm
-    private String rateInput;
   }
 
   @PATCH
@@ -952,6 +885,73 @@ public class ReceiptResource {
                   .build())
               .build();
         }).map(Templates::formInit);
+  }
+
+  @CheckedTemplate
+  public static class Templates {
+
+    public static native TemplateInstance receipts(ReceiptTableResponse res);
+
+    public static native TemplateInstance counters(ReceiptCountersDto dto);
+
+    public static native TemplateInstance pdfs(ReceiptPdfResponse res);
+
+    public static native TemplateInstance init(ReceiptInitDto dto);
+
+    public static native TemplateInstance progress(ReceiptProgressDto dto);
+
+    public static native TemplateInstance progressUpdate(ReceiptProgressUpdate res);
+
+    public static native TemplateInstance newFileDialog(ReceiptFileFormDto dto);
+
+    public static native TemplateInstance sentInfo(ReceiptTableItem item);
+
+    public static native TemplateInstance dialogError(String error, boolean isZip);
+
+    public static native TemplateInstance pdfReceipt(ReceiptPdfDto dto);
+
+    public static native TemplateInstance formInit(ReceiptInitFormDto dto);
+
+    public static native TemplateInstance formResponse(ReceiptFormResponse dto);
+  }
+
+  @Data
+  public static class FileReceiptRequest {
+
+    @NotBlank
+    @RestForm
+    private String data;
+    @NotBlank
+    @RestForm
+    private String building;
+    @RestForm
+    private int year;
+    @RestForm
+    private int month;
+    @NotBlank
+    @RestForm
+    private String date;
+    @NotBlank
+    @RestForm
+    private String rateInput;
+  }
+
+  @Data
+  public static class ReceiptEditRequest {
+
+    @RestForm
+    @NotBlank
+    private String key;
+    @RestForm
+    private int year;
+    @RestForm
+    private int month;
+    @NotBlank
+    @RestForm
+    private String date;
+    @NotBlank
+    @RestForm
+    private String rateInput;
   }
 
   @Data

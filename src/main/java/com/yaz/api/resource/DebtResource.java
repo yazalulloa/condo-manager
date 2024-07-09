@@ -44,16 +44,6 @@ public class DebtResource {
   private final DebtService debtService;
   private final BuildingService buildingService;
 
-  @CheckedTemplate
-  public static class Templates {
-
-    public static native TemplateInstance counters(DebtCountersDto dto);
-
-    public static native TemplateInstance grid(List<DebtTableItem> list);
-
-    public static native TemplateInstance responseForm(DebtFormResponse dto);
-  }
-
   @PUT
   @Produces(MediaType.TEXT_HTML)
   public Uni<TemplateInstance> update(@BeanParam DebtUpdateRequest request) {
@@ -134,6 +124,16 @@ public class DebtResource {
               .build();
         })
         .map(Templates::responseForm);
+  }
+
+  @CheckedTemplate
+  public static class Templates {
+
+    public static native TemplateInstance counters(DebtCountersDto dto);
+
+    public static native TemplateInstance grid(List<DebtTableItem> list);
+
+    public static native TemplateInstance responseForm(DebtFormResponse dto);
   }
 
   @Data

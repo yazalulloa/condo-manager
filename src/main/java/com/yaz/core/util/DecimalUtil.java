@@ -126,10 +126,10 @@ public class DecimalUtil {
   }
 
   public static BigDecimal ofString(String value) {
-   try {
-     return new BigDecimal(value);
-   } catch (Exception ignored) {
-     return null;
-   }
+    try {
+      return new BigDecimal(value);
+    } catch (Exception ignored) {
+      return null;
+    }
   }
 }

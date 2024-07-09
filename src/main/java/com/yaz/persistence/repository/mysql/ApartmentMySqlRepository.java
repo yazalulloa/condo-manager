@@ -107,26 +107,26 @@ public class ApartmentMySqlRepository {
   private final MySqlService mySqlService;
   private final ApartmentEmailRepository emailRepository;
 
-  
+
   public Uni<Long> count() {
     return mySqlService.totalCount(COLLECTION);
   }
 
-  
+
   public Uni<Integer> delete(String buildingId, String number) {
 
     return mySqlService.request(DELETE_BY_ID, Tuple.of(buildingId, number))
         .map(SqlResult::rowCount);
   }
 
-  
+
   public Uni<Integer> deleteByBuildingId(String buildingId) {
 
     return mySqlService.request(DELETE_BY_BUILDING, Tuple.of(buildingId))
         .map(SqlResult::rowCount);
   }
 
-  
+
   public Uni<Integer> insert(Apartment apartment) {
     final var aptTuple = tuple(apartment);
     final var requests = new ArrayList<MySqlQueryRequest>();
@@ -228,7 +228,7 @@ public class ApartmentMySqlRepository {
   }
 
 
-  
+
   public Uni<List<Apartment>> select(ApartmentQuery query) {
 
     final var sqlQueryRequest = where(query);
@@ -243,7 +243,7 @@ public class ApartmentMySqlRepository {
         .map(rows -> SqlUtil.toList(rows, this::from));
   }
 
-  
+
   public Uni<Optional<Long>> queryCount(ApartmentQuery query) {
 
     final var buildings = query.buildings().stream()
@@ -331,7 +331,7 @@ public class ApartmentMySqlRepository {
     return MySqlQueryRequest.normal(stringBuilder.toString(), new Tuple(tuple));
   }
 
-  
+
   public Uni<Boolean> exists(String buildingId, String number) {
 
     return mySqlService.request(EXISTS, Tuple.of(buildingId, number))
@@ -339,7 +339,7 @@ public class ApartmentMySqlRepository {
         .map(RowIterator::hasNext);
   }
 
-  
+
   public Uni<Optional<Apartment>> read(String buildingId, String number) {
 
     return mySqlService.request(SELECT_FULL_ONE, Tuple.of(buildingId, number, 1))
@@ -356,7 +356,7 @@ public class ApartmentMySqlRepository {
     return Tuple.newInstance(params);
   }
 
-  
+
   public Uni<Integer> update(Apartment apartment) {
 
     final var updateQuery = MySqlQueryRequest.normal(UPDATE, updateTuple(apartment));
@@ -369,7 +369,7 @@ public class ApartmentMySqlRepository {
         .with((updateRowCount, deleteCount, insertCount) -> updateRowCount + deleteCount + insertCount);
   }
 
-  
+
   public Uni<Integer> insert(Collection<Apartment> apartments) {
 
     final var tuples = apartments.stream()
@@ -383,7 +383,7 @@ public class ApartmentMySqlRepository {
         .map(list -> list.stream().mapToInt(SqlResult::rowCount).sum());
   }
 
-  
+
   public Uni<List<ExtraCharge.Apt>> aptByBuildings(String buildingId) {
     return mySqlService.request(SELECT_MINIMAL_BY_BUILDING, Tuple.of(buildingId))
         .map(rowSet -> SqlUtil.toList(rowSet, row -> ExtraCharge.Apt.builder()

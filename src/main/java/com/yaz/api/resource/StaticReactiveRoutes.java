@@ -7,7 +7,6 @@ import io.quarkus.vertx.web.Route;
 import io.quarkus.vertx.web.Route.HttpMethod;
 import io.quarkus.vertx.web.RouteFilter;
 import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpHeaders;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.StaticHandler;
@@ -22,16 +21,13 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 @ApplicationScoped
 public class StaticReactiveRoutes {
 
-  private static final String INDEX_HTML = "index.html";
-
   public static final String TMP_STATIC_PATH = "tmp/stc/" + RandomUtil.randomIntStr(6) + "/";
-
   public static final String BUILDING_EDIT = "/buildings/edit/";
   public static final String RECEIPT_EDIT = "/receipts/edit/";
   public static final String RECEIPT_PDF_VIEW = "/receipts/pdfs/";
   public static final String RECEIPT_NEW_FILE = "/receipts/new_file/";
   public static final String EMAIL_CONFIGS_ERROR = "/email_configs/error/";
-
+  private static final String INDEX_HTML = "index.html";
   private static final String[] DEEP_LINKING_ROUTES = {BUILDING_EDIT, RECEIPT_EDIT, RECEIPT_PDF_VIEW, RECEIPT_NEW_FILE,
       EMAIL_CONFIGS_ERROR};
   private static final String[] FILES_EXTENSIONS = {".html", ".js", ".css", ".svg", ".png", ".ico"};
@@ -88,7 +84,7 @@ public class StaticReactiveRoutes {
 
     if (isNextPath(path)) {
       if (authSession) {
-          log.debug("is authSession {} {}", path, uri);
+        log.debug("is authSession {} {}", path, uri);
         rc.next();
       } else {
         log.debug("Redirecting to login.html {} {}", path, uri);

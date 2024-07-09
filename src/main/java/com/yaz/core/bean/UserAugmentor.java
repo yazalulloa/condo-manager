@@ -5,9 +5,7 @@ import io.quarkus.oidc.OidcTenantConfig;
 import io.quarkus.oidc.UserInfo;
 import io.quarkus.oidc.runtime.OidcJwtCallerPrincipal;
 import io.quarkus.security.identity.SecurityIdentity;
-import io.vertx.core.json.Json;
 import io.vertx.ext.web.RoutingContext;
-import java.util.Optional;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 

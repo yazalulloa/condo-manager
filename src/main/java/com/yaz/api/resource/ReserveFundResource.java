@@ -58,14 +58,6 @@ public class ReserveFundResource {
   private final ReceiptService receiptService;
   private final RateService rateService;
 
-  @CheckedTemplate
-  public static class Templates {
-
-    public static native TemplateInstance counters(ReserveFundCountersDto dto);
-
-    public static native TemplateInstance responseForm(ReserveFundFormResponse dto);
-  }
-
   private Uni<Optional<Rate>> rateUni(long receiptId) {
     return receiptService.read(receiptId)
         .flatMap(opt -> {
@@ -116,30 +108,6 @@ public class ReserveFundResource {
         })
         .map(Templates::counters)
         .map(templateInstance -> Response.ok(templateInstance).build());
-  }
-
-  @Data
-  public static class ReserveFundBeanRequest {
-
-    @RestForm
-    @NotNull
-    private String key;
-    @RestForm
-    String name;
-    @RestForm
-    String fund;
-    @RestForm
-    String expense;
-    @RestForm
-    String pay;
-    @RestForm
-    boolean active;
-    @RestForm
-    ReserveFundType type;
-    @RestForm
-    ExpenseType expenseType;
-    @RestForm
-    boolean addToExpenses;
   }
 
   @PUT
@@ -284,6 +252,38 @@ public class ReserveFundResource {
         .unCommonTotalPlusReserveFunds(expenseTotals.formatUnCommon())
         .reserveFundExpenses(reserveFundExpenses)
         .build();
+  }
+
+  @CheckedTemplate
+  public static class Templates {
+
+    public static native TemplateInstance counters(ReserveFundCountersDto dto);
+
+    public static native TemplateInstance responseForm(ReserveFundFormResponse dto);
+  }
+
+  @Data
+  public static class ReserveFundBeanRequest {
+
+    @RestForm
+    String name;
+    @RestForm
+    String fund;
+    @RestForm
+    String expense;
+    @RestForm
+    String pay;
+    @RestForm
+    boolean active;
+    @RestForm
+    ReserveFundType type;
+    @RestForm
+    ExpenseType expenseType;
+    @RestForm
+    boolean addToExpenses;
+    @RestForm
+    @NotNull
+    private String key;
   }
 
 }

@@ -17,10 +17,6 @@ public class TursoTokenStateManagerInitializer {
   private static final long EXPIRED_EXTRA_GRACE = 30;
   private static volatile Long timerId = null;
 
-  void initialize(@Observes StartupEvent event, Vertx vertx, OidcDbTokenService service) {
-    periodicallyDeleteExpiredTokens(vertx, service, Duration.ofHours(8).toMillis());
-  }
-
   private static void periodicallyDeleteExpiredTokens(Vertx vertx, OidcDbTokenService service,
       long delayBetweenChecks) {
     timerId = vertx
@@ -48,6 +44,10 @@ public class TursoTokenStateManagerInitializer {
             }
           }
         });
+  }
+
+  void initialize(@Observes StartupEvent event, Vertx vertx, OidcDbTokenService service) {
+    periodicallyDeleteExpiredTokens(vertx, service, Duration.ofHours(8).toMillis());
   }
 
   void shutdown(@Observes ShutdownEvent event, Vertx vertx) {

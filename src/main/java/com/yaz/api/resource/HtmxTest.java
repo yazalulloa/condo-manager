@@ -1,5 +1,7 @@
 package com.yaz.api.resource;
 
+import com.yaz.api.domain.HtmxTestResponse;
+import com.yaz.core.util.RandomUtil;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import jakarta.inject.Inject;
@@ -10,18 +12,10 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import lombok.RequiredArgsConstructor;
-import com.yaz.api.domain.HtmxTestResponse;
-import com.yaz.core.util.RandomUtil;
 
 @Path("/api/htmx_test")
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class HtmxTest {
-
-  @CheckedTemplate
-  public static class Templates {
-
-    public static native TemplateInstance form(HtmxTestResponse res);
-  }
 
   public HtmxTestResponse res() {
     return HtmxTestResponse.builder()
@@ -52,6 +46,11 @@ public class HtmxTest {
     return Templates.form(res());
   }
 
+  @CheckedTemplate
+  public static class Templates {
+
+    public static native TemplateInstance form(HtmxTestResponse res);
+  }
 
 
 }

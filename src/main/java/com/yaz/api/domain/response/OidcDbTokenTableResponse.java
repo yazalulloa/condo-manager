@@ -1,8 +1,8 @@
 package com.yaz.api.domain.response;
 
 import com.yaz.api.resource.OidcDbTokenResource;
-import com.yaz.persistence.entities.OidcDbToken;
 import com.yaz.core.util.ConvertUtil;
+import com.yaz.persistence.entities.OidcDbToken;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.concurrent.TimeUnit;

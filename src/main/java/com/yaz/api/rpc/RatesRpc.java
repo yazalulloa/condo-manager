@@ -11,7 +11,6 @@ import com.yaz.persistence.domain.query.RateQuery;
 import com.yaz.persistence.entities.Rate;
 import io.quarkus.qute.TemplateInstance;
 import io.smallrye.mutiny.Uni;
-import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;

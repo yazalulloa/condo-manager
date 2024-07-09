@@ -30,7 +30,7 @@ public class ResourcesResource {
     final var html = new Element("div")
         .attr("hx-get", "/api/resources")
         .attr("hx-trigger", "load delay:1s")
-          .attr("hx-swap", "outerHTML")
+        .attr("hx-swap", "outerHTML")
         .appendChild(new Element("p").text("STARTED AT: " + envParams.getAppStartedAtZonedDateTime()))
         .appendChild(new Element("p").text("IP: " + envParams.currentIp()))
         .appendChild(new Element("p").text(SystemUtil.processorsStr()))

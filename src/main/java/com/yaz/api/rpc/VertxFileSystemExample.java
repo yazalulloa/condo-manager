@@ -20,6 +20,15 @@ public class VertxFileSystemExample {
 
   private final Vertx vertx;
 
+  public static String generate(Random random, int length, char[] array) {
+    final var sb = new StringBuilder();
+    for (int i = 0; i < length; i++) {
+      char c = array[random.nextInt(array.length)];
+      sb.append(c);
+    }
+    return sb.toString();
+  }
+
   public String data() {
     final var secureRandom = new SecureRandom();
 
@@ -37,14 +46,5 @@ public class VertxFileSystemExample {
         .andThen(fileSystem.readFile(filePath))
         .blockingGet()
         .toString();
-  }
-
-  public static String generate(Random random, int length, char[] array) {
-    final var sb = new StringBuilder();
-    for (int i = 0; i < length; i++) {
-      char c = array[random.nextInt(array.length)];
-      sb.append(c);
-    }
-    return sb.toString();
   }
 }

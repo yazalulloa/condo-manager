@@ -55,16 +55,6 @@ public class ExpenseResource {
   private final ReserveFundService reserveFundService;
   private final ReceiptService receiptService;
 
-  @CheckedTemplate
-  public static class Templates {
-
-    public static native TemplateInstance counters(ExpenseCountersDto dto);
-
-    public static native TemplateInstance grid(List<ExpenseTableItem> list);
-
-    public static native TemplateInstance responseForm(ExpenseFormResponse dto);
-  }
-
   private Uni<Rate> rateUni(long receiptId) {
     return receiptService.get(receiptId)
         .map(Receipt::rateId)
@@ -104,22 +94,6 @@ public class ExpenseResource {
 
           return Templates.counters(countersDto);
         });
-  }
-
-  @Data
-  public static class ExpenseUpsertRequest {
-
-    @NotBlank
-    @RestForm
-    String key;
-    @RestForm
-    String description;
-    @RestForm
-    String amount;
-    @RestForm
-    Currency currency;
-    @RestForm
-    ExpenseType type;
   }
 
   @PUT
@@ -202,6 +176,32 @@ public class ExpenseResource {
               .build();
         })
         .map(Templates::responseForm);
+  }
+
+  @CheckedTemplate
+  public static class Templates {
+
+    public static native TemplateInstance counters(ExpenseCountersDto dto);
+
+    public static native TemplateInstance grid(List<ExpenseTableItem> list);
+
+    public static native TemplateInstance responseForm(ExpenseFormResponse dto);
+  }
+
+  @Data
+  public static class ExpenseUpsertRequest {
+
+    @NotBlank
+    @RestForm
+    String key;
+    @RestForm
+    String description;
+    @RestForm
+    String amount;
+    @RestForm
+    Currency currency;
+    @RestForm
+    ExpenseType type;
   }
 
 }

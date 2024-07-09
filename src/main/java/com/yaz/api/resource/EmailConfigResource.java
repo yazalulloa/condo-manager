@@ -62,20 +62,6 @@ public class EmailConfigResource {
   private final VertxHelper vertxHelper;
   private final BuildingService buildingService;
 
-  @CheckedTemplate
-  public static class Templates {
-
-    public static native TemplateInstance table(EmailConfigTableResponse res);
-
-    public static native TemplateInstance counters(long totalCount);
-
-    public static native TemplateInstance refresh(String url);
-
-    public static native TemplateInstance item(EmailConfigTableItem res);
-
-    public static native TemplateInstance error(String msg);
-  }
-
   private String getRedirectUri(HttpServerRequest req) {
     //log.info("getRedirectUri uri: {}", req.uri());
     //log.info("getRedirectUri absoluteURI: {}", req.absoluteURI());
@@ -93,7 +79,6 @@ public class EmailConfigResource {
     url.setRawPath(PATH + "/callback");
     return url.build();
   }
-
 
   private Response responseRedirect(String userId, HttpServerRequest request) throws IOException {
     final var flow = gmailHelper.flow(userId);
@@ -301,5 +286,19 @@ public class EmailConfigResource {
         })
         .invoke(pair -> log.info("buildingsChanged: {} emailConfigsDeleted {}", pair.getLeft(), pair.getRight()))
         .replaceWithVoid();
+  }
+
+  @CheckedTemplate
+  public static class Templates {
+
+    public static native TemplateInstance table(EmailConfigTableResponse res);
+
+    public static native TemplateInstance counters(long totalCount);
+
+    public static native TemplateInstance refresh(String url);
+
+    public static native TemplateInstance item(EmailConfigTableItem res);
+
+    public static native TemplateInstance error(String msg);
   }
 }

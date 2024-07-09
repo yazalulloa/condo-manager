@@ -21,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class SqlUtil {
+
   public static final DateTimeFormatter SQLITE_DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
   public static final String AND = " AND ";

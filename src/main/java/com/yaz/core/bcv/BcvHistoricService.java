@@ -46,12 +46,10 @@ import org.jsoup.nodes.Attribute;
 //@RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class BcvHistoricService {
 
-  private static volatile Single<Rate> currentRateSingle;
-
   private static final String DIR = "tmp/bcv/";
   private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm a");
   private static final DateTimeFormatter LOCAL_DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-
+  private static volatile Single<Rate> currentRateSingle;
   private final Vertx vertx;
   private final AlternateBcvClient client;
 
@@ -230,17 +228,6 @@ public class BcvHistoricService {
         .flatMap(list -> cleanDir().toSingleDefault(list));
   }
 
-  @Builder
-  private record FileInfo(
-      String path,
-      String url,
-      String etag,
-      String lastModified,
-      MultiMap headers
-  ) {
-
-  }
-
   public Single<List<Rate>> parseRates() {
     return vertx.fileSystem().readDir(DIR)
         .flatMapObservable(Observable::fromIterable)
@@ -313,10 +300,6 @@ public class BcvHistoricService {
     }).doOnError(throwable -> log.error("Error parsing workbook {}", path, throwable));
   }
 
-  private record Result(int sheets, int ratesFound, List<Rate> rates) {
-
-  }
-
   private Set<String> pages(String html) {
 
     final var document = Jsoup.parse(html);
@@ -332,5 +315,20 @@ public class BcvHistoricService {
     return links.stream().map(element -> element.attribute("href"))
         .map(Attribute::getValue)
         .collect(Collectors.toCollection(LinkedHashSet::new));
+  }
+
+  @Builder
+  private record FileInfo(
+      String path,
+      String url,
+      String etag,
+      String lastModified,
+      MultiMap headers
+  ) {
+
+  }
+
+  private record Result(int sheets, int ratesFound, List<Rate> rates) {
+
   }
 }

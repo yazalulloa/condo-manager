@@ -12,10 +12,10 @@ public record ExpenseFormResponse(
 
     ExpenseTableItem tableItem,
     ExpenseCountersDto counters
-    ) {
+) {
 
-    public boolean isSuccess() {
-        return descriptionFieldError == null && amountFieldError == null && generalFieldError == null;
-    }
+  public boolean isSuccess() {
+    return descriptionFieldError == null && amountFieldError == null && generalFieldError == null;
+  }
 
 }

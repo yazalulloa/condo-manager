@@ -12,5 +12,6 @@ public class Constants {
   public static final String TEMPLATE_PREFIX = "templates/";
   public static final String TEMPLATE_SUFFIX = ".html";
 
-  private Constants() {}
+  private Constants() {
+  }
 }

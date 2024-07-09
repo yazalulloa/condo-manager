@@ -17,20 +17,6 @@ public class fragments {
 
   public static final int CACHE_MAX_AGE = 21600;
 
-  @CheckedTemplate
-  public static class Fragments {
-
-    public static native TemplateInstance rateInfo(String msg);
-
-    public static native TemplateInstance currencyData();
-
-    public static native TemplateInstance reserveFundTypes();
-
-    public static native TemplateInstance expenseTypes();
-
-    public static native TemplateInstance csrf();
-  }
-
   @GET
   @Path("/currencies")
   @Cache(maxAge = CACHE_MAX_AGE)
@@ -60,5 +46,19 @@ public class fragments {
   @Produces(MediaType.TEXT_HTML)
   public TemplateInstance csrf() {
     return Fragments.csrf();
+  }
+
+  @CheckedTemplate
+  public static class Fragments {
+
+    public static native TemplateInstance rateInfo(String msg);
+
+    public static native TemplateInstance currencyData();
+
+    public static native TemplateInstance reserveFundTypes();
+
+    public static native TemplateInstance expenseTypes();
+
+    public static native TemplateInstance csrf();
   }
 }

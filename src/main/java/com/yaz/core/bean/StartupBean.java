@@ -4,7 +4,6 @@ import com.yaz.core.service.NotificationService;
 import com.yaz.core.service.csv.ReceiptParser;
 import com.yaz.core.util.EnvParams;
 import com.yaz.core.util.FileUtil;
-import io.quarkus.oidc.OidcTenantConfig;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.Startup;
 import io.quarkus.runtime.StartupEvent;

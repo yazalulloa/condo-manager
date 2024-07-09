@@ -50,16 +50,6 @@ public class ExtraChargeResource {
   private final EncryptionService encryptionService;
   private final ExtraChargeService service;
 
-  @CheckedTemplate
-  public static class Templates {
-
-    public static native TemplateInstance counters(long count);
-
-    public static native TemplateInstance grid(List<ExtraChargeTableItem> extraCharges);
-
-    public static native TemplateInstance responseForm(ExtraChargeFormResponse dto);
-  }
-
   @DELETE
   @Produces(MediaType.TEXT_HTML)
   public Uni<TemplateInstance> delete(@NotBlank @RestQuery String id) {
@@ -77,24 +67,6 @@ public class ExtraChargeResource {
           }
           return Templates.counters(count);
         });
-  }
-
-  @Data
-  public static class ExtraChargeUpsertRequest {
-
-    @NotBlank
-    @RestForm
-    private String key;
-    @RestForm
-    private String description;
-    @RestForm
-    private String amount;
-    @RestForm
-    private Currency currency;
-    @RestForm
-    private boolean active;
-    @RestForm
-    private String[] apts;
   }
 
   @PUT
@@ -216,5 +188,33 @@ public class ExtraChargeResource {
                 .map(Templates::responseForm);
           }
         });
+  }
+
+  @CheckedTemplate
+  public static class Templates {
+
+    public static native TemplateInstance counters(long count);
+
+    public static native TemplateInstance grid(List<ExtraChargeTableItem> extraCharges);
+
+    public static native TemplateInstance responseForm(ExtraChargeFormResponse dto);
+  }
+
+  @Data
+  public static class ExtraChargeUpsertRequest {
+
+    @NotBlank
+    @RestForm
+    private String key;
+    @RestForm
+    private String description;
+    @RestForm
+    private String amount;
+    @RestForm
+    private Currency currency;
+    @RestForm
+    private boolean active;
+    @RestForm
+    private String[] apts;
   }
 }

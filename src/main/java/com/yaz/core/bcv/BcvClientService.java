@@ -19,9 +19,9 @@ import org.jsoup.Jsoup;
 @ApplicationScoped
 public class BcvClientService {
 
+  private static final AtomicBoolean USE_ALTERNATE = new AtomicBoolean(true);
   private final RestBcvClientWrapper restBcvClient;
   private final AlternateBcvClient alternateBcvClient;
-  private static final AtomicBoolean USE_ALTERNATE = new AtomicBoolean(true);
 
   @Inject
   public BcvClientService(RestBcvClientWrapper restBcvClient, AlternateBcvClient alternateBcvClient) {

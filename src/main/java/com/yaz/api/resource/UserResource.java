@@ -38,16 +38,6 @@ public class UserResource {
   private final UserService service;
   private final EncryptionService encryptionService;
 
-  @CheckedTemplate
-  public static class Templates {
-
-    public static native TemplateInstance users(UserTableResponse res);
-
-    public static native TemplateInstance counters(long totalCount);
-
-    public static native TemplateInstance picture(String picture);
-  }
-
   @GET
   @Path("counters")
   @Produces(MediaType.TEXT_HTML)
@@ -93,5 +83,15 @@ public class UserResource {
     return service.read(userId.toString())
         .map(opt -> opt.map(User::picture).orElse(""))
         .map(Templates::picture);
+  }
+
+  @CheckedTemplate
+  public static class Templates {
+
+    public static native TemplateInstance users(UserTableResponse res);
+
+    public static native TemplateInstance counters(long totalCount);
+
+    public static native TemplateInstance picture(String picture);
   }
 }

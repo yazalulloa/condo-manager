@@ -5,13 +5,12 @@ import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
 import io.vertx.core.Vertx;
 import jakarta.enterprise.event.Observes;
-import java.time.Duration;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class TursoWebsocketInitializer {
 
-  private static volatile Long timerId = null;
+  private static final Long timerId = null;
 
   void initialize(@Observes StartupEvent event, Vertx vertx, TursoWsService service) {
 //    service.heartBeat();

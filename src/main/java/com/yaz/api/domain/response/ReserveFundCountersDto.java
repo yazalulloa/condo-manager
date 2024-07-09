@@ -9,10 +9,10 @@ public record ReserveFundCountersDto(
 
 ) {
 
-public static ReserveFundCountersDto count(long count) {
+  public static ReserveFundCountersDto count(long count) {
     return ReserveFundCountersDto.builder()
         .count(count)
         .build();
-}
+  }
 
 }

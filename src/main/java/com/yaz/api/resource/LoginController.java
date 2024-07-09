@@ -35,8 +35,8 @@ public class LoginController {
         rc.response().removeCookie(name);
         tokenService.delete(value)
             .subscribe().with(
-            i -> log.debug("Deleted token: {} {} {}", name, value, i),
-            e -> log.error("ERROR deleting token: {} {}", name, value, e));
+                i -> log.debug("Deleted token: {} {} {}", name, value, i),
+                e -> log.error("ERROR deleting token: {} {}", name, value, e));
       }
     }
 

@@ -1,6 +1,7 @@
 package com.yaz.core.util.rx;
 
 
+import com.yaz.core.util.ReflectionUtil;
 import io.netty.handler.proxy.ProxyConnectException;
 import io.netty.resolver.dns.DnsNameResolverTimeoutException;
 import io.reactivex.rxjava3.core.Flowable;
@@ -13,7 +14,6 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
-import com.yaz.core.util.ReflectionUtil;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -23,8 +23,8 @@ public class RetryWithDelay implements Function<Flowable<? extends Throwable>, F
   private final int retryDelay;
   private final TimeUnit timeUnit;
   private final Function<Throwable, Boolean> validator;
-  private int retryCount;
   private final BiConsumer<Integer, Integer> retryCounterConsumer;
+  private int retryCount;
 
   private RetryWithDelay(int maxRetryCount, int retryDelay, TimeUnit timeUnit, Function<Throwable, Boolean> validator,
       BiConsumer<Integer, Integer> retryCounterConsumer) {
@@ -73,7 +73,7 @@ public class RetryWithDelay implements Function<Flowable<? extends Throwable>, F
           );
 
           if (shouldRetry) {
-           log.info("Retrying due to network error: {}", t.getMessage());
+            log.info("Retrying due to network error: {}", t.getMessage());
           }
 
           return shouldRetry;

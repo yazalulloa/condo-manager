@@ -6,8 +6,8 @@ import com.yaz.api.domain.ApartmentInitDto;
 import com.yaz.api.domain.AptItem;
 import com.yaz.api.domain.request.ApartmentRequest;
 import com.yaz.api.domain.response.ApartmentTableResponse;
-import com.yaz.api.domain.response.apartments.ApartmentUpsertFormDto;
 import com.yaz.api.domain.response.AptCountersDto;
+import com.yaz.api.domain.response.apartments.ApartmentUpsertFormDto;
 import com.yaz.api.msg.ApartmentMessages;
 import com.yaz.core.service.EncryptionService;
 import com.yaz.core.service.entity.ApartmentService;
@@ -52,31 +52,16 @@ public class ApartmentsResource {
   public static final String EDIT_FORM_PATH = PATH + "/edit_form/";
   public static final String ITEM_PATH = PATH + "/item/";
   public static final String TABLE_PATH = PATH + "/grid";
-
+  private final ApartmentService apartmentService;
+  private final BuildingService buildingService;
+  private final EncryptionService encryptionService;
   @Inject
   @IdToken
   JsonWebToken idToken;
   @Inject
   UserInfo userInfo;
-
   @Inject
   ApartmentMessages apartmentMessages;
-
-  @CheckedTemplate
-  public static class Templates {
-
-    public static native TemplateInstance grid(ApartmentTableResponse res);
-
-    public static native TemplateInstance init(ApartmentInitDto dto);
-
-    public static native TemplateInstance counters(AptCountersDto dto);
-
-    public static native TemplateInstance upsert(ApartmentUpsertFormDto dto);
-  }
-
-  private final ApartmentService apartmentService;
-  private final BuildingService buildingService;
-  private final EncryptionService encryptionService;
 
   @GET
   @Path("init")
@@ -296,6 +281,18 @@ public class ApartmentsResource {
           return Uni.createFrom().item(dto);
         })
         .map(Templates::upsert);
+  }
+
+  @CheckedTemplate
+  public static class Templates {
+
+    public static native TemplateInstance grid(ApartmentTableResponse res);
+
+    public static native TemplateInstance init(ApartmentInitDto dto);
+
+    public static native TemplateInstance counters(AptCountersDto dto);
+
+    public static native TemplateInstance upsert(ApartmentUpsertFormDto dto);
   }
 
 }

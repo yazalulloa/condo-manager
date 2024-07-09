@@ -14,8 +14,6 @@ import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
 import io.smallrye.mutiny.Uni;
-import jakarta.enterprise.context.Dependent;
-import jakarta.inject.Inject;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -47,16 +45,6 @@ public class RateResource {
   private final RateService service;
   private final EncryptionService encryptionService;
 
-  @CheckedTemplate
-  public static class Templates {
-
-    public static native TemplateInstance rates(RateTableResponse res);
-
-    public static native TemplateInstance counters(long totalCount);
-
-    public static native TemplateInstance options(RateTableResponse res);
-  }
-
   @GET
   @Path("counters")
   @Produces(MediaType.TEXT_HTML)
@@ -64,7 +52,6 @@ public class RateResource {
     return service.count()
         .map(Templates::counters);
   }
-
 
   @GET
   @Produces(MediaType.TEXT_HTML)
@@ -113,7 +100,6 @@ public class RateResource {
         ;
   }
 
-
   @GET
   @Path("last")
   @Produces(MediaType.APPLICATION_JSON)
@@ -157,6 +143,16 @@ public class RateResource {
 
     return service.table(rateQuery, "/api/rates/options")
         .map(Templates::options);
+  }
+
+  @CheckedTemplate
+  public static class Templates {
+
+    public static native TemplateInstance rates(RateTableResponse res);
+
+    public static native TemplateInstance counters(long totalCount);
+
+    public static native TemplateInstance options(RateTableResponse res);
   }
 
 }

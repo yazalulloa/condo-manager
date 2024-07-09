@@ -30,14 +30,6 @@ public class OidcDbTokenResource {
 
   private final OidcDbTokenService service;
 
-  @CheckedTemplate
-  public static class Templates {
-
-    public static native TemplateInstance tokens(OidcDbTokenTableResponse res);
-
-    public static native TemplateInstance counters(long totalCount);
-  }
-
   @GET
   @Produces(MediaType.TEXT_HTML)
   public Uni<TemplateInstance> tokens(@RestQuery String lastId) {
@@ -49,7 +41,6 @@ public class OidcDbTokenResource {
     return service.tableResponse(query)
         .map(Templates::tokens);
   }
-
 
   @GET
   @Path("counters")
@@ -67,5 +58,13 @@ public class OidcDbTokenResource {
     return Uni.combine().all()
         .unis(service.delete(id), service.count())
         .with((i, count) -> Templates.counters(count - i));
+  }
+
+  @CheckedTemplate
+  public static class Templates {
+
+    public static native TemplateInstance tokens(OidcDbTokenTableResponse res);
+
+    public static native TemplateInstance counters(long totalCount);
   }
 }

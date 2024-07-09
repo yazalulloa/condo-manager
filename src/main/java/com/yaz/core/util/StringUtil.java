@@ -14,9 +14,7 @@ import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterOutputStream;
 import org.apache.commons.codec.digest.XXHash32;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.text.StringEscapeUtils;
 import org.unbescape.html.HtmlEscape;
-import org.unbescape.java.JavaEscape;
 import org.unbescape.javascript.JavaScriptEscape;
 
 public class StringUtil {
@@ -72,11 +70,7 @@ public class StringUtil {
     }
 
     // Check if there are spaces at the beginning or end of the email
-    if (email.charAt(0) == ' ' || email.charAt(email.length() - 1) == ' ') {
-      return false;
-    }
-
-    return true;
+    return email.charAt(0) != ' ' && email.charAt(email.length() - 1) != ' ';
   }
 
   public static UUID uuid(String str) {

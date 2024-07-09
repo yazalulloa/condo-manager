@@ -70,19 +70,19 @@ public class BuildingMySqlRepository  {
 
   private final MySqlService mySqlService;
 
-  
+
   public Uni<Long> count() {
     return mySqlService.totalCount(COLLECTION);
   }
 
-  
+
   public Uni<Integer> delete(String id) {
 
     return mySqlService.request(DELETE_BY_ID, Tuple.of(id))
         .map(SqlResult::rowCount);
   }
 
-  
+
   public Uni<List<Building>> select(BuildingQuery query) {
     final var stringBuilder = new StringBuilder(SELECT);
 
@@ -135,7 +135,7 @@ public class BuildingMySqlRepository  {
         .build();
   }
 
-  
+
   public Uni<Integer> insertIgnore(Collection<Building> buildings) {
 
     final var tuples = buildings.stream()
@@ -164,13 +164,13 @@ public class BuildingMySqlRepository  {
         .map(SqlResult::rowCount);
   }
 
-  
+
   public Uni<List<String>> selectAllIds() {
     return mySqlService.request(SELECT_ALL_IDS)
         .map(rows -> SqlUtil.toList(rows, row -> row.getString("id")));
   }
 
-  
+
   public Uni<Boolean> exists(String buildingId) {
 
     return mySqlService.request(EXISTS, Tuple.of(buildingId))
@@ -178,7 +178,7 @@ public class BuildingMySqlRepository  {
         .map(RowIterator::hasNext);
   }
 
-  
+
   public Uni<Optional<Building>> read(String buildingId) {
 
     return mySqlService.request(READ, Tuple.of(buildingId))
@@ -188,7 +188,7 @@ public class BuildingMySqlRepository  {
             .map(this::from));
   }
 
-  
+
   public Uni<Integer> update(Building building) {
 
     final var params = new ArrayTuple(10);
@@ -210,7 +210,7 @@ public class BuildingMySqlRepository  {
         .map(SqlResult::rowCount);
   }
 
-  
+
   public Uni<Integer> insert(Building building) {
 
     final var params = new ArrayTuple(11);
@@ -233,13 +233,13 @@ public class BuildingMySqlRepository  {
         .map(SqlResult::rowCount);
   }
 
-  
+
   public Uni<Integer> updateEmailConfig(Set<String> ids) {
     return mySqlService.request(MySqlQueryRequest.batch(EMAIL_CONFIG_DELETED, ids.stream().map(Tuple::of).toList()))
         .map(SqlResult::rowCount);
   }
 
-  
+
   public Uni<Set<String>> selectByEmailConfig(String id) {
 
     return mySqlService.request(SELECT_BY_EMAIL_CONFIG, Tuple.of(id))

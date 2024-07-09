@@ -9,6 +9,7 @@ import lombok.experimental.Accessors;
 @Accessors(fluent = true)
 @RequiredArgsConstructor
 public final class Stmt {
+
   @JsonProperty
   private final String sql;
   @JsonProperty

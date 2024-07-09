@@ -65,23 +65,6 @@ public class BuildingResource {
   private final EncryptionService encryptionService;
   private final ReserveFundService reserveFundService;
 
-
-  @CheckedTemplate
-  public static class Templates {
-
-    public static native TemplateInstance selector(List<String> list);
-
-    public static native TemplateInstance report(BuildingReportResponse res);
-
-    public static native TemplateInstance counters(BuildingCountersDto dto);
-
-    public static native TemplateInstance formInit(BuildingInitFormDto dto);
-
-    public static native TemplateInstance responseForm(BuildingFormResponse dto);
-
-    public static native TemplateInstance ids(List<String> list);
-  }
-
   @Route(path = PATH + "/ids", methods = HttpMethod.GET)
   public void getIds(RoutingContext rc) {
     service.buildIds()
@@ -132,7 +115,6 @@ public class BuildingResource {
         .map(BuildingCountersDto::new)
         .map(Templates::counters);
   }
-
 
   private String fixedPayAmountFieldError(BuildingRequest request) {
     if (!request.isFixedPay()) {
@@ -325,6 +307,22 @@ public class BuildingResource {
               .build();
         })
         .map(Templates::formInit);
+  }
+
+  @CheckedTemplate
+  public static class Templates {
+
+    public static native TemplateInstance selector(List<String> list);
+
+    public static native TemplateInstance report(BuildingReportResponse res);
+
+    public static native TemplateInstance counters(BuildingCountersDto dto);
+
+    public static native TemplateInstance formInit(BuildingInitFormDto dto);
+
+    public static native TemplateInstance responseForm(BuildingFormResponse dto);
+
+    public static native TemplateInstance ids(List<String> list);
   }
 
 }

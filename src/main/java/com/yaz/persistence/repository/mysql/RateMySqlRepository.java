@@ -52,12 +52,12 @@ public class RateMySqlRepository  {
 
   private final MySqlService mySqlService;
 
-  
+
   public Uni<Long> count() {
     return mySqlService.totalCount(COLLECTION);
   }
 
-  
+
   public Uni<Integer> delete(long id) {
 
     return mySqlService.request(DELETE_BY_ID, Tuple.of(id))
@@ -79,7 +79,7 @@ public class RateMySqlRepository  {
         .build();
   }
 
-  
+
   public Uni<List<Rate>> listRows(RateQuery query) {
     final var stringBuilder = new StringBuilder();
 
@@ -152,7 +152,7 @@ public class RateMySqlRepository  {
     params.addValue(rate.lastModified());
   }
 
-  
+
   public Uni<Optional<Long>> save(Rate rate) {
 
     final var params = new ArrayTuple(9);
@@ -181,13 +181,13 @@ public class RateMySqlRepository  {
         });
   }
 
-  
+
   public Uni<Optional<Rate>> last(Currency fromCurrency, Currency toCurrency) {
     return mySqlService.request(LAST, Tuple.of(fromCurrency.name(), toCurrency.name()))
         .map(rowSet -> SqlUtil.toOptional(rowSet, this::from));
   }
 
-  
+
   public Uni<Boolean> exists(long hash) {
 
     return mySqlService.request(HASH_EXISTS, Tuple.of(hash))

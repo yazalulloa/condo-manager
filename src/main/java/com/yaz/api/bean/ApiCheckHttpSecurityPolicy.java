@@ -11,6 +11,11 @@ import lombok.extern.slf4j.Slf4j;
 @ApplicationScoped
 public class ApiCheckHttpSecurityPolicy implements HttpSecurityPolicy {
 
+  private static boolean customRequestAuthorization(RoutingContext event) {
+    // here comes your own security check
+    return !event.request().path().endsWith("denied");
+  }
+
   @Override
   public Uni<CheckResult> checkPermission(RoutingContext event, Uni<SecurityIdentity> identity,
       AuthorizationRequestContext requestContext) {
@@ -28,10 +33,5 @@ public class ApiCheckHttpSecurityPolicy implements HttpSecurityPolicy {
   @Override
   public String name() {
     return "api-check";
-  }
-
-  private static boolean customRequestAuthorization(RoutingContext event) {
-    // here comes your own security check
-    return !event.request().path().endsWith("denied");
   }
 }

@@ -43,7 +43,7 @@ public class OidcDbTokenMySqlRepository  {
 
   private final MySqlService mySqlService;
 
-  
+
   public Uni<Long> count() {
     return mySqlService.totalCount(COLLECTION);
   }
@@ -69,7 +69,7 @@ public class OidcDbTokenMySqlRepository  {
         .build();
   }
 
-  
+
   public Uni<List<OidcDbToken>> select(OidcDbTokenQueryRequest queryRequest) {
 
     final var whereClause = queryRequest.lastId() == null ? "" : "WHERE id > ?";
@@ -87,36 +87,36 @@ public class OidcDbTokenMySqlRepository  {
         .map(rows -> SqlUtil.toList(rows, this::from));
   }
 
-  
+
   public Uni<Integer> delete(String id) {
     return mySqlService.request(DELETE, Tuple.of(id))
         .map(SqlResult::rowCount);
   }
 
-  
+
   public Uni<Integer> updateUserId(String id, String userId) {
     return mySqlService.request(UPDATE_USER_ID, Tuple.of(userId, id))
         .map(SqlResult::rowCount);
 
   }
 
-  
+
   public Uni<Integer> deleteByUser(String id) {
     return mySqlService.request(DELETE_BY_USER, Tuple.of(id))
         .map(SqlResult::rowCount);
   }
 
-  
+
   public Uni<Integer> insert(String idToken, String accessToken, String refreshToken, long expiresIn, String id) {
     throw new UnsupportedOperationException("Not implemented");
   }
 
-  
+
   public Uni<Optional<OidcDbToken>> read(String id) {
     throw new UnsupportedOperationException("Not implemented");
   }
 
-  
+
   public Uni<Integer> deleteIfExpired(long expiresIn) {
     throw new UnsupportedOperationException("Not implemented");
   }

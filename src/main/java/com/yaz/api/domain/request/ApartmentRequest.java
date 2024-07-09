@@ -2,12 +2,12 @@ package com.yaz.api.domain.request;
 
 import java.math.BigDecimal;
 import java.util.Set;
-import lombok.Builder;
 import lombok.Data;
 import org.jboss.resteasy.reactive.RestForm;
 
 @Data
 public class ApartmentRequest {
+
   @RestForm
   private String key;
   @RestForm

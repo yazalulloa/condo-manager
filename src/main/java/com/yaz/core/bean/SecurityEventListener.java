@@ -3,7 +3,6 @@ package com.yaz.core.bean;
 import com.yaz.core.service.entity.OidcDbTokenService;
 import com.yaz.core.service.entity.UserService;
 import io.quarkus.oidc.SecurityEvent;
-import io.smallrye.mutiny.Uni;
 import io.vertx.core.http.Cookie;
 import io.vertx.ext.web.RoutingContext;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -61,7 +60,6 @@ public class SecurityEventListener {
                 log.debug("User updated {}", i);
               }, t -> log.error("Error update user {}", userAugmentor, t));
         }
-
 
 
       }
