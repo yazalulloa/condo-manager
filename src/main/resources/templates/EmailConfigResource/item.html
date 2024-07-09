@@ -34,8 +34,25 @@
                 {/if}>
 
             <div class="font-bold badge badge-outline
-          {res.item.isAvailable ? ( res.item.hasExpired ? 'badge-warning' : 'badge-success' ) : 'badge-error'}">
-                {res.item.isAvailable ? ( res.item.hasExpired ? 'Expirado' : 'Disponible' ) : 'Error'}
+            {#if res.item.isAvailable}
+                {#if res.item.hasExpired}
+                badge-warning
+                {#else}
+                badge-success
+                {/if}
+            {#else}
+                badge-error
+            {/if}">
+
+                {#if res.item.isAvailable}
+                    {#if res.item.hasExpired}
+                        Expirado
+                    {#else}
+                        Activado
+                    {/if}
+                {#else}
+                    Error
+                {/if}
             </div>
 
         </div>
@@ -46,14 +63,14 @@
 
         <div class="flex flex-col justify-between text-sm">
             {#if res.item.expiresIn}
-            <span>Expira: {res.item.expiresIn.fromEpochMillis}</span>
+                <span>Expira: {res.item.expiresIn.fromEpochMillis}</span>
             {/if}
             <span>Creado: {res.item.createdAt.formatDate}</span>
             {#if res.item.updatedAt}
-            <span>Actualizado: {res.item.updatedAt.formatDate}</span>
+                <span>Actualizado: {res.item.updatedAt.formatDate}</span>
             {/if}
             {#if res.item.lastCheckAt}
-            <span>Ultima verificación: {res.item.lastCheckAt.formatDate}</span>
+                <span>Ultima verificación: {res.item.lastCheckAt.formatDate}</span>
             {/if}
         </div>
 
