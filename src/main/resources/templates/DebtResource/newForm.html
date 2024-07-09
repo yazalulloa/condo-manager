@@ -8,7 +8,7 @@
             <div class="text-center">Total: <span id="debts-total">{dto.debtTotal}</span></div>
         </div>
     </summary>
-    <div class="flex flex-row flex-wrap gap-6 justify-center"
+    <div class="flex flex-row flex-wrap gap-6 justify-center px-2"
          id="debts-content"
          x-data="{ open_form: false, restartKey: '{dto.key}', key: '{dto.key}', apartment: '', receipts: '', receiptsFieldError: '',
           amount: '', amountFieldError: '', months_selected: [],
@@ -37,7 +37,7 @@
              "
     >
 
-        <div class="max-w-3/5">
+        <div class="md:max-w-3/5 lg:max-w-3/5">
             <div class="debts-grid base-grid-cm p-1 font-bold">
                 <span>Apt</span>
                 <span>Recibos</span>

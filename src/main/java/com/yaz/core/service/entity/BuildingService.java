@@ -61,7 +61,8 @@ public class BuildingService {
         .flatMap(i -> {
           if (i > 0) {
             return invalidateOne(id)
-                .replaceWith(i);
+                .replaceWith(i)
+                .eventually(this::clearIdList);
           }
 
           return Uni.createFrom().item(i);
@@ -74,36 +75,37 @@ public class BuildingService {
   @CacheInvalidateAll(cacheName = BuildingCache.IDS)
   @CacheInvalidate(cacheName = BuildingCache.EXISTS)
   public Uni<Void> invalidateOne(String id) {
-    return invalidateGet(id)
-        .eventually(() -> {
-          vertx.fileSystem().exists(dirPath)
-              .flatMap(b -> {
-                if (!b) {
-                  return Uni.createFrom().voidItem();
-                }
-
-                return vertx.fileSystem().readDir(dirPath)
-                    .toMulti()
-                    .flatMap(Multi.createFrom()::iterable)
-                    .onItem()
-                    .transformToUni(str -> vertx.fileSystem().delete(str))
-                    .merge()
-                    .toUni();
-              })
-              .runSubscriptionOn(Infrastructure.getDefaultWorkerPool())
-              .subscribe()
-              .with(v -> {
-                log.info("Deleted file: {}", filePath);
-              }, t -> {
-                log.error("Error deleting file: {}", filePath, t);
-              });
-        });
+    return invalidateGet(id);
   }
 
   @CacheInvalidateAll(cacheName = BuildingCache.SELECT)
   @CacheInvalidate(cacheName = BuildingCache.GET)
   public Uni<Void> invalidateGet(String id) {
     return Uni.createFrom().voidItem();
+  }
+
+  private void clearIdList() {
+    vertx.fileSystem().exists(dirPath)
+        .flatMap(b -> {
+          if (!b) {
+            return Uni.createFrom().voidItem();
+          }
+
+          return vertx.fileSystem().readDir(dirPath)
+              .toMulti()
+              .flatMap(Multi.createFrom()::iterable)
+              .onItem()
+              .transformToUni(str -> vertx.fileSystem().delete(str))
+              .merge()
+              .toUni();
+        })
+        .runSubscriptionOn(Infrastructure.getDefaultWorkerPool())
+        .subscribe()
+        .with(v -> {
+          log.info("Deleted file: {}", filePath);
+        }, t -> {
+          log.error("Error deleting file: {}", filePath, t);
+        });
   }
 
 
@@ -210,7 +212,8 @@ public class BuildingService {
         .flatMap(i -> {
           if (i > 0) {
             return invalidateOne(building.id())
-                .replaceWith(building);
+                .replaceWith(building)
+                .eventually(this::clearIdList);
           }
 
           return Uni.createFrom().item(building);
