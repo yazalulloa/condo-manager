@@ -49,7 +49,6 @@ public class DebtResource {
   public Uni<TemplateInstance> update(@BeanParam DebtUpdateRequest request) {
 
     final var keys = encryptionService.decryptObj(request.getKey(), Keys.class);
-    log.info("PUT {} {}", request, keys);
 
     final var amount = Optional.ofNullable(request.getAmount())
         .map(StringUtil::trimFilter)
