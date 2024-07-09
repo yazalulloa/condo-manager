@@ -60,7 +60,7 @@
 
     <form class="pb-2 px-3 flex flex-col"
           id="apt-form-modal"
-          hx-put="/api/apartments/upsert"
+          hx-put="/api/apartments"
           hx-target="#apt-form-error"
           hx-swap="innerHTML"
           hx-disabled-elt="this, #apt-form-modal * > input:not([disabled]), #apt-form-modal * > button:not([disabled]), #apt-form-modal * > select:not([disabled])"

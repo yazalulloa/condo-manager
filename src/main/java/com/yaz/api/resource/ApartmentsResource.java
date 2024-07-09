@@ -210,7 +210,6 @@ public class ApartmentsResource {
   }
 
   @PUT
-  @Path("upsert")
   public Uni<TemplateInstance> upsert(@BeanParam ApartmentRequest request) {
 
     final var optKeys = Optional.ofNullable(StringUtil.trimFilter(request.getKey()))
