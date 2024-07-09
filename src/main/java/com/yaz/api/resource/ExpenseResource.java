@@ -2,7 +2,6 @@ package com.yaz.api.resource;
 
 
 import com.yaz.api.domain.response.ExpenseCountersDto;
-import com.yaz.api.domain.response.ExpenseFormDto;
 import com.yaz.api.domain.response.ExpenseTableItem;
 import com.yaz.api.domain.response.expense.ExpenseFormResponse;
 import com.yaz.core.service.EncryptionService;

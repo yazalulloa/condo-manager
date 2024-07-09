@@ -6,7 +6,7 @@ import com.yaz.api.domain.ApartmentInitDto;
 import com.yaz.api.domain.AptItem;
 import com.yaz.api.domain.request.ApartmentRequest;
 import com.yaz.api.domain.response.ApartmentTableResponse;
-import com.yaz.api.domain.response.ApartmentUpsertFormDto;
+import com.yaz.api.domain.response.apartments.ApartmentUpsertFormDto;
 import com.yaz.api.domain.response.AptCountersDto;
 import com.yaz.api.msg.ApartmentMessages;
 import com.yaz.core.service.EncryptionService;

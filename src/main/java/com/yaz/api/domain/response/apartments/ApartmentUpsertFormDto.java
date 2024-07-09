@@ -1,4 +1,4 @@
-package com.yaz.api.domain.response;
+package com.yaz.api.domain.response.apartments;
 
 import com.yaz.api.domain.AptItem;
 import lombok.Builder;

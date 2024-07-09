@@ -1,6 +1,5 @@
 package com.yaz.core.service.entity;
 
-import com.yaz.api.domain.response.ExpenseFormDto;
 import com.yaz.persistence.entities.Expense;
 import com.yaz.persistence.entities.Expense.Keys;
 import com.yaz.persistence.repository.turso.ExpenseRepository;
@@ -44,41 +43,12 @@ public class ExpenseService {
         .map(opt -> opt.orElseThrow(() -> new IllegalArgumentException("Expense not found")));
   }
 
-  public Uni<Expense> create(Keys keys, ExpenseFormDto formDto) {
-    final var expense = Expense.builder()
-        .buildingId(keys.buildingId())
-        .receiptId(keys.receiptId())
-        .description(formDto.description())
-        .amount(formDto.amount())
-        .currency(formDto.currency())
-        .type(formDto.type())
-        .build();
-
-    return create(expense);
-  }
-
   public Uni<Expense> create(Expense expense) {
     return repository.insert(expense)
         .map(id -> expense.toBuilder().id(id).build());
   }
 
   public Uni<Expense> update(Expense expense) {
-    return repository.update(expense)
-        .replaceWith(expense);
-  }
-
-  public Uni<Expense> update(Keys keys, ExpenseFormDto formDto) {
-
-    final var expense = Expense.builder()
-        .buildingId(keys.buildingId())
-        .receiptId(keys.receiptId())
-        .id(keys.id())
-        .description(formDto.description())
-        .amount(formDto.amount())
-        .currency(formDto.currency())
-        .type(formDto.type())
-        .build();
-
     return repository.update(expense)
         .replaceWith(expense);
   }
