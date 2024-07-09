@@ -30,13 +30,8 @@
                 <span>Monto fijo: {item.building.fixedPayAmount}</span>
             {/if}
 
-            <div>
-  <span
-          class="inline-block whitespace-nowrap rounded-full px-[0.65em] pb-[0.25em] pt-[0.35em] text-center align-baseline text-[0.75em] font-bold leading-none
-{item.building.roundUpPayments ? 'bg-success-100 text-success-700' : 'bg-danger-100 text-danger-700'}
-">
-    Redondear pagos
-  </span>
+            <div class="font-bold badge badge-outline {item.building.roundUpPayments ? 'badge-success' : 'badge-error'}">
+                Redondear pagos
             </div>
 
             <span>Apartmentos: {item.building.aptCount}</span>

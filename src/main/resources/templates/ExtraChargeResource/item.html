@@ -20,17 +20,12 @@
             select_all = false;
             $dispatch('event-extra-charge-building-clean-errors');
      ">
-            <div>
+            <div class="flex flex-col gap-2">
                 <span>{item.item.description}</span>
 
-                <div>
-  <span
-          class="inline-block whitespace-nowrap rounded-full px-[0.65em] pb-[0.25em] pt-[0.35em] text-center align-baseline text-[0.75em] font-bold leading-none
-{item.item.active ? 'bg-success-100 text-success-700' : 'bg-danger-100 text-danger-700'}
-">
-      {item.item.type}
-  </span>
-                </div>
+              <div class="font-bold badge badge-outline {item.item.type ? 'badge-success' : 'badge-error'}">
+                  {item.item.type}
+              </div>
             </div>
             <div>{item.item.formatAmount}</div>
             <div class="flex flex-col text-sm items-center gap-1">
