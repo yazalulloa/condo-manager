@@ -116,8 +116,6 @@ public class ReserveFundResource {
 
     final var keys = encryptionService.decryptObj(request.getKey(), Keys.class);
 
-    log.info("keys: {}", keys);
-
     final var name = StringUtil.trimFilter(request.getName());
 
     final var fund = Optional.ofNullable(request.getFund())

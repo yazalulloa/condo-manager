@@ -139,7 +139,7 @@ public class ReceiptParserStreaming extends ReceiptParserAbstractImpl {
         final var apt = iterator.next().value().trim();
 
         final var name = iterator.next().value().trim();
-        final var receipts = iterator.next().value().trim();
+        final var receipts = iterator.next().value().replace("CUOTA", "").trim();
         final var amount = iterator.next().value().trim().replace(",", "");
 
         if (!amount.isEmpty() && !StringUtil.isNumeric(amount)) {
@@ -163,7 +163,7 @@ public class ReceiptParserStreaming extends ReceiptParserAbstractImpl {
                 return null;
               }
             })
-            .orElse(null);
+            .orElse(BigDecimal.ZERO);
 
         final var previousPaymentCurrency = Optional.ofNullable(abono)
             .filter(str -> str.contains("$"))
