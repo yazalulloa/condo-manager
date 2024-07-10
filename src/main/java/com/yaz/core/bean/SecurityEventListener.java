@@ -3,7 +3,9 @@ package com.yaz.core.bean;
 import com.yaz.core.service.entity.OidcDbTokenService;
 import com.yaz.core.service.entity.UserService;
 import io.quarkus.oidc.SecurityEvent;
+import io.smallrye.mutiny.Uni;
 import io.vertx.core.http.Cookie;
+import io.vertx.core.json.Json;
 import io.vertx.ext.web.RoutingContext;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
@@ -54,7 +56,14 @@ public class SecurityEventListener {
               .map(user -> user.toBuilder()
                   .id(userId)
                   .build())
-              .flatMap(userService::update)
+              .flatMap(user -> {
+                if (user.username() == null || user.email() == null) {
+                  return Uni.createFrom()
+                      .failure(new RuntimeException("Username is null %s".formatted(Json.encode(user))));
+                }
+
+                return userService.update(user);
+              })
               .subscribe()
               .with(i -> {
                 log.debug("User updated {}", i);

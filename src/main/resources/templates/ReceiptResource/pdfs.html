@@ -60,18 +60,26 @@
 
     {#for tab in res.tabs}
         <div id="{tab.name}" class="tab-cm-content pt-2">
-            <embed
-                    src="/api/receipts/pdf/{tab.path}"
-                    type="application/pdf"
-                    style="min-height:100vh;max-height:100vh;width:100%;height:100%"
-            />
 
-            {!<object data="/api/receipts/pdf/{tab.path}" type="application/pdf"!}
-                    {!standby="Loading PDF file..."!}
-                    {!style="min-height:100vh;max-height:100vh;width:100%;height:100%">!}
-                {!<p>Unable to display PDF file. <a class="link link-primary"!}
-                                                  {!href="/api/receipts/pdf/{tab.path}">Download</a> instead.</p>!}
-            {!</object>!}
+            {!<iframe id="pdfviewer" src="http://docs.google.com/gview?embedded=true&url=YOUR_URL_HERE&amp;embedded=true"!}
+            {!frameborder="0" width="100%" height="100%"></iframe>!}
+
+            {!<iframe id="pdf-js-viewer" src="/web/viewer.html?file=/api/receipts/pdf/{tab.path}" title="webviewer"!}
+{!!}
+                    {!style="min-height:100vh;max-height:100vh;width:100%;height:100%"></iframe>!}
+
+            {!<embed!}
+                    {!src="/api/receipts/pdf/{tab.path}"!}
+                    {!type="application/pdf"!}
+                    {!style="min-height:100vh;max-height:100vh;width:100%;height:100%"!}
+            {!/>!}
+
+            <object data="/api/receipts/pdf/{tab.path}" type="application/pdf"
+            standby="Loading PDF file..."
+            style="min-height:100vh;max-height:100vh;width:100%;height:100%">
+            <p>Unable to display PDF file. <a class="link link-primary"
+            href="/api/receipts/pdf/{tab.path}">Download</a> instead.</p>
+            </object>
         </div>
     {/for}
 </div>
