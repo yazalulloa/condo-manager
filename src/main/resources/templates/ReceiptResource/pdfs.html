@@ -60,12 +60,18 @@
 
     {#for tab in res.tabs}
         <div id="{tab.name}" class="tab-cm-content pt-2">
-            <object data="/api/receipts/pdf/{tab.path}" type="application/pdf"
-                    standby="Loading PDF file..."
-                    style="min-height:100vh;max-height:100vh;width:100%;height:100%">
-                <p>Unable to display PDF file. <a class="link link-primary"
-                                                  href="/api/receipts/pdf/{tab.path}">Download</a> instead.</p>
-            </object>
+            <embed
+                    src="/api/receipts/pdf/{tab.path}"
+                    type="application/pdf"
+                    style="min-height:100vh;max-height:100vh;width:100%;height:100%"
+            />
+
+            {!<object data="/api/receipts/pdf/{tab.path}" type="application/pdf"!}
+                    {!standby="Loading PDF file..."!}
+                    {!style="min-height:100vh;max-height:100vh;width:100%;height:100%">!}
+                {!<p>Unable to display PDF file. <a class="link link-primary"!}
+                                                  {!href="/api/receipts/pdf/{tab.path}">Download</a> instead.</p>!}
+            {!</object>!}
         </div>
     {/for}
 </div>
