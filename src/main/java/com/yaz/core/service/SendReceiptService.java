@@ -1,12 +1,13 @@
 package com.yaz.core.service;
 
+import com.google.api.services.gmail.model.Message;
 import com.yaz.api.domain.response.EmailConfigTableItem;
 import com.yaz.api.domain.response.ReceiptTableItem;
 import com.yaz.api.resource.ReceiptResource.SendReceiptRequest;
 import com.yaz.core.event.domain.ReceiptAptSent;
+import com.yaz.core.helper.VertxHelper;
 import com.yaz.core.service.entity.ReceiptService;
 import com.yaz.core.service.gmail.GmailHelper;
-import com.yaz.core.service.gmail.GmailHolder;
 import com.yaz.core.service.gmail.GmailService;
 import com.yaz.core.service.gmail.GmailUtil;
 import com.yaz.core.service.gmail.MimeMessageUtil;
@@ -44,6 +45,7 @@ public class SendReceiptService {
   private final GmailHelper gmailHelper;
   private final TranslationProvider translationProvider;
   private final Event<ReceiptAptSent> receiptAptSentEvent;
+  private final VertxHelper vertxHelper;
 
 
   public Completable sendReceipts(Keys keys, String clientId, SendReceiptRequest request) {
@@ -83,7 +85,7 @@ public class SendReceiptService {
 
                 final var month = translationProvider.translate(receipt.month().name());
 
-                final var gmail = new GmailHolder(gmailHelper.gmail(emailConfig.id()));
+                final var gmail = gmailHelper.gmail(emailConfig.id());
 
                 AtomicInteger counter = new AtomicInteger();
 
@@ -101,10 +103,11 @@ public class SendReceiptService {
 
                 return response.pdfItems()
                     .stream()
-                    .map(item -> Single.fromCallable(() -> {
+                    .map(item -> Single.defer(() -> {
                           if (item.emails() == null || item.emails().isEmpty()) {
-                            return "";
+                            return Single.just("");
                           }
+
                           final var emailRequest = ReceiptEmailRequest.builder()
                               .from(emailConfig.email())
                               .to(gmailConfig.useAlternativeReceiptTo() ? gmailConfig.receiptTo() : item.emails())
@@ -113,17 +116,19 @@ public class SendReceiptService {
                               .files(Set.of(item.path().toString()))
                               .build();
 
-                          final var msg = gmail.sendReceiptEmail(emailRequest).toString();
+                          final var mimeMessage = MimeMessageUtil.createEmail(emailRequest);
 
-                          receiptAptSentEvent.fireAsync(receiptAptSent.toBuilder()
-                              .counter(counter.incrementAndGet())
-                              .from(emailRequest.from())
-                              .to(emailRequest.to())
-                              .apt(item.id())
-                              .name(item.name())
-                              .build());
-
-                          return msg;
+                          final var messageWithEmail = GmailUtil.createMessageWithEmail(mimeMessage);
+                          return vertxHelper.<Message>single(handler -> gmail.sendMsgAsync(messageWithEmail, handler))
+                              .doOnSuccess(msg -> {
+                                receiptAptSentEvent.fireAsync(receiptAptSent.toBuilder()
+                                    .counter(counter.incrementAndGet())
+                                    .from(emailRequest.from())
+                                    .to(emailRequest.to())
+                                    .apt(item.id())
+                                    .name(item.name())
+                                    .build());
+                              });
                         })
                         .retryWhen(RetryWithDelay.retry(10, 1, TimeUnit.SECONDS, t -> {
                           log.error("Error sending email: ", t);
@@ -187,7 +192,7 @@ public class SendReceiptService {
                 return Maybe.just(emailConfig);
               })
               .switchIfEmpty(Single.error(new IllegalArgumentException("Email config not found")))
-              .map(emailConfig -> {
+              .flatMap(emailConfig -> {
                 final var subject = "AVISO DE COBRO %s %s Adm. %s";
 
                 final var month = translationProvider.translate(receipt.month().name());
@@ -202,12 +207,9 @@ public class SendReceiptService {
 
                 final var gmail = gmailHelper.gmail(emailConfig.id());
                 final var messageWithEmail = GmailUtil.createMessageWithEmail(mimeMessage);
-                final var msg = gmail.users().messages().send("me", messageWithEmail)
-                    .execute()
-                    .toString();
 
-                log.info("Zip sent: {} {}", emailRequest, msg);
-                return msg;
+                return vertxHelper.<Message>single(handler -> gmail.sendMsgAsync(messageWithEmail, handler))
+                    .doOnSuccess(message -> log.info("Zip sent: {} {}", emailRequest, message));
               });
         })
         .subscribeOn(Schedulers.io())

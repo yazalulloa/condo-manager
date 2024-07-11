@@ -1,13 +1,17 @@
 package com.yaz.core.helper;
 
+import com.yaz.core.util.VertxUtil;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.file.OpenOptions;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.buffer.Buffer;
 import io.vertx.rxjava3.core.file.FileSystem;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import java.util.function.Consumer;
 import java.util.zip.CRC32;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,6 +52,11 @@ public class VertxHelper {
           crc32.update(buffer.getBytes());
           return new FileWithHash(buffer, buffer.length(), crc32.getValue());
         });
+  }
+
+  public <T> Single<T> single(Consumer<Handler<AsyncResult<T>>> consumer) {
+    final var source = VertxUtil.singleOnSubscribe(consumer);
+    return Single.create(source);
   }
 
   public record FileWithHash(Buffer buffer, long fileSize, long crc32) {

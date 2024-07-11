@@ -1,5 +1,6 @@
 package com.yaz.core.service.gmail;
 
+import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.auth.oauth2.TokenResponseException;
 import com.yaz.core.helper.VertxHelper;
 import com.yaz.core.service.entity.EmailConfigService;
@@ -83,10 +84,9 @@ public class GmailChecker {
 
     return fileCheck(hash, userId)
         .andThen(Completable.defer(() -> {
+          final var gmailHolder = helper.gmail(userId);
 
-          final var credential = helper.credential(userId);
-
-          return RxUtil.completable(helper.testCredential(credential))
+            return gmailHolder.test()
               .toSingleDefault(Optional.<Throwable>empty())
               .doOnError(throwable -> {
 
@@ -99,6 +99,7 @@ public class GmailChecker {
               .flatMapCompletable(optError -> {
                 return vertxHelper.crc32(filePath(userId).toString())
                     .flatMapCompletable(currentHash -> {
+                      final var credential = gmailHolder.credential();
                       if (currentHash == hash && optError.isEmpty()) {
                         return emailConfigService.updateLastCheck(userId, credential.getRefreshToken() != null,
                             credential.getExpirationTimeMilliseconds());

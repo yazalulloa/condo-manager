@@ -2,9 +2,9 @@ package com.yaz.core.service.gmail;
 
 import com.google.api.client.auth.oauth2.AuthorizationCodeFlow;
 import com.google.api.client.auth.oauth2.Credential;
-import com.google.api.services.gmail.Gmail;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.infrastructure.Infrastructure;
+import io.vertx.rxjava3.core.Vertx;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.io.File;
@@ -23,7 +23,8 @@ public class GmailHelper {
   public static final String DIR = "gmail-configs";
 
   private static final Map<String, AuthorizationCodeFlow> FLOW_MAP = new ConcurrentHashMap<>();
-
+  private static final Map<String, GmailHolder> HOLDER_MAP = new ConcurrentHashMap<>();
+  private final Vertx vertx;
   private final GoogleHelper googleHelper;
 
   public boolean clearFlow(String userId) {
@@ -37,6 +38,7 @@ public class GmailHelper {
         FileUtils.deleteDirectory(new File(path));
       }
       FLOW_MAP.remove(userId);
+      HOLDER_MAP.remove(userId);
       return true;
     } catch (IOException e) {
       log.error("Failed to delete {} Error: ", path, e);
@@ -82,7 +84,15 @@ public class GmailHelper {
     return flow(userId).loadCredential(userId);
   }
 
-  public Gmail gmail(String userId) throws IOException {
-    return googleHelper.gmail(credential(userId));
+  public GmailHolder gmail(String userId) {
+    return HOLDER_MAP.computeIfAbsent(userId, k -> {
+      try {
+        final var credential = credential(userId);
+        return new GmailHolder(userId, vertx, credential, googleHelper.gmail(credential));
+      } catch (IOException e) {
+        log.error("Failed to create GmailHolder", e);
+        return null;
+      }
+    });
   }
 }
