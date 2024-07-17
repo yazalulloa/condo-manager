@@ -11,7 +11,7 @@ public class DefaultJacksonMessageCodec implements MessageCodec<Object, Object> 
   @Override
   public void encodeToWire(Buffer buffer, Object o) {
     try {
-      log.info("encodeToWire");
+
       final var json = DatabindCodec.mapper().writeValueAsBytes(o);
       buffer.appendBytes(json);
     } catch (Exception e) {
@@ -22,7 +22,6 @@ public class DefaultJacksonMessageCodec implements MessageCodec<Object, Object> 
   @Override
   public Object decodeFromWire(int pos, Buffer buffer) {
     try {
-      log.info("decodeFromWire");
       int _pos = pos;
 
       // Length of JSON

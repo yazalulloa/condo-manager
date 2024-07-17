@@ -90,10 +90,6 @@ public class ExtraChargeResource {
               .filter(number -> ArrayUtils.contains(request.getApts(), number))
               .toList();
 
-//          final var aptsSelected = Arrays.stream(request.getApts())
-//              .filter(str -> apartments.stream().anyMatch(apt -> apt.number().equals(str)))
-//              .collect(Collectors.toSet());
-
           final var description = StringUtil.trimFilter(request.getDescription());
           final var currency = Optional.ofNullable(request.getCurrency()).orElse(Currency.VED);
           final var apts = apartments.stream()
@@ -151,7 +147,6 @@ public class ExtraChargeResource {
             return Uni.combine().all()
                 .unis(service.create(createRequest), service.count(keys))
                 .with((extraCharge, count) -> {
-                  log.info("COUNT: {}", count);
 
                   extraCharge = extraCharge.toBuilder()
                       .apartments(apts)

@@ -107,7 +107,6 @@ public class ApartmentsResource {
 
     final var keys = encryptionService.decryptObj(id, Keys.class);
 
-    log.info("Deleting apartment {}", keys);
     final var apartmentQuery = ApartmentQuery.builder()
         .q(StringUtil.trimFilter(q))
         .buildings(building)
@@ -116,7 +115,6 @@ public class ApartmentsResource {
     return Uni.combine().all()
         .unis(apartmentService.counters(apartmentQuery), apartmentService.delete(keys))
         .with((counters, i) -> {
-          log.info("Deleted apartment {} {}", keys, i);
 
           if (i > 0) {
             return counters.minusOne();

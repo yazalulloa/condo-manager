@@ -642,12 +642,9 @@ public class ReceiptResource {
   @PATCH
   @Produces(MediaType.TEXT_HTML)
   public Uni<TemplateInstance> edit(@BeanParam ReceiptEditRequest request) {
-    log.info("EDIT_RECEIPT {}", request);
 
     final var keys = encryptionService.decryptObj(request.getKey(), Receipt.Keys.class);
     final var rateId = Long.parseLong(encryptionService.decrypt(request.rateInput));
-
-    log.info("EDIT_RECEIPT_KEYS {}", keys);
 
     if (request.month < 1 || request.month > 12) {
       return TemplateUtil.templateUni(Templates.formResponse(ReceiptFormResponse.error("Mes inválido")));

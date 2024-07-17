@@ -117,6 +117,9 @@ public class AlternateBcvClient implements BcvClient {
         .flatMap(asyncFile -> {
           log.debug("Downloading file: {}", requestUri);
           return client.getAbs(requestUri)
+              .timeout(10000)
+              .connectTimeout(10000)
+              .idleTimeout(10000)
               .as(BodyCodec.pipe(asyncFile))
               .send()
               .doOnError(throwable -> log.error("BCV_HTTP_ERROR {}", requestUri, throwable))
