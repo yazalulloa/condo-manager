@@ -154,7 +154,7 @@
 
       <div class="pb-2">
         <template x-for="value in Array.from(emails)">
-          <!--            <div class="flex flex-row justify-between p-1">-->
+
           <div class="grid apt-email-dialog-grid p-1 text-center">
             <input type="text" name="emails" hidden="hidden" x-bind:value="value">
             <div class="truncate" x-text="value"></div>

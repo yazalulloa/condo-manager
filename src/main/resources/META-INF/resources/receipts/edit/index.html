@@ -23,17 +23,8 @@
   </div>
 </div>
 
-<div id="container" hx-swap-oob="true" class="h-full p-4 flex flex-col gap-4" x-data="{buildingName: '', currencies: []}">
-  <!--  <div-->
-  <!--      hx-get="/api/receipts/edit_form"-->
-  <!--      hx-indicator=".htmx-indicator"-->
-  <!--      hx-vals="js:{id: getResource('receipt', 'edit/')}"-->
-  <!--      hx-trigger="load"-->
-  <!--      hx-swap="outerHTML">-->
-  <!--    <div>-->
-  <!--      <img class="htmx-indicator white-filter img-medium-size center" src="/assets/bars.svg" alt="spinner">-->
-  <!--    </div>-->
-  <!--  </div>-->
+<div id="container" hx-swap-oob="true" class="h-full p-4 flex flex-col gap-4"
+     x-data="{buildingName: '', currencies: []}">
 
   <div class="flex justify-center">
     <h3 x-text="buildingName"></h3>

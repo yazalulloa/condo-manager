@@ -70,93 +70,131 @@
     <div
         id="nav-helper"
         hx-get="/redirect"
-        hx-vals="js:{v: getPathName()}"
+        hx-vals="js:{v: window.location.pathname}"
         hx-trigger="navigate"
         hx-swap="none"
         hidden="hidden">
     </div>
 
-    <div class="navbar-start"
-         script="init call initNav()">
+    <div class="navbar-start">
+
       <div class="dropdown">
         <label tabindex="0" class="btn btn-ghost btn-circle">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/>
           </svg>
         </label>
-        <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-20 p-2 shadow bg-base-100 rounded-box w-52">
-          <li><a
-              id="nav-apartments"
-              hx-get="/stc/apartments/"
-              hx-target="#container"
-              hx-trigger="click, navigate"
-              hx-swap="innerHTML"
-              hx-on:htmx:after-request="saveNavState(this)"
-          >Apartmentos</a>
-          </li>
-          <li><a
-              id="nav-buildings"
-              hx-get="/stc/buildings/"
-              hx-target="#container"
-              hx-trigger="click, navigate"
-              hx-swap="innerHTML"
-              hx-on:htmx:after-request="saveNavState(this)"
-          >Edificios</a>
-          </li>
-          <li><a
-              id="nav-rates"
-              hx-get="/stc/rates/"
-              hx-target="#container"
-              hx-trigger="click, navigate"
-              hx-swap="innerHTML"
-              hx-on:htmx:after-request="saveNavState(this)"
-          >Tasas de cambio</a>
-          </li>
-          <li><a
-              id="nav-oidc-tokens"
-              hx-get="/stc/oidc_tokens/"
-              hx-target="#container"
-              hx-trigger="click, navigate"
-              hx-swap="innerHTML"
-              hx-on:htmx:after-request="saveNavState(this)"
-          >OIDC tokens</a>
-          </li>
-          <li><a
-              id="nav-users"
-              hx-get="/stc/users/"
-              hx-target="#container"
-              hx-trigger="click, navigate"
-              hx-swap="innerHTML"
-              hx-on:htmx:after-request="saveNavState(this)"
-          >Usuarios</a>
-          </li>
-          <li><a
-              id="nav-email-configs"
-              hx-get="/stc/email_configs/"
-              hx-target="#container"
-              hx-trigger="click, navigate"
-              hx-swap="innerHTML"
-              hx-on:htmx:after-request="saveNavState(this)"
-          >Configuraciones de Email</a>
-          </li>
-          <li><a
-              id="nav-receipts"
-              hx-get="/stc/receipts/"
-              hx-target="#container"
-              hx-trigger="click, navigate"
-              hx-swap="innerHTML"
-              hx-on:htmx:after-request="saveNavState(this)"
-          >Recibos</a>
-          </li>
-          <li><a
-              id="nav-resources"
-              hx-get="/stc/resources/"
-              hx-target="#container"
-              hx-trigger="click, navigate"
-              hx-swap="innerHTML"
-              hx-on:htmx:after-request="saveNavState(this)"
-          >Resources</a>
-          </li>
+        <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-20 p-2 shadow bg-base-100 rounded-box w-52"
+            x-data="{
+        nav_selected: null,
+        navs: [
+          {
+            id: 'nav-apartments',
+            url: '/stc/apartments/',
+            text: 'Apartmentos'
+          },
+          {
+            id: 'nav-buildings',
+            url: '/stc/buildings/',
+            text: 'Edificios'
+          },
+          {
+            id: 'nav-rates',
+            url: '/stc/rates/',
+            text: 'Tasas de cambio'
+          },
+          {
+            id: 'nav-oidc-tokens',
+            url: '/stc/oidc_tokens/',
+            text: 'OIDC tokens'
+          },
+          {
+            id: 'nav-users',
+            url: '/stc/users/',
+            text: 'Usuarios'
+          },
+          {
+            id: 'nav-email-configs',
+            url: '/stc/email_configs/',
+            text: 'Configuraciones de Email'
+          },
+          {
+            id: 'nav-receipts',
+            url: '/stc/receipts/',
+            text: 'Recibos'
+          },
+          {
+            id: 'nav-resources',
+            url: '/stc/resources/',
+            text: 'Resources'
+          }
+        ]
+        }"
+            x-init="
+            $nextTick(() => {
+            let pathname = window.location.pathname;
+
+            if (pathname === '/' || pathname === '/index.html' || pathname == '') {
+              let savedNav = localStorage.getItem('current-nav');
+
+              if (savedNav) {
+
+               navs.forEach((nav) => {
+                 if (nav.id === savedNav) {
+                  nav_selected = savedNav;
+                 }
+               });
+
+               if (nav_selected === null) {
+                 localStorage.removeItem('current-nav');
+                 nav_selected = navs[0].id;
+               }
+
+              } else {
+                nav_selected = navs[0].id;
+              }
+
+            } else {
+
+              navs.forEach((nav) => {
+                if (nav.url === ('/stc' + pathname)
+                || nav.url === ('/stc' + pathname + '/')) {
+                  nav_selected = nav.id;
+                }
+              });
+
+              if (nav_selected === null) {
+              document.getElementById('nav-helper').dispatchEvent(new CustomEvent('navigate'));
+              }
+
+            }
+
+            })
+        "
+            x-effect="
+            if (true && nav_selected) {
+              document.getElementById(nav_selected).dispatchEvent(new CustomEvent('navigate'));
+            }
+            "
+        >
+
+          <template x-for="nav in navs">
+            <li>
+              <a
+                  :class="!(nav.id === nav_selected) || 'active'"
+                  x-bind:id="nav.id"
+                  x-bind:hx-get="nav.url"
+                  x-text="nav.text"
+                  hx-target="#container"
+                  hx-trigger="navigate"
+                  @click.prevent="nav_selected = nav.id; localStorage.setItem('current-nav', nav.id)"
+                  hx-swap="innerHTML"
+                  hx-on:htmx:after-request="saveNavState(this)"
+              ></a>
+            </li>
+
+          </template>
+
         </ul>
       </div>
     </div>

@@ -2,7 +2,6 @@
 //
 // import './loader.js';
 
-
 // import './sse.js';
 // import './components.js';
 // import './elements.js';
@@ -13,10 +12,6 @@ window.Alpine = Alpine
 Alpine.start();
 
 _hyperscript.browserInit();
-
-window.initComponents = function () {
-
-}
 
 window.disableScrollWhenHover = function (element) {
   element.onmouseover = () => {
@@ -33,8 +28,6 @@ window.addEventListener("popstate", (event) => {
   // console.log("popstate event: ", event);
   window.location.reload();
 });
-
-initComponents();
 
 // htmx.config.useTemplateFragments = true;
 // htmx.logAll();
@@ -73,44 +66,16 @@ function getLastUrlSegment(url) {
   return new URL(url).pathname.split('/').filter(Boolean).pop();
 }
 
-window.getPathName = function () {
-  return window.location.pathname;
-}
-
 window.redirectTo = function (url) {
   window.location.href = '.' + url;
 }
 
-window.initNav = function () {
+function initNav() {
+
+  // console.log("initNav");
   let pathname = window.location.pathname;
-  // console.log("pathname: {}", pathname);
-  if (pathname.length === 0) {
-
-    let lastUrlSegmentCurrent = getLastUrlSegmentCurrent();
-
-    if (!lastUrlSegmentCurrent || lastUrlSegmentCurrent === ''
-        || lastUrlSegmentCurrent === 'index'
-        || lastUrlSegmentCurrent === '/') {
-      let item = localStorage.getItem("current-nav");
-      //console.log("current-nav: {}", item);
-      if (item) {
-        let elem = document.getElementById(item);
-        elem?.dispatchEvent(new CustomEvent('navigate'));
-        return;
-      }
-      let navbar = document.getElementsByClassName("navbar-start");
-      if (navbar.length > 0) {
-        let nav = navbar[0];
-        let anchors = nav.getElementsByTagName("a");
-        if (anchors.length > 0) {
-          let anchor = anchors[0];
-          localStorage.setItem("current-nav", anchor.id);
-          anchor.dispatchEvent(new CustomEvent('navigate'));
-        }
-      }
-
-    }
-  } else if (pathname === '/') {
+   console.log("pathname: {}", pathname);
+  if (pathname.length === 0 || pathname === '/') {
 
     let lastUrlSegmentCurrent = getLastUrlSegmentCurrent();
 
@@ -323,3 +288,7 @@ window.getResource = function (key, path) {
   return value;
 }
 
+document.addEventListener("DOMContentLoaded", function () {
+  // console.log("DOMContentLoaded");
+  //initNav();
+});

@@ -8,7 +8,8 @@
 </head>
 <body>
 
-<div class="flex flex-row justify-between px-6 p-2 bg-base-100 text-center items-center" id="header-container" hx-swap-oob="true">
+<div class="flex flex-row justify-between px-6 p-2 bg-base-100 text-center items-center" id="header-container"
+     hx-swap-oob="true">
   <button class="btn btn-square btn-outline"
           hx-get="/stc/buildings/"
           hx-swap="none"
@@ -23,11 +24,7 @@
 </div>
 
 <div id="container" hx-swap-oob="true" class="p-2" x-data="{currencies: []}">
-<!--  <form-->
-<!--      hx-get="/api/buildings/new"-->
-<!--      hx-trigger="load"-->
-<!--      hx-swap="outerHTML">-->
-<!--  </form>-->
+
   <form
       hx-get="/stc/buildings/form/"
       hx-trigger="load"
