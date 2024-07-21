@@ -3,12 +3,12 @@
 <div hidden="hidden" x-init="
 key = '{dto.receiptForm.key}';
 month = '{dto.receiptForm.month}';
-year = '{dto.receiptForm.year}';
 years = [
 {#for item in dto.receiptForm.years}
  '{item}',
 {/for}
 ];
+year = '{dto.receiptForm.year}';
 buildingName = '{dto.receiptForm.buildingName}';
 date = '{dto.receiptForm.date}';
 ">

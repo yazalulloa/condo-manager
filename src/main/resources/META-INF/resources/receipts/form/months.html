@@ -1,0 +1,26 @@
+<label class="form-control"
+       x-data="{
+         months: [
+    {name: 'ENERO', month: 1},
+    {name: 'FEBRERO', month: 2},
+    {name: 'MARZO', month: 3},
+    {name: 'ABRIL', month: 4},
+    {name: 'MAYO', month: 5},
+    {name: 'JUNIO', month: 6},
+    {name: 'JULIO', month: 7},
+    {name: 'AGOSTO', month: 8},
+    {name: 'SEPTIEMBRE', month: 9},
+    {name: 'OCTUBRE', month: 10},
+    {name: 'NOVIEMBRE', month: 11},
+    {name: 'DICIEMBRE', month: 12}
+    ]
+         }">
+  <div class="label">
+    <span class="label-text">Mes</span>
+  </div>
+  <select class="select select-bordered " name="month" x-bind:value="month">
+    <template x-for="value in months">
+      <option x-bind:value="value.month" x-text="value.name"></option>
+    </template>
+  </select>
+</label>

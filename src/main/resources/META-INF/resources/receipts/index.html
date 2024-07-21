@@ -59,7 +59,7 @@
     <form id="receipt-file-uploader"
           hx-post="/api/receipts/file"
           hx-encoding='multipart/form-data'
-          hx-disabled-elt="this, #eceipt-file-uploader * > input:not([disabled])"
+          hx-disabled-elt="this, #receipt-file-uploader * > input:not([disabled])"
           hx-swap="none"
           hx-trigger="send-file"
           hx-indicator=".htmx-indicator">
@@ -102,16 +102,17 @@
 
   <div hx-get="/receipts/zipDialog.html"
        hx-trigger="load"
-       hx-swap="outerHTML"
-  >
-
+       hx-swap="outerHTML">
   </div>
 
   <div hx-get="/receipts/sendDialog.html"
        hx-trigger="load"
-       hx-swap="outerHTML"
-  >
+       hx-swap="outerHTML">
+  </div>
 
+  <div hx-get="/receipts/newFileDialog.html"
+       hx-trigger="load"
+       hx-swap="outerHTML">
   </div>
 
 </div>

@@ -1,0 +1,50 @@
+<dialog class="modal modal-bottom sm:modal-middle"
+        @event-new-receipt-file-dialog-close="$el.close()">
+  <div class="modal-box p-4">
+    <div class="flex flex-row justify-between">
+      <div style="height: 3rem; width: 3rem;">
+
+      </div>
+      <h2 class="font-bold m-auto">Nuevo Recibo</h2>
+      <div>
+        <form method="dialog">
+          <button class="btn btn-circle btn-outline">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                 stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div hx-get="/api/buildings/ids"
+         hx-trigger="load"
+         hx-swap="outerHTML">
+
+    </div>
+
+    <form id="new-receipt-file-form-dialog"
+          class="items-center text-center"
+          hx-post="/api/receipts/new_receipt_file"
+          hx-disabled-elt="this, #new-receipt-file-form-dialog * > input:not([disabled]), #new-receipt-file-form-dialog * > button:not([disabled]), #new-receipt-file-form-dialog * > select:not([disabled])"
+          hx-swap="none"
+          hx-indicator=".htmx-indicator">
+
+
+      <div class="flex flex-row gap-4 pt-3">
+        <button type="submit" class="btn btn-primary">
+          Crear
+        </button>
+        <button type="button" class="btn btn-secondary"
+                @click.prevent="$dispatch('event-new-receipt-file-dialog-close')">
+          Cancelar
+        </button>
+        <img class="htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">
+      </div>
+    </form>
+  </div>
+  <form method="dialog" class="modal-backdrop">
+    <button>close</button>
+  </form>
+</dialog>

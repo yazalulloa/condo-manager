@@ -1,19 +1,18 @@
-<dialog
-    class="modal modal-bottom sm:modal-middle"
-    x-data="{email_input: '', disable_btn: false, emails: new Set(), zip_msg: ''}"
-    @event-receipt-zip-dialog-open.window="
+<dialog class="modal modal-bottom sm:modal-middle"
+        x-data="{email_input: '', disable_btn: false, emails: new Set(), zip_msg: ''}"
+        @event-receipt-zip-dialog-open.window="
         zip_msg = '';
         email_input = '';
         emails.clear();
         $el.showModal();
       "
-    @event-receipt-zip-dialog-close="
+        @event-receipt-zip-dialog-close="
         zip_msg = '';
         email_input = '';
         emails.clear();
         $el.close();
       "
-    @add-receipt-zip-dialog-email="
+        @add-receipt-zip-dialog-email="
           let v = $event.detail?.email?.trim();
           if (v && v.length > 0 && validateEmail(v)) {
             emails.add(v);

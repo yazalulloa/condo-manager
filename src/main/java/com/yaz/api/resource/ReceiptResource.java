@@ -453,10 +453,15 @@ public class ReceiptResource {
   @Path("file")
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Produces(MediaType.TEXT_HTML)
-  public Uni<Response> upload(@RestForm FileUpload file) {
+  public Uni<TemplateInstance> upload(@RestForm FileUpload file) {
 
     if (file == null) {
-      return Uni.createFrom().item(Response.noContent().build());
+      return Uni.createFrom().item(Fragments.rateInfo("Archivo no encontrado"));
+    }
+
+    if (!file.fileName().endsWith(".xls")
+        && !file.fileName().endsWith(".xlsx")) {
+      return Uni.createFrom().item(Fragments.rateInfo("Solo se permiten archivos .xls o .xlsx"));
     }
 
     final var listSingle = MutinyUtil.single(buildingService.ids());
@@ -534,11 +539,9 @@ public class ReceiptResource {
 
             })
         .map(Templates::newFileDialog)
-        .map(templateInstance -> Response.ok(templateInstance).build())
         .onErrorReturn(throwable -> {
           log.error("ERROR_PARSING_RECEIPT_FILE", throwable);
-          final var templateInstance = Fragments.rateInfo(throwable.getMessage());
-          return Response.ok(templateInstance).build();
+          return Fragments.rateInfo(throwable.getMessage());
         });
 
     return MutinyUtil.toUni(responseSingle);
@@ -759,6 +762,7 @@ public class ReceiptResource {
         .unis(receiptUni, rateUni, expensesListUni, extraChargesListUni, debtListUni, rateListUni,
             apartmentService.aptByBuildings(keys.buildingId()), buildingUni, reserveFundUni)
         .with((receipt, rate, expenses, extraCharges, debts, rates, apartments, building, reserveFunds) -> {
+          log.info("RECEIPT {}", receipt);
           final var expensesCount = expenses.size();
           final var receiptForm = ReceiptFormDto.builder()
               .key(encryptionService.encryptObj(receipt.keysWithHash()))
