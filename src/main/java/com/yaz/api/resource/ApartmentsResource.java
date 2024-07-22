@@ -94,6 +94,8 @@ public class ApartmentsResource {
         .buildings(building)
         .build();
 
+    //log.info("grid {}", apartmentQuery);
+
     return apartmentService.tableResponse(apartmentQuery)
         .map(Templates::grid);
   }

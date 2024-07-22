@@ -3,6 +3,7 @@ package com.yaz.api.domain.response;
 import com.yaz.api.resource.BuildingResource;
 import com.yaz.persistence.entities.Building;
 import java.util.Collection;
+import java.util.UUID;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
@@ -23,8 +24,9 @@ public record BuildingReportResponse(
     private final String key;
     private final Building building;
 
-    @Getter(lazy = true)
-    private final String cardId = genCardId();
+    @Builder.Default
+    private final String cardId = "building-card-id-" + UUID.randomUUID();
+
 
     @Getter(lazy = true)
     private final String cardIdRef = genCardIdRef();
@@ -32,16 +34,12 @@ public record BuildingReportResponse(
     @Getter(lazy = true)
     private final String deleteUrl = genDeleteUrl();
 
-    private String genCardId() {
-      return "rate-card-id-" + building().id();
-    }
-
     private String genDeleteUrl() {
       return BuildingResource.DELETE_PATH + key;
     }
 
     private String genCardIdRef() {
-      return "#" + genCardId();
+      return "#" + cardId();
     }
 
   }
