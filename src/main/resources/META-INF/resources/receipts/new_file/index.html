@@ -6,14 +6,15 @@
   <link href="/out/css/output.css" rel="stylesheet"/>
   <script src="/out/js/index.js" defer></script>
 </head>
-<body >
+<body>
 
 <div class="header bg-base-100" id="header-container" hx-swap-oob="true">
 
 </div>
 
 <div id="container" hx-swap-oob="true" class="p-2 gap-1 flex flex-col fade-me-in fade-me-out">
-    <div hx-get="/api/receipts/new_file"
+
+  <div hx-get="/api/receipts/new_file"
        hx-indicator=".htmx-indicator"
        hx-vals="js:{id: getLastUrlSegmentCurrent()}"
        hx-trigger="load"
