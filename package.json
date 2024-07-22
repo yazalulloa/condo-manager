@@ -1,8 +1,7 @@
 {
   "dependencies": {
     "alpinejs": "^3.14.1",
-    "daisyui": "^4.12.10",
-    "hyperscript.org": "latest"
+    "daisyui": "^4.12.10"
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.13",

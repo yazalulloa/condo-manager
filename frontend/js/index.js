@@ -6,12 +6,12 @@
 // import './components.js';
 // import './elements.js';
 import Alpine from 'alpinejs'
-import _hyperscript from 'hyperscript.org';
 
 window.Alpine = Alpine
 Alpine.start();
 
-_hyperscript.browserInit();
+// import _hyperscript from 'hyperscript.org';
+// _hyperscript.browserInit();
 
 window.disableScrollWhenHover = function (element) {
   element.onmouseover = () => {

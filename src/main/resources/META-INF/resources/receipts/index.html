@@ -54,7 +54,7 @@
            type="date"
            name="date_input"
            placeholder="YYYY-MM-DD"
-           script="on change send 'update_receipts' to #receipts-updater">
+           x-on:change="document.getElementById('receipts-updater').dispatchEvent(new CustomEvent('update_receipts'))">
 
     <form id="receipt-file-uploader"
           hx-post="/api/receipts/file"

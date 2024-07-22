@@ -17,7 +17,7 @@
   <span>{item.item.buildingId}</span>
 
   <div class="flex flex-row gap-2 justify-center">
-    <span script="init call integerToMonth({item.item.month}) then put it into my.innerHTML"></span>
+    <span x-init="$el.innerHTML = integerToMonth({item.item.month});"></span>
     <span>{item.item.year}</span>
   </div>
 
