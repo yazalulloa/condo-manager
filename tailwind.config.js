@@ -23,7 +23,12 @@ module.exports = {
       'tablet': '960px',
     },
     extend: {
+      width: {
+        '12': '3rem',
+        '95per': '95%',
+      },
       height: {
+        '12': '3rem',
         '95per': '95%',
       },
       maxWidth: {
@@ -43,6 +48,7 @@ module.exports = {
         '3/4': '75%',
         '9/10': '90%',
         '95per': '95%',
+        'full-vh': '100vh',
       },
       minWidth: {
         '1/5': '20%',
@@ -52,6 +58,10 @@ module.exports = {
         '3/4': '75%',
         '9/10': '90%',
         '95per': '95%',
+        'full-vh': '100vh',
+      },
+      minHeight: {
+        'full-vh': '100vh',
       },
       zIndex: {
         '11': '11',

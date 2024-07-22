@@ -2,7 +2,7 @@
         @event-new-receipt-file-dialog-close="$el.close()">
   <div class="modal-box p-4">
     <div class="flex flex-row justify-between">
-      <div style="height: 3rem; width: 3rem;">
+      <div class="h-12 w-12">
 
       </div>
       <h2 class="font-bold m-auto">Nuevo Recibo</h2>
@@ -31,6 +31,9 @@
           hx-swap="none"
           hx-indicator=".htmx-indicator">
 
+      <div id="new-receipt-file-form-dialog-content">
+
+      </div>
 
       <div class="flex flex-row gap-4 pt-3">
         <button type="submit" class="btn btn-primary">

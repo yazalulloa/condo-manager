@@ -6,13 +6,54 @@
   <link href="/out/css/output.css" rel="stylesheet"/>
   <script src="/out/js/index.js" defer></script>
 </head>
-<body >
+<body>
 
 <div class="header bg-base-100 fade-me-in fade-me-out" id="header-container" hx-swap-oob="true">
   <div id="receipt-pdf-viewer-header"></div>
 </div>
 
 <div id="container" hx-swap-oob="true" class="p-2 gap-1 flex flex-col w-full h-full">
+  <script>
+    function slideTo(direction) {
+      const carousel = document.getElementById('pdf_carousel');
+      const scrollAmount = 200;
+      if (direction === 'left') {
+        carousel.scrollLeft -= scrollAmount;
+      } else {
+        carousel.scrollLeft += scrollAmount;
+      }
+    }
+
+    function scrollDiv(elem) {
+      elem.addEventListener("wheel", (event) => {
+        elem.scrollBy({
+          left: event.deltaY > 0 ? -400 : 400,
+          behavior: 'smooth'
+        });
+      }, {
+        passive: true
+      });
+    }
+
+    function openTab(evt, cityName) {
+      // console.log("openTab: ", evt, cityName);
+      let tabcontent = document.getElementsByClassName("tab-cm-content");
+      for (let i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = "none";
+      }
+      let tablinks = document.getElementsByClassName("tablinks");
+      for (let i = 0; i < tablinks.length; i++) {
+        tablinks[i].className = tablinks[i].className.replace(" btn-active", "");
+      }
+      document.getElementById(cityName).style.display = "block";
+
+      if (evt) {
+        // console.log("openTab: ", evt, cityName);
+        evt.className += " btn-active";
+      }
+    }
+  </script>
+
   <div
       hx-get="/api/receipts/pdfs"
       hx-indicator=".htmx-indicator"

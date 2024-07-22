@@ -1,8 +1,8 @@
 {@com.yaz.api.domain.response.ReceiptFileFormDto dto}
 
-<div id="new-receipt-file-form-dialog" hx-swap-oob="afterbegin">
+<div id="new-receipt-file-form-dialog-content" hx-swap-oob="true" class="items-center text-center">
 
-    <h3 x-init="$el.parentElement.parentElement.parentElement.showModal()">{dto.fileName}</h3>
+    <h3 x-init="$el.parentElement.parentElement.parentElement.parentElement.showModal()">{dto.fileName}</h3>
 
     <input type="hidden" name="{inject:csrf.parameterName}" value="{inject:csrf.token}"/>
     <input type="hidden" name="data" value="{dto.data}"/>

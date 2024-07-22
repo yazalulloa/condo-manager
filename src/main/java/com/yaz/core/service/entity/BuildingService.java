@@ -24,6 +24,7 @@ import io.vertx.mutiny.core.buffer.Buffer;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -142,6 +143,10 @@ public class BuildingService {
 
           }
         })
+        .onFailure()
+        .retry()
+        .withBackOff(Duration.ofMillis(600))
+        .atMost(3)
         .replaceWith(filePath);
   }
 

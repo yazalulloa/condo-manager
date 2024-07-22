@@ -28,6 +28,7 @@
         <div class="flex"><span>{item.item.aptNumber} {item.item.aptName}</span></div>
         <div><span>{item.item.receipts}</span></div>
         <div class="flex justify-end"><span class="text-end">{item.formatAmount}</span></div>
+
         <span class="text-wrap" script="init call monthsToStr({item.item.months}) then put it into my.innerHTML"></span>
         <div>{item.item.formatPreviousPaymentAmount}</div>
 

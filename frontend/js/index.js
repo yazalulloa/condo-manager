@@ -74,7 +74,7 @@ function initNav() {
 
   // console.log("initNav");
   let pathname = window.location.pathname;
-   console.log("pathname: {}", pathname);
+  console.log("pathname: {}", pathname);
   if (pathname.length === 0 || pathname === '/') {
 
     let lastUrlSegmentCurrent = getLastUrlSegmentCurrent();
@@ -208,43 +208,26 @@ window.integerToMonth = function (month) {
   }
 }
 
-window.openTab = function (evt, cityName) {
+// window.slideTo = function (id, direction) {
+//   let elem = document.getElementById(id);
+//   if (elem) {
+//     elem.scrollBy({
+//       left: direction === 'left' ? -500 : 500,
+//       behavior: 'smooth'
+//     });
+//   }
+// }
 
-  let tabcontent = document.getElementsByClassName("tab-cm-content");
-  for (let i = 0; i < tabcontent.length; i++) {
-    tabcontent[i].style.display = "none";
-  }
-  let tablinks = document.getElementsByClassName("tablinks");
-  for (let i = 0; i < tablinks.length; i++) {
-    tablinks[i].className = tablinks[i].className.replace(" btn-active", "");
-  }
-  document.getElementById(cityName).style.display = "block";
-
-  if (evt) {
-    evt.className += " btn-active";
-  }
-}
-
-window.slideTo = function (id, direction) {
-  let elem = document.getElementById(id);
-  if (elem) {
-    elem.scrollBy({
-      left: direction === 'left' ? -500 : 500,
-      behavior: 'smooth'
-    });
-  }
-}
-
-window.scrollDiv = function (elem) {
-  elem.addEventListener("wheel", (event) => {
-    elem.scrollBy({
-      left: event.deltaY > 0 ? -400 : 400,
-      behavior: 'smooth'
-    });
-  }, {
-    passive: true
-  });
-}
+// window.scrollDiv = function (elem) {
+//   elem.addEventListener("wheel", (event) => {
+//     elem.scrollBy({
+//       left: event.deltaY > 0 ? -400 : 400,
+//       behavior: 'smooth'
+//     });
+//   }, {
+//     passive: true
+//   });
+// }
 
 window.validateEmail = function (value) {
 
@@ -292,3 +275,25 @@ document.addEventListener("DOMContentLoaded", function () {
   // console.log("DOMContentLoaded");
   //initNav();
 });
+
+function isNumeric(str) {
+  if (typeof str != "string") {
+    return false
+  } // we only process strings!
+  return !isNaN(str) && // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
+      !isNaN(parseFloat(str)) // ...and ensure strings of whitespace fail
+}
+
+window.sleep = function (ms) {
+  //console.assert(isNumeric(ms));
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+document.addEventListener("securitypolicyviolation", (e) => {
+  console.log(e.blockedURI);
+  console.log(e.violatedDirective);
+  console.log(e.originalPolicy);
+  console.log(e.columnNumber)
+  console.log(e.lineNumber)
+});
+

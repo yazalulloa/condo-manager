@@ -63,7 +63,7 @@
            hx-disabled-elt="this"
            hx-indicator=".htmx-indicator"
            hx-swap="none">
-          <img src="/assets/pdf-logo.svg" style="width:25px;height:25px;" alt="download-zip-pdfs">
+          <img src="/assets/pdf-logo.svg" class="h-6 w-6" alt="download-zip-pdfs">
           Descargar zip
         </a>
       </li>
@@ -72,7 +72,7 @@
            hx-indicator=".htmx-indicator"
            hx-on:htmx:before-request="saveResource('receipt', '{item.key}')"
            hx-swap="none">
-          <img src="/assets/pdf-logo.svg" style="width:25px;height:25px;" alt="download-zip-pdfs">
+          <img src="/assets/pdf-logo.svg" class="h-6 w-6" alt="download-zip-pdfs">
           Ver PDFs
         </a>
       </li>
@@ -82,7 +82,7 @@
         zip_dialog_year='{item.item.year}'; zip_dialog_month='{item.item.month.monthFromInt}'; zip_dialog_date='{item.item.date}';
         $dispatch('event-receipt-zip-dialog-open');
         " >
-          <img src="/assets/send-mail.svg" style="width:25px;height:25px;" alt="download-zip-pdfs">
+          <img src="/assets/send-mail.svg" class="h-6 w-6" alt="download-zip-pdfs">
           Enviar ZIP
         </a>
       </li>
@@ -91,7 +91,7 @@
            hx-headers='{"{inject:csrf.headerName}":"{inject:csrf.token}"}'
            hx-indicator=".htmx-indicator"
            hx-swap="none">
-          <img src="/assets/send-mail.svg" style="width:25px;height:25px;" alt="send-receipt-now">
+          <img src="/assets/send-mail.svg" class="h-6 w-6" alt="send-receipt-now">
           Enviar recibos ahora
         </a>
       </li>
@@ -100,7 +100,7 @@
           send_dialog_month='{item.item.month.monthFromInt}'; send_dialog_date='{item.item.date}';
           $dispatch('event-receipt-send-dialog-open')
           ">
-          <img src="/assets/send-mail.svg" style="width:25px;height:25px;" alt="send-receipt">
+          <img src="/assets/send-mail.svg" class="h-6 w-6" alt="send-receipt">
           Enviar recibos
         </a>
       </li>
