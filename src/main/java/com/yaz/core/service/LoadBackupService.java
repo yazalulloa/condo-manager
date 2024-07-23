@@ -28,6 +28,7 @@ import com.yaz.persistence.repository.ApartmentRepository;
 import com.yaz.persistence.repository.BuildingRepository;
 import com.yaz.persistence.repository.turso.ReceiptRepository;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.schedulers.Schedulers;
@@ -45,6 +46,7 @@ import java.time.Month;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -70,10 +72,22 @@ public class LoadBackupService {
   private final BuildingRepository buildingRepository;
   private final ApartmentRepository apartmentRepository;
 
-  public Single<Integer> historicRates() {
-    return bcvHistoricService.historicRates()
+  public Single<Integer> insertHistoricRates() {
+    return historicRates()
         .map(rateService::insert)
         .flatMap(MutinyUtil::single);
+  }
+
+  public Single<List<Rate>> historicRates() {
+    return bcvHistoricService.historicRates()
+        .flatMapObservable(Observable::fromIterable)
+        .flatMapMaybe(rate -> {
+          return rateService.exists(rate.rate(), rate.dateOfRate())
+              .map(b -> b ? Optional.<Rate>empty() : Optional.of(rate))
+              .flatMapMaybe(Maybe::fromOptional);
+        })
+        .sorted(Comparator.comparing(Rate::dateOfRate))
+        .toList();
   }
 
 

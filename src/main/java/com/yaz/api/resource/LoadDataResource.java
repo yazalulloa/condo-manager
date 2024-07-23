@@ -44,7 +44,7 @@ public class LoadDataResource {
       return Uni.createFrom().item("OK");
     }
 
-    return MutinyUtil.toUni(backupService.historicRates())
+    return MutinyUtil.toUni(backupService.insertHistoricRates())
         .map(i -> "Rates: " + i);
   }
 

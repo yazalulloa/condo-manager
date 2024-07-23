@@ -8,6 +8,7 @@ import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.entities.Rate;
 import com.yaz.persistence.entities.Rate.Source;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.file.OpenOptions;
@@ -207,7 +208,7 @@ public class BcvHistoricService {
     return Single.zip(cleanDir().toSingleDefault(true), fileLinks(), (b, links) -> links)
         .flatMapObservable(Observable::fromIterable)
         .filter(str -> str.endsWith(".xls"))
-        .flatMapSingle(str -> {
+        .map(str -> {
 
           final var path = DIR + str.substring(str.lastIndexOf("/") + 1);
           return client.download(path, str)
@@ -216,13 +217,12 @@ public class BcvHistoricService {
                 return new FileInfo(path, str, headers.get("ETag"), headers.get("Last-Modified"), headers);
               });
         })
+        .toList()
+        .toFlowable()
+        .flatMap(Single::concat)
         .flatMapSingle(this::parseWorkbook)
-//        .reduce((result, result2) -> {
-//          final var rates = Stream.concat(result.rates.stream(), result2.rates.stream()).toList();
-//          return new Result(result.sheets + result2.sheets, result.ratesFound + result2.ratesFound, rates);
-//        })
         .map(Result::rates)
-        .flatMap(Observable::fromIterable)
+        .flatMap(Flowable::fromIterable)
         .sorted(Comparator.comparing(Rate::createdAt))
         .toList()
         .flatMap(list -> cleanDir().toSingleDefault(list));

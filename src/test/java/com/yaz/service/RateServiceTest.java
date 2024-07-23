@@ -1,8 +1,8 @@
 package com.yaz.service;
 
-import com.yaz.persistence.domain.query.SortOrder;
 import com.yaz.core.service.entity.RateService;
 import com.yaz.core.util.RxUtil;
+import com.yaz.persistence.domain.query.SortOrder;
 import io.quarkus.test.junit.QuarkusTest;
 import io.reactivex.rxjava3.core.Completable;
 import jakarta.inject.Inject;
@@ -40,12 +40,6 @@ class RateServiceTest {
   @Test
   void newRate() {
     final var result = rateService.newRate().blockingGet();
-    System.out.println(result);
-  }
-
-  @Test
-  void exists() {
-    final var result = rateService.exists(13L).blockingGet();
     System.out.println(result);
   }
 

@@ -31,6 +31,11 @@ public class BcvJob {
 
   @Timed(value = "bcv_job", description = "[BCV Job] A measure of how long it takes to save new BCV rate")
   Uni<Void> saveNewBcvRate() {
+
+//    if (true) {
+//      return Uni.createFrom().voidItem();
+//    }
+
     //log.info("RUN_JOB {} counter: {}", Thread.currentThread(), counter.incrementAndGet());
 
     final var single = saveNewBcvRate.saveNewRate()

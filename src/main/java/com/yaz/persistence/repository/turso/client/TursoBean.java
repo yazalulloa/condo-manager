@@ -5,14 +5,18 @@ import com.yaz.persistence.repository.turso.client.ws.TursoResult;
 import com.yaz.persistence.repository.turso.client.ws.request.HelloMsg;
 import com.yaz.persistence.repository.turso.client.ws.request.RequestMsg;
 import com.yaz.persistence.repository.turso.client.ws.response.ResponseMsg;
+import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.websockets.next.OpenClientConnections;
 import io.quarkus.websockets.next.WebSocketClientConnection;
 import io.quarkus.websockets.next.WebSocketConnector;
+import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.Future;
+import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import java.net.URI;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -153,4 +157,17 @@ public class TursoBean {
 
     }
   }
+
+
+//  void shutdown(@Observes ShutdownEvent event) {
+//    log.info("The application is stopping...");
+//    Multi.createFrom().items(openClientConnections.stream())
+//        .onItem()
+//        .transformToUni(WebSocketClientConnection::close)
+//        .merge()
+//        .collect()
+//        .asList()
+//        .await()
+//        .atMost(Duration.ofSeconds(2));
+//  }
 }

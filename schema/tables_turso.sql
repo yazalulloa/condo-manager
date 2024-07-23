@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS rates
 );
 
 CREATE INDEX IF NOT EXISTS rates_hash_idx ON rates (hash);
+CREATE INDEX IF NOT EXISTS rates_rate_date_of_rate_idx ON rates (rate, date_of_rate);
 CREATE INDEX IF NOT EXISTS rates_from_currency_to_currency_idx ON rates (from_currency, to_currency);
 
 CREATE TABLE IF NOT EXISTS oidc_db_token_state_manager

@@ -13,7 +13,8 @@ import com.yaz.persistence.repository.turso.client.ws.request.Value;
 import com.yaz.persistence.repository.turso.client.ws.response.ExecuteResp.Row;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -149,6 +150,12 @@ public class RateTursoRepository implements RateRepository {
   public Uni<Boolean> exists(long hash) {
     return tursoWsService.selectOne(Stmt.stmt(HASH_EXISTS, Value.number(hash)), row -> row.getLong("id") != null)
         .map(opt -> opt.orElse(false));
+  }
+
+  @Override
+  public Uni<Boolean> exists(BigDecimal rate, LocalDate dateOfRate) {
+    final var sql = "SELECT id FROM %s WHERE rate = ? AND date_of_rate = ? LIMIT 1".formatted(COLLECTION);
+    return tursoWsService.exists(Stmt.stmt(sql, Value.number(rate), Value.text(dateOfRate)));
   }
 
   @Override

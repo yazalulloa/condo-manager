@@ -1,7 +1,7 @@
 package com.yaz.core.service.entity;
 
-import com.yaz.api.domain.response.RateTableResponse;
 import com.yaz.api.domain.response.RateTableItem;
+import com.yaz.api.domain.response.RateTableResponse;
 import com.yaz.core.bcv.BcvClientService;
 import com.yaz.core.bcv.BcvHistoricService;
 import com.yaz.core.bcv.BcvUsdRateResult;
@@ -28,6 +28,8 @@ import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -124,8 +126,14 @@ public class RateService {
     return repository().exists(hash);
   }
 
-  public Single<Boolean> exists(long hash) {
-    return RxUtil.single(existsUni(hash));
+  public Single<Boolean> exists(Rate rate) {
+    return Single.mergeArray(RxUtil.single(existsUni(rate.hash())), exists(rate.rate(), rate.dateOfRate()))
+        .reduce(Boolean::logicalOr)
+        .defaultIfEmpty(false);
+  }
+
+  public Single<Boolean> exists(BigDecimal rate, LocalDate dateOfRate) {
+    return RxUtil.single(repository().exists(rate, dateOfRate));
   }
 
  /* private Single<HttpResponse<Buffer>> bcv(HttpMethod httpMethod) {
@@ -212,6 +220,10 @@ public class RateService {
   }
 
   public Uni<Integer> insert(Collection<Rate> rates) {
+    if (rates.isEmpty()) {
+      return Uni.createFrom().item(0);
+    }
+
     return repository().insert(rates);
   }
 

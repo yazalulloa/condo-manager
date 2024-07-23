@@ -77,7 +77,7 @@ public class SaveNewBcvRate {
               )
               .defaultIfEmpty(new BcvUsdRateResult(State.RATE_NOT_IN_DB));
 
-          final var existSingle = rateService.exists(rate.hash());
+          final var existSingle = rateService.exists(rate);
 
           return Single.zip(lastSingle, existSingle, (lastResult, exists) -> {
 

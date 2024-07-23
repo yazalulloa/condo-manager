@@ -226,6 +226,11 @@ public class TursoWsService {
         });
   }
 
+  public Uni<Boolean> exists(Stmt stmt) {
+    return selectOne(stmt, r -> r)
+        .map(Optional::isPresent);
+  }
+
   public <T> Uni<Optional<T>> selectOne(String sql, Collection<Value> values, Function<Row, T> function) {
     return selectOne(Stmt.sqlWithArgs(sql, values.toArray(new Value[0])), function);
 
