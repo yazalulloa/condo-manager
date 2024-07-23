@@ -123,6 +123,8 @@
           <span class="label-text">Nro. Apt</span>
         </div>
         <input placeholder="Nro. Apt" class="input input-bordered w-full" name="number"
+               maxlength="20"
+               x-init="limitInputToMaxLength($el)"
                x-model="number"
                x-bind:disabled="is_edit"/>
         <div class="label">
@@ -135,6 +137,8 @@
           <span class="label-text">Nombre</span>
         </div>
         <input type="text" placeholder="Nombre" class="input input-bordered w-full" name="name"
+               maxlength="100"
+               x-init="limitInputToMaxLength($el)"
                x-model="name"/>
         <div class="label">
           <span class="label-text-alt error-message" x-text="nameError">Bottom Left label</span>
@@ -146,7 +150,9 @@
           <span class="label-text">Alícuota</span>
         </div>
         <input type="number" placeholder="Alícuota" class="input input-bordered w-full" name="aliquot" min="0"
-               step=".01" maxlength="5" max="100" x-model="aliquot"/>
+               step=".01" maxlength="5" max="100"
+               x-init="limitInputToMaxLength($el)"
+               x-model="aliquot"/>
         <div class="label">
           <span class="label-text-alt error-message" x-text="aliquotError">Bottom Left label</span>
         </div>
@@ -182,7 +188,7 @@
         <label class="input input-bordered flex items-center gap-2 w-full">
           <input type="email" class="grow" placeholder="Email" autocomplete="email"
                  maxlength="320"
-                 oninput="limitInputToMaxLength(this)"
+                 x-init="limitInputToMaxLength($el)"
                  @event-email-input-add.window="$dispatch('add-apt-form-email', { email: $el?.value?.trim() })"
                  @keyup.enter="$dispatch('add-apt-form-email', { email: $el?.value?.trim() })"/>
           <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="w-6 h-6 opacity-70"

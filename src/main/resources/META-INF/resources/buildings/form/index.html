@@ -40,6 +40,9 @@
       <span class="label-text">ID</span>
     </div>
     <input required placeholder="ID" class="input input-bordered w-full" name="id"
+           maxlength="20"
+           x-init="limitInputToMaxLength($el)"
+           min="1"
            x-model="buildingId"
            x-bind:disabled="is_edit"/>
     <div class="label">
@@ -52,6 +55,8 @@
       <span class="label-text">Nombre</span>
     </div>
     <input required placeholder="Nombre" class="input input-bordered w-full" name="name"
+           maxlength="100"
+           x-init="limitInputToMaxLength($el)"
            x-model="buildingName"/>
     <div class="label">
       <span class="label-text-alt error-message" x-text="buildingNameError"></span>
@@ -63,6 +68,8 @@
       <span class="label-text">RIF</span>
     </div>
     <input placeholder="RIF" class="input input-bordered w-full" name="rif"
+           maxlength="20"
+           x-init="limitInputToMaxLength($el)"
            x-model="buildingRif"/>
     <div class="label">
       <span class="label-text-alt error-message" x-text="buildingRifError"></span>
@@ -141,7 +148,7 @@
                min="1"
                maxlength="10"
                step=".01"
-               onchange="limitInputToMaxLength(this)"
+               x-init="limitInputToMaxLength($el)"
                x-model="fixedPayAmount"
         />
         <div class="label">

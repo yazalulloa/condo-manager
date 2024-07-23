@@ -12,7 +12,7 @@
          min="0"
          maxlength="20"
          step="1"
-         onchange="limitInputToMaxLength(this)"
+         x-init="limitInputToMaxLength($el)"
   />
   <div class="label">
     <span class="label-text-alt error-message" x-text="receiptsFieldError"></span>
@@ -29,7 +29,7 @@
          min="0"
          maxlength="20"
          step=".01"
-         onchange="limitInputToMaxLength(this)"
+         x-init="limitInputToMaxLength($el)"
   />
   <div class="label">
     <span class="label-text-alt error-message" x-text="amountFieldError"></span>
@@ -58,7 +58,7 @@
            min="0"
            maxlength="20"
            step=".01"
-           onchange="limitInputToMaxLength(this)"
+           x-init="limitInputToMaxLength($el)"
     />
     <select name="previousPaymentAmountCurrency"
             class="select select-bordered w-fit"

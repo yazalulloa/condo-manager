@@ -56,10 +56,20 @@ window.getQueryParam = function (name) {
 }
 
 window.limitInputToMaxLength = function (input) {
-  if (input.value.length > input.maxLength) {
-    input.value = input.value.slice(0,
-        input.maxLength);
+  if (input.maxLength && input.maxLength > 0) {
+    input.oninput = () => {
+      if (input.value.length > input.maxLength) {
+        input.value = input.value.slice(0,
+            input.maxLength);
+      }
+    }
   }
+
+  // console.log("limitInputToMaxLength: {}", input.value.length, input.maxLength);
+  // if (input.value.length > input.maxLength) {
+  //   input.value = input.value.slice(0,
+  //       input.maxLength);
+  // }
 }
 
 function getLastUrlSegment(url) {

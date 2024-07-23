@@ -19,7 +19,7 @@
          min="1"
          maxlength="20"
          step=".01"
-         onchange="limitInputToMaxLength(this)"
+         x-init="limitInputToMaxLength($el)"
   />
   <div class="label">
     <span class="label-text-alt error-message" x-text="fundFieldError"></span>
@@ -39,7 +39,7 @@
              min="1"
              maxlength="20"
              step=".01"
-             onchange="limitInputToMaxLength(this)"
+             x-init="limitInputToMaxLength($el)"
              x-bind:placeholder="placeholder"
       />
     </div>
@@ -103,7 +103,7 @@
            type="number"
            maxlength="20"
            step=".01"
-           onchange="limitInputToMaxLength(this)"
+           x-init="limitInputToMaxLength($el)"
     />
   </div>
   <div class="label">
