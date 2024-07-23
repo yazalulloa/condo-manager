@@ -16,7 +16,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 @Path(TelegramChatResource.PATH)
 @Slf4j
 @Authenticated
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
+@RequiredArgsConstructor
 public class TelegramChatResource {
 
   public static final String PATH = "/api/telegram_chats";

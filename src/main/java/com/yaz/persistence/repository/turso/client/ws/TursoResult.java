@@ -16,9 +16,9 @@ public final class TursoResult {
   @JsonProperty
   private final RequestMsg requestMsg;
   @JsonProperty
-  private ResponseMsg responseMsg;
-  @JsonProperty
   private final long timestamp;
+  @JsonProperty
+  private ResponseMsg responseMsg;
   @JsonProperty
   private long time;
 

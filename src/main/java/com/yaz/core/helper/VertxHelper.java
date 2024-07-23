@@ -10,7 +10,6 @@ import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.buffer.Buffer;
 import io.vertx.rxjava3.core.file.FileSystem;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import java.util.function.Consumer;
 import java.util.zip.CRC32;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @ApplicationScoped
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
+@RequiredArgsConstructor
 public class VertxHelper {
 
   private final Vertx vertx;
@@ -59,10 +58,6 @@ public class VertxHelper {
     return Single.create(source);
   }
 
-  public record FileWithHash(Buffer buffer, long fileSize, long crc32) {
-
-  }
-
   public Single<Long> crc32(String path) {
 
     return fileSystem().open(path, new OpenOptions().setRead(true))
@@ -92,5 +87,9 @@ public class VertxHelper {
 
         })
         .doOnError(throwable -> log.error("Error while hashing", throwable));
+  }
+
+  public record FileWithHash(Buffer buffer, long fileSize, long crc32) {
+
   }
 }

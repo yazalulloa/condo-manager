@@ -14,23 +14,18 @@ import io.vertx.mutiny.sqlclient.SqlResult;
 import io.vertx.mutiny.sqlclient.Tuple;
 import io.vertx.sqlclient.impl.ArrayTuple;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @ApplicationScoped
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
+@RequiredArgsConstructor
 public class ExtraChargeMySqlRepository {
-
-  private static final String COLLECTION = "extra_charges";
-  private static final String COLLECTION_APT = "extra_charges_apartments";
 
   public static final String SELECT = """
       SELECT extra_charges.*, BIN_TO_UUID(extra_charges.id) as uuid_id,
@@ -46,9 +41,7 @@ public class ExtraChargeMySqlRepository {
       GROUP BY extra_charges.building_id, extra_charges.secondary_id, extra_charges.id
       ORDER BY extra_charges.building_id, extra_charges.secondary_id, extra_charges.id;
       """;
-
   public static final String DELETE = "DELETE FROM %s WHERE building_id = ? AND secondary_id = ? AND  id = UUID_TO_BIN(?)";
-
   public static final String READ = """
       SELECT extra_charges.*, BIN_TO_UUID(extra_charges.id) as uuid_id,
                  GROUP_CONCAT(extra_charges_apartments.apt_number, '%s', apartments.name SEPARATOR '%s') as apt_numbers
@@ -63,7 +56,8 @@ public class ExtraChargeMySqlRepository {
           GROUP BY extra_charges.building_id, extra_charges.secondary_id, extra_charges.id
           ORDER BY extra_charges.building_id, extra_charges.secondary_id, extra_charges.id;
       """;
-
+  private static final String COLLECTION = "extra_charges";
+  private static final String COLLECTION_APT = "extra_charges_apartments";
   public static final String INSERT_APT = """
       INSERT IGNORE INTO %s (building_id, secondary_id, id, apt_number)
       VALUES (?, ?, UUID_TO_BIN(?, true), ?)

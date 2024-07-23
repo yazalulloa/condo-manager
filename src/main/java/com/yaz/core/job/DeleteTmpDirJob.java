@@ -7,7 +7,6 @@ import io.reactivex.rxjava3.core.Observable;
 import io.smallrye.mutiny.Uni;
 import io.vertx.rxjava3.core.Vertx;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @ApplicationScoped
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
+@RequiredArgsConstructor
 public class DeleteTmpDirJob {
 
   private final Vertx vertx;

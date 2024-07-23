@@ -192,6 +192,7 @@ public record Value(String type, Object value, String base64) {
         .map(LocalDateTime::from)
         .orElse(null);
   }
+
   public Boolean asBool() {
     if (type().equals(INTEGER_TYPE)) {
       return "1".equals(value());

@@ -1,13 +1,13 @@
 package com.yaz.persistence.repository.mysql;
 
 
+import com.yaz.core.util.SqlUtil;
+import com.yaz.core.util.StringUtil;
 import com.yaz.persistence.domain.MySqlQueryRequest;
 import com.yaz.persistence.domain.query.ApartmentQuery;
 import com.yaz.persistence.entities.Apartment;
 import com.yaz.persistence.entities.ExtraCharge;
 import com.yaz.persistence.repository.mysql.MySqlService.TrxMode;
-import com.yaz.core.util.SqlUtil;
-import com.yaz.core.util.StringUtil;
 import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.sqlclient.Row;
 import io.vertx.mutiny.sqlclient.RowIterator;
@@ -16,7 +16,6 @@ import io.vertx.mutiny.sqlclient.SqlResult;
 import io.vertx.mutiny.sqlclient.Tuple;
 import io.vertx.sqlclient.impl.ArrayTuple;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -35,7 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 //@LookupIfProperty(name = "app.repository.impl", stringValue = "mysql")
 //@Named("mysql")
 @ApplicationScoped
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
+@RequiredArgsConstructor
 public class ApartmentMySqlRepository {
 
   private static final String COLLECTION = "apartments";
@@ -226,7 +225,6 @@ public class ApartmentMySqlRepository {
         .updatedAt(SqlUtil.getValue(row, "updated_at", Row::getLocalDateTime))
         .build();
   }
-
 
 
   public Uni<List<Apartment>> select(ApartmentQuery query) {

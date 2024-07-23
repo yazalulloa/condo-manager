@@ -19,7 +19,6 @@ import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.ObservesAsync;
-import jakarta.inject.Inject;
 import java.time.ZoneOffset;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -28,7 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @ApplicationScoped
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
+@RequiredArgsConstructor
 public class TelegramCommandResolver {
 
   private static final String LAST_RATE_MSG = "TASA:%s%nFECHA: %s%nCREADO: %s%nID: %s";

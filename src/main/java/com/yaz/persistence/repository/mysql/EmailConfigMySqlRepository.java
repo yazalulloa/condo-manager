@@ -30,7 +30,7 @@ package com.yaz.persistence.repository.mysql;
 ////@LookupIfProperty(name = "app.repository.impl", stringValue = "mysql")
 ////@Named("mysql")
 //@ApplicationScoped
-//@RequiredArgsConstructor(onConstructor_ = {@Inject})
+//@RequiredArgsConstructor
 //public class EmailConfigMySqlRepository {
 //
 //

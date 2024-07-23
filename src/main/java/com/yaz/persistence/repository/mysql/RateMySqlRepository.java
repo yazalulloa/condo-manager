@@ -1,12 +1,12 @@
 package com.yaz.persistence.repository.mysql;
 
+import com.yaz.core.util.SqlUtil;
 import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.domain.MySqlQueryRequest;
 import com.yaz.persistence.domain.query.RateQuery;
 import com.yaz.persistence.domain.query.SortOrder;
 import com.yaz.persistence.entities.Rate;
 import com.yaz.persistence.repository.mysql.MySqlService.TrxMode;
-import com.yaz.core.util.SqlUtil;
 import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.sqlclient.Row;
 import io.vertx.mutiny.sqlclient.RowIterator;
@@ -15,7 +15,6 @@ import io.vertx.mutiny.sqlclient.SqlResult;
 import io.vertx.mutiny.sqlclient.Tuple;
 import io.vertx.sqlclient.impl.ArrayTuple;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -29,8 +28,8 @@ import lombok.extern.slf4j.Slf4j;
 //@LookupIfProperty(name = "app.repository.impl", stringValue = "mysql")
 //@Named("mysql")
 @ApplicationScoped
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
-public class RateMySqlRepository  {
+@RequiredArgsConstructor
+public class RateMySqlRepository {
 
   private static final String COLLECTION = "rates";
   private static final String SELECT = "SELECT * FROM %s %s ORDER BY id %s LIMIT ?";

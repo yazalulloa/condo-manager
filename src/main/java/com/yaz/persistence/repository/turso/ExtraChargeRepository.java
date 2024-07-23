@@ -26,7 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @ApplicationScoped
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
+@RequiredArgsConstructor
 public class ExtraChargeRepository {
 
   private static final String COLLECTION = "extra_charges";
@@ -184,10 +184,6 @@ public class ExtraChargeRepository {
         });
   }
 
-  public record InsertResult(long id, int count) {
-
-  }
-
   public Uni<InsertResult> insert(ExtraCharge extraCharge, Collection<String> apartments) {
 
     final var insertStmt = Stmt.stmt(INSERT, Value.text(extraCharge.parentReference()),
@@ -219,7 +215,6 @@ public class ExtraChargeRepository {
               .map(count -> new InsertResult(id, count));
         });
   }
-
 
   public Uni<Integer> update(ExtraCharge extraCharge) {
 
@@ -294,7 +289,6 @@ public class ExtraChargeRepository {
     return tursoWsService.count(COUNT_BY, Value.text(buildingId), Value.text(parentReference));
   }
 
-
   public Uni<Long> countByBuilding(String buildingId) {
     return tursoWsService.count(COUNT_BY_BUILDING, Value.text(buildingId));
   }
@@ -304,6 +298,10 @@ public class ExtraChargeRepository {
         Stmt.stmt("DELETE FROM %s WHERE building_id = ? AND apt_number = ?".formatted(COLLECTION_APT),
             Value.text(buildingId), Value.text(aptNumber))
     ).map(executeResp -> executeResp.result().rowCount());
+  }
+
+  public record InsertResult(long id, int count) {
+
   }
 
 }

@@ -1,6 +1,5 @@
 package com.yaz.core.service.gmail;
 
-import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.auth.oauth2.TokenResponseException;
 import com.yaz.core.helper.VertxHelper;
 import com.yaz.core.service.entity.EmailConfigService;
@@ -16,7 +15,6 @@ import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.buffer.Buffer;
 import io.vertx.rxjava3.core.file.FileSystem;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
@@ -27,7 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @ApplicationScoped
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
+@RequiredArgsConstructor
 public class GmailChecker {
 
   private final Vertx vertx;
@@ -86,7 +84,7 @@ public class GmailChecker {
         .andThen(Completable.defer(() -> {
           final var gmailHolder = helper.gmail(userId);
 
-            return gmailHolder.test()
+          return gmailHolder.test()
               .toSingleDefault(Optional.<Throwable>empty())
               .doOnError(throwable -> {
 

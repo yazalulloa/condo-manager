@@ -1,20 +1,19 @@
 package com.yaz.core.service.entity;
 
 
+import com.yaz.api.domain.response.OidcDbTokenTableResponse;
+import com.yaz.api.resource.OidcDbTokenResource;
 import com.yaz.core.service.entity.cache.OidcDbTokenCache;
 import com.yaz.core.util.Constants;
 import com.yaz.core.util.MutinyUtil;
 import com.yaz.persistence.domain.OidcDbTokenQueryRequest;
 import com.yaz.persistence.entities.OidcDbToken;
 import com.yaz.persistence.repository.OidcDbTokenRepository;
-import com.yaz.api.resource.OidcDbTokenResource;
-import com.yaz.api.domain.response.OidcDbTokenTableResponse;
 import io.quarkus.cache.CacheInvalidate;
 import io.quarkus.cache.CacheInvalidateAll;
 import io.quarkus.cache.CacheResult;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -24,7 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @ApplicationScoped
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
+@RequiredArgsConstructor
 public class OidcDbTokenService {
 
   //private final Instance<OidcDbTokenRepository> repository;

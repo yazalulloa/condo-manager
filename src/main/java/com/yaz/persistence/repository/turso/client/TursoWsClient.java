@@ -27,13 +27,12 @@ public class TursoWsClient {
 
   private final Vertx vertx;
   private final String url;
-
-  private WebSocketClient client;
-  private WebSocket webSocket;
   private final AtomicBoolean connecting = new AtomicBoolean(false);
   private final List<Handler<String>> msgHandlers = new ArrayList<>();
   private final List<Handler<Throwable>> exceptionHandlers = new ArrayList<>();
   private final List<Handler<Void>> closeHandlers = new ArrayList<>();
+  private WebSocketClient client;
+  private WebSocket webSocket;
 
   @Inject
   public TursoWsClient(Vertx vertx, @ConfigProperty(name = "quarkus.rest-client.turso-db.url") String url) {

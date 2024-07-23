@@ -35,6 +35,7 @@ public class OidcDbToken {
   @JsonIgnoreProperties(ignoreUnknown = true)
   @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
   public static class User {
+
     private final String id;
     private final String providerId;
     private final IdentityProvider provider;

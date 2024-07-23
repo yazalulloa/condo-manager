@@ -26,7 +26,6 @@ import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonObject;
-import jakarta.inject.Inject;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.PUT;
@@ -49,7 +48,7 @@ import org.jboss.resteasy.reactive.RestQuery;
 @Slf4j
 @Authenticated
 @Path(EmailConfigResource.PATH)
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
+@RequiredArgsConstructor
 public class EmailConfigResource {
 
   public static final String PATH = "/api/email_configs";
@@ -173,11 +172,11 @@ public class EmailConfigResource {
               return Single.just(errorRedirect("Missing functionality"));
             }
 
-            log.info("token response: {}", response);
+            log.debug("token response: {}", response);
             final var googleIdToken = googleHelper.googleIdTokenVerifier().verify(response.getIdToken());
             final var payload = googleIdToken.getPayload();
 
-            log.info("googleIdToken: {}", googleIdToken);
+            log.debug("googleIdToken: {}", googleIdToken);
             final var credential = flow.createAndStoreCredential(response, userId);
 
             return RxUtil.completable(gmailHelper.testCredential(credential))
@@ -284,7 +283,7 @@ public class EmailConfigResource {
 
               });
         })
-        .invoke(pair -> log.info("buildingsChanged: {} emailConfigsDeleted {}", pair.getLeft(), pair.getRight()))
+        .invoke(pair -> log.debug("buildingsChanged: {} emailConfigsDeleted {}", pair.getLeft(), pair.getRight()))
         .replaceWithVoid();
   }
 

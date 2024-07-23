@@ -5,7 +5,6 @@ import com.yaz.core.client.LoadDataClient;
 import com.yaz.core.service.LoadBackupService;
 import com.yaz.core.util.MutinyUtil;
 import io.smallrye.mutiny.Uni;
-import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -15,7 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Path("/rpc/load_data")
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
+@RequiredArgsConstructor
 public class LoadDataResource {
 
   private final LoadDataClient loadDataClient;

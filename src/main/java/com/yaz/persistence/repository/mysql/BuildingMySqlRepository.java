@@ -1,11 +1,11 @@
 package com.yaz.persistence.repository.mysql;
 
+import com.yaz.core.util.SqlUtil;
 import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.domain.MySqlQueryRequest;
 import com.yaz.persistence.domain.query.BuildingQuery;
 import com.yaz.persistence.domain.query.SortOrder;
 import com.yaz.persistence.entities.Building;
-import com.yaz.core.util.SqlUtil;
 import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.sqlclient.Row;
 import io.vertx.mutiny.sqlclient.RowIterator;
@@ -14,7 +14,6 @@ import io.vertx.mutiny.sqlclient.SqlResult;
 import io.vertx.mutiny.sqlclient.Tuple;
 import io.vertx.sqlclient.impl.ArrayTuple;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -28,8 +27,8 @@ import lombok.extern.slf4j.Slf4j;
 //@LookupIfProperty(name = "app.repository.impl", stringValue = "mysql")
 //@Named("mysql")
 @ApplicationScoped
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
-public class BuildingMySqlRepository  {
+@RequiredArgsConstructor
+public class BuildingMySqlRepository {
 
   private static final String COLLECTION = "buildings";
   private static final String SELECT = """
@@ -66,7 +65,8 @@ public class BuildingMySqlRepository  {
       COLLECTION);
 
   private static final String SELECT_ALL_IDS = "SELECT id FROM %s ORDER BY id".formatted(COLLECTION);
-  private static final String SELECT_BY_EMAIL_CONFIG = "SELECT id FROM %s WHERE email_config_id = UUID_TO_BIN(?)".formatted(COLLECTION);
+  private static final String SELECT_BY_EMAIL_CONFIG = "SELECT id FROM %s WHERE email_config_id = UUID_TO_BIN(?)".formatted(
+      COLLECTION);
 
   private final MySqlService mySqlService;
 

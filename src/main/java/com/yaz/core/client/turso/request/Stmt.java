@@ -9,6 +9,7 @@ import lombok.Data;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @AllArgsConstructor
 public class Stmt {
+
   private String sql;
   private List<Arg> args;
 

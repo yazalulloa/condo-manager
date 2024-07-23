@@ -8,7 +8,6 @@ import io.vertx.mutiny.core.Vertx;
 import io.vertx.mutiny.core.http.HttpClient;
 import io.vertx.mutiny.core.http.HttpClientRequest;
 import io.vertx.mutiny.core.streams.Pump;
-import io.vertx.mutiny.core.streams.ReadStream;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.io.File;
@@ -40,7 +39,8 @@ public class LoadDataClient {
 
     this.vertx = vertx;
     this.client = vertx.createHttpClient(options);
-    this.getRequest = client.request(HttpMethod.GET, 8090, "http://localhost", "/0570b232-ab43-4242-8a9e-d5f035ef7580/backup");
+    this.getRequest = client.request(HttpMethod.GET, 8090, "http://localhost",
+        "/0570b232-ab43-4242-8a9e-d5f035ef7580/backup");
   }
 
   public Uni<String> loadBackup() {

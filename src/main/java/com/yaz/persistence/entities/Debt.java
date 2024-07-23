@@ -30,6 +30,12 @@ public record Debt(
 ) {
 
 
+  private static final String CARD_ID_PREFIX = "debt-card-id-";
+
+  private static String cardId() {
+    return CARD_ID_PREFIX + UUID.randomUUID();
+  }
+
   public Keys keys(String cardId) {
     final var debt = this.toBuilder()
         .aptName(null)
@@ -39,12 +45,6 @@ public record Debt(
 
   public Keys keys() {
     return keys(cardId());
-  }
-
-  private static final String CARD_ID_PREFIX = "debt-card-id-";
-
-  private static String cardId() {
-    return CARD_ID_PREFIX + UUID.randomUUID();
   }
 
   public record Keys(

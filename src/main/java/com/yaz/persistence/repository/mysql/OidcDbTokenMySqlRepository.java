@@ -1,17 +1,16 @@
 package com.yaz.persistence.repository.mysql;
 
+import com.yaz.core.util.SqlUtil;
 import com.yaz.persistence.domain.IdentityProvider;
 import com.yaz.persistence.domain.OidcDbTokenQueryRequest;
 import com.yaz.persistence.entities.OidcDbToken;
 import com.yaz.persistence.entities.OidcDbToken.User;
-import com.yaz.core.util.SqlUtil;
 import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.sqlclient.Row;
 import io.vertx.mutiny.sqlclient.SqlResult;
 import io.vertx.mutiny.sqlclient.Tuple;
 import io.vertx.sqlclient.impl.ArrayTuple;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -21,8 +20,8 @@ import lombok.extern.slf4j.Slf4j;
 //@LookupIfProperty(name = "app.repository.impl", stringValue = "mysql")
 //@Named("mysql")
 @ApplicationScoped
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
-public class OidcDbTokenMySqlRepository  {
+@RequiredArgsConstructor
+public class OidcDbTokenMySqlRepository {
 
   private static final String COLLECTION = "oidc_db_token_state_manager";
   private static final String SELECT = """

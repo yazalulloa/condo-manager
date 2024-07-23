@@ -10,8 +10,10 @@ public interface GmailConfig {
 
   @NotBlank
   String clientId();
+
   @NotBlank
   String clientSecret();
+
   @NotBlank
   String appName();
 

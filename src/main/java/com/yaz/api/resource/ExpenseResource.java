@@ -24,7 +24,6 @@ import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.json.Json;
-import jakarta.inject.Inject;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.DELETE;
@@ -43,7 +42,7 @@ import org.jboss.resteasy.reactive.RestPath;
 @Slf4j
 @Authenticated
 @Path(ExpenseResource.PATH)
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
+@RequiredArgsConstructor
 public class ExpenseResource {
 
   public static final String PATH = "/api/expenses";

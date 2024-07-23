@@ -7,7 +7,6 @@ import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
 import io.smallrye.mutiny.Uni;
-import jakarta.inject.Inject;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -21,7 +20,7 @@ import org.jboss.resteasy.reactive.RestQuery;
 @Slf4j
 @Authenticated
 @Path(OidcDbTokenResource.PATH)
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
+@RequiredArgsConstructor
 public class OidcDbTokenResource {
 
   public static final String PATH = "/api/oidc_tokens";

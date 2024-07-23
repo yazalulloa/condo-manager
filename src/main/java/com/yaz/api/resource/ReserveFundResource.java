@@ -23,7 +23,6 @@ import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
 import io.smallrye.mutiny.Uni;
-import jakarta.inject.Inject;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.BeanParam;
@@ -46,7 +45,7 @@ import org.jboss.resteasy.reactive.RestPath;
 @Slf4j
 @Path(ReserveFundResource.PATH)
 @Authenticated
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
+@RequiredArgsConstructor
 public class ReserveFundResource {
 
   public static final String PATH = "/api/reserve_funds";

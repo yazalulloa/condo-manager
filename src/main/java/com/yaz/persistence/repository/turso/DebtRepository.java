@@ -10,7 +10,6 @@ import com.yaz.persistence.repository.turso.client.ws.request.Value;
 import com.yaz.persistence.repository.turso.client.ws.response.ExecuteResp.Row;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -24,18 +23,16 @@ import lombok.extern.slf4j.Slf4j;
 //@LookupIfProperty(name = "app.repository.impl", stringValue = "turso")
 //@Named("turso")
 @ApplicationScoped
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
+@RequiredArgsConstructor
 public class DebtRepository {
-
-  private static final String COLLECTION = "debts";
 
   public static final String INSERT = """
       INSERT INTO %s (building_id, receipt_id, apt_number, receipts, amount, months, previous_payment_amount, 
       previous_payment_amount_currency) VALUES %s
       """;
+  private static final String COLLECTION = "debts";
 //  private static final String SELECT_BY_RECEIPT = "SELECT * FROM %s WHERE building_id = ? AND receipt_id = ? ORDER BY apt_number".formatted(
 //      COLLECTION);
-
   private static final String SELECT_BY_RECEIPT = """
       SELECT debts.*, apartments.name as apt_name FROM debts 
       LEFT JOIN apartments ON debts.apt_number = apartments.number
@@ -150,8 +147,8 @@ public class DebtRepository {
 
   public Uni<Integer> deleteByApartment(String buildingId, String aptNumber) {
     return tursoWsService.executeQuery(
-        Stmt.stmt("DELETE FROM %s WHERE building_id = ? AND apt_number = ?".formatted(COLLECTION),
-            Value.text(buildingId), Value.text(aptNumber)))
+            Stmt.stmt("DELETE FROM %s WHERE building_id = ? AND apt_number = ?".formatted(COLLECTION),
+                Value.text(buildingId), Value.text(aptNumber)))
         .map(executeResp -> executeResp.result().rowCount());
   }
 }

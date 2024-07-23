@@ -44,7 +44,7 @@ import org.jsoup.nodes.Attribute;
 @Slf4j
 @ApplicationScoped
 @RequiredArgsConstructor
-//@RequiredArgsConstructor(onConstructor_ = {@Inject})
+//@RequiredArgsConstructor
 public class BcvHistoricService {
 
   private static final String DIR = "tmp/bcv/";

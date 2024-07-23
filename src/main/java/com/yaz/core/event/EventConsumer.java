@@ -17,13 +17,12 @@ import com.yaz.persistence.entities.Receipt;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.ObservesAsync;
-import jakarta.inject.Inject;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @ApplicationScoped
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
+@RequiredArgsConstructor
 public class EventConsumer {
 
   private final BuildingService buildingService;
@@ -42,7 +41,7 @@ public class EventConsumer {
         .subscribe()
         .with(
             i -> {
-              log.info("Building email config: {} deleted: {}", task.id(), i);
+              log.debug("Building email config: {} deleted: {}", task.id(), i);
             },
             e -> {
               log.error("ERROR deleting building email config: {}", task.id(), e);

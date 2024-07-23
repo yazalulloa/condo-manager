@@ -6,7 +6,6 @@ import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.infrastructure.Infrastructure;
 import io.vertx.rxjava3.core.Vertx;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
@@ -17,7 +16,7 @@ import org.apache.commons.io.FileUtils;
 
 @Slf4j
 @ApplicationScoped
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
+@RequiredArgsConstructor
 public class GmailHelper {
 
   public static final String DIR = "gmail-configs";

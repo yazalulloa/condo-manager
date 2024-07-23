@@ -23,6 +23,7 @@ public record BatchCond(String type, Long step, BatchCond cond, List<BatchCond> 
   public static BatchCond or(List<BatchCond> conds) {
     return new BatchCond("or", null, null, conds);
   }
+
   public static BatchCond autoCommit() {
     return new BatchCond("is_autocommit", null, null, null);
   }

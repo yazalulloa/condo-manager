@@ -1,13 +1,12 @@
 package com.yaz.core.service.entity;
 
+import com.yaz.core.util.RxUtil;
 import com.yaz.persistence.entities.NotificationEvent;
 import com.yaz.persistence.entities.TelegramChat;
 import com.yaz.persistence.repository.turso.TelegramChatRepository;
-import com.yaz.core.util.RxUtil;
 import io.reactivex.rxjava3.core.Single;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @ApplicationScoped
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
+@RequiredArgsConstructor
 public class TelegramChatService {
 
   private final TelegramChatRepository repository;

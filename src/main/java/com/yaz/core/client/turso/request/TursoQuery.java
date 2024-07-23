@@ -19,6 +19,7 @@ public class TursoQuery {
 
     return oneQuery(sql, arguments);
   }
+
   public static TursoQuery oneQuery(String sql, List<Arg> args) {
     final var tursoQuery = new TursoQuery();
     tursoQuery.setRequests(new ArrayList<>());

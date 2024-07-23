@@ -4,14 +4,13 @@ import com.yaz.persistence.entities.NotificationEvent;
 import com.yaz.persistence.repository.turso.NotificationEventRepository;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @ApplicationScoped
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
+@RequiredArgsConstructor
 public class NotificationEventService {
 
   private final NotificationEventRepository repository;

@@ -31,30 +31,22 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 @Dependent
 public class TursoVerticle extends AbstractVerticle {
 
+  public static final String ADDRESS = "turso-request";
   private final LinkedBlockingQueue<RequestMsg[]> pendingMessages = new LinkedBlockingQueue<>();
-
   private final Map<Integer, TursoResult> results = new ConcurrentHashMap<>();
   private final Map<Integer, Listener> listeners = new ConcurrentHashMap<>();
-
-  public static final String ADDRESS = "turso-request";
-
+  private final long PING_INTERVAL = 10;
   @ConfigProperty(name = "quarkus.rest-client.turso-db.url")
   String url;
-
   @ConfigProperty(name = "app.turso-jwt")
   String jwt;
-
   @Inject
   TursoJsonMapper mapper;
-
   private WebSocketClient client;
   private WebSocket webSocket;
   private boolean closing;
-
   private Long timerId;
   private long lastPongAt;
-  private final long PING_INTERVAL = 10;
-
 
   @Override
   public void start(Promise<Void> startPromise) throws Exception {
@@ -86,7 +78,7 @@ public class TursoVerticle extends AbstractVerticle {
         })
         .completionHandler(startPromise);
 
-   // startSocket();
+    // startSocket();
   }
 
   void sendMsg(RequestMsg[] requestMsgs) {
@@ -163,7 +155,7 @@ public class TursoVerticle extends AbstractVerticle {
         })
         //.binaryMessageHandler(b -> log.info("Received binary {}", b.toString()))
         .pongHandler(b -> {
-         // log.debug("Received pong {}", b.toString());
+          // log.debug("Received pong {}", b.toString());
           lastPongAt = System.currentTimeMillis();
         })
         .drainHandler(v -> log.info("Drain handler"))

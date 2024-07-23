@@ -13,7 +13,6 @@ import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import java.util.Collection;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @ApplicationScoped
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
+@RequiredArgsConstructor
 public class ReceiptPdfService {
 
   private final CalculateReceiptService calculateReceiptService;
@@ -70,13 +69,6 @@ public class ReceiptPdfService {
         });
   }
 
-  public record PdfReceiptResponse(
-      CalculatedReceipt receipt,
-      Collection<PdfReceiptItem> pdfItems
-  ) {
-
-  }
-
   public Single<ReceiptPdfResponse> pdfResponse(String buildingId, long receiptId, String clientId) {
     return calculate(buildingId, receiptId)
         .map(calculatedReceipt -> calculatedReceipt.toBuilder()
@@ -115,5 +107,12 @@ public class ReceiptPdfService {
               .tabs(tabs)
               .build();
         });
+  }
+
+  public record PdfReceiptResponse(
+      CalculatedReceipt receipt,
+      Collection<PdfReceiptItem> pdfItems
+  ) {
+
   }
 }

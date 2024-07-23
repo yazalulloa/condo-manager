@@ -7,5 +7,4 @@ import java.util.List;
 public record Listener(int[] requests, Handler<AsyncResult<List<TursoResult>>> handler) {
 
 
-
 }

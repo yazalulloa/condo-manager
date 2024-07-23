@@ -14,7 +14,6 @@ import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
 import io.smallrye.mutiny.Uni;
-import jakarta.inject.Inject;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -29,7 +28,7 @@ import org.jboss.resteasy.reactive.RestQuery;
 @Path(UserResource.PATH)
 @Slf4j
 @Authenticated
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
+@RequiredArgsConstructor
 public class UserResource {
 
   public static final String PATH = "/api/users";

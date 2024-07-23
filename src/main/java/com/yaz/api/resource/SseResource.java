@@ -2,7 +2,6 @@ package com.yaz.api.resource;
 
 import com.yaz.core.service.ServerSideEventHelper;
 import io.quarkus.security.Authenticated;
-import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -17,7 +16,7 @@ import org.jboss.resteasy.reactive.RestPath;
 @Slf4j
 @Authenticated
 @Path("/api/sse")
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
+@RequiredArgsConstructor
 public class SseResource {
 
   private final ServerSideEventHelper serverSideEventHelper;

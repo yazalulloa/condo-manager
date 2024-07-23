@@ -19,7 +19,6 @@ import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.json.Json;
-import jakarta.inject.Inject;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.DELETE;
@@ -40,7 +39,7 @@ import org.jboss.resteasy.reactive.RestQuery;
 @Slf4j
 @Authenticated
 @Path(ExtraChargeResource.PATH)
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
+@RequiredArgsConstructor
 public class ExtraChargeResource {
 
   public static final String PATH = "/api/extra_charges";

@@ -2,7 +2,6 @@ package com.yaz.core.service;
 
 import com.yaz.core.service.domain.EncryptionConfig;
 import com.yaz.core.util.RandomUtil;
-import com.yaz.core.util.StringUtil;
 import io.micrometer.core.annotation.Timed;
 import io.vertx.core.json.Json;
 import jakarta.enterprise.context.ApplicationScoped;

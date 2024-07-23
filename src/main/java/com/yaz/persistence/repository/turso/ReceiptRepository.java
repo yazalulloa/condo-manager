@@ -14,7 +14,6 @@ import com.yaz.persistence.repository.turso.client.ws.response.ExecuteResp.Row;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 //@LookupIfProperty(name = "app.repository.impl", stringValue = "turso")
 //@Named("turso")
 @ApplicationScoped
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
+@RequiredArgsConstructor
 public class ReceiptRepository {
 
   private static final String COLLECTION = "receipts";
@@ -95,10 +94,6 @@ public class ReceiptRepository {
     stmts[4] = debtRepository.stmtDeleteByReceipt(buildingId, id);
     return tursoWsService.executeQueries(stmts)
         .map(SqlUtil::rowCount);
-  }
-
-  public record InsertResult(long id, int sum) {
-
   }
 
   public Uni<InsertResult> insert(ReceiptCreateRequest request) {
@@ -323,5 +318,9 @@ public class ReceiptRepository {
     return tursoWsService.executeQuery(
             Stmt.stmt(REMOVE_LAST_SENT, Value.number(id)))
         .map(executeResp -> executeResp.result().rowCount());
+  }
+
+  public record InsertResult(long id, int sum) {
+
   }
 }

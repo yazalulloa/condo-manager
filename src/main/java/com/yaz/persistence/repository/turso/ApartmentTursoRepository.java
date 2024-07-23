@@ -12,7 +12,6 @@ import com.yaz.persistence.repository.turso.client.ws.request.Value;
 import com.yaz.persistence.repository.turso.client.ws.response.ExecuteResp.Row;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -29,9 +28,10 @@ import lombok.extern.slf4j.Slf4j;
 ////@LookupIfProperty(name = "app.repository.impl", stringValue = "turso")
 //@Named("turso")
 @ApplicationScoped
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
+@RequiredArgsConstructor
 public class ApartmentTursoRepository implements ApartmentRepository {
 
+  public static final String DELETE_EMAILS = "DELETE FROM %s WHERE building_id = ? AND apt_number = ? AND email NOT IN (%s)";
   private static final String COLLECTION = "apartments";
   private static final String DELETE_BY_BUILDING = "DELETE FROM %s WHERE building_id = ?".formatted(COLLECTION);
   private static final String DELETE_BY_ID = "DELETE FROM %s WHERE building_id = ? AND number = ?".formatted(
@@ -48,10 +48,8 @@ public class ApartmentTursoRepository implements ApartmentRepository {
       ORDER BY apartments.building_id, apartments.number
       LIMIT ?;
       """;
-
   private static final String SELECT_FULL_ONE = SELECT_FULL.formatted(
       " WHERE apartments.building_id = ? AND apartments.number = ? ");
-
   private static final String SELECT_FULL_WITH_LIKE = """
       SELECT apartments.*,
              GROUP_CONCAT(apartment_emails.email) AS emails
@@ -62,27 +60,22 @@ public class ApartmentTursoRepository implements ApartmentRepository {
       ORDER BY apartments.building_id, apartments.number
       LIMIT ?
       """;
-
   private static final String UPDATE = """
       UPDATE %s SET name = ?, aliquot = ? WHERE building_id = ? AND number = ?;
       """.formatted(COLLECTION);
-
   private static final String QUERY_COUNT_WHERE = """
       SELECT 
       COUNT(distinct CONCAT (apartments.building_id, apartments.number)) AS query_count
       FROM apartments
       %s %s
       """;
-
   private static final String CURSOR_QUERY = "(apartments.building_id,apartments.number) > (?,?)";
   private static final String LIKE_QUERY = " concat(apartments.building_id, apartments.number, apartments.name, apartment_emails.email) LIKE ? ";
   private static final String EXISTS = "SELECT building_id FROM %s WHERE building_id = ? AND number = ? LIMIT 1".formatted(
       COLLECTION);
-
   private static final String SELECT_MINIMAL_BY_BUILDING = """
       SELECT building_id, number, name FROM %s WHERE building_id = ? ORDER BY number
       """.formatted(COLLECTION);
-
   private static final String SELECT_BY_BUILDING = """
       SELECT apartments.*,
              GROUP_CONCAT(apartment_emails.email) AS emails
@@ -92,25 +85,21 @@ public class ApartmentTursoRepository implements ApartmentRepository {
       GROUP BY apartments.building_id, apartments.number
       ORDER BY apartments.building_id, apartments.number
       """;
-
   private static final String INSERT_IGNORE = """
       INSERT INTO %s (building_id, number, name, aliquot)
       VALUES %s ON CONFLICT DO NOTHING;
       """;
-
   private static final String EMAIL_COLLECTION = "apartment_emails";
+  public static final String DELETE_EMAIL = "DELETE FROM %s WHERE building_id = ? AND apt_number = ?".formatted(
+      EMAIL_COLLECTION);
+  public static final String DELETE_EMAIL_BY_BUILDING = "DELETE FROM %s WHERE building_id = ?".formatted(
+      EMAIL_COLLECTION);
   private static final String INSERT_EMAIL = "INSERT INTO %s (building_id, apt_number, email) VALUES (%s) ON CONFLICT DO NOTHING"
       .formatted(EMAIL_COLLECTION, SqlUtil.params(3));
   private static final String INSERT_EMAIL_IGNORE = """
       INSERT INTO %s (building_id, apt_number, email)
       VALUES %s ON CONFLICT DO NOTHING;
       """;
-  public static final String DELETE_EMAIL = "DELETE FROM %s WHERE building_id = ? AND apt_number = ?".formatted(
-      EMAIL_COLLECTION);
-  public static final String DELETE_EMAIL_BY_BUILDING = "DELETE FROM %s WHERE building_id = ?".formatted(
-      EMAIL_COLLECTION);
-  public static final String DELETE_EMAILS = "DELETE FROM %s WHERE building_id = ? AND apt_number = ? AND email NOT IN (%s)";
-
   private final TursoWsService tursoWsService;
 
   @Override

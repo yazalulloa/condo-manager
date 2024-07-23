@@ -3,13 +3,12 @@ package com.yaz.core.job;
 import com.yaz.core.service.ServerSideEventHelper;
 import io.quarkus.scheduler.Scheduled;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @ApplicationScoped
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
+@RequiredArgsConstructor
 public class SseJob {
 
   private final ServerSideEventHelper helper;

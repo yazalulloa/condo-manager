@@ -18,13 +18,12 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 
 public class GmailHolder {
 
-  private boolean available = true;
   private final Queue<Waiter> waiters = new ConcurrentLinkedDeque<>();
-
   private final String userId;
   private final Vertx vertx;
   private final Credential credential;
   private final Gmail gmail;
+  private boolean available = true;
 
   public GmailHolder(String userId, Vertx vertx, Credential credential, Gmail gmail) {
     this.userId = userId;

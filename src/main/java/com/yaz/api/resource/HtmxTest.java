@@ -4,7 +4,6 @@ import com.yaz.api.domain.HtmxTestResponse;
 import com.yaz.core.util.RandomUtil;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
-import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.POST;
@@ -14,7 +13,7 @@ import jakarta.ws.rs.core.MediaType;
 import lombok.RequiredArgsConstructor;
 
 @Path("/api/htmx_test")
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
+@RequiredArgsConstructor
 public class HtmxTest {
 
   public HtmxTestResponse res() {

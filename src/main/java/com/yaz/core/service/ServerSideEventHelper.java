@@ -3,7 +3,6 @@ package com.yaz.core.service;
 import com.yaz.core.util.EventConstants;
 import io.quarkus.vertx.ConsumeEvent;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import jakarta.ws.rs.sse.OutboundSseEvent;
 import jakarta.ws.rs.sse.Sse;
 import jakarta.ws.rs.sse.SseEventSink;
@@ -16,7 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @ApplicationScoped
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
+@RequiredArgsConstructor
 public class ServerSideEventHelper {
 
   private final ConcurrentHashMap<String, List<WeakReference<SseEventSink>>> sinks = new ConcurrentHashMap<>();

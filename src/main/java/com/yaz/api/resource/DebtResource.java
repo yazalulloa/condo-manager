@@ -16,7 +16,6 @@ import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
 import io.smallrye.mutiny.Uni;
-import jakarta.inject.Inject;
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
@@ -34,7 +33,7 @@ import org.jboss.resteasy.reactive.RestForm;
 @Slf4j
 @Authenticated
 @Path(DebtResource.PATH)
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
+@RequiredArgsConstructor
 public class DebtResource {
 
   public static final String PATH = "/api/debts";

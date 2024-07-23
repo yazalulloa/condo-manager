@@ -1,20 +1,19 @@
 package com.yaz.persistence.repository.mysql;
 
+import com.yaz.core.util.SqlUtil;
 import com.yaz.persistence.domain.MySqlQueryRequest;
 import com.yaz.persistence.entities.Apartment;
-import com.yaz.core.util.SqlUtil;
 import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.sqlclient.SqlResult;
 import io.vertx.mutiny.sqlclient.Tuple;
 import io.vertx.sqlclient.impl.ArrayTuple;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import java.util.Collection;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 
 @ApplicationScoped
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
+@RequiredArgsConstructor
 public class ApartmentEmailRepository {
 
   public static final String COLLECTION = "apartment_emails";

@@ -31,7 +31,6 @@ import io.quarkus.vertx.web.Route;
 import io.quarkus.vertx.web.Route.HttpMethod;
 import io.smallrye.mutiny.Uni;
 import io.vertx.ext.web.RoutingContext;
-import jakarta.inject.Inject;
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -52,7 +51,7 @@ import org.jboss.resteasy.reactive.RestQuery;
 @Slf4j
 @Authenticated
 @Path(BuildingResource.PATH)
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
+@RequiredArgsConstructor
 public class BuildingResource {
 
   public static final String PATH = "/api/buildings";
@@ -64,23 +63,6 @@ public class BuildingResource {
   private final ExtraChargeService extraChargeService;
   private final EncryptionService encryptionService;
   private final ReserveFundService reserveFundService;
-
-
-  @CheckedTemplate
-  public static class Templates {
-
-    public static native TemplateInstance selector(List<String> list);
-
-    public static native TemplateInstance report(BuildingReportResponse res);
-
-    public static native TemplateInstance counters(BuildingCountersDto dto);
-
-    public static native TemplateInstance formInit(BuildingInitFormDto dto);
-
-    public static native TemplateInstance responseForm(BuildingFormResponse dto);
-
-    public static native TemplateInstance ids(List<String> list);
-  }
 
   @Route(path = PATH + "/ids", methods = HttpMethod.GET)
   public void getIds(RoutingContext rc) {
@@ -324,6 +306,22 @@ public class BuildingResource {
               .build();
         })
         .map(Templates::formInit);
+  }
+
+  @CheckedTemplate
+  public static class Templates {
+
+    public static native TemplateInstance selector(List<String> list);
+
+    public static native TemplateInstance report(BuildingReportResponse res);
+
+    public static native TemplateInstance counters(BuildingCountersDto dto);
+
+    public static native TemplateInstance formInit(BuildingInitFormDto dto);
+
+    public static native TemplateInstance responseForm(BuildingFormResponse dto);
+
+    public static native TemplateInstance ids(List<String> list);
   }
 
 }

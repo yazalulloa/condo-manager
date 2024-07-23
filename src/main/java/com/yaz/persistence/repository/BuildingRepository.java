@@ -2,10 +2,7 @@ package com.yaz.persistence.repository;
 
 import com.yaz.persistence.domain.query.BuildingQuery;
 import com.yaz.persistence.entities.Building;
-import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
-import io.vertx.mutiny.sqlclient.Row;
-import io.vertx.mutiny.sqlclient.RowSet;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;

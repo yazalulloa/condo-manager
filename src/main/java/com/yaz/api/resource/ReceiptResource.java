@@ -64,7 +64,6 @@ import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.json.Json;
 import jakarta.annotation.security.RolesAllowed;
-import jakarta.inject.Inject;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -104,7 +103,7 @@ import org.jboss.resteasy.reactive.multipart.FileUpload;
 @Path(ReceiptResource.PATH)
 @Slf4j
 @Authenticated
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
+@RequiredArgsConstructor
 public class ReceiptResource {
 
   public static final String PATH = "/api/receipts";
@@ -762,7 +761,7 @@ public class ReceiptResource {
         .unis(receiptUni, rateUni, expensesListUni, extraChargesListUni, debtListUni, rateListUni,
             apartmentService.aptByBuildings(keys.buildingId()), buildingUni, reserveFundUni)
         .with((receipt, rate, expenses, extraCharges, debts, rates, apartments, building, reserveFunds) -> {
-          log.info("RECEIPT {}", receipt);
+
           final var expensesCount = expenses.size();
           final var receiptForm = ReceiptFormDto.builder()
               .key(encryptionService.encryptObj(receipt.keysWithHash()))

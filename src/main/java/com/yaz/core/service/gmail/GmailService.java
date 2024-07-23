@@ -1,17 +1,16 @@
 package com.yaz.core.service.gmail;
 
 import com.yaz.api.domain.response.EmailConfigTableItem;
-import com.yaz.core.util.RxUtil;
 import com.yaz.core.service.entity.EmailConfigService;
+import com.yaz.core.util.RxUtil;
 import io.reactivex.rxjava3.core.Maybe;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @ApplicationScoped
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
+@RequiredArgsConstructor
 public class GmailService {
 
   private final GmailHelper gmailHelper;
