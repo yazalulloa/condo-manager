@@ -4,6 +4,7 @@ import com.yaz.core.service.NotificationService;
 import com.yaz.core.service.csv.ReceiptParser;
 import com.yaz.core.util.EnvParams;
 import com.yaz.core.util.FileUtil;
+import io.quarkus.oidc.runtime.TenantConfigBean;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.Startup;
 import io.quarkus.runtime.StartupEvent;
@@ -27,12 +28,13 @@ public class StartupBean {
   private final NotificationService notificationService;
   private final EnvParams envParams;
   private final ReceiptParser receiptParser;
+  private final TenantConfigBean tenantConfigBean;
 
   @Startup(value = 0)
   void init() {
     envParams.saveAppStartedAt();
     if (envParams.isShowDir()) {
-      Completable.fromAction(() -> FileUtil.showDir())
+      Completable.fromAction(FileUtil::showDir)
           .subscribeOn(Schedulers.io())
           .subscribe(() -> {
           }, t -> log.error("Error showing dir", t));
@@ -55,6 +57,28 @@ public class StartupBean {
     log.info("Cloud provider: {}", cloudProvider);
     log.info("Cores: {}", CpuCoreSensor.availableProcessors());
     log.info("Event Loop Size {}", VertxOptions.DEFAULT_EVENT_LOOP_POOL_SIZE);
+
+    tenantConfigBean.getStaticTenantsConfig().forEach((tenant, ctx) -> {
+      log.info("Tenant {}", tenant);
+
+//      final var metadata = ctx.getOidcMetadata();
+//
+//      final var data = new StringBuilder()
+//          .append("\n")
+//          .append("AuthServer URI: ").append(ctx.getOidcTenantConfig().getAuthServerUrl().orElse(null)).append("\n")
+//          .append("Discovery URI: ").append(metadata.getDiscoveryUri()).append("\n")
+//          .append("Token Uri: ").append(metadata.getTokenUri()).append("\n")
+//          .append("Introspection Uri: ").append(metadata.getIntrospectionUri()).append("\n")
+//          .append("Authorization Uri: ").append(metadata.getAuthorizationUri()).append("\n")
+//          .append("JsonWebKeySet Uri: ").append(metadata.getJsonWebKeySetUri()).append("\n")
+//          .append("UserInfo Uri: ").append(metadata.getUserInfoUri()).append("\n")
+//          .append("End Session Uri: ").append(metadata.getEndSessionUri()).append("\n")
+//          .append("Issue: ").append(metadata.getIssuer()).append("\n")
+//          .toString();
+//
+//      log.info("Tenant {} {} {}", tenant, data, ctx.getOidcTenantConfig());
+    });
+
   }
 
   void shutdown(@Observes ShutdownEvent event) {
