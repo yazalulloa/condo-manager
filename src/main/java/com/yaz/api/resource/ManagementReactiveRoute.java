@@ -1,6 +1,7 @@
 package com.yaz.api.resource;
 
 import com.yaz.core.client.ManagementClient;
+import io.quarkus.security.Authenticated;
 import io.vertx.ext.web.Router;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
@@ -26,23 +27,29 @@ public class ManagementReactiveRoute {
 
   public void init(@Observes Router router) {
     if (path != null) {
-      router.get(path + "/health").handler(rc ->
-          managementClient.healthCheck()
-              .subscribe()
-              .with(
-                  response -> rc.response()
-                      .putHeader("Content-Type", "application/json")
-                      .end(response),
-                  rc::fail
-              ));
+      router.get(path + "/health")
+          .handler(rc -> {
+            log.info("Health check request received");
+            managementClient.healthCheck()
+                .subscribe()
+                .with(
+                    response -> rc.response()
+                        .putHeader("Content-Type", "application/json")
+                        .end(response),
+                    rc::fail
+                );
+          });
 
       router.get(path + "/metrics").handler(rc -> {
         managementClient.metrics()
             .subscribe()
             .with(
-                response -> rc.response()
-                    .putHeader("Content-Type", "text/plain")
-                    .end(response),
+                response -> {
+                  //log.info("Metrics response received {}", response);
+                  rc.response()
+                      .putHeader("Content-Type", "text/plain")
+                      .end(response);
+                },
                 rc::fail
             );
       });

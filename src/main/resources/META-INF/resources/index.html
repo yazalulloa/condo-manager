@@ -262,9 +262,7 @@
           <div class="grid grid-cols-1 gap-3 p-3"
                x-data="{
           selected : '',
-          themes : [
-            'dracula', 'business', 'light', 'cupcake', 'synthwave'
-          ]
+          themes : ['dracula', 'business', 'light', 'cupcake', 'synthwave']
           }" x-init="selected = localStorage.getItem('theme') ?? ''">
             <template x-for="theme in themes">
               <button class="outline-base-content text-start outline-offset-4" data-act-class="[&amp;_svg]:visible"

@@ -83,7 +83,8 @@ public class StaticReactiveRoutes {
         .anyMatch(cookie -> cookie.getName().contains("auth_session"));
 
     if (isNextPath(path)) {
-      if (authSession) {
+
+      if (authSession || !path.startsWith("/api")) {
         log.debug("is authSession {} {}", path, uri);
         rc.next();
       } else {

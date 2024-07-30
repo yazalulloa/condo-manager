@@ -9,10 +9,10 @@
             <div hx-get="/stc/buildings/edit/"
                  hx-on:htmx:before-request="saveResource('building', '{item.building.id}')"
                  hx-trigger="click"
-                 class="flex-wrap flex-row flex justify-between gap-2 items-center flex-grow max-w-99per"
+                 class="flex flex-col md:grid md:grid-cols-5 gap-3 items-center flex-grow max-w-99per"
             >
-                <div class="flex flex-col gap-2">
-                    <div class="flex flex-row gap-2 text-sm">
+                <div class="flex flex-col gap-3 justify-center text-center items-center">
+                    <div class="flex flex-row flex-wrap gap-3 text-sm justify-center text-center items-center">
                         <span>{item.building.id}</span>
                         <span>{item.building.rif}</span>
                     </div>
@@ -21,26 +21,30 @@
 
                 </div>
 
-                <div class="flex flex-col gap-2 text-sm">
+                <div class="flex flex-col gap-3 text-sm text-center items-center">
                     <span>Moneda Principal: {item.building.mainCurrency}</span>
                     <span>Moneda Deuda: {item.building.debtCurrency}</span>
                     <span>Monedas a mostrar {item.building.currenciesToShowAmountToPay}</span>
                 </div>
 
-                {#if item.building.fixedPay}
-                    <span>Monto fijo: {item.building.fixedPayAmount}</span>
-                {/if}
+                <div class="flex flex-col gap-3 text-center items-center">
+                    {#if item.building.fixedPay}
+                        <span>Monto fijo: {item.building.fixedPayAmount}</span>
+                    {/if}
 
-                <div class="font-bold badge badge-outline {item.building.roundUpPayments ? 'badge-success' : 'badge-error'}">
-                    Redondear pagos
+                    <div class="font-bold badge badge-outline {item.building.roundUpPayments ? 'badge-success' : 'badge-error'}">
+                        Redondear pagos
+                    </div>
                 </div>
 
-                <span>Apartmentos: {item.building.aptCount}</span>
-                {#if item.building.configEmail}
-                    <span>Configuracion de email: {item.building.configEmail}</span>
-                {/if}
+                <div class="flex flex-col gap-3 text-center items-center">
+                    <span>Apartmentos: {item.building.aptCount}</span>
+                    {#if item.building.configEmail}
+                        <span>Configuracion de email: {item.building.configEmail}</span>
+                    {/if}
+                </div>
 
-                <div class="flex flex-col gap-2">
+                <div class="flex flex-col gap-3">
                     <span>Creado: {item.building.createdAt.formatDate}</span>
                     {#if item.building.updatedAt}
                         <span>Actualizado: {item.building.updatedAt.formatDate}</span>
