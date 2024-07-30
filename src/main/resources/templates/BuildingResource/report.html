@@ -3,53 +3,55 @@
 <span id="buildings-total-counter" hx-swap-oob="true">Edificios: {res.totalCount}</span>
 
 {#for item in res.results}
-    <div id="{item.cardId}"
-         class="hover:bg-[#00000014] gap-4 rounded-lg bg-neutral flex flex-row justify-between items-center fade-me-out fade-me-in p-2">
-        <div hx-get="/stc/buildings/edit/"
-             hx-on:htmx:before-request="saveResource('building', '{item.building.id}')"
-             hx-trigger="dblclick"
-             class="flex-wrap flex-row flex justify-between gap-2 w-full items-center"
-        >
-            <div class="flex flex-col gap-2">
-                <div class="flex flex-row gap-2 text-sm">
-                    <span>{item.building.id}</span>
-                    <span>{item.building.rif}</span>
+    <li id="{item.cardId}"
+        class="text-neutral-content rounded-lg fade-me-out fade-me-in w-full">
+        <a role="button" class="flex flex-row flex-nowrap justify-between p-2 items-center gap-4 h-fit w-full btn btn-outline">
+            <div hx-get="/stc/buildings/edit/"
+                 hx-on:htmx:before-request="saveResource('building', '{item.building.id}')"
+                 hx-trigger="click"
+                 class="flex-wrap flex-row flex justify-between gap-2 items-center flex-grow max-w-99per"
+            >
+                <div class="flex flex-col gap-2">
+                    <div class="flex flex-row gap-2 text-sm">
+                        <span>{item.building.id}</span>
+                        <span>{item.building.rif}</span>
+                    </div>
+
+                    <span>{item.building.name}</span>
+
                 </div>
 
-                <span>{item.building.name}</span>
+                <div class="flex flex-col gap-2 text-sm">
+                    <span>Moneda Principal: {item.building.mainCurrency}</span>
+                    <span>Moneda Deuda: {item.building.debtCurrency}</span>
+                    <span>Monedas a mostrar {item.building.currenciesToShowAmountToPay}</span>
+                </div>
 
-            </div>
-
-            <div class="flex flex-col gap-2 text-sm">
-                <span>Moneda Principal: {item.building.mainCurrency}</span>
-                <span>Moneda Deuda: {item.building.debtCurrency}</span>
-                <span>Monedas a mostrar {item.building.currenciesToShowAmountToPay}</span>
-            </div>
-
-            {#if item.building.fixedPay}
-                <span>Monto fijo: {item.building.fixedPayAmount}</span>
-            {/if}
-
-            <div class="font-bold badge badge-outline {item.building.roundUpPayments ? 'badge-success' : 'badge-error'}">
-                Redondear pagos
-            </div>
-
-            <span>Apartmentos: {item.building.aptCount}</span>
-            {#if item.building.configEmail}
-                <span>Configuracion de email: {item.building.configEmail}</span>
-            {/if}
-
-            <div class="flex flex-col gap-2">
-                <span>Creado: {item.building.createdAt.formatDate}</span>
-                {#if item.building.updatedAt}
-                    <span>Actualizado: {item.building.updatedAt.formatDate}</span>
+                {#if item.building.fixedPay}
+                    <span>Monto fijo: {item.building.fixedPayAmount}</span>
                 {/if}
+
+                <div class="font-bold badge badge-outline {item.building.roundUpPayments ? 'badge-success' : 'badge-error'}">
+                    Redondear pagos
+                </div>
+
+                <span>Apartmentos: {item.building.aptCount}</span>
+                {#if item.building.configEmail}
+                    <span>Configuracion de email: {item.building.configEmail}</span>
+                {/if}
+
+                <div class="flex flex-col gap-2">
+                    <span>Creado: {item.building.createdAt.formatDate}</span>
+                    {#if item.building.updatedAt}
+                        <span>Actualizado: {item.building.updatedAt.formatDate}</span>
+                    {/if}
+                </div>
             </div>
-        </div>
 
 
-            {#include fragments/delete-btn deleteUrl = item.deleteUrl cardIdRef = item.cardIdRef /}
-    </div>
+                {#include fragments/delete-btn deleteUrl = item.deleteUrl cardIdRef = item.cardIdRef /}
+        </a>
+    </li>
 {/for}
 
     {#include fragments/next-page.html url = res.nextPageUrl /}

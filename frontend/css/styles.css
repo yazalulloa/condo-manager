@@ -47,6 +47,10 @@ textarea, input {
 /*  }*/
 /*}*/
 
+/*.text-foreground {*/
+/*  color: hsl(var(--foreground));*/
+/*}*/
+
 .original-state {
   color: blue;
 }
@@ -541,4 +545,28 @@ details > summary::-webkit-details-marker {
 }
 .custom-hover li.disabled {
   color: var(--fallback-bc,oklch(var(--bc)/0.3));
+}
+
+.card-hover {
+
+}
+
+
+
+@media (hover:hover) {
+  .card-hover > * {
+    --tw-bg-opacity: 1;
+    background-color: var(--fallback-b2,oklch(var(--b2)/var(--tw-bg-opacity)));
+  }
+  .table .hover\:hover:hovertr:hover,
+  .table .hover\:hover:hovertr:nth-child(even):hover {
+    --tw-bg-opacity: 1;
+    background-color: var(--fallback-b2,oklch(var(--b2)/var(--tw-bg-opacity)));
+  }
+
+  .table-zebra .hover\:hover:hovertr:hover,
+  .table-zebra .hover\:hover:hovertr:nth-child(even):hover {
+    --tw-bg-opacity: 1;
+    background-color: var(--fallback-b3,oklch(var(--b3)/var(--tw-bg-opacity)));
+  }
 }

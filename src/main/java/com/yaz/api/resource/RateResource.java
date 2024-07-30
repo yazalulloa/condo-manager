@@ -45,6 +45,16 @@ public class RateResource {
   private final RateService service;
   private final EncryptionService encryptionService;
 
+  @CheckedTemplate
+  public static class Templates {
+
+    public static native TemplateInstance rates(RateTableResponse res);
+
+    public static native TemplateInstance counters(long totalCount);
+
+    public static native TemplateInstance options(RateTableResponse res);
+  }
+
   @GET
   @Path("counters")
   @Produces(MediaType.TEXT_HTML)
@@ -143,16 +153,6 @@ public class RateResource {
 
     return service.table(rateQuery, "/api/rates/options")
         .map(Templates::options);
-  }
-
-  @CheckedTemplate
-  public static class Templates {
-
-    public static native TemplateInstance rates(RateTableResponse res);
-
-    public static native TemplateInstance counters(long totalCount);
-
-    public static native TemplateInstance options(RateTableResponse res);
   }
 
 }

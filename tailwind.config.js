@@ -39,6 +39,7 @@ module.exports = {
         '3/4': '75%',
         '9/10': '90%',
         '95per': '95%',
+        '99per': '99%',
       },
       maxHeight: {
         '1/5': '20%',
@@ -74,6 +75,7 @@ module.exports = {
   daisyui: {
     // themes: ["business", "dracula", "cmyk"],
     themes: [
+        "dracula",
       {
         "business": {
           ...require("daisyui/src/theming/themes")["business"],
@@ -87,7 +89,10 @@ module.exports = {
           "--tab-border": "1px", // border width of tabs
           "--tab-radius": "0.5rem", // border radius of tabs
         }
-      }
+      },
+      "light",
+      "cupcake",
+      "synthwave"
     ],
     // themes: false, // true: all themes | false: only light + dark | array: specific themes like this ["light", "dark", "cupcake"]
     // darkTheme: "business", // name of one of the included themes for dark mode

@@ -15,7 +15,11 @@
           hx-swap="none"
           hx-trigger="click"
           hx-on:htmx:before-request="modifyUrl(this)">
-    <img src="/assets/left-arrow.svg" class="h-4 w-4" alt="back to buildings">
+    <div class="h-4 w-4"
+         hx-get="/assets/left-arrow.svg"
+         hx-trigger="load"
+         hx-swap="innerHTML">
+    </div>
   </button>
   <h2><strong>Editar Recibo</strong></h2>
   <div>
