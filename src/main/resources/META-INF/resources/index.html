@@ -261,14 +261,16 @@
              class="dropdown-content bg-base-200 text-base-content rounded-box top-px max-h-[calc(100vh-10rem)] w-56 overflow-y-auto border border-white/5 shadow-2xl outline outline-1 outline-black/5 mt-16">
           <div class="grid grid-cols-1 gap-3 p-3"
                x-data="{
+          selected : '',
           themes : [
             'dracula', 'business', 'light', 'cupcake', 'synthwave'
           ]
-          }">
+          }" x-init="selected = localStorage.getItem('theme') ?? ''">
             <template x-for="theme in themes">
               <button class="outline-base-content text-start outline-offset-4" data-act-class="[&amp;_svg]:visible"
                       x-bind:data-set-theme="theme"
                       @click.prevent="document.documentElement.setAttribute('data-theme', theme)
+                                      selected = theme
                                       localStorage.setItem('theme', theme)">
                 <span class="bg-base-100 rounded-btn text-base-content block w-full cursor-pointer font-sans"
                       x-bind:data-theme="theme">
@@ -276,7 +278,8 @@
                   <span class="col-span-5 row-span-3 row-start-1 flex items-center gap-2 px-4 py-3">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
                          fill="currentColor"
-                         class="invisible h-3 w-3 shrink-0">
+                         x-bind:class="selected === theme ? '' : 'invisible'"
+                         class="h-3 w-3 shrink-0">
                       <path d="M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z">
                       </path>
                     </svg>
