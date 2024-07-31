@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="business">
 <head>
     <meta charset="UTF-8">
     <title>Login</title>
@@ -8,6 +8,10 @@
     <script defer src="/out/js/htmx.js"></script>
     <script defer src="/out/js/index.js"></script>
     <script>
+      let theme = localStorage.getItem('theme');
+      if (theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+      }
       const urlParams = new URLSearchParams(window.location.search);
       const redirectTo = urlParams.get('redirect_to');
       if (redirectTo && redirectTo.length > 1 && redirectTo.startsWith("/")) {

@@ -13,15 +13,6 @@ Alpine.start();
 // import _hyperscript from 'hyperscript.org';
 // _hyperscript.browserInit();
 
-window.disableScrollWhenHover = function (element) {
-  element.onmouseover = () => {
-    document.body.classList.add('noYScroll')
-  }
-  element.onmouseout = () => {
-    document.body.classList.remove('noYScroll')
-  }
-
-}
 
 window.addEventListener("popstate", (event) => {
 
@@ -80,44 +71,6 @@ window.redirectTo = function (url) {
   window.location.href = '.' + url;
 }
 
-function initNav() {
-
-  // console.log("initNav");
-  let pathname = window.location.pathname;
-  console.log("pathname: {}", pathname);
-  if (pathname.length === 0 || pathname === '/') {
-
-    let lastUrlSegmentCurrent = getLastUrlSegmentCurrent();
-
-    if (!lastUrlSegmentCurrent || lastUrlSegmentCurrent === ''
-        || lastUrlSegmentCurrent === 'index'
-        || lastUrlSegmentCurrent === '/') {
-      let item = localStorage.getItem("current-nav");
-      //console.log("current-nav: {}", item);
-      if (item) {
-        let elem = document.getElementById(item);
-        elem?.dispatchEvent(new CustomEvent('navigate'));
-        return;
-      }
-      let navbar = document.getElementsByClassName("navbar-start");
-      if (navbar.length > 0) {
-        let nav = navbar[0];
-        let anchors = nav.getElementsByTagName("a");
-        if (anchors.length > 0) {
-          let anchor = anchors[0];
-          localStorage.setItem("current-nav", anchor.id);
-          anchor.dispatchEvent(new CustomEvent('navigate'));
-        }
-      }
-
-    }
-  } else {
-    let element = document.getElementById("nav-helper");
-    if (element) {
-      element.dispatchEvent(new CustomEvent('navigate'));
-    }
-  }
-}
 
 window.saveNavState = function (anchor) {
   //console.log("saving nav state {}", anchor.id);
