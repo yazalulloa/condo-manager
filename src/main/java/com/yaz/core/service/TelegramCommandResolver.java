@@ -66,18 +66,20 @@ public class TelegramCommandResolver {
   }
 
   public Uni<Void> command(TelegramMessage message) {
+
     if (message == null || message.entities() == null || message.entities().isEmpty()) {
       return Uni.createFrom().voidItem();
     }
 
     final var entitiesItem = message.entities().getFirst();
-    if (entitiesItem.type().equals("bot_command")) {
+    if (!entitiesItem.type().equals("bot_command")) {
       return Uni.createFrom().voidItem();
     }
 
     final var text = message.text();
     final var from = message.from();
     final var chat = message.chat();
+
 
     if (text == null || from == null || chat == null) {
       return Uni.createFrom().voidItem();
@@ -89,7 +91,6 @@ public class TelegramCommandResolver {
       final var formatUserId = text.substring(7).trim();
       final var userId = ConvertUtil.getUserId(formatUserId);
 
-      log.info("formatUserId: {} userId: {}", formatUserId, userId);
       return addAccount(userId, from, chat);
     }
 
@@ -114,6 +115,11 @@ public class TelegramCommandResolver {
 
     if (text.startsWith("/backups")) {
       //  return sendEntityBackups.sendAvailableBackups(chatId);
+    }
+
+    if (true) {
+      return restService.sendMessage(chatId, "Comando no reconocido")
+          .replaceWithVoid();
     }
 
     return Uni.createFrom().voidItem();

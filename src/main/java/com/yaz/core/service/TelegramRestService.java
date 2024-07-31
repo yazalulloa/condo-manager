@@ -7,6 +7,7 @@ import com.yaz.core.client.domain.telegram.ParseMode;
 import com.yaz.core.client.domain.telegram.SendMessage;
 import com.yaz.core.client.domain.telegram.TelegramUpdate;
 import com.yaz.core.client.domain.telegram.WebHookRequest;
+import com.yaz.core.util.RandomUtil;
 import com.yaz.core.util.RxUtil;
 import io.reactivex.rxjava3.core.Completable;
 import io.smallrye.mutiny.Uni;
@@ -87,6 +88,7 @@ public class TelegramRestService {
   public Uni<List<TelegramUpdate>> getUpdates(Long offset) {
     return getUpdates(GetUpdatesRequest.builder()
         .offset(offset)
+        .timeout(RandomUtil.randomInt(5, 20))
         .build());
   }
 }
