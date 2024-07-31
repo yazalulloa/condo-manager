@@ -12,47 +12,78 @@
   <div id="receipt-pdf-viewer-header"></div>
 </div>
 
-<div id="container" hx-swap-oob="true" class="p-2 gap-1 flex flex-col w-full h-full">
-  <script>
-    function slideTo(direction) {
-      const carousel = document.getElementById('pdf_carousel');
-      const scrollAmount = 200;
-      if (direction === 'left') {
-        carousel.scrollLeft -= scrollAmount;
-      } else {
-        carousel.scrollLeft += scrollAmount;
-      }
-    }
+<div id="container" hx-swap-oob="true" class="p-2 gap-1 flex flex-col w-full h-full"
+     x-data="{
+  allVisible: true,
+  selected: '',
+  tabs_pdf: []
+        }">
 
-    function scrollDiv(elem) {
-      elem.addEventListener("wheel", (event) => {
-        elem.scrollBy({
-          left: event.deltaY > 0 ? -400 : 400,
-          behavior: 'smooth'
+  <div>
+    <div role="tablist" class="flex flex-row justify-center items-center text-center tabs tabs-boxed max-w-full w-fit gap-1"
+         x-show="tabs_pdf.length > 0"
+         @mouseover="document.body.classList.add('noYScroll')"
+         @mouseout="document.body.classList.remove('noYScroll')">
+      <a role="tab" class="h-full tab hover:tab-active text-lg"
+         x-show="!allVisible"
+         @click="$el.nextElementSibling.scrollLeft -= 300">
+        «
+      </a>
+
+      <div role="tablist" class="p-0 carousel tabs tabs-boxed gap-1"
+           x-init="
+        $el.addEventListener('wheel', (event) => {
+            $el.scrollBy({
+                left: event.deltaY > 0 ? -400 : 400,
+                behavior: 'smooth'
+                });
+          }, {
+            passive: true
         });
-      }, {
-        passive: true
-      });
-    }
+            ">
+        <template x-for="value in tabs_pdf">
 
-    function openTab(evt, cityName) {
-      // console.log("openTab: ", evt, cityName);
-      let tabcontent = document.getElementsByClassName("tab-cm-content");
-      for (let i = 0; i < tabcontent.length; i++) {
-        tabcontent[i].style.display = "none";
-      }
-      let tablinks = document.getElementsByClassName("tablinks");
-      for (let i = 0; i < tablinks.length; i++) {
-        tablinks[i].className = tablinks[i].className.replace(" btn-active", "");
-      }
-      document.getElementById(cityName).style.display = "block";
+          <a role="tab" class="h-fit carousel-item tab hover:tab-active"
+             x-bind:class="selected === value.number ? 'tab-active' : ''"
+             @click="selected = value.number"
+             x-init="$nextTick(() => {
+                let isVisible = elementIsVisibleInViewport($el);
+                if (!isVisible) {
+                  allVisible = false;
+                }
+              });"
+          >
+            <nobr class="text-lg" x-text="value.number"></nobr>
+          </a>
 
-      if (evt) {
-        // console.log("openTab: ", evt, cityName);
-        evt.className += " btn-active";
-      }
-    }
-  </script>
+
+        </template>
+      </div>
+
+      <a role="tab" class="h-full tab hover:tab-active text-lg"
+         x-show="!allVisible"
+         @click="$el.previousElementSibling.scrollLeft += 300">
+        »
+      </a>
+    </div>
+  </div>
+
+  <div class="pt-2">
+    <template x-for="value in tabs_pdf">
+
+      <div x-show="selected === value.number">
+        <object x-bind:data="'/api/receipts/pdf/' + value.path" type="application/pdf"
+                standby="Loading PDF file..."
+                class="min-h-full-vh max-h-full-vh w-full h-full">
+          <p>Unable to display PDF file (<strong x-text="value.number"></strong> - <strong x-text="value.name"></strong>).
+            <a class="link link-primary"
+               x-bind:href="'/api/receipts/pdf/' + value.path">
+              Download</a>
+            instead.</p>
+        </object>
+      </div>
+    </template>
+  </div>
 
   <div
       hx-get="/api/receipts/pdfs"

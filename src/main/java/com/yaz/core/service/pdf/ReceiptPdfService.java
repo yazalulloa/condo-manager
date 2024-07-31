@@ -92,7 +92,8 @@ public class ReceiptPdfService {
                     fileName + (item.id().equals(calculatedReceipt.building().id()) ? "" : "_" + item.id()) + ".pdf";
 
                 return Tab.builder()
-                    .name(item.id())
+                    .number(item.id())
+                    .name(item.name())
                     .path(encryptionService.encrypt(item.path().toString()) + "/" + s)
                     .checked(item.emails() == null)
                     .build();
@@ -105,6 +106,7 @@ public class ReceiptPdfService {
               .date(calculatedReceipt.date())
               .zipPath(encryptionService.encrypt(zipPath.path().toString()))
               .tabs(tabs)
+              .selectedTab(tabs.stream().filter(Tab::checked).findFirst().map(Tab::number).orElse(null))
               .build();
         });
   }

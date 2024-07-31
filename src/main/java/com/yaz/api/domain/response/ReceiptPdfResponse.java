@@ -11,12 +11,14 @@ public record ReceiptPdfResponse(
     LocalDate date,
     String zipPath,
     List<Tab> tabs,
+    String selectedTab,
     boolean outOfBounds
 ) {
 
 
   @Builder(toBuilder = true)
   public record Tab(
+      String number,
       String name,
       String path,
       boolean checked

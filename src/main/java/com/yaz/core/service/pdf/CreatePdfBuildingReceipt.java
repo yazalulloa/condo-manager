@@ -16,11 +16,13 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
+import lombok.extern.slf4j.Slf4j;
 
 @Builder(toBuilder = true)
 @Accessors(fluent = true)
 @ToString
 @Getter
+@Slf4j
 public class CreatePdfBuildingReceipt extends CreatePdfReceipt {
 
   private final TranslationProvider translationProvider;
@@ -38,7 +40,7 @@ public class CreatePdfBuildingReceipt extends CreatePdfReceipt {
   }
 
   protected void addContent(Document document) {
-
+    log.info("Building {}", building());
     document.add(new Paragraph(new Text("AVISO DE COBRO").setBold()).setTextAlignment(TextAlignment.CENTER));
     document.add(new Paragraph(building().name()));
     document.add(new Paragraph(building().rif()));

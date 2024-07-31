@@ -35,58 +35,18 @@
         {#if res.outOfBounds}
             hx-swap-oob="true"
         {/if}
+     x-init="
+     selected = '{res.selectedTab}',
+    tabs_pdf = [
+
+     {#for tab_pdf in res.tabs}
+        { number: '{tab_pdf.number}', name: '{tab_pdf.name}', path: '{tab_pdf.path}' },
+      {/for}
+    ]
+
+    "
 >
-    <script>
 
-    </script>
-    <div class="rounded-box join max-w-full h-14 max-h-14 items-center" x-init="disableScrollWhenHover($el)">
-        <button class="join-item btn btn-outline"
-                @click="slideTo('left')">
-            «
-        </button>
-
-        <div id="pdf_carousel" class="join-item carousel rounded-box"
-             x-init="scrollDiv($el)"
-        >
-            {#for tab in res.tabs}
-                <button class="carousel-item btn btn-outline join-item tablinks"
-                        @click="openTab(this,'{tab.name}')"
-                        {#if tab.checked}
-                            x-init="openTab($el,'{tab.name}')"
-                        {/if}
-                >{tab.name}</button>
-            {/for}
-        </div>
-        <button class="join-item btn btn-outline"
-                @click="slideTo('right')">
-            »
-        </button>
-    </div>
-
-    {#for tab in res.tabs}
-        <div id="{tab.name}" class="tab-cm-content pt-2">
-
-            {!<iframe id="pdfviewer" src="http://docs.google.com/gview?embedded=true&url=YOUR_URL_HERE&amp;embedded=true"!}
-            {!frameborder="0" width="100%" height="100%"></iframe>!}
-
-            {!<iframe id="pdf-js-viewer" src="/web/viewer.html?file=/api/receipts/pdf/{tab.path}" title="webviewer"!}
-            {!!}
-            {!style="min-height:100vh;max-height:100vh;width:100%;height:100%"></iframe>!}
-
-            {!<embed!}
-            {!src="/api/receipts/pdf/{tab.path}"!}
-            {!type="application/pdf"!}
-            {!style="min-height:100vh;max-height:100vh;width:100%;height:100%"!}
-            {!/>!}
-
-            <object data="/api/receipts/pdf/{tab.path}" type="application/pdf"
-                    standby="Loading PDF file..."
-                    class="min-h-full-vh max-h-full-vh w-full h-full">
-                <p>Unable to display PDF file. <a class="link link-primary"
-                                                  href="/api/receipts/pdf/{tab.path}">Download</a> instead.</p>
-            </object>
-        </div>
-    {/for}
 </div>
 
 
