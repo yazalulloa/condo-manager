@@ -16,11 +16,27 @@ public interface TursoClient {
 
   @GET
   @Path("health")
-  Uni<Response> health();
+  Uni<String> health();
 
   @GET
   @Path("version")
-  Uni<Response> version();
+  Uni<String> version();
+
+  @GET
+  @Path("v2")
+  Uni<String> v2();
+
+  @GET
+  @Path("v3")
+  Uni<String> v3();
+
+  @GET
+  @Path("v3-protobuf")
+  Uni<String> v3Protobuf();
+
+  @POST
+  @Path("v3/pipeline")
+  Uni<String> queryV3();
 
   @POST
   @Path("/v2/pipeline")

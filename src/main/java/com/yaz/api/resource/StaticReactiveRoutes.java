@@ -189,7 +189,14 @@ public class StaticReactiveRoutes {
 
     router.route()
         .path("/" + TMP_STATIC_PATH + "*")
-        .handler(StaticHandler.create(TMP_STATIC_PATH));
+        .handler(ctx -> {
+          ctx.response().putHeader("Cache-Control", "must-revalidate, max-age=0");
+          ctx.next();
+        })
+        .handler(StaticHandler.create(TMP_STATIC_PATH)
+            .setCachingEnabled(false)
+            .setCacheEntryTimeout(1)
+            .setMaxCacheSize(1));
   }
 
 }

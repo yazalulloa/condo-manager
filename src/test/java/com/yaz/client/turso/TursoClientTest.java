@@ -11,6 +11,7 @@ import com.yaz.core.util.RxUtil;
 import com.yaz.core.util.SqlUtil;
 import io.quarkus.test.junit.QuarkusTest;
 import io.reactivex.rxjava3.core.Completable;
+import io.smallrye.mutiny.Uni;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import jakarta.inject.Inject;
@@ -18,9 +19,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.Test;
 
+@Slf4j
 @QuarkusTest
 class TursoClientTest {
 
@@ -30,20 +33,22 @@ class TursoClientTest {
   @Inject
   RateService rateService;
 
-  @Test
-  void health() {
-    var response = tursoClient.health().await().indefinitely();
-    final var entity = response.readEntity(String.class);
-    System.out.println(entity);
-    assertEquals(200, response.getStatus());
-  }
+
 
   @Test
   void version() {
-    var response = tursoClient.version().await().indefinitely();
-    final var entity = response.readEntity(String.class);
-    System.out.println(entity);
-    assertEquals(200, response.getStatus());
+    Uni.combine().all()
+        .unis(
+            tursoClient.health().invoke(str -> log.info("health {}", str)),
+            tursoClient.version().invoke(str -> log.info("version {}", str)),
+            tursoClient.v2().invoke(str -> log.info("v2 {}", str)),
+            tursoClient.v3().invoke(str -> log.info("v3 {}", str)),
+            tursoClient.v3Protobuf().invoke(str -> log.info("v3Protobuf {}", str))
+//            ,tursoClient.queryV3().invoke(str -> log.info("queryV3 {}", str))
+        )
+        .asTuple()
+        .await()
+        .indefinitely();
   }
 
   @Test

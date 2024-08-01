@@ -102,7 +102,7 @@ public class BuildingService {
         .runSubscriptionOn(Infrastructure.getDefaultWorkerPool())
         .subscribe()
         .with(v -> {
-          log.info("Deleted file: {}", filePath);
+          //log.info("Deleted file: {}", filePath);
         }, t -> {
           log.error("Error deleting file: {}", filePath, t);
         });
@@ -137,7 +137,9 @@ public class BuildingService {
                 .flatMap(str -> {
                   return vertx.fileSystem().mkdirs(dirPath)
                       .flatMap(v -> vertx.fileSystem().createFile(filePath))
-                      .flatMap(v -> vertx.fileSystem().writeFile(filePath, Buffer.buffer(str)));
+                      .flatMap(v -> vertx.fileSystem().writeFile(filePath, Buffer.buffer(str)))
+                      //.invoke(v -> log.info("Create file {} \n {}", filePath, str))
+                      ;
                 });
 
           }
