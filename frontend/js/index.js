@@ -14,7 +14,6 @@ Alpine.start();
 // import _hyperscript from 'hyperscript.org';
 // _hyperscript.browserInit();
 
-
 window.addEventListener("popstate", (event) => {
 
   // console.log("popstate event: ", event);
@@ -24,27 +23,10 @@ window.addEventListener("popstate", (event) => {
 // htmx.config.useTemplateFragments = true;
 // htmx.logAll();
 
-window.trimInput = function (input) {
-  if (input && input.value) {
-    // console.log("trimming {}", input.value);
-    input.value = input.value.replace(/^\s+/, '').replace(/\s+$/, '').trim();
-    // console.log("trimmed {}", input.value);
-  }
-}
-
-window.isInputEmpty = function (input) {
-  trimInput(input);
-  // console.log("isInputEmpty: {}", input);
-  return !input || !input.value || input.value === '';
-}
-
 window.getLastUrlSegmentCurrent = function () {
-  return getLastUrlSegment(window.location.href) ?? "";
-}
 
-window.getQueryParam = function (name) {
-  let params = (new URL(document.location)).searchParams;
-  return params.get(name);
+  return new URL(window.location.href).pathname.split('/').filter(Boolean).pop()
+      ?? "";
 }
 
 window.limitInputToMaxLength = function (input) {
@@ -56,22 +38,7 @@ window.limitInputToMaxLength = function (input) {
       }
     }
   }
-
-  // console.log("limitInputToMaxLength: {}", input.value.length, input.maxLength);
-  // if (input.value.length > input.maxLength) {
-  //   input.value = input.value.slice(0,
-  //       input.maxLength);
-  // }
 }
-
-function getLastUrlSegment(url) {
-  return new URL(url).pathname.split('/').filter(Boolean).pop();
-}
-
-window.redirectTo = function (url) {
-  window.location.href = '.' + url;
-}
-
 
 window.saveNavState = function (anchor) {
   //console.log("saving nav state {}", anchor.id);
@@ -88,13 +55,6 @@ window.modifyUrl = function (elem) {
   //window.location.pathname = pathname;
 }
 
-window.removeStc = function (elem) {
-  let href = window.location.href;
-  let newHref = href.replaceAll("/stc", "");
-  window.history.replaceState(window.history.state, document.title, newHref);
-  //window.history.pushState(window.history.state, document.title, newHref);
-}
-
 window.saveToLocalStorage = function (key, value) {
   localStorage.setItem(key, value);
 }
@@ -103,16 +63,16 @@ window.getFromLocalStorage = function (key) {
   return localStorage.getItem(key);
 }
 
-function getCookie(name) {
-  const cookies = document.cookie.split('; ');
-  for (let i = 0; i < cookies.length; i++) {
-    const cookie = cookies[i].split('=')
-    if (cookie[0] === name) {
-      return decodeURIComponent(cookie[1]);
-    }
-  }
-  return null;
-}
+// function getCookie(name) {
+//   const cookies = document.cookie.split('; ');
+//   for (let i = 0; i < cookies.length; i++) {
+//     const cookie = cookies[i].split('=')
+//     if (cookie[0] === name) {
+//       return decodeURIComponent(cookie[1]);
+//     }
+//   }
+//   return null;
+// }
 
 // document.body.addEventListener("htmx:configRequest", function (configEvent) {
 //
@@ -172,27 +132,6 @@ window.integerToMonth = function (month) {
   }
 }
 
-// window.slideTo = function (id, direction) {
-//   let elem = document.getElementById(id);
-//   if (elem) {
-//     elem.scrollBy({
-//       left: direction === 'left' ? -500 : 500,
-//       behavior: 'smooth'
-//     });
-//   }
-// }
-
-// window.scrollDiv = function (elem) {
-//   elem.addEventListener("wheel", (event) => {
-//     elem.scrollBy({
-//       left: event.deltaY > 0 ? -400 : 400,
-//       behavior: 'smooth'
-//     });
-//   }, {
-//     passive: true
-//   });
-// }
-
 window.validateEmail = function (value) {
 
   if (value) {
@@ -240,13 +179,13 @@ document.addEventListener("DOMContentLoaded", function () {
   //initNav();
 });
 
-function isNumeric(str) {
-  if (typeof str != "string") {
-    return false
-  } // we only process strings!
-  return !isNaN(str) && // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
-      !isNaN(parseFloat(str)) // ...and ensure strings of whitespace fail
-}
+// function isNumeric(str) {
+//   if (typeof str != "string") {
+//     return false
+//   } // we only process strings!
+//   return !isNaN(str) && // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
+//       !isNaN(parseFloat(str)) // ...and ensure strings of whitespace fail
+// }
 
 window.sleep = function (ms) {
   //console.assert(isNumeric(ms));
@@ -262,8 +201,8 @@ document.addEventListener("securitypolicyviolation", (e) => {
 });
 
 window.elementIsVisibleInViewport = (el, partiallyVisible = false) => {
-  const { top, left, bottom, right } = el.getBoundingClientRect();
-  const { innerHeight, innerWidth } = window;
+  const {top, left, bottom, right} = el.getBoundingClientRect();
+  const {innerHeight, innerWidth} = window;
   // console.log("top: {}", top);
   // console.log("left: {}", left);
   // console.log("bottom: {}", bottom);
