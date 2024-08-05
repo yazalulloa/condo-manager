@@ -82,13 +82,9 @@
         zip_dialog_year='{item.item.year}'; zip_dialog_month='{item.item.month.monthFromInt}'; zip_dialog_date='{item.item.date}';
         $dispatch('event-receipt-zip-dialog-open');
         " >
-          <div class="h-6 w-6"
-          hx-get="/assets/send-mail.svg"
-          hx-trigger="load"
-          hx-swap="innerHTML"
-          >
 
-          </div>
+        <svg data-src="/assets/send-mail.svg" class="h-6 w-6"></svg>
+
           Enviar ZIP
         </a>
       </li>
@@ -97,13 +93,8 @@
            hx-headers='{"{inject:csrf.headerName}":"{inject:csrf.token}"}'
            hx-indicator=".htmx-indicator"
            hx-swap="none">
-            <div class="h-6 w-6"
-          hx-get="/assets/send-mail.svg"
-          hx-trigger="load"
-          hx-swap="innerHTML"
-          >
 
-          </div>
+        <svg data-src="/assets/send-mail.svg" class="h-6 w-6"></svg>
           Enviar recibos ahora
         </a>
       </li>
@@ -112,13 +103,8 @@
           send_dialog_month='{item.item.month.monthFromInt}'; send_dialog_date='{item.item.date}';
           $dispatch('event-receipt-send-dialog-open')
           ">
-           <div class="h-6 w-6"
-          hx-get="/assets/send-mail.svg"
-          hx-trigger="load"
-          hx-swap="innerHTML"
-          >
+        <svg data-src="/assets/send-mail.svg" class="h-6 w-6"></svg>
 
-          </div>
           Enviar recibos
         </a>
       </li>

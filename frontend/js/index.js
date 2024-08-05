@@ -6,6 +6,7 @@
 // import './components.js';
 // import './elements.js';
 import Alpine from 'alpinejs'
+import "external-svg-loader";
 
 window.Alpine = Alpine
 Alpine.start();
