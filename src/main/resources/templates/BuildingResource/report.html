@@ -5,11 +5,12 @@
 {#for item in res.results}
     <li id="{item.cardId}"
         class="text-neutral-content rounded-lg fade-me-out fade-me-in w-full">
-        <a role="button" class="flex flex-row flex-nowrap justify-between p-2 items-center gap-4 h-fit w-full btn btn-outline">
-            <div hx-get="/stc/buildings/edit/"
-                 hx-on:htmx:before-request="saveResource('building', '{item.building.id}')"
-                 hx-trigger="click"
-                 class="flex flex-col md:grid md:grid-cols-5 gap-3 items-center flex-grow max-w-99per"
+        <div class="flex flex-row flex-nowrap justify-between p-2 items-center gap-4 h-fit w-full btn btn-outline">
+            <a role="button"
+               class="flex flex-col md:grid md:grid-cols-5 gap-3 items-center flex-grow max-w-99per"
+               hx-get="/stc/buildings/edit/"
+               hx-trigger="click"
+               hx-on:htmx:before-request="saveResource('building', '{item.building.id}')"
             >
                 <div class="flex flex-col gap-3 justify-center text-center items-center">
                     <div class="flex flex-row flex-wrap gap-3 text-sm justify-center text-center items-center">
@@ -50,11 +51,11 @@
                         <span>Actualizado: {item.building.updatedAt.formatDate}</span>
                     {/if}
                 </div>
-            </div>
+            </a>
 
 
                 {#include fragments/delete-btn deleteUrl = item.deleteUrl cardIdRef = item.cardIdRef /}
-        </a>
+        </div>
     </li>
 {/for}
 

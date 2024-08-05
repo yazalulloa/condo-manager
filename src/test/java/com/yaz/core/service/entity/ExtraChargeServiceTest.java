@@ -1,7 +1,5 @@
 package com.yaz.core.service.entity;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import com.yaz.core.util.RandomUtil;
 import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.domain.request.ExtraChargeCreateRequest;
@@ -10,7 +8,6 @@ import com.yaz.persistence.entities.ExtraCharge.Type;
 import io.quarkus.test.junit.QuarkusTest;
 import io.smallrye.mutiny.Multi;
 import jakarta.inject.Inject;
-import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 
@@ -33,7 +30,7 @@ class ExtraChargeServiceTest {
             .type(Type.BUILDING)
             .description("Description " + RandomUtil.randomIntStr(3))
             .amount(RandomUtil.randomBigDecimal(4, 2).doubleValue())
-            .currency(RandomUtil.randomFromArray(Currency.VALUES))
+            .currency(RandomUtil.oneRandomFromArray(Currency.VALUES))
             .active(RandomUtil.bool())
             .apartments(apts.stream().map(Apt::number).filter(b -> RandomUtil.bool()).toList())
             .build())

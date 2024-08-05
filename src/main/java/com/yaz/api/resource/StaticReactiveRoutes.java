@@ -194,9 +194,11 @@ public class StaticReactiveRoutes {
           ctx.next();
         })
         .handler(StaticHandler.create(TMP_STATIC_PATH)
-            .setCachingEnabled(false)
-            .setCacheEntryTimeout(1)
-            .setMaxCacheSize(1));
+                .setCachingEnabled(true)
+                .setFilesReadOnly(false)
+//            .setCacheEntryTimeout(1)
+//            .setMaxCacheSize(1)
+        );
   }
 
 }

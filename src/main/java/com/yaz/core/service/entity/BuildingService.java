@@ -9,6 +9,7 @@ import com.yaz.core.event.domain.BuildingDeleted;
 import com.yaz.core.service.EncryptionService;
 import com.yaz.core.service.entity.cache.BuildingCache;
 import com.yaz.core.util.Constants;
+import com.yaz.core.util.RandomUtil;
 import com.yaz.persistence.domain.query.BuildingQuery;
 import com.yaz.persistence.entities.Building;
 import com.yaz.persistence.repository.BuildingRepository;
@@ -37,7 +38,8 @@ import lombok.extern.slf4j.Slf4j;
 public class BuildingService {
 
   private static final String dirPath = StaticReactiveRoutes.TMP_STATIC_PATH + "buildings/ids/";
-  private static final String filePath = dirPath + "ids.html";
+
+  private static String filePath;
 
   //private final Instance<BuildingRepository> repository;
   private final BuildingRepository repository;
@@ -85,27 +87,33 @@ public class BuildingService {
   }
 
   private void clearIdList() {
-    vertx.fileSystem().exists(dirPath)
-        .flatMap(b -> {
-          if (!b) {
-            return Uni.createFrom().voidItem();
-          }
+    if (filePath != null) {
+      final var pathToDelete = filePath;
+      filePath = null;
 
-          return vertx.fileSystem().readDir(dirPath)
-              .toMulti()
-              .flatMap(Multi.createFrom()::iterable)
-              .onItem()
-              .transformToUni(str -> vertx.fileSystem().delete(str))
-              .merge()
-              .toUni();
-        })
-        .runSubscriptionOn(Infrastructure.getDefaultWorkerPool())
-        .subscribe()
-        .with(v -> {
-          //log.info("Deleted file: {}", filePath);
-        }, t -> {
-          log.error("Error deleting file: {}", filePath, t);
-        });
+      vertx.fileSystem().delete(pathToDelete)
+//      vertx.fileSystem().exists(dirPath)
+//          .flatMap(b -> {
+//            if (!b) {
+//              return Uni.createFrom().voidItem();
+//            }
+//
+//            return vertx.fileSystem().readDir(dirPath)
+//                .toMulti()
+//                .flatMap(Multi.createFrom()::iterable)
+//                .onItem()
+//                .transformToUni(str -> vertx.fileSystem().delete(str))
+//                .merge()
+//                .toUni();
+//          })
+          .runSubscriptionOn(Infrastructure.getDefaultWorkerPool())
+          .subscribe()
+          .with(v -> {
+            //log.info("Deleted file: {}", filePath);
+          }, t -> {
+            log.error("Error deleting file: {}", filePath, t);
+          });
+    }
   }
 
 
@@ -125,6 +133,22 @@ public class BuildingService {
   }
 
   public Uni<String> buildIds() {
+    final var createUni = ids()
+        .map(Templates::ids)
+        .flatMap(TemplateInstance::createUni)
+        .flatMap(str -> {
+          return vertx.fileSystem().mkdirs(dirPath)
+              .flatMap(v -> vertx.fileSystem().createFile(filePath))
+              .flatMap(v -> vertx.fileSystem().writeFile(filePath, Buffer.buffer(str)))
+              //.invoke(v -> log.info("Create file {} \n {}", filePath, str))
+              ;
+        });
+
+    if (filePath == null) {
+      filePath = "%sids-%s.html".formatted(dirPath, RandomUtil.randomStr(6));
+      return createUni.replaceWith(filePath);
+    }
+
     return vertx.fileSystem().exists(filePath)
         .flatMap(bool -> {
           if (bool) {

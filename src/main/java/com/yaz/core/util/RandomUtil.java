@@ -111,7 +111,7 @@ public class RandomUtil {
     return getInstance().nextBoolean();
   }
 
-  public static <T> T randomFromArray(T[] array) {
+  public static <T> T oneRandomFromArray(T[] array) {
     return array[getInstance().nextInt(array.length)];
   }
 
