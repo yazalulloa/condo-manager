@@ -10,7 +10,6 @@
         "
         @event-close-apt-modal.window="
         $el.close();
-        $dispatch('event-apt-form-reset');
         "
         @add-apt-form-email="
           let v = $event.detail?.email?.trim();
@@ -33,7 +32,13 @@
            jsonObject.emails.forEach((email) => emails.add(email));
            $dispatch('clear-apt-errors')
            $el.showModal();
-          ">
+          "
+        x-init="
+        $el.addEventListener('close', (event) => {
+            console.log('close');
+            $dispatch('event-apt-form-reset');
+        });
+     ">
 
   <div class="modal-box p-4">
 

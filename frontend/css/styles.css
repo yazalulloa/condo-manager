@@ -502,12 +502,6 @@ details > summary::-webkit-details-marker {
   transition: opacity 500ms ease-out;
 }
 
-.expense-form-scroll {
-  position: sticky;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
 .custom-hover {
 
 }
