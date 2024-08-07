@@ -184,8 +184,8 @@ public class ConvertUtil {
   }
 
 
-  public static String formatDuration(long time) {
-    return DurationFormatUtils.formatDuration(time, "HH:mm:ss", false);
+  public static String formatDuration(long millis) {
+    return DurationFormatUtils.formatDuration(millis, "H:mm:ss", false);
   }
 
   public static void formatDate(String field, JsonObject jsonObject) {

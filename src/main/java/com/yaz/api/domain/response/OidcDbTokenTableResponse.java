@@ -3,6 +3,7 @@ package com.yaz.api.domain.response;
 import com.yaz.api.resource.OidcDbTokenResource;
 import com.yaz.core.util.ConvertUtil;
 import com.yaz.persistence.entities.OidcDbToken;
+import java.time.Duration;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -53,6 +54,11 @@ public record OidcDbTokenTableResponse(
       final var expiresIn = TimeUnit.SECONDS.toMillis(getToken().expiresIn());
 
       final var createdAt = getToken().createdAt().toInstant(ZoneOffset.UTC).toEpochMilli();
+
+      if (true) {
+        return Duration.ofMillis(expiresIn - createdAt).toString().replace("PT", "");
+      }
+
       return ConvertUtil.formatDuration(expiresIn - createdAt);
     }
   }
