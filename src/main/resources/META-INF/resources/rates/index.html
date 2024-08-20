@@ -33,6 +33,7 @@
     <img class="htmx-indicator white-filter" src="/assets/bars.svg" alt="spinner">
     <button class="btn btn-primary hidden"
             hx-get="/api/rates/download"
+            hx-disabled-elt="this"
             hx-indicator=".htmx-indicator"
             hx-swap="none">
       DOWNLOAD BACKUP

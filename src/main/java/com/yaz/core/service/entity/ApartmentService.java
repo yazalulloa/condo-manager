@@ -6,20 +6,28 @@ import com.yaz.api.domain.response.ApartmentTableResponse;
 import com.yaz.api.domain.response.AptCountersDto;
 import com.yaz.api.resource.ApartmentsResource;
 import com.yaz.core.service.EncryptionService;
+import com.yaz.core.service.ListService;
+import com.yaz.core.service.ListServicePagingProcessorImpl;
+import com.yaz.core.service.domain.FileResponse;
 import com.yaz.core.service.entity.cache.ApartmentCache;
 import com.yaz.core.util.Constants;
 import com.yaz.core.util.MutinyUtil;
+import com.yaz.core.util.PagingProcessor;
+import com.yaz.core.util.WriteEntityToFile;
 import com.yaz.persistence.domain.query.ApartmentQuery;
+import com.yaz.persistence.domain.query.SortOrder;
 import com.yaz.persistence.entities.Apartment;
 import com.yaz.persistence.entities.ExtraCharge;
 import com.yaz.persistence.repository.ApartmentRepository;
 import io.quarkus.cache.CacheInvalidate;
 import io.quarkus.cache.CacheInvalidateAll;
 import io.quarkus.cache.CacheResult;
+import io.reactivex.rxjava3.core.Single;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Event;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -36,6 +44,7 @@ public class ApartmentService {
   private final ApartmentRepository repository;
   private final EncryptionService encryptionService;
   private final Event<Apartment.Keys> aptDeletedEvent;
+  private final WriteEntityToFile writeEntityToFile;
 
 
   private ApartmentRepository repository() {
@@ -66,6 +75,10 @@ public class ApartmentService {
     return tableResponse(ApartmentQuery.builder().build());
   }
 
+  public Uni<List<Apartment>> list(ApartmentQuery query) {
+    return repository().select(query);
+  }
+
   @CacheResult(cacheName = ApartmentCache.SELECT, lockTimeout = Constants.CACHE_TIMEOUT)
   public Uni<ApartmentTableResponse> tableResponse(ApartmentQuery query) {
 
@@ -77,7 +90,7 @@ public class ApartmentService {
 
     return Uni.combine()
         .all()
-        .unis(counters(apartmentQuery), repository().select(apartmentQuery))
+        .unis(counters(apartmentQuery), list(apartmentQuery))
         .with((counters, apartments) -> {
 
           final var results = apartments.stream()
@@ -192,5 +205,35 @@ public class ApartmentService {
 
   public Uni<List<Apartment>> apartmentsByBuilding(String buildingId) {
     return repository().apartmentsByBuilding(buildingId);
+  }
+
+  public PagingProcessor<List<Apartment>> pagingProcessor(int pageSize, SortOrder sortOrder) {
+    return new ListServicePagingProcessorImpl<>(new ApartmentListService(this),
+        ApartmentQuery.builder().limit(pageSize).build());
+  }
+
+  public Single<FileResponse> downloadFile() {
+    return writeEntityToFile.downloadFile("apartments.json.gz", pagingProcessor(100, SortOrder.ASC));
+  }
+
+  private record ApartmentListService(ApartmentService service) implements
+      ListService<Apartment, ApartmentQuery> {
+
+    @Override
+    public Single<List<Apartment>> listByQuery(ApartmentQuery query) {
+      return MutinyUtil.single(service.list(query));
+    }
+
+    @Override
+    public ApartmentQuery nextQuery(List<Apartment> list, ApartmentQuery query) {
+      if (list.isEmpty()) {
+        return query;
+      }
+
+      return query.toBuilder()
+          .lastBuildingId(list.getLast().buildingId())
+          .lastNumber(list.getLast().number())
+          .build();
+    }
   }
 }

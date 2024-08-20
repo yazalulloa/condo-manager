@@ -7,16 +7,24 @@ import com.yaz.api.resource.BuildingResource.Templates;
 import com.yaz.api.resource.StaticReactiveRoutes;
 import com.yaz.core.event.domain.BuildingDeleted;
 import com.yaz.core.service.EncryptionService;
+import com.yaz.core.service.ListService;
+import com.yaz.core.service.ListServicePagingProcessorImpl;
+import com.yaz.core.service.domain.FileResponse;
 import com.yaz.core.service.entity.cache.BuildingCache;
 import com.yaz.core.util.Constants;
+import com.yaz.core.util.MutinyUtil;
+import com.yaz.core.util.PagingProcessor;
 import com.yaz.core.util.RandomUtil;
+import com.yaz.core.util.WriteEntityToFile;
 import com.yaz.persistence.domain.query.BuildingQuery;
+import com.yaz.persistence.domain.query.SortOrder;
 import com.yaz.persistence.entities.Building;
 import com.yaz.persistence.repository.BuildingRepository;
 import io.quarkus.cache.CacheInvalidate;
 import io.quarkus.cache.CacheInvalidateAll;
 import io.quarkus.cache.CacheResult;
 import io.quarkus.qute.TemplateInstance;
+import io.reactivex.rxjava3.core.Single;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.infrastructure.Infrastructure;
@@ -46,6 +54,7 @@ public class BuildingService {
   private final EncryptionService encryptionService;
   private final Event<BuildingDeleted> buildingDeletedEvent;
   private final Vertx vertx;
+  private final WriteEntityToFile writeEntityToFile;
 
   private BuildingRepository repository() {
     //return repository.get();
@@ -284,5 +293,34 @@ public class BuildingService {
               });
 
         });
+  }
+
+  public PagingProcessor<List<Building>> pagingProcessor(int pageSize, SortOrder sortOrder) {
+    return new ListServicePagingProcessorImpl<>(new BuildingListService(this),
+        BuildingQuery.builder().limit(pageSize).sortOrder(sortOrder).build());
+  }
+
+  public Single<FileResponse> downloadFile() {
+    return writeEntityToFile.downloadFile("buildings.json.gz", pagingProcessor(100, SortOrder.ASC));
+  }
+
+  private record BuildingListService(BuildingService service) implements
+      ListService<Building, BuildingQuery> {
+
+    @Override
+    public Single<List<Building>> listByQuery(BuildingQuery query) {
+      return MutinyUtil.single(service.list(query));
+    }
+
+    @Override
+    public BuildingQuery nextQuery(List<Building> list, BuildingQuery query) {
+      if (list.isEmpty()) {
+        return query;
+      }
+
+      return query.toBuilder()
+          .lastId(list.getLast().id())
+          .build();
+    }
   }
 }

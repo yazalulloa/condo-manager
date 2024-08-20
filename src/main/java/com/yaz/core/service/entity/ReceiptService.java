@@ -5,16 +5,23 @@ import com.yaz.api.domain.response.ReceiptTableItem;
 import com.yaz.api.domain.response.ReceiptTableResponse;
 import com.yaz.api.resource.ReceiptResource;
 import com.yaz.core.service.EncryptionService;
+import com.yaz.core.service.ListService;
+import com.yaz.core.service.ListServicePagingProcessorImpl;
+import com.yaz.core.service.domain.FileResponse;
 import com.yaz.core.service.entity.cache.ReceiptCache;
 import com.yaz.core.util.Constants;
 import com.yaz.core.util.MutinyUtil;
+import com.yaz.core.util.PagingProcessor;
+import com.yaz.core.util.WriteEntityToFile;
 import com.yaz.persistence.domain.query.ReceiptQuery;
+import com.yaz.persistence.domain.query.SortOrder;
 import com.yaz.persistence.domain.request.ReceiptCreateRequest;
 import com.yaz.persistence.entities.Receipt;
 import com.yaz.persistence.repository.turso.ReceiptRepository;
 import io.quarkus.cache.CacheInvalidate;
 import io.quarkus.cache.CacheInvalidateAll;
 import io.quarkus.cache.CacheResult;
+import io.reactivex.rxjava3.core.Single;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Event;
@@ -34,6 +41,7 @@ public class ReceiptService {
   private final ReceiptRepository repository;
   private final EncryptionService encryptionService;
   private final Event<Receipt.Keys> receiptDeletedEvent;
+  private final WriteEntityToFile writeEntityToFile;
 
   @CacheInvalidateAll(cacheName = ReceiptCache.TOTAL_COUNT)
   @CacheInvalidateAll(cacheName = ReceiptCache.QUERY_COUNT)
@@ -163,5 +171,34 @@ public class ReceiptService {
               .results(results)
               .build();
         });
+  }
+
+  public PagingProcessor<List<Receipt>> pagingProcessor(int pageSize, SortOrder sortOrder) {
+    return new ListServicePagingProcessorImpl<>(new ReceiptService.ReceiptListService(this),
+        ReceiptQuery.builder().limit(pageSize).build());
+  }
+
+  public Single<FileResponse> downloadFile() {
+    return writeEntityToFile.downloadFile("receipts.json.gz", pagingProcessor(100, SortOrder.ASC));
+  }
+
+  private record ReceiptListService(ReceiptService service) implements
+      ListService<Receipt, ReceiptQuery> {
+
+    @Override
+    public Single<List<Receipt>> listByQuery(ReceiptQuery query) {
+      return MutinyUtil.single(service.select(query));
+    }
+
+    @Override
+    public ReceiptQuery nextQuery(List<Receipt> list, ReceiptQuery query) {
+      if (list.isEmpty()) {
+        return query;
+      }
+
+      return query.toBuilder()
+          .lastId(list.getLast().id())
+          .build();
+    }
   }
 }

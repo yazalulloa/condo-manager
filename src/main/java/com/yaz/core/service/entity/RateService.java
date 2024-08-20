@@ -2,7 +2,6 @@ package com.yaz.core.service.entity;
 
 import com.yaz.api.domain.response.RateTableItem;
 import com.yaz.api.domain.response.RateTableResponse;
-import com.yaz.core.bcv.BcvClientService;
 import com.yaz.core.bcv.BcvHistoricService;
 import com.yaz.core.bcv.BcvUsdRateResult;
 import com.yaz.core.service.EncryptionService;
@@ -46,7 +45,6 @@ public class RateService {
 
   //private final Instance<RateRepository> repository;
   private final RateRepository repository;
-  private final BcvClientService bcvClientService;
   private final WriteEntityToFile writeEntityToFile;
   private final EncryptionService encryptionService;
   private final BcvHistoricService bcvHistoricService;
@@ -211,20 +209,20 @@ public class RateService {
         });
   }
 
-  public PagingProcessor<List<Rate>> pagingProcessor(int pageSize, SortOrder sortOrder) {
-    return new ListServicePagingProcessorImpl<>(new RateListService(this), RateQuery.query(pageSize, sortOrder));
-  }
-
-  public Single<FileResponse> downloadFile() {
-    return writeEntityToFile.downloadFile("rates.json.gz", pagingProcessor(100, SortOrder.ASC));
-  }
-
   public Uni<Integer> insert(Collection<Rate> rates) {
     if (rates.isEmpty()) {
       return Uni.createFrom().item(0);
     }
 
     return repository().insert(rates);
+  }
+
+  public PagingProcessor<List<Rate>> pagingProcessor(int pageSize, SortOrder sortOrder) {
+    return new ListServicePagingProcessorImpl<>(new RateListService(this), RateQuery.query(pageSize, sortOrder));
+  }
+
+  public Single<FileResponse> downloadFile() {
+    return writeEntityToFile.downloadFile("rates.json.gz", pagingProcessor(100, SortOrder.ASC));
   }
 
   private record RateListService(RateService rateService) implements ListService<Rate, RateQuery> {

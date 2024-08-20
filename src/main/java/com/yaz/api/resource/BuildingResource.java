@@ -16,6 +16,7 @@ import com.yaz.core.service.entity.EmailConfigService;
 import com.yaz.core.service.entity.ExtraChargeService;
 import com.yaz.core.service.entity.ReserveFundService;
 import com.yaz.core.util.DecimalUtil;
+import com.yaz.core.util.MutinyUtil;
 import com.yaz.core.util.StringUtil;
 import com.yaz.core.util.TemplateUtil;
 import com.yaz.persistence.domain.Currency;
@@ -39,6 +40,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -47,6 +49,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jboss.resteasy.reactive.RestPath;
 import org.jboss.resteasy.reactive.RestQuery;
+import org.jboss.resteasy.reactive.RestResponse;
+import org.jboss.resteasy.reactive.RestResponse.ResponseBuilder;
 
 @Slf4j
 @Authenticated
@@ -306,6 +310,24 @@ public class BuildingResource {
               .build();
         })
         .map(Templates::formInit);
+  }
+
+  @GET
+  @Path("download")
+  public Response redirectToDownload() {
+    return Response.ok()
+        .header("HX-Redirect", PATH + "/file")
+        .build();
+  }
+
+  @GET
+  @Path("file")
+  @Produces(MediaType.MULTIPART_FORM_DATA)
+  public Uni<RestResponse<File>> downloadFile() {
+    return MutinyUtil.toUni(service.downloadFile())
+        .map(file -> ResponseBuilder.ok(file.path())
+            .header("Content-Disposition", "attachment; filename=" + file.fileName())
+            .build());
   }
 
   @CheckedTemplate

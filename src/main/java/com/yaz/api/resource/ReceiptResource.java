@@ -887,6 +887,24 @@ public class ReceiptResource {
         }).map(Templates::formInit);
   }
 
+  @GET
+  @Path("download")
+  public Response redirectToDownload() {
+    return Response.ok()
+        .header("HX-Redirect", PATH + "/file")
+        .build();
+  }
+
+  @GET
+  @Path("file")
+  @Produces(MediaType.MULTIPART_FORM_DATA)
+  public Uni<RestResponse<File>> downloadFile() {
+    return MutinyUtil.toUni(receiptService.downloadFile())
+        .map(file -> ResponseBuilder.ok(file.path())
+            .header("Content-Disposition", "attachment; filename=" + file.fileName())
+            .build());
+  }
+
   @CheckedTemplate
   public static class Templates {
 

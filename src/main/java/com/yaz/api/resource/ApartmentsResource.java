@@ -13,6 +13,7 @@ import com.yaz.core.service.EncryptionService;
 import com.yaz.core.service.entity.ApartmentService;
 import com.yaz.core.service.entity.BuildingService;
 import com.yaz.core.util.DecimalUtil;
+import com.yaz.core.util.MutinyUtil;
 import com.yaz.core.util.StringUtil;
 import com.yaz.persistence.domain.query.ApartmentQuery;
 import com.yaz.persistence.entities.Apartment;
@@ -32,6 +33,8 @@ import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import java.io.File;
 import java.math.BigDecimal;
 import java.util.Objects;
 import java.util.Optional;
@@ -40,6 +43,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.jboss.resteasy.reactive.RestQuery;
+import org.jboss.resteasy.reactive.RestResponse;
+import org.jboss.resteasy.reactive.RestResponse.ResponseBuilder;
 
 
 @Slf4j
@@ -280,6 +285,24 @@ public class ApartmentsResource {
           return Uni.createFrom().item(dto);
         })
         .map(Templates::upsert);
+  }
+
+  @GET
+  @Path("download")
+  public Response redirectToDownload() {
+    return Response.ok()
+        .header("HX-Redirect", PATH + "/file")
+        .build();
+  }
+
+  @GET
+  @Path("file")
+  @Produces(MediaType.MULTIPART_FORM_DATA)
+  public Uni<RestResponse<File>> downloadFile() {
+    return MutinyUtil.toUni(apartmentService.downloadFile())
+        .map(file -> ResponseBuilder.ok(file.path())
+            .header("Content-Disposition", "attachment; filename=" + file.fileName())
+            .build());
   }
 
   @CheckedTemplate
