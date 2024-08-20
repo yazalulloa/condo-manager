@@ -10,6 +10,7 @@ import com.yaz.api.domain.response.building.BuildingInitFormDto;
 import com.yaz.api.domain.response.extra.charge.ExtraChargeInitFormDto;
 import com.yaz.api.domain.response.reserve.funds.ReserveFundInitFormDto;
 import com.yaz.core.service.EncryptionService;
+import com.yaz.core.service.download.BuildingDownloader;
 import com.yaz.core.service.entity.ApartmentService;
 import com.yaz.core.service.entity.BuildingService;
 import com.yaz.core.service.entity.EmailConfigService;
@@ -67,6 +68,7 @@ public class BuildingResource {
   private final ExtraChargeService extraChargeService;
   private final EncryptionService encryptionService;
   private final ReserveFundService reserveFundService;
+  private final BuildingDownloader downloader;
 
   @Route(path = PATH + "/ids", methods = HttpMethod.GET)
   public void getIds(RoutingContext rc) {
@@ -324,7 +326,7 @@ public class BuildingResource {
   @Path("file")
   @Produces(MediaType.MULTIPART_FORM_DATA)
   public Uni<RestResponse<File>> downloadFile() {
-    return MutinyUtil.toUni(service.downloadFile())
+    return MutinyUtil.toUni(downloader.downloadFile())
         .map(file -> ResponseBuilder.ok(file.path())
             .header("Content-Disposition", "attachment; filename=" + file.fileName())
             .build());

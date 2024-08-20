@@ -29,6 +29,7 @@ import com.yaz.core.service.TranslationProvider;
 import com.yaz.core.service.csv.CsvReceipt;
 import com.yaz.core.service.csv.ReceiptParser;
 import com.yaz.core.service.domain.FileResponse;
+import com.yaz.core.service.download.ReceiptDownloader;
 import com.yaz.core.service.entity.ApartmentService;
 import com.yaz.core.service.entity.BuildingService;
 import com.yaz.core.service.entity.DebtService;
@@ -124,6 +125,7 @@ public class ReceiptResource {
   private final ReserveFundService reserveFundService;
   private final EmailConfigService emailConfigService;
   private final ReceiptPdfProgressStateConsumer receiptPdfProgressStateConsumer;
+  private final ReceiptDownloader downloader;
 
   public Uni<TemplateInstance> dialogError(String error, boolean isZip) {
     return Uni.createFrom().item(Templates.dialogError(error, isZip));
@@ -899,7 +901,7 @@ public class ReceiptResource {
   @Path("file")
   @Produces(MediaType.MULTIPART_FORM_DATA)
   public Uni<RestResponse<File>> downloadFile() {
-    return MutinyUtil.toUni(receiptService.downloadFile())
+    return MutinyUtil.toUni(downloader.downloadFile())
         .map(file -> ResponseBuilder.ok(file.path())
             .header("Content-Disposition", "attachment; filename=" + file.fileName())
             .build());

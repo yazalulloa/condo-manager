@@ -1,6 +1,8 @@
 package com.yaz.persistence.entities;
 
 
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.yaz.core.util.StringUtil;
 import com.yaz.persistence.domain.Currency;
 import java.math.BigDecimal;
@@ -8,7 +10,7 @@ import java.time.LocalDateTime;
 import java.util.Set;
 import lombok.Builder;
 
-
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @Builder(toBuilder = true)
 public record Building(
     String id,
