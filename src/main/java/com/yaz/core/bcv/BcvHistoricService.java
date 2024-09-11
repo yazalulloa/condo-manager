@@ -56,8 +56,14 @@ public class BcvHistoricService {
 
   public Single<String> lastFile() {
     return client.get("/estadisticas/tipo-cambio-de-referencia-smc")
-        .map(HttpResponse::bodyAsString)
-        .map(html -> {
+        .map(response -> {
+
+          final var html = response.bodyAsString();
+          if (response.statusCode() != 200) {
+            log.error("Status code not 200 {} {}", response.statusCode(), html);
+            throw new IllegalStateException("Status code not 200 [%s] %s".formatted(response.statusCode(), html));
+          }
+
           final var document = Jsoup.parse(html);
           final var section = document.getElementById("block-system-main");
 

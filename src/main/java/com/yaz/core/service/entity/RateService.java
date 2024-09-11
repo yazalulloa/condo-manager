@@ -32,6 +32,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -159,7 +160,7 @@ public class RateService {
   private Maybe<BcvUsdRateResult> bcvCheck(Rate rate) {
     return //bcvClientService.bcvCheck()
         bcvHistoricService.bcvCheck()
-            .filter(bcvCheck -> bcvCheck.etag().equals(rate.etag()))
+            .filter(bcvCheck -> Objects.equals(bcvCheck.etag(), rate.etag()))
             .map(b -> new BcvUsdRateResult(BcvUsdRateResult.State.ETAG_IS_SAME));
   }
 

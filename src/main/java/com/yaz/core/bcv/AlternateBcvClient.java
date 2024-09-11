@@ -11,6 +11,8 @@ import io.vertx.rxjava3.ext.web.client.HttpRequest;
 import io.vertx.rxjava3.ext.web.client.HttpResponse;
 import io.vertx.rxjava3.ext.web.client.WebClient;
 import io.vertx.rxjava3.ext.web.codec.BodyCodec;
+import io.vertx.rxjava3.uritemplate.UriTemplate;
+import io.vertx.rxjava3.uritemplate.Variables;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
@@ -92,9 +94,15 @@ public class AlternateBcvClient implements BcvClient {
   }
 
   public Single<HttpResponse<Buffer>> get(String requestUri) {
+    final var path = url + requestUri;
+//    final var httpRequest = client.get(url.replace("https://", ""), requestUri);
+    final var httpRequest = client.getAbs(path);
+//    log.info("Path: {}", path);
+//    log.info("Host: {}", httpRequest.host());
+//    log.info("URI: {}", httpRequest.uri());
 
-    return client.get(url.replace("https://", ""), requestUri)
-        .ssl(false)
+    return httpRequest
+        //.ssl(false)
         .send()
         .doOnError(throwable -> log.error("GET_BCV_HTTP_ERROR", throwable))
         .retryWhen(RetryWithDelay.retryIfFailedNetwork());

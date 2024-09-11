@@ -25,4 +25,8 @@ public class ApartmentQuery {
   private final Set<String> buildings = Collections.emptySet();
   @Builder.Default
   private final int limit = 25;
+
+  public boolean hasQuery() {
+    return q != null && !q.isBlank() && buildings != null && !buildings.isEmpty();
+  }
 }

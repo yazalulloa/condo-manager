@@ -48,7 +48,7 @@
         <div class="h-12 w-12">
 
         </div>
-        <h2 class="font-bold m-auto">Nuevo Apartamento</h2>
+        <h2 class="font-bold m-auto" x-init="$watch('is_edit', value => $el.childNodes[0].nodeValue = (value ? 'Editar Apartamento' : 'Nuevo Apartamento'))">Nuevo Apartamento</h2>
         <div>
           <form method="dialog">
             <button class="btn btn-circle btn-outline">

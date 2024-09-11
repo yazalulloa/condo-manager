@@ -33,7 +33,6 @@ public class ExpenseTableItem {
     return ExpenseResource.PATH + "/form/" + key;
   }
 
-
   public String genDeleteUrl() {
     return ExpenseResource.DELETE_PATH + key;
   }

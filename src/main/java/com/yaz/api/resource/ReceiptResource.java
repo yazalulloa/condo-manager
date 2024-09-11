@@ -89,6 +89,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -520,7 +521,7 @@ public class ReceiptResource {
                   })
                   .filter(Objects::nonNull)
                   .map(Month::getValue)
-                  .toList();
+                  .collect(Collectors.toSet());
 
               final var buildingsMatched = buildings.stream().filter(fileName::contains)
                   .toList();
@@ -528,7 +529,7 @@ public class ReceiptResource {
               return ReceiptFileFormDto.builder()
                   .fileName(fileName)
                   .buildingName(buildingsMatched.size() == 1 ? buildingsMatched.getFirst() : null)
-                  .month(months.size() == 1 ? months.getFirst() : localDate.getMonthValue())
+                  .month(months.size() == 1 ? months.iterator().next() : localDate.getMonthValue())
                   .years(DateUtil.yearsPicker())
                   .year(localDate.getYear())
                   .receipt(csvReceipt)

@@ -6,6 +6,6 @@ import lombok.Builder;
 public record AptCountersDto(long totalCount, Long queryCount) {
 
   public AptCountersDto minusOne() {
-    return new AptCountersDto(totalCount - 1, queryCount - 1);
+    return new AptCountersDto(totalCount - 1, queryCount == null ? null : queryCount - 1);
   }
 }
