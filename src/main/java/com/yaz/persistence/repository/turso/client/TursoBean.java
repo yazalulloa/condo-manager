@@ -5,13 +5,16 @@ import com.yaz.persistence.repository.turso.client.ws.TursoResult;
 import com.yaz.persistence.repository.turso.client.ws.request.HelloMsg;
 import com.yaz.persistence.repository.turso.client.ws.request.RequestMsg;
 import com.yaz.persistence.repository.turso.client.ws.response.ResponseMsg;
+import io.quarkus.websockets.next.CloseReason;
 import io.quarkus.websockets.next.OpenClientConnections;
 import io.quarkus.websockets.next.WebSocketClientConnection;
 import io.quarkus.websockets.next.WebSocketConnector;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.Future;
+import io.vertx.core.impl.NoStackTraceThrowable;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
+import java.io.Serial;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,24 +48,27 @@ public class TursoBean {
   TursoJsonMapper mapper;
 
   public Uni<WebSocketClientConnection> openAndSendMessage() {
-    final var connections = openClientConnections.findByClientId(CLIENT_ID);
-    log.debug("Connections: {}", connections.size());
+    return Uni.createFrom().deferred(() -> {
+      final var connections = openClientConnections.findByClientId(CLIENT_ID);
+      log.debug("Connections: {}", connections.size());
 
-    for (WebSocketClientConnection connection : connections) {
-      if (connection.isOpen()) {
-        return Uni.createFrom().item(connection);
+      for (WebSocketClientConnection connection : connections) {
+        if (connection.isOpen()) {
+          return Uni.createFrom().item(connection);
+        }
       }
-    }
 
-    return connector
-        .baseUri(URI.create(url))
-        .connect()
-        .flatMap(ws -> {
-          final var helloMsg = HelloMsg.create(jwt);
-          final var json = mapper.toJson(helloMsg);
-          return ws.sendText(json)
-              .replaceWith(ws);
-        });
+      return connector
+          .baseUri(URI.create(url))
+          .connect()
+          .flatMap(ws -> {
+            log.debug("Connected, sending hello");
+            final var helloMsg = HelloMsg.create(jwt);
+            final var json = mapper.toJson(helloMsg);
+            return ws.sendText(json)
+                .replaceWith(ws);
+          });
+    });
   }
 
 
@@ -92,14 +98,35 @@ public class TursoBean {
                   results.putIfAbsent(requestMsg.requestId(), new TursoResult(requestMsg));
                   final var json = mapper.toJson(requestMsg);
                   if (json.equals("{}")) {
-                    log.error("Invalid message: %s".formatted(json));
+                    log.error("Invalid message: {}", json);
                     uniEmitter.fail(new IllegalArgumentException("Invalid message: %s".formatted(json)));
                   } else {
                     log.debug("Sending message: %s".formatted(json));
                     connection.sendText(json).subscribe()
                         .with(
                             v -> log.debug("Message sent: %s".formatted(json)),
-                            t -> log.error("Failed to send message: %s".formatted(json), t)
+                            t -> {
+
+                              if (t instanceof NoStackTraceThrowable err && err.getMessage()
+                                  .contains("WebSocket is closed")) {
+                                log.debug("Closing connection {} {}", connection.id(), connection.clientId());
+                                connection.close(CloseReason.INTERNAL_SERVER_ERROR)
+                                    .onTermination()
+                                    .invoke(() -> uniEmitter.fail(new WebSocketClosedException("Connection closed")))
+                                    .subscribe()
+                                    .with(
+                                        v -> log.debug("Connection closed {} {}", connection.id(),
+                                            connection.clientId()),
+                                        tClosed -> log.error("Failed to close connection {} {}", connection.id(),
+                                            connection.clientId(), tClosed)
+                                    );
+
+                                return;
+                              }
+
+                              log.error("Failed to send message: %s".formatted(json), t);
+                              uniEmitter.fail(t);
+                            }
                         );
                   }
 
@@ -110,6 +137,16 @@ public class TursoBean {
         });
 
 
+  }
+
+  public static class WebSocketClosedException extends RuntimeException {
+
+    @Serial
+    private static final long serialVersionUID = -2988915970912470195L;
+
+    public WebSocketClosedException(String message) {
+      super(message);
+    }
   }
 
   public void receivedMsg(String json) {

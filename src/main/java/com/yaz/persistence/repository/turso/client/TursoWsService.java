@@ -3,6 +3,7 @@ package com.yaz.persistence.repository.turso.client;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.yaz.core.util.RandomUtil;
 import com.yaz.core.util.VertxUtil;
+import com.yaz.persistence.repository.turso.client.TursoBean.WebSocketClosedException;
 import com.yaz.persistence.repository.turso.client.ws.TursoResult;
 import com.yaz.persistence.repository.turso.client.ws.request.CloseStreamReq;
 import com.yaz.persistence.repository.turso.client.ws.request.ExecuteReq;
@@ -18,6 +19,7 @@ import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.core.eventbus.EventBus;
 import io.vertx.mutiny.core.eventbus.Message;
 import jakarta.enterprise.context.ApplicationScoped;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -70,7 +72,18 @@ public class TursoWsService {
     requestMsgs[requestMsgs.length - 1] = createRequest(CloseStreamReq.create(streamId));
 
     if (true) {
-      return tursoBean.sendMsgs(requestMsgs);
+      return tursoBean.sendMsgs(requestMsgs)
+          .onFailure(t -> {
+            final var bool = t instanceof WebSocketClosedException;
+            if (bool) {
+              log.debug("Retrying");
+            }
+
+            return bool;
+          })
+          .retry()
+          .withBackOff(Duration.ofMillis(200), Duration.ofSeconds(2))
+          .atMost(10);
     }
 
     return bus.request(TursoVerticle.ADDRESS, requestMsgs)
