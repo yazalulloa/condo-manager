@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Change Top on Scroll</title>
+  <link href="/out/css/output.css" rel="stylesheet"/>
+  <style>
+    .parent-container {
+      height: 1200rem; /* Adjust the height as needed */
+      /*overflow: hidden; !* Clip the content if it exceeds the parent's height *!*/
+    }
+
+    .scrolling-div {
+      position: relative; /* Necessary for positioning */
+      top: 0;
+      height: 12rem; /* Allows the div to adjust its height based on content */
+      width: 100%;
+    }
+
+    /* Optional: Add a smooth scrolling effect using transition */
+    .scrolling-div {
+      transition: top 0.1s ease; /* Adjust duration and easing as desired */
+    }
+  </style>
+</head>
+<body>
+
+<h1>START</h1>
+
+<div class="parent-container flex flex-row gap-2 p-4">
+  <div class="bg-amber-500 w-32 h-full">
+
+  </div>
+  <div class="scrolling-div bg-red-500">
+  </div>
+</div>
+
+<h1>END</h1>
+<script>
+  const scrollingDiv = document.querySelector('.scrolling-div');
+  const parentContainer = document.querySelector('.parent-container');
+
+  console.log(scrollingDiv);
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 0) {
+      const scrollY = window.scrollY;
+      const parentTop = parentContainer.offsetTop;
+      const parentHeight = parentContainer.offsetHeight;
+
+      console.log("scrollY", scrollY);
+      console.log("parentTop", parentTop);
+      console.log("parentHeight", parentHeight);
+
+      // Calculate the maximum scroll distance
+      const maxScroll = parentHeight - scrollingDiv.offsetHeight;
+      console.log("maxScroll", maxScroll);
+      let scrollYMinusParentTop = scrollY - parentTop;
+      console.log("scrollYMinusParentTop", scrollYMinusParentTop);
+      // Ensure the scrolling div stays within the parent's bounds
+      const newTop = Math.max(0, Math.min(maxScroll, scrollYMinusParentTop));
+
+      scrollingDiv.style.top = `${newTop}px`;
+      console.log("newTop", newTop);
+    }
+  });
+</script>
+</body>
+</html>

@@ -30,7 +30,7 @@ public class StaticReactiveRoutes {
   private static final String INDEX_HTML = "index.html";
   private static final String[] DEEP_LINKING_ROUTES = {BUILDING_EDIT, RECEIPT_EDIT, RECEIPT_PDF_VIEW, RECEIPT_NEW_FILE,
       EMAIL_CONFIGS_ERROR};
-  private static final String[] FILES_EXTENSIONS = {".html", ".js", ".css", ".svg", ".png", ".ico"};
+  private static final String[] FILES_EXTENSIONS = {".html", ".js", ".css", ".svg", ".png", ".ico", ".mjs"};
 
   private final String[] nextPaths;
 
@@ -74,6 +74,7 @@ public class StaticReactiveRoutes {
     }
 
     if (isFileExtension(path)) {
+      log.debug("Is file extension {}", path);
       rc.next();
       return;
     }
@@ -115,7 +116,7 @@ public class StaticReactiveRoutes {
     //log.debug("hxCurrentUrl {}", hxCurrentUrl);
 
     if (hxCurrentUrl == null && (purpose == null || !purpose.equals("prefetch"))) {
-      //log.error("hxCurrentUrl is null {}", path);
+      log.error("hxCurrentUrl is null {}", path);
       rc.reroute("/" + INDEX_HTML);
       return;
     }

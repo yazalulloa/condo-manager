@@ -27,14 +27,14 @@ public class ExceptionMappers {
     final var path = uriInfo.getPath();
 
     if (path.startsWith("/api")) {
-      log.debug("UnauthorizedException {}", uriInfo.getAbsolutePath(), x);
+      log.info("UnauthorizedException {}", uriInfo.getAbsolutePath(), x);
       final var response = RestResponse.ok("");
       response.getHeaders().add("HX-Redirect", "/login.html");
       return response;
     }
-    log.debug("{}", uriInfo.getAbsolutePath());
+    log.info("{}", uriInfo.getAbsolutePath());
     //return RestResponse.status(Response.Status.NOT_FOUND, "Unknown cheese: " + x.name);
-    log.debug("UnauthorizedException: " + x.getMessage());
+    log.info("UnauthorizedException: " + x.getMessage());
     return RestResponse.temporaryRedirect(new URI("/login.html?redirect_to=" + path));
   }
 
@@ -46,7 +46,7 @@ public class ExceptionMappers {
     final var hxCurrent = requestContext.getHeaders().getFirst("Hx-Current-Url");
     if (hxCurrent != null) {
 
-      log.debug("AuthenticationCompletionException {}", uriInfo.getAbsolutePath(), x);
+      log.info("AuthenticationCompletionException {}", uriInfo.getAbsolutePath(), x);
       final var response = RestResponse.ok("");
       response.getHeaders().add("HX-Redirect", "/login.html");
       return response;
@@ -61,18 +61,19 @@ public class ExceptionMappers {
 
     if (uriInfo.getPath().equals("/favicon.ico")
         || uriInfo.getPath().equals("/robots.txt")
-        || uriInfo.getPath().equals("/login.html")) {
+        || uriInfo.getPath().equals("/login.html")
+        || uriInfo.getPath().contains("/examples/")) {
       return RestResponse.status(404, "Not Found");
     }
 
     final var principal = requestContext.getSecurityContext().getUserPrincipal();
 
     if (principal != null) {
-      log.debug("Redirect to / User principal: {}", principal);
+      log.info("Redirect to / User principal: {}", principal);
       return RestResponse.temporaryRedirect(new URI("/"));
     }
 
-    log.debug("uriInfo.getPath(): " + uriInfo.getPath());
+    log.info("uriInfo.getPath(): " + uriInfo.getPath());
 
     log.error("NotFoundException: {}", x.getMessage());
 

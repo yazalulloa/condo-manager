@@ -1,6 +1,5 @@
 package com.yaz.core.service;
 
-import com.google.api.services.gmail.model.Message;
 import com.yaz.api.domain.response.EmailConfigTableItem;
 import com.yaz.api.domain.response.ReceiptTableItem;
 import com.yaz.api.resource.ReceiptResource.SendReceiptRequest;
@@ -118,7 +117,9 @@ public class SendReceiptService {
                           final var mimeMessage = MimeMessageUtil.createEmail(emailRequest);
 
                           final var messageWithEmail = GmailUtil.createMessageWithEmail(mimeMessage);
-                          return vertxHelper.<Message>single(handler -> gmail.sendMsgAsync(messageWithEmail, handler))
+
+                          return gmail.sendMsgAsync(messageWithEmail)
+                              //vertxHelper.<Message>single(handler -> gmail.sendMsgAsync(messageWithEmail, handler))
                               .doOnSuccess(msg -> {
                                 receiptAptSentEvent.fireAsync(receiptAptSent.toBuilder()
                                     .counter(counter.incrementAndGet())
@@ -207,7 +208,8 @@ public class SendReceiptService {
                 final var gmail = gmailHelper.gmail(emailConfig.id());
                 final var messageWithEmail = GmailUtil.createMessageWithEmail(mimeMessage);
 
-                return vertxHelper.<Message>single(handler -> gmail.sendMsgAsync(messageWithEmail, handler))
+                return gmail.sendMsgAsync(messageWithEmail)
+                    //vertxHelper.<Message>single(handler -> gmail.sendMsgAsync(messageWithEmail, handler))
                     .doOnSuccess(message -> log.info("Zip sent: {} {}", emailRequest, message));
               });
         })

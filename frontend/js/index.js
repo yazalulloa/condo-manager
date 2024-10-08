@@ -5,6 +5,10 @@
 // import './sse.js';
 // import './components.js';
 // import './elements.js';
+
+// import './pdf.mjs';
+// import './pdf.worker.mjs';
+
 import Alpine from 'alpinejs'
 import "external-svg-loader";
 
@@ -215,4 +219,3 @@ window.elementIsVisibleInViewport = (el, partiallyVisible = false) => {
       ((left > 0 && left < innerWidth) || (right > 0 && right < innerWidth))
       : top >= 0 && left >= 0 && bottom <= innerHeight && right <= innerWidth;
 };
-

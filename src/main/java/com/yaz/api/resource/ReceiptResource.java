@@ -387,7 +387,7 @@ public class ReceiptResource {
 
     sendReceiptService.sendReceipts(keys, key, clientId)
         .subscribe(() -> {
-        }, t -> log.error("ERROR_SENDING_RECEIPTS", t));
+        }, t -> log.error("ERROR_SENDING_RECEIPTS {}", keys, t));
 
     final var dto = ReceiptProgressDto.builder()
         .clientId(clientId)
@@ -438,7 +438,7 @@ public class ReceiptResource {
 
                 sendReceiptService.sendReceipts(keys, clientId, request)
                     .subscribe(() -> {
-                    }, t -> log.error("ERROR_SENDING_RECEIPTS", t));
+                    }, t -> log.error("ERROR_SENDING_RECEIPTS {}", keys, t));
 
                 final var dto = ReceiptProgressDto.builder()
                     .clientId(clientId)

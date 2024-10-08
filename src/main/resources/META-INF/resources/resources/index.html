@@ -44,6 +44,43 @@
        hx-swap="outerHTML">
   </div>
 
+
+  <div class="parent-container flex flex-row gap-2">
+    <div class="bg-amber-500 w-32 h-full">
+
+    </div>
+    <div class="scrolling-div bg-red-500">
+    </div>
+  </div>
+
+  <script>
+    const scrollingDiv = document.querySelector('.scrolling-div');
+    const parentContainer = document.querySelector('.parent-container');
+
+    console.log(scrollingDiv);
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 0) {
+        const scrollY = window.scrollY + 128;
+        const parentTop = parentContainer.offsetTop;
+        const parentHeight = parentContainer.offsetHeight;
+
+        console.log("scrollY", scrollY);
+        console.log("parentTop", parentTop);
+        console.log("parentHeight", parentHeight);
+
+        // Calculate the maximum scroll distance
+        const maxScroll = parentHeight - scrollingDiv.offsetHeight;
+        console.log("maxScroll", maxScroll);
+        let scrollYMinusParentTop = scrollY - parentTop;
+        console.log("scrollYMinusParentTop", scrollYMinusParentTop);
+        // Ensure the scrolling div stays within the parent's bounds
+        const newTop = Math.max(0, Math.min(maxScroll, scrollYMinusParentTop));
+
+        scrollingDiv.style.top = `${newTop}px`;
+        console.log("newTop", newTop);
+      }
+    });
+  </script>
 </div>
 
 </body>
