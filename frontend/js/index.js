@@ -231,20 +231,36 @@ window.getComputedHeight = (element) => {
 }
 
 window.scrollThroughParent = (element) => {
+  let previousElementSibling = element.previousElementSibling;
 
-  window.addEventListener('scroll', () => {
-    if (window.scrollY > 0) {
-      let header = document.getElementsByTagName('header')[0]?.offsetHeight
-          ?? 0;
-      const scrollY = window.scrollY + header;
-      const parentContainer = element.parentNode;
-      const parentTop = parentContainer.offsetTop;
-      const parentHeight = getComputedHeight(parentContainer);
-      const maxScroll = parentHeight - element.offsetHeight;
-      let scrollYMinusParentTop = scrollY - parentTop;
-      const newTop = Math.max(0, Math.min(maxScroll, scrollYMinusParentTop));
-      element.style.top = newTop + `px`;
-    }
-  });
+  if (previousElementSibling) {
+
+    window.addEventListener('scroll', () => {
+      const div1Rect = previousElementSibling.getBoundingClientRect();
+      const div2Rect = element.getBoundingClientRect();
+      const dataToShow = {}
+      dataToShow.id = element.id;
+      dataToShow.div1RectBottom = div1Rect.bottom;
+      dataToShow.div2RectTop = div2Rect.top;
+
+      // console.log("Data ", dataToShow);
+
+      if (window.scrollY > 0 && (div1Rect.bottom === 0
+          || !(div1Rect.bottom < div2Rect.top))) {
+        // console.log("Scrolling ", dataToShow.id);
+
+        let header = document.getElementsByTagName('header')[0]?.offsetHeight
+            ?? 0;
+        const scrollY = window.scrollY + header;
+        const parentContainer = element.parentNode;
+        const parentTop = parentContainer.offsetTop;
+        const parentHeight = getComputedHeight(parentContainer);
+        const maxScroll = parentHeight - element.offsetHeight;
+        let scrollYMinusParentTop = scrollY - parentTop;
+        const newTop = Math.max(0, Math.min(maxScroll, scrollYMinusParentTop));
+        element.style.top = newTop + `px`;
+      }
+    });
+  }
 
 }
