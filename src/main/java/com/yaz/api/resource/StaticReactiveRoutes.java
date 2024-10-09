@@ -116,7 +116,7 @@ public class StaticReactiveRoutes {
     //log.debug("hxCurrentUrl {}", hxCurrentUrl);
 
     if (hxCurrentUrl == null && (purpose == null || !purpose.equals("prefetch"))) {
-      log.error("hxCurrentUrl is null {}", path);
+//      log.error("hxCurrentUrl is null {}", path);
       rc.reroute("/" + INDEX_HTML);
       return;
     }

@@ -71,20 +71,19 @@ public class TursoWsService {
 
     requestMsgs[requestMsgs.length - 1] = createRequest(CloseStreamReq.create(streamId));
 
-    if (true) {
-      return tursoBean.sendMsgs(requestMsgs)
-          .onFailure(t -> {
-            final var bool = t instanceof WebSocketClosedException;
-            if (bool) {
-              log.debug("Retrying");
-            }
+//    return tursoBean.sendMsgs(requestMsgs)
+//        .onFailure(t -> {
+//          final var bool = t instanceof WebSocketClosedException;
+//          if (bool) {
+//            log.info("Retrying");
+//          }
+//
+//          return bool;
+//        })
+//        .retry()
+//        .withBackOff(Duration.ofMillis(200), Duration.ofSeconds(2))
+//        .atMost(10);
 
-            return bool;
-          })
-          .retry()
-          .withBackOff(Duration.ofMillis(200), Duration.ofSeconds(2))
-          .atMost(10);
-    }
 
     return bus.request(TursoVerticle.ADDRESS, requestMsgs)
         .map(Message::body)

@@ -3,7 +3,7 @@
 <div class="text-center">Fondos de Reserva: <span id="reserve-funds-form-counter">{dto.reserveFunds.size}</span>
 </div>
 
-<div class="flex flex-row flex-wrap gap-6 justify-center"
+<div class="flex flex-row flex-wrap gap-6 justify-center overflow-hidden"
      x-data="{
          is_edit: false, buildingKey: '{dto.key}', key: '{dto.key}', name: '', nameFieldError: '', fund: '', fundFieldError: '',
          pay: '', payFieldError: '', type: '', expense: '', expenseFieldError: '', expenseType: '', active: true, addToExpenses: true,
@@ -76,12 +76,13 @@
     </div>
 
     <form id="reserve-fund-form"
+          class="relative top-0 h-fit flex flex-col w-fit"
+          x-init="scrollThroughParent($el)"
           hx-put="/api/reserve_funds"
           hx-indicator=".htmx-indicator"
           hx-target="#reserve-funds-form-error"
           hx-swap="innerHTML"
-          hx-disabled-elt="this, #reserve-fund-form * > input:not([disabled]), #reserve-fund-form * > button:not([disabled]), #reserve-fund-form * > select:not([disabled])"
-          class="flex flex-col w-fit">
+          hx-disabled-elt="this, #reserve-fund-form * > input:not([disabled]), #reserve-fund-form * > button:not([disabled]), #reserve-fund-form * > select:not([disabled])">
 
         <div id="reserve-funds-form-error" hidden="hidden"></div>
         <input hidden="hidden" name="key" x-model="key">

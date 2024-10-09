@@ -101,15 +101,16 @@ public class TursoBean {
                     log.error("Invalid message: {}", json);
                     uniEmitter.fail(new IllegalArgumentException("Invalid message: %s".formatted(json)));
                   } else {
-                    log.debug("Sending message: %s".formatted(json));
-                    connection.sendText(json).subscribe()
+                    log.info("Sending message: {} {}", connection.id(), "json");
+                    connection.sendText(json)
+                        .subscribe()
                         .with(
                             v -> log.debug("Message sent: %s".formatted(json)),
                             t -> {
 
                               if (t instanceof NoStackTraceThrowable err && err.getMessage()
                                   .contains("WebSocket is closed")) {
-                                log.debug("Closing connection {} {}", connection.id(), connection.clientId());
+                                log.info("Closing connection {} {}", connection.id(), connection.clientId());
                                 connection.close(CloseReason.INTERNAL_SERVER_ERROR)
                                     .onTermination()
                                     .invoke(() -> uniEmitter.fail(new WebSocketClosedException("Connection closed")))

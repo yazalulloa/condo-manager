@@ -6,20 +6,28 @@
   <link href="/out/css/output.css" rel="stylesheet"/>
   <style>
     .parent-container {
-      height: 1200rem; /* Adjust the height as needed */
-      /*overflow: hidden; !* Clip the content if it exceeds the parent's height *!*/
+      height: 500rem; /* Adjust the height as needed */
+      overflow: hidden; /* Clip the content if it exceeds the parent's height */
     }
 
     .scrolling-div {
       position: relative; /* Necessary for positioning */
       top: 0;
-      height: 12rem; /* Allows the div to adjust its height based on content */
+      height: fit-content; /* Allows the div to adjust its height based on content */
       width: 100%;
     }
 
     /* Optional: Add a smooth scrolling effect using transition */
     .scrolling-div {
       transition: top 0.1s ease; /* Adjust duration and easing as desired */
+    }
+
+    .data {
+      height: 3rem;
+    }
+
+    .other-div {
+      height: 500rem;
     }
   </style>
 </head>
@@ -31,8 +39,16 @@
   <div class="bg-amber-500 w-32 h-full">
 
   </div>
-  <div class="scrolling-div bg-red-500">
+  <div class="scrolling-div flex flex-col gap-2">
+    <div class="data bg-red-500"></div>
+    <div class="data bg-red-500"></div>
+    <div class="data bg-red-500"></div>
+
   </div>
+</div>
+
+<div class="p-4 bg-blue-600 other-div">
+
 </div>
 
 <h1>END</h1>
@@ -40,12 +56,28 @@
   const scrollingDiv = document.querySelector('.scrolling-div');
   const parentContainer = document.querySelector('.parent-container');
 
-  console.log(scrollingDiv);
+  function getHeight(element) {
+    let withPaddings = element.clientHeight;
+    const elementComputedStyle = window.getComputedStyle(element, null);
+    return (
+        withPaddings -
+        parseFloat(elementComputedStyle.paddingTop) -
+        parseFloat(elementComputedStyle.paddingBottom)
+    );
+  }
+
   window.addEventListener('scroll', () => {
     if (window.scrollY > 0) {
       const scrollY = window.scrollY;
       const parentTop = parentContainer.offsetTop;
-      const parentHeight = parentContainer.offsetHeight;
+
+      // const parentHeight = parentContainer.offsetHeight;
+      const parentHeight = getHeight(parentContainer);
+
+      console.log("parentContainer.offsetHeight", parentContainer.offsetHeight);
+      console.log("parentContainer.height", parentContainer.height);
+
+      // console.log("getComputedStyle parentContainer.height", getContentHeight(parentContainer));
 
       console.log("scrollY", scrollY);
       console.log("parentTop", parentTop);
@@ -58,6 +90,7 @@
       console.log("scrollYMinusParentTop", scrollYMinusParentTop);
       // Ensure the scrolling div stays within the parent's bounds
       const newTop = Math.max(0, Math.min(maxScroll, scrollYMinusParentTop));
+      // const newTop = scrollYMinusParentTop;
 
       scrollingDiv.style.top = `${newTop}px`;
       console.log("newTop", newTop);

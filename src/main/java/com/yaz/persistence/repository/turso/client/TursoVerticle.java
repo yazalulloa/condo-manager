@@ -78,7 +78,7 @@ public class TursoVerticle extends AbstractVerticle {
         })
         .completionHandler(startPromise);
 
-    // startSocket();
+    startSocket();
   }
 
   void sendMsg(RequestMsg[] requestMsgs) {

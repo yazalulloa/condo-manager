@@ -219,3 +219,32 @@ window.elementIsVisibleInViewport = (el, partiallyVisible = false) => {
       ((left > 0 && left < innerWidth) || (right > 0 && right < innerWidth))
       : top >= 0 && left >= 0 && bottom <= innerHeight && right <= innerWidth;
 };
+
+window.getComputedHeight = (element) => {
+  let withPaddings = element.clientHeight;
+  const elementComputedStyle = window.getComputedStyle(element, null);
+  return (
+      withPaddings -
+      parseFloat(elementComputedStyle.paddingTop) -
+      parseFloat(elementComputedStyle.paddingBottom)
+  );
+}
+
+window.scrollThroughParent = (element) => {
+
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 0) {
+      let header = document.getElementsByTagName('header')[0]?.offsetHeight
+          ?? 0;
+      const scrollY = window.scrollY + header;
+      const parentContainer = element.parentNode;
+      const parentTop = parentContainer.offsetTop;
+      const parentHeight = getComputedHeight(parentContainer);
+      const maxScroll = parentHeight - element.offsetHeight;
+      let scrollYMinusParentTop = scrollY - parentTop;
+      const newTop = Math.max(0, Math.min(maxScroll, scrollYMinusParentTop));
+      element.style.top = newTop + `px`;
+    }
+  });
+
+}

@@ -20,7 +20,7 @@
             </div>
         </div>
     </summary>
-    <div class="flex flex-row flex-wrap gap-6 justify-center px-2"
+    <div class="flex flex-row flex-wrap gap-6 justify-center px-2 overflow-hidden"
          x-data="{ is_edit: false, restartKey: '{dto.key}', key: '{dto.key}', description: '', descriptionFieldError: '', amount: '', amountFieldError: '',
               currency: '', expenseType: '', generalFieldError: ''
              }"
@@ -55,6 +55,8 @@
         </div>
 
         <form id="expenses-form"
+              class="relative top-0 h-fit"
+              x-init="scrollThroughParent($el)"
               hx-put="/api/expenses"
               hx-indicator=".htmx-indicator"
               hx-target="#expenses-form-error"
