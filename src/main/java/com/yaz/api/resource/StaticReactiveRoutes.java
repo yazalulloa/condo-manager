@@ -7,6 +7,7 @@ import io.quarkus.vertx.web.Route;
 import io.quarkus.vertx.web.Route.HttpMethod;
 import io.quarkus.vertx.web.RouteFilter;
 import io.vertx.core.Vertx;
+import io.vertx.core.http.Cookie;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.StaticHandler;
@@ -89,9 +90,18 @@ public class StaticReactiveRoutes {
         log.debug("is authSession {} {}", path, uri);
         rc.next();
       } else {
-        log.debug("Redirecting to login.html {} {}", path, uri);
+        log.info("Redirecting to login.html {} {}", path, uri);
+        rc.request().cookies().stream().forEach(cookie -> {
+          log.info("Cookie {} {}", cookie.getName(), cookie.getValue());
+        });
+
+        var redirect = "/login.html";
+        if (!path.startsWith("/api")) {
+          redirect += "?redirect_to=" + path;
+        }
+
         rc.response()
-            .putHeader("HX-Redirect", "/login.html")
+            .putHeader("HX-Redirect", redirect)
             .end();
       }
 
@@ -116,7 +126,8 @@ public class StaticReactiveRoutes {
     //log.debug("hxCurrentUrl {}", hxCurrentUrl);
 
     if (hxCurrentUrl == null && (purpose == null || !purpose.equals("prefetch"))) {
-//      log.error("hxCurrentUrl is null {}", path);
+      log.info("hxCurrentUrl is null {}", path);
+      rc.request().cookies().add(Cookie.cookie("redirect-after-login", path));
       rc.reroute("/" + INDEX_HTML);
       return;
     }

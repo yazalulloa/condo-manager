@@ -207,12 +207,6 @@ document.addEventListener("securitypolicyviolation", (e) => {
 window.elementIsVisibleInViewport = (el, partiallyVisible = false) => {
   const {top, left, bottom, right} = el.getBoundingClientRect();
   const {innerHeight, innerWidth} = window;
-  // console.log("top: {}", top);
-  // console.log("left: {}", left);
-  // console.log("bottom: {}", bottom);
-  // console.log("right: {}", right);
-  // console.log("innerHeight: {}", innerHeight);
-  // console.log("innerWidth: {}", innerWidth);
   return partiallyVisible
       ? ((top > 0 && top < innerHeight) ||
           (bottom > 0 && bottom < innerHeight)) &&

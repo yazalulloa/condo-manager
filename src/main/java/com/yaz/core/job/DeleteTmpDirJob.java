@@ -21,9 +21,9 @@ public class DeleteTmpDirJob {
 
   @Scheduled(delay = 5, every = "1H")
   Uni<Void> deleteDir() {
-    if (true) {
-      return Uni.createFrom().voidItem();
-    }
+//    if (true) {
+//      return Uni.createFrom().voidItem();
+//    }
 
     return deleteDirNow("tmp/receipts");
   }

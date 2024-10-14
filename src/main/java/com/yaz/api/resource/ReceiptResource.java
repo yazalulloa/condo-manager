@@ -638,7 +638,7 @@ public class ReceiptResource {
                 final var encrypted = encryptionService.encryptObj(keys);
 
                 return Response.ok()
-                    .header("HX-Redirect", "/stc/receipts/edit/" + encrypted)
+                    .header("HX-Redirect", "/receipts/edit/" + encrypted)
                     .build();
               });
         });
@@ -689,9 +689,11 @@ public class ReceiptResource {
         .unis(buildingService.get(keys.buildingId()), rateService.get(rateId), receiptService.get(keys.id()),
             receiptService.update(update))
         .withUni((building, rate, receipt, i) -> {
+
           if (Objects.equals(receipt.rateId(), rateId)) {
             return Uni.createFrom().item(formResponse);
           }
+
           return Uni.combine().all()
               .unis(expenseService.readByReceipt(keys.id()), reserveFundService.listByBuilding(keys.buildingId()))
               .with((expenses, reserveFunds) -> {

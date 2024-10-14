@@ -142,7 +142,7 @@
             $nextTick(() => {
             let pathname = window.location.pathname;
 
-            if (pathname === '/' || pathname === '/index.html' || pathname == '') {
+            if (pathname === '/' || pathname === '/index.html' || pathname === '') {
               let savedNav = localStorage.getItem('current-nav');
 
               if (savedNav) {
@@ -172,6 +172,7 @@
               });
 
               if (nav_selected === null) {
+              window.localStorage.setItem('redirect_to', pathname);
               document.getElementById('nav-helper').dispatchEvent(new CustomEvent('navigate'));
               }
 
@@ -180,7 +181,7 @@
             })
         "
             x-effect="
-            if (true && nav_selected) {
+            if (nav_selected) {
               document.getElementById(nav_selected).dispatchEvent(new CustomEvent('navigate'));
             }
             "
@@ -298,7 +299,7 @@
       <div class="dropdown dropdown-end">
         <div tabindex="0" role="button" class="btn btn-ghost btn-circle">
           <div hx-get="/api/users/picture"
-               hx-trigger="load"
+               hx-trigger="load_picture"
                hx-swap="outerHTML">
 
           </div>
