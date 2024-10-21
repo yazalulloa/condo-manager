@@ -11,7 +11,6 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.junit.jupiter.api.Test;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
 import org.reflections.util.ClasspathHelper;
@@ -20,8 +19,8 @@ import org.reflections.util.FilterBuilder;
 
 public class PrintNativeRegistration {
 
-  @Test
-  void print() throws IOException {
+  public static void main(String[] args) throws IOException {
+
     final var classes = NativeRegistration.class.getAnnotation(RegisterForReflection.class)
         .targets();
     final var serializationConfig = new JsonObject(
@@ -43,7 +42,7 @@ public class PrintNativeRegistration {
                     .map(JsonObject.class::cast)
                     .map(j -> j.getString("name"))
                     .filter(str -> str.startsWith("com.google.") || str.startsWith("org.openxmlformats.")
-                    || str.startsWith("org.apache."))
+                        || str.startsWith("org.apache."))
             )
         )
         .map(str -> {

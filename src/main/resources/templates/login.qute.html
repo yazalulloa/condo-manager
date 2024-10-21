@@ -17,6 +17,16 @@
       if (redirectTo && redirectTo.length > 1 && redirectTo.startsWith("/")) {
         window.localStorage.setItem('redirect_to', redirectTo);
       }
+
+      window.addEventListener('pageshow', (event) => {
+        if (event.persisted) {
+          // console.log('This page was restored from the bfcache.');
+          window.location.reload();
+        } else {
+          // console.log('This page was loaded normally.');
+        }
+      });
+
     </script>
 
 </head>

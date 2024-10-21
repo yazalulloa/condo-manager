@@ -20,7 +20,7 @@ Alpine.start();
 
 window.addEventListener("popstate", (event) => {
 
-  // console.log("popstate event: ", event);
+  console.log("popstate event: ", event);
   window.location.reload();
 });
 

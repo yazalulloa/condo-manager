@@ -65,7 +65,7 @@
 
     let redirectTo = window.localStorage.getItem("redirect_to");
     if (redirectTo && redirectTo.length > 1 && redirectTo.startsWith("/")) {
-      window.localStorage.setItem("redirect_to", null);
+      window.localStorage.removeItem("redirect_to");
       window.location.href = redirectTo
     }
   </script>
@@ -172,7 +172,7 @@
               });
 
               if (nav_selected === null) {
-              window.localStorage.setItem('redirect_to', pathname);
+              //window.localStorage.setItem('redirect_to', pathname);
               document.getElementById('nav-helper').dispatchEvent(new CustomEvent('navigate'));
               }
 
@@ -182,6 +182,7 @@
         "
             x-effect="
             if (nav_selected) {
+              window.localStorage.removeItem('redirect_to');
               document.getElementById(nav_selected).dispatchEvent(new CustomEvent('navigate'));
             }
             "

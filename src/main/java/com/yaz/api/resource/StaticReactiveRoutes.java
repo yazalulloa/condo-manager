@@ -126,8 +126,8 @@ public class StaticReactiveRoutes {
     //log.debug("hxCurrentUrl {}", hxCurrentUrl);
 
     if (hxCurrentUrl == null && (purpose == null || !purpose.equals("prefetch"))) {
-      log.info("hxCurrentUrl is null {}", path);
-      rc.request().cookies().add(Cookie.cookie("redirect-after-login", path));
+      log.debug("hxCurrentUrl is null {}", path);
+//      rc.request().cookies().add(Cookie.cookie("redirect-after-login", path));
       rc.reroute("/" + INDEX_HTML);
       return;
     }
@@ -150,13 +150,6 @@ public class StaticReactiveRoutes {
       rc.reroute(path + INDEX_HTML);
       return;
     }
-
-//    if (authSession && path.equals("/oauth2/authorization/google")) {
-//      rc.response()
-//          .putHeader("HX-Redirect", "/")
-//          .end();
-//      return;
-//    }
 
     if (path.equals("/oauth2/authorization/google") || path.equals("/signed_in")) {
       if (authSession) {
