@@ -43,7 +43,7 @@
              "
 >
 
-    <div hx-get="/api/stc/reserveFundTypes"
+    <div hx-get="{uri:fragments.reserveFundTypes}"
          hx-trigger="load"
          hx-disabled-elt="this"
          hx-target="this"
@@ -51,7 +51,7 @@
     </div>
 
     <div hidden="hidden"
-         hx-get="/api/stc/expenseTypes"
+         hx-get="{uri:fragments.expenseTypes}"
          hx-trigger="load"
          hx-disabled-elt="this"
          hx-target="this"

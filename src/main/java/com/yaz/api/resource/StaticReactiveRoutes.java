@@ -7,7 +7,6 @@ import io.quarkus.vertx.web.Route;
 import io.quarkus.vertx.web.Route.HttpMethod;
 import io.quarkus.vertx.web.RouteFilter;
 import io.vertx.core.Vertx;
-import io.vertx.core.http.Cookie;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.StaticHandler;
@@ -39,7 +38,7 @@ public class StaticReactiveRoutes {
   public StaticReactiveRoutes(
       @ConfigProperty(name = "app.management.path") String managementPath,
       @ConfigProperty(name = "app.telegram.webhook.url") String telegramPath) {
-    this.nextPaths = new String[]{managementPath, telegramPath, "/api", "/rpc", "/redirect"};
+    this.nextPaths = new String[]{managementPath, telegramPath, "/api", "/rpc", "/redirect", "/Login"};
   }
 
   private boolean isNextPath(String path) {
@@ -90,12 +89,13 @@ public class StaticReactiveRoutes {
         log.debug("is authSession {} {}", path, uri);
         rc.next();
       } else {
-        log.info("Redirecting to login.html {} {}", path, uri);
+
+        log.info("Redirecting to login {} {}", path, uri);
         rc.request().cookies().stream().forEach(cookie -> {
           log.info("Cookie {} {}", cookie.getName(), cookie.getValue());
         });
 
-        var redirect = "/login.html";
+        var redirect = "/Login/login";
         if (!path.startsWith("/api")) {
           redirect += "?redirect_to=" + path;
         }
@@ -151,17 +151,18 @@ public class StaticReactiveRoutes {
       return;
     }
 
-    if (path.equals("/oauth2/authorization/google") || path.equals("/signed_in")) {
-      if (authSession) {
-        log.debug("Redirecting to / {} {}", path, uri);
-        rc.response()
-            .putHeader("HX-Redirect", "/")
-            .end();
-        return;
-      }
-
-      log.debug("is not authSession {} {}", path, uri);
-    }
+    // todo uncomment this
+//    if (path.equals("/oauth2/authorization/google") || path.equals("/signed_in")) {
+//      if (authSession) {
+//        log.debug("Redirecting to / {} {}", path, uri);
+//        rc.response()
+//            .putHeader("HX-Redirect", "/")
+//            .end();
+//        return;
+//      }
+//
+//      log.debug("is not authSession {} {}", path, uri);
+//    }
 
     rc.next();
   }

@@ -29,6 +29,7 @@ import jakarta.ws.rs.core.MediaType;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -82,11 +83,11 @@ public class ExtraChargeResource {
           final var amount = Optional.ofNullable(request.getAmount())
               .map(StringUtil::trimFilter)
               .map(DecimalUtil::ofString)
-              .orElse(null);
+              .orElse(BigDecimal.ZERO);
 
           final var aptsSelected = apartments.stream()
               .map(Apt::number)
-              .filter(number -> ArrayUtils.contains(request.getApts(), number))
+              .filter(number -> request.getApts() != null && request.getApts().contains(number))
               .toList();
 
           final var description = StringUtil.trimFilter(request.getDescription());
@@ -101,7 +102,7 @@ public class ExtraChargeResource {
               .id(keys.id())
               .type(keys.type())
               .description(description)
-              .amount(Optional.ofNullable(amount).map(BigDecimal::doubleValue).orElse(0d))
+              .amount(amount.doubleValue())
               .currency(currency)
               .active(request.isActive())
               .apartments(apts)
@@ -122,7 +123,7 @@ public class ExtraChargeResource {
           final var formResponse = ExtraChargeFormResponse.builder()
               .descriptionFieldError(
                   description == null ? "No puede estar vacio" : null)
-              .amountFieldError(amount == null || DecimalUtil.zeroOrLess(amount) ? "Debe ser mayor a 0" : null)
+              .amountFieldError(DecimalUtil.zeroOrLess(amount) ? "Debe ser mayor a 0" : null)
               .generalFieldError(generalFieldError)
               .aptsSelected(aptsSelected)
               .build();
@@ -209,6 +210,6 @@ public class ExtraChargeResource {
     @RestForm
     private boolean active;
     @RestForm
-    private String[] apts;
+    private Set<String> apts;
   }
 }

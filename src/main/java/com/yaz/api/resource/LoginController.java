@@ -1,33 +1,64 @@
 package com.yaz.api.resource;
 
 import com.yaz.core.service.entity.OidcDbTokenService;
-import io.quarkus.qute.Template;
+import com.yaz.persistence.entities.User;
+import io.quarkiverse.renarde.security.ControllerWithUser;
+import io.quarkiverse.renarde.security.RenardeSecurity;
+import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
-import io.quarkus.vertx.web.Route;
-import io.quarkus.vertx.web.Route.HttpMethod;
+import io.smallrye.mutiny.Uni;
 import io.vertx.core.http.Cookie;
 import io.vertx.ext.web.RoutingContext;
-import jakarta.annotation.Priority;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.core.MediaType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jboss.resteasy.reactive.NoCache;
 
 @Slf4j
+@Path("Login")
 @RequiredArgsConstructor
-@Path("")
-public class LoginController {
+public class LoginController extends ControllerWithUser<User> {
 
-  private final Template login;
+  //  private final Template login;
   private final OidcDbTokenService tokenService;
+  private final RenardeSecurity security;
 
-  @Priority(0)
-  @Route(path = "/login.html", methods = HttpMethod.GET)
-  public void login(RoutingContext rc) {
+//  @Priority(0)
+//  @Route(path = "/login.html", methods = HttpMethod.GET)
+//  public void login(RoutingContext rc) {
+//
+//    for (Cookie cookie : rc.request().cookies()) {
+//      final var name = cookie.getName();
+//      if (name.endsWith("auth_session")) {
+//        final var value = cookie.getValue();
+//        rc.response().removeCookie(name);
+//        tokenService.delete(value)
+//            .subscribe().with(
+//                i -> log.debug("Deleted token: {} {} {}", name, value, i),
+//                e -> log.error("ERROR deleting token: {} {}", name, value, e));
+//      }
+//    }
+//
+//    rc.next();
+//  }
 
+//  @GET
+//  @NoCache
+//  @Path("/login.html")
+//  @Produces(MediaType.TEXT_HTML)
+//  public TemplateInstance get() {
+//    return login.instance();
+//  }
+
+  @CheckedTemplate
+  static class Templates {
+
+    public static native TemplateInstance login();
+  }
+
+  @GET
+  public Uni<TemplateInstance> login(RoutingContext rc) {
+    log.info("LoginController.login");
     for (Cookie cookie : rc.request().cookies()) {
       final var name = cookie.getName();
       if (name.endsWith("auth_session")) {
@@ -39,15 +70,6 @@ public class LoginController {
                 e -> log.error("ERROR deleting token: {} {}", name, value, e));
       }
     }
-
-    rc.next();
-  }
-
-  @GET
-  @NoCache
-  @Path("/login.html")
-  @Produces(MediaType.TEXT_HTML)
-  public TemplateInstance get() {
-    return login.instance();
+    return Uni.createFrom().item(Templates::login);
   }
 }

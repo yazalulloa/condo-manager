@@ -47,7 +47,7 @@
             {#include ExpenseResource/grid list = dto.expenses /}
 
         <div hidden="hidden"
-             hx-get="/api/stc/expenseTypes"
+             hx-get="{uri:fragments.expenseTypes}"
              hx-trigger="load"
              hx-disabled-elt="this"
              hx-target="this"

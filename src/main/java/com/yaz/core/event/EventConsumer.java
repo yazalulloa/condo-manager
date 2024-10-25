@@ -50,7 +50,7 @@ public class EventConsumer {
   }
 
   public void buildingDeleted(@ObservesAsync BuildingDeleted task) {
-    log.info("buildingDeleted: {}", task);
+    log.debug("buildingDeleted: {}", task);
 
     Uni.combine()
         .all()
@@ -60,7 +60,7 @@ public class EventConsumer {
         .subscribe()
         .with(
             i -> {
-              log.info("Deleting extra charges: {} deleted: {}", task.id(), i);
+              log.debug("Deleting extra charges: {} deleted: {}", task.id(), i);
             },
             e -> {
               log.error("ERROR deleting extra charge BuildingDeleted: {}", task.id(), e);
@@ -70,7 +70,7 @@ public class EventConsumer {
 
   public void userDeleted(@ObservesAsync UserDeleted task) {
     final var userId = task.id();
-    log.info("userDeleted: {}", task);
+    log.debug("userDeleted: {}", task);
 
     Uni.join()
         .all(tokenService.deleteByUser(userId),
@@ -81,7 +81,7 @@ public class EventConsumer {
         .subscribe()
         .with(
             i -> {
-              log.info("Deleting user data: {} deleted: {}", task.id(), i);
+              log.debug("Deleting user data: {} deleted: {}", task.id(), i);
             },
             e -> {
               log.error("ERROR deleting user data: {}", task.id(), e);
@@ -90,7 +90,7 @@ public class EventConsumer {
   }
 
   public void receiptDeleted(@ObservesAsync Receipt.Keys keys) {
-    log.info("receiptDeleted: {}", keys);
+    log.debug("receiptDeleted: {}", keys);
     Uni.join()
         .all(extraChargeService.deleteByReceipt(keys.buildingId(), String.valueOf(keys.id())),
             debtService.deleteByReceipt(keys.buildingId(), keys.id()),
@@ -98,13 +98,13 @@ public class EventConsumer {
         .andCollectFailures()
         .subscribe()
         .with(
-            i -> log.info("Deleting receipt data: {} {} deleted: {}", keys.buildingId(), keys.id(), i),
+            i -> log.debug("Deleting receipt data: {} {} deleted: {}", keys.buildingId(), keys.id(), i),
             e -> log.error("ERROR deleting receipt data: {} {}", keys.buildingId(), keys.id(), e));
 
   }
 
   public void apartmentDeleted(@ObservesAsync Apartment.Keys keys) {
-    log.info("apartmentDeleted: {}", keys);
+    log.debug("apartmentDeleted: {}", keys);
     Uni.join()
         .all(debtService.deleteByApartment(keys.buildingId(), keys.number()),
             extraChargeService.deleteByApartment(keys.buildingId(), keys.number()))
@@ -112,7 +112,7 @@ public class EventConsumer {
         .subscribe()
         .with(
             i -> {
-              log.info("Deleting apartment data: {} {} deleted: {}", keys.buildingId(), keys.number(), i);
+              log.debug("Deleting apartment data: {} {} deleted: {}", keys.buildingId(), keys.number(), i);
             },
             e -> {
               log.error("ERROR deleting apartment data: {} {}", keys.buildingId(), keys.number(), e);

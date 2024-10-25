@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.yaz.persistence.domain.IdentityProvider;
+import io.quarkiverse.renarde.security.RenardeUser;
 import io.vertx.core.json.JsonObject;
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -28,7 +29,22 @@ public record User(
     LocalDateTime lastLoginAt,
     TelegramChat telegramChat,
     Set<NotificationEvent.Event> notificationEvents
-) {
+) implements RenardeUser {
+
+  @Override
+  public Set<String> roles() {
+    return Set.of();
+  }
+
+  @Override
+  public String userId() {
+    return id;
+  }
+
+  @Override
+  public boolean registered() {
+    return true;
+  }
 
   @Builder
   public record TelegramChat(

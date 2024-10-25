@@ -19,6 +19,7 @@ import com.yaz.persistence.entities.Expense;
 import com.yaz.persistence.entities.Rate;
 import com.yaz.persistence.entities.ReserveFund;
 import com.yaz.persistence.entities.ReserveFund.Keys;
+import io.quarkiverse.renarde.htmx.HxController;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
@@ -46,7 +47,7 @@ import org.jboss.resteasy.reactive.RestPath;
 @Path(ReserveFundResource.PATH)
 @Authenticated
 @RequiredArgsConstructor
-public class ReserveFundResource {
+public class ReserveFundResource extends HxController {
 
   public static final String PATH = "/api/reserve_funds";
   public static final String DELETE_PATH = PATH + "/";
@@ -56,6 +57,15 @@ public class ReserveFundResource {
   private final ExpenseService expenseService;
   private final ReceiptService receiptService;
   private final RateService rateService;
+
+  @CheckedTemplate
+  public static class Templates {
+
+    public static native TemplateInstance counters(ReserveFundCountersDto dto);
+
+    public static native TemplateInstance responseForm(ReserveFundFormResponse dto);
+  }
+
 
   private Uni<Optional<Rate>> rateUni(long receiptId) {
     return receiptService.read(receiptId)
@@ -110,6 +120,7 @@ public class ReserveFundResource {
   }
 
   @PUT
+  @Path("")
   @Produces(MediaType.TEXT_HTML)
   public Uni<TemplateInstance> upsert(@BeanParam ReserveFundBeanRequest request) {
 
@@ -249,14 +260,6 @@ public class ReserveFundResource {
         .unCommonTotalPlusReserveFunds(expenseTotals.formatUnCommon())
         .reserveFundExpenses(reserveFundExpenses)
         .build();
-  }
-
-  @CheckedTemplate
-  public static class Templates {
-
-    public static native TemplateInstance counters(ReserveFundCountersDto dto);
-
-    public static native TemplateInstance responseForm(ReserveFundFormResponse dto);
   }
 
   @Data

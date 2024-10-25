@@ -9,6 +9,7 @@ import com.yaz.core.util.TemplateUtil;
 import com.yaz.persistence.domain.IdentityProvider;
 import com.yaz.persistence.domain.query.UserQuery;
 import com.yaz.persistence.entities.User;
+import io.quarkiverse.renarde.htmx.HxController;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
@@ -29,13 +30,23 @@ import org.jboss.resteasy.reactive.RestQuery;
 @Slf4j
 @Authenticated
 @RequiredArgsConstructor
-public class UserResource {
+public class UserResource extends HxController {
 
   public static final String PATH = "/api/users";
   public static final String DELETE_PATH = PATH + "/";
 
   private final UserService service;
   private final EncryptionService encryptionService;
+
+  @CheckedTemplate
+  public static class Templates {
+
+    public static native TemplateInstance users(UserTableResponse res);
+
+    public static native TemplateInstance counters(long totalCount);
+
+    public static native TemplateInstance picture(String picture);
+  }
 
   @GET
   @Path("counters")
@@ -55,6 +66,7 @@ public class UserResource {
   }
 
   @GET
+  @Path("")
   @Produces(MediaType.TEXT_HTML)
   public Uni<TemplateInstance> users(@RestQuery String lastId, @RestQuery String identityProvider,
       @RestQuery String q) {
@@ -84,15 +96,5 @@ public class UserResource {
     return service.read(userId.toString())
         .map(opt -> opt.map(User::picture).orElse(""))
         .map(Templates::picture);
-  }
-
-  @CheckedTemplate
-  public static class Templates {
-
-    public static native TemplateInstance users(UserTableResponse res);
-
-    public static native TemplateInstance counters(long totalCount);
-
-    public static native TemplateInstance picture(String picture);
   }
 }

@@ -18,6 +18,7 @@ import com.yaz.core.util.RxUtil;
 import com.yaz.core.util.StringUtil;
 import com.yaz.persistence.domain.query.EmailConfigQuery;
 import com.yaz.persistence.entities.EmailConfig;
+import io.quarkiverse.renarde.htmx.HxController;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
@@ -49,7 +50,7 @@ import org.jboss.resteasy.reactive.RestQuery;
 @Authenticated
 @Path(EmailConfigResource.PATH)
 @RequiredArgsConstructor
-public class EmailConfigResource {
+public class EmailConfigResource extends HxController {
 
   public static final String PATH = "/api/email_configs";
   public static final String DELETE_PATH = PATH + "/";
@@ -60,6 +61,20 @@ public class EmailConfigResource {
   private final GmailService gmailService;
   private final VertxHelper vertxHelper;
   private final BuildingService buildingService;
+
+  @CheckedTemplate
+  public static class Templates {
+
+    public static native TemplateInstance table(EmailConfigTableResponse res);
+
+    public static native TemplateInstance counters(long totalCount);
+
+    public static native TemplateInstance refresh(String url);
+
+    public static native TemplateInstance item(EmailConfigTableItem res);
+
+    public static native TemplateInstance error(String msg);
+  }
 
   private String getRedirectUri(HttpServerRequest req) {
     //log.info("getRedirectUri uri: {}", req.uri());
@@ -231,6 +246,7 @@ public class EmailConfigResource {
   }
 
   @GET
+  @Path("")
   @Produces(MediaType.TEXT_HTML)
   public Uni<TemplateInstance> configs(@RestQuery String lastId, @RestQuery String user) {
 
@@ -285,19 +301,5 @@ public class EmailConfigResource {
         })
         .invoke(pair -> log.debug("buildingsChanged: {} emailConfigsDeleted {}", pair.getLeft(), pair.getRight()))
         .replaceWithVoid();
-  }
-
-  @CheckedTemplate
-  public static class Templates {
-
-    public static native TemplateInstance table(EmailConfigTableResponse res);
-
-    public static native TemplateInstance counters(long totalCount);
-
-    public static native TemplateInstance refresh(String url);
-
-    public static native TemplateInstance item(EmailConfigTableItem res);
-
-    public static native TemplateInstance error(String msg);
   }
 }

@@ -56,6 +56,23 @@
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-micrometer-registry-prometheus</artifactId>
     </dependency>
+
+    <dependency>
+      <groupId>io.quarkiverse.renarde</groupId>
+      <artifactId>quarkus-renarde</artifactId>
+      <version>3.0.18</version>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkiverse.renarde</groupId>
+      <artifactId>quarkus-renarde-oidc</artifactId>
+      <version>3.0.18</version>
+    </dependency>
+<!--    <dependency>-->
+<!--      <groupId>io.quarkiverse.renarde</groupId>-->
+<!--      <artifactId>quarkus-renarde-test</artifactId>-->
+<!--      <version>3.0.18</version>-->
+<!--      <scope>test</scope>-->
+<!--    </dependency>-->
     <dependency>
       <groupId>io.quarkiverse.poi</groupId>
       <artifactId>quarkus-poi</artifactId>

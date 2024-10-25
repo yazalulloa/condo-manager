@@ -57,6 +57,7 @@ import com.yaz.persistence.entities.ExtraCharge;
 import com.yaz.persistence.entities.Receipt;
 import com.yaz.persistence.entities.Receipt.Keys;
 import com.yaz.persistence.entities.ReserveFund;
+import io.quarkiverse.renarde.htmx.HxController;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
@@ -106,7 +107,7 @@ import org.jboss.resteasy.reactive.multipart.FileUpload;
 @Slf4j
 @Authenticated
 @RequiredArgsConstructor
-public class ReceiptResource {
+public class ReceiptResource extends HxController {
 
   public static final String PATH = "/api/receipts";
   public static final String DELETE_PATH = PATH + "/";
@@ -128,15 +129,44 @@ public class ReceiptResource {
   private final ReceiptPdfProgressStateConsumer receiptPdfProgressStateConsumer;
   private final ReceiptDownloader downloader;
 
-  public Uni<TemplateInstance> dialogError(String error, boolean isZip) {
+
+  @CheckedTemplate
+  public static class Templates {
+
+    public static native TemplateInstance receipts(ReceiptTableResponse res);
+
+    public static native TemplateInstance counters(ReceiptCountersDto dto);
+
+    public static native TemplateInstance pdfs(ReceiptPdfResponse res);
+
+    public static native TemplateInstance init(ReceiptInitDto dto);
+
+    public static native TemplateInstance progress(ReceiptProgressDto dto);
+
+    public static native TemplateInstance progressUpdate(ReceiptProgressUpdate res);
+
+    public static native TemplateInstance newFileDialog(ReceiptFileFormDto dto);
+
+    public static native TemplateInstance sentInfo(ReceiptTableItem item);
+
+    public static native TemplateInstance dialogError(String error, boolean isZip);
+
+    public static native TemplateInstance pdfReceipt(ReceiptPdfDto dto);
+
+    public static native TemplateInstance formInit(ReceiptInitFormDto dto);
+
+    public static native TemplateInstance formResponse(ReceiptFormResponse dto);
+  }
+
+  public static Uni<TemplateInstance> dialogError(String error, boolean isZip) {
     return Uni.createFrom().item(Templates.dialogError(error, isZip));
   }
 
-  public Uni<TemplateInstance> dialogError(String error) {
+  public static Uni<TemplateInstance> dialogError(String error) {
     return dialogError(error, false);
   }
 
-  public Uni<TemplateInstance> zipDialogError(String error) {
+  public static Uni<TemplateInstance> zipDialogError(String error) {
     return dialogError(error, true);
   }
 
@@ -197,7 +227,94 @@ public class ReceiptResource {
         .map(Templates::counters);
   }
 
+
+
+  @PATCH
+  @Produces(MediaType.TEXT_HTML)
+  public Uni<TemplateInstance> edit(@BeanParam ReceiptEditRequest request) {
+
+    final var keys = encryptionService.decryptObj(request.getKey(), Receipt.Keys.class);
+    final var rateId = Long.parseLong(encryptionService.decrypt(request.rateInput));
+
+    if (request.month < 1 || request.month > 12) {
+      return TemplateUtil.templateUni(Templates.formResponse(ReceiptFormResponse.error("Mes inválido")));
+    }
+
+    if (!ArrayUtils.contains(DateUtil.yearsPicker(), request.year)) {
+      return TemplateUtil.templateUni(Templates.formResponse(ReceiptFormResponse.error("Año inválido")));
+    }
+
+    final var date = DateUtil.localDateParse(request.date);
+
+    if (date == null) {
+      return TemplateUtil.templateUni(Templates.formResponse(ReceiptFormResponse.error("Fecha inválida")));
+    }
+
+    final var update = Receipt.builder()
+        .buildingId(keys.buildingId())
+        .id(keys.id())
+        .year(request.year)
+        .month(request.month)
+        .date(date)
+        .rateId(rateId)
+        .build();
+
+    final var newKeys = update.keysWithHash();
+
+    if (newKeys.hash() == keys.hash()) {
+      return TemplateUtil.templateUni(Templates.formResponse(ReceiptFormResponse.msg("No hay cambios")));
+    }
+
+    final var formResponse = ReceiptFormResponse.builder()
+        .key(encryptionService.encryptObj(newKeys))
+        .generalFieldError("Actualizado")
+        .build();
+
+    return Uni.combine().all()
+        .unis(buildingService.get(keys.buildingId()), rateService.get(rateId), receiptService.get(keys.id()),
+            receiptService.update(update))
+        .withUni((building, rate, receipt, i) -> {
+
+          if (Objects.equals(receipt.rateId(), rateId)) {
+            return Uni.createFrom().item(formResponse);
+          }
+
+          return Uni.combine().all()
+              .unis(expenseService.readByReceipt(keys.id()), reserveFundService.listByBuilding(keys.buildingId()))
+              .with((expenses, reserveFunds) -> {
+
+                final var isRateNeeded = expenses.stream().map(Expense::currency)
+                    .anyMatch(currency -> rate.fromCurrency() == currency);
+
+                if (!isRateNeeded) {
+                  return formResponse;
+                }
+
+                final var expenseTotalsBeforeReserveFunds = ConvertUtil.expenseTotals(rate.rate(), expenses);
+
+                final var reserveFundExpenses = ConvertUtil.reserveFundExpenses(expenseTotalsBeforeReserveFunds,
+                    reserveFunds, expenses);
+
+                final var expenseTotals = ConvertUtil.expenseTotals(rate.rate(), expenses);
+
+                final var countersDto = ExpenseCountersDto.builder()
+                    .commonTotal(expenseTotalsBeforeReserveFunds.formatCommon())
+                    .unCommonTotal(expenseTotalsBeforeReserveFunds.formatUnCommon())
+                    .commonTotalPlusReserveFunds(expenseTotals.formatCommon())
+                    .unCommonTotalPlusReserveFunds(expenseTotals.formatUnCommon())
+                    .reserveFundExpenses(reserveFundExpenses)
+                    .build();
+
+                return formResponse.toBuilder()
+                    .expenseCountersDto(countersDto)
+                    .build();
+              });
+        })
+        .map(Templates::formResponse);
+  }
+
   @GET
+  @Path("")
   @RolesAllowed("RECEIPTS_READ")
   @Produces(MediaType.TEXT_HTML)
   public Uni<TemplateInstance> receipts(
@@ -644,90 +761,6 @@ public class ReceiptResource {
         });
   }
 
-  @PATCH
-  @Produces(MediaType.TEXT_HTML)
-  public Uni<TemplateInstance> edit(@BeanParam ReceiptEditRequest request) {
-
-    final var keys = encryptionService.decryptObj(request.getKey(), Receipt.Keys.class);
-    final var rateId = Long.parseLong(encryptionService.decrypt(request.rateInput));
-
-    if (request.month < 1 || request.month > 12) {
-      return TemplateUtil.templateUni(Templates.formResponse(ReceiptFormResponse.error("Mes inválido")));
-    }
-
-    if (!ArrayUtils.contains(DateUtil.yearsPicker(), request.year)) {
-      return TemplateUtil.templateUni(Templates.formResponse(ReceiptFormResponse.error("Año inválido")));
-    }
-
-    final var date = DateUtil.localDateParse(request.date);
-
-    if (date == null) {
-      return TemplateUtil.templateUni(Templates.formResponse(ReceiptFormResponse.error("Fecha inválida")));
-    }
-
-    final var update = Receipt.builder()
-        .buildingId(keys.buildingId())
-        .id(keys.id())
-        .year(request.year)
-        .month(request.month)
-        .date(date)
-        .rateId(rateId)
-        .build();
-
-    final var newKeys = update.keysWithHash();
-
-    if (newKeys.hash() == keys.hash()) {
-      return TemplateUtil.templateUni(Templates.formResponse(ReceiptFormResponse.msg("No hay cambios")));
-    }
-
-    final var formResponse = ReceiptFormResponse.builder()
-        .key(encryptionService.encryptObj(newKeys))
-        .generalFieldError("Actualizado")
-        .build();
-
-    return Uni.combine().all()
-        .unis(buildingService.get(keys.buildingId()), rateService.get(rateId), receiptService.get(keys.id()),
-            receiptService.update(update))
-        .withUni((building, rate, receipt, i) -> {
-
-          if (Objects.equals(receipt.rateId(), rateId)) {
-            return Uni.createFrom().item(formResponse);
-          }
-
-          return Uni.combine().all()
-              .unis(expenseService.readByReceipt(keys.id()), reserveFundService.listByBuilding(keys.buildingId()))
-              .with((expenses, reserveFunds) -> {
-
-                final var isRateNeeded = expenses.stream().map(Expense::currency)
-                    .anyMatch(currency -> rate.fromCurrency() == currency);
-
-                if (!isRateNeeded) {
-                  return formResponse;
-                }
-
-                final var expenseTotalsBeforeReserveFunds = ConvertUtil.expenseTotals(rate.rate(), expenses);
-
-                final var reserveFundExpenses = ConvertUtil.reserveFundExpenses(expenseTotalsBeforeReserveFunds,
-                    reserveFunds, expenses);
-
-                final var expenseTotals = ConvertUtil.expenseTotals(rate.rate(), expenses);
-
-                final var countersDto = ExpenseCountersDto.builder()
-                    .commonTotal(expenseTotalsBeforeReserveFunds.formatCommon())
-                    .unCommonTotal(expenseTotalsBeforeReserveFunds.formatUnCommon())
-                    .commonTotalPlusReserveFunds(expenseTotals.formatCommon())
-                    .unCommonTotalPlusReserveFunds(expenseTotals.formatUnCommon())
-                    .reserveFundExpenses(reserveFundExpenses)
-                    .build();
-
-                return formResponse.toBuilder()
-                    .expenseCountersDto(countersDto)
-                    .build();
-              });
-        })
-        .map(Templates::formResponse);
-  }
-
   @GET
   @Path("form_init")
   @Produces(MediaType.TEXT_HTML)
@@ -908,34 +941,6 @@ public class ReceiptResource {
         .map(file -> ResponseBuilder.ok(file.path())
             .header("Content-Disposition", "attachment; filename=" + file.fileName())
             .build());
-  }
-
-  @CheckedTemplate
-  public static class Templates {
-
-    public static native TemplateInstance receipts(ReceiptTableResponse res);
-
-    public static native TemplateInstance counters(ReceiptCountersDto dto);
-
-    public static native TemplateInstance pdfs(ReceiptPdfResponse res);
-
-    public static native TemplateInstance init(ReceiptInitDto dto);
-
-    public static native TemplateInstance progress(ReceiptProgressDto dto);
-
-    public static native TemplateInstance progressUpdate(ReceiptProgressUpdate res);
-
-    public static native TemplateInstance newFileDialog(ReceiptFileFormDto dto);
-
-    public static native TemplateInstance sentInfo(ReceiptTableItem item);
-
-    public static native TemplateInstance dialogError(String error, boolean isZip);
-
-    public static native TemplateInstance pdfReceipt(ReceiptPdfDto dto);
-
-    public static native TemplateInstance formInit(ReceiptInitFormDto dto);
-
-    public static native TemplateInstance formResponse(ReceiptFormResponse dto);
   }
 
   @Data

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="{inject:i18n.get()}">
+<head>
+  <title>{#insert title /}</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link href="/out/css/output.css" rel="stylesheet"/>
+  <script defer src="/out/js/htmx.js"></script>
+  <script defer src="/out/js/index.js"></script>
+  {#insert moreStyles /}
+  <link rel="shortcut icon" type="image/png" href="/assets/images/favicon.svg"/>
+  {#insert moreScripts /}
+</head>
+<body hx-headers='{"{inject:csrf.headerName}":"{inject:csrf.token}"}'>
+<main class="flex justify-center w-full">
+  {#if flash:message}
+  <div class="alert alert-{flash:messageType ?: 'success'}">
+    {flash:message}
+  </div>
+  {/if}
+  {#insert /}
+</main>
+</body>
+</html>

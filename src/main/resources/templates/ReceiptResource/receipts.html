@@ -4,31 +4,31 @@
 
 {#for item in res.results}
 
-    <div
+<div
     class="hover:bg-[#00000014] flex flex-row text-center items-center justify-between fade-me-out fade-me-in"
 
     id="{item.cardId}">
 
 
-<div class="receipt-grid-container flex-grow flex-auto h-full p-2"
-     hx-get="/stc/receipts/edit/"
-     hx-trigger="dblclick"
-     hx-on:htmx:before-request="saveResource('receipt', '{item.key}')">
-  <span>{item.item.buildingId}</span>
+  <div class="receipt-grid-container flex-grow flex-auto h-full p-2"
+       hx-get="/stc/receipts/edit/"
+       hx-trigger="dblclick"
+       hx-on:htmx:before-request="saveResource('receipt', '{item.key}')">
+    <span>{item.item.buildingId}</span>
 
-  <div class="flex flex-row gap-2 justify-center">
-    <span x-init="$el.innerHTML = integerToMonth({item.item.month});"></span>
-    <span>{item.item.year}</span>
+    <div class="flex flex-row gap-2 justify-center">
+      <span x-init="$el.innerHTML = integerToMonth({item.item.month});"></span>
+      <span>{item.item.year}</span>
+    </div>
+
+    <span>{item.item.date}</span>
+
+    {#include ReceiptResource/sentInfo item = item /}
+
+    {#if item.item.createdAt}
+    <span>{item.item.createdAt.formatDate}</span>
+    {/if}
   </div>
-
-  <span>{item.item.date}</span>
-
-  {#include ReceiptResource/sentInfo item = item /}
-
-  {#if item.item.createdAt}
-      <span>{item.item.createdAt.formatDate}</span>
-  {/if}
-</div>
 
 
   <div class="dropdown dropdown-left flex-grow-0">
@@ -45,7 +45,8 @@
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
     </label>
-    <ul tabindex="0" class="menu menu-sm dropdown-content gap-2 mt-3 z-10 p-2 shadow bg-base-100 rounded-box w-52 border-current border-[1px]">
+    <ul tabindex="0"
+        class="menu menu-sm dropdown-content gap-2 mt-3 z-10 p-2 shadow bg-base-100 rounded-box w-52 border-current border-[1px]">
       <li>
         <a hx-delete="{item.deleteUrl}"
            hx-headers='{"{inject:csrf.headerName}":"{inject:csrf.token}"}'
@@ -59,7 +60,7 @@
         </a>
       </li>
       <li>
-        <a hx-get="/api/receipts/download_zip/{item.key}"
+        <a hx-get="{uri:ReceiptResource.buildZipDownload(item.key)}"
            hx-disabled-elt="this"
            hx-indicator=".htmx-indicator"
            hx-swap="none">
@@ -81,29 +82,29 @@
         <a @click.prevent="zip_dialog_receipt_key='{item.key}'; zip_dialog_building='{item.item.buildingId}';
         zip_dialog_year='{item.item.year}'; zip_dialog_month='{item.item.month.monthFromInt}'; zip_dialog_date='{item.item.date}';
         $dispatch('event-receipt-zip-dialog-open');
-        " >
+        ">
 
-        <svg data-src="/assets/send-mail.svg" class="h-6 w-6"></svg>
+          <svg data-src="/assets/send-mail.svg" class="h-6 w-6"></svg>
 
           Enviar ZIP
         </a>
       </li>
       <li>
-          <a hx-post="/api/receipts/send/{item.key}"
+        <a hx-post="/api/receipts/send/{item.key}"
            hx-headers='{"{inject:csrf.headerName}":"{inject:csrf.token}"}'
            hx-indicator=".htmx-indicator"
            hx-swap="none">
 
-        <svg data-src="/assets/send-mail.svg" class="h-6 w-6"></svg>
+          <svg data-src="/assets/send-mail.svg" class="h-6 w-6"></svg>
           Enviar recibos ahora
         </a>
       </li>
       <li>
-          <a @click.prevent="send_dialog_receipt_key='{item.key}'; send_dialog_building='{item.item.buildingId}'; send_dialog_year='{item.item.year}';
+        <a @click.prevent="send_dialog_receipt_key='{item.key}'; send_dialog_building='{item.item.buildingId}'; send_dialog_year='{item.item.year}';
           send_dialog_month='{item.item.month.monthFromInt}'; send_dialog_date='{item.item.date}';
           $dispatch('event-receipt-send-dialog-open')
           ">
-        <svg data-src="/assets/send-mail.svg" class="h-6 w-6"></svg>
+          <svg data-src="/assets/send-mail.svg" class="h-6 w-6"></svg>
 
           Enviar recibos
         </a>
@@ -115,8 +116,8 @@
 {/for}
 
 {#include fragments/next-page.html url = res.nextPageUrl}
-    {#extraAttributes}
-           hx-include="[name='date_input'],[name='building_input'],[name='month_input']"
-    {/extraAttributes}
+{#extraAttributes}
+hx-include="[name='date_input'],[name='building_input'],[name='month_input']"
+{/extraAttributes}
 {/include}
 

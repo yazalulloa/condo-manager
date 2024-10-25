@@ -26,6 +26,7 @@ import com.yaz.persistence.entities.Building;
 import com.yaz.persistence.entities.Building.Keys;
 import com.yaz.persistence.entities.ExtraCharge;
 import com.yaz.persistence.entities.ReserveFund;
+import io.quarkiverse.renarde.htmx.HxController;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
@@ -57,7 +58,7 @@ import org.jboss.resteasy.reactive.RestResponse.ResponseBuilder;
 @Authenticated
 @Path(BuildingResource.PATH)
 @RequiredArgsConstructor
-public class BuildingResource {
+public class BuildingResource extends HxController {
 
   public static final String PATH = "/api/buildings";
   public static final String DELETE_PATH = PATH + "/";
@@ -69,6 +70,22 @@ public class BuildingResource {
   private final EncryptionService encryptionService;
   private final ReserveFundService reserveFundService;
   private final BuildingDownloader downloader;
+
+  @CheckedTemplate
+  public static class Templates {
+
+    public static native TemplateInstance selector(List<String> list);
+
+    public static native TemplateInstance report(BuildingReportResponse res);
+
+    public static native TemplateInstance counters(BuildingCountersDto dto);
+
+    public static native TemplateInstance formInit(BuildingInitFormDto dto);
+
+    public static native TemplateInstance responseForm(BuildingFormResponse dto);
+
+    public static native TemplateInstance ids(List<String> list);
+  }
 
   @Route(path = PATH + "/ids", methods = HttpMethod.GET)
   public void getIds(RoutingContext rc) {
@@ -140,6 +157,7 @@ public class BuildingResource {
   }
 
   @PUT
+  @Path("")
   @Produces(MediaType.TEXT_HTML)
   public Uni<Response> upsert(@BeanParam BuildingRequest request) {
 
@@ -330,22 +348,6 @@ public class BuildingResource {
         .map(file -> ResponseBuilder.ok(file.path())
             .header("Content-Disposition", "attachment; filename=" + file.fileName())
             .build());
-  }
-
-  @CheckedTemplate
-  public static class Templates {
-
-    public static native TemplateInstance selector(List<String> list);
-
-    public static native TemplateInstance report(BuildingReportResponse res);
-
-    public static native TemplateInstance counters(BuildingCountersDto dto);
-
-    public static native TemplateInstance formInit(BuildingInitFormDto dto);
-
-    public static native TemplateInstance responseForm(BuildingFormResponse dto);
-
-    public static native TemplateInstance ids(List<String> list);
   }
 
 }

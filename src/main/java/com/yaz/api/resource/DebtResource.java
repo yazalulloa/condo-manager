@@ -12,6 +12,7 @@ import com.yaz.core.util.TemplateUtil;
 import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.entities.Debt;
 import com.yaz.persistence.entities.Debt.Keys;
+import io.quarkiverse.renarde.htmx.HxController;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
@@ -34,7 +35,7 @@ import org.jboss.resteasy.reactive.RestForm;
 @Authenticated
 @Path(DebtResource.PATH)
 @RequiredArgsConstructor
-public class DebtResource {
+public class DebtResource extends HxController {
 
   public static final String PATH = "/api/debts";
   public static final String DELETE_PATH = PATH + "/";
@@ -42,8 +43,18 @@ public class DebtResource {
   private final EncryptionService encryptionService;
   private final DebtService debtService;
   private final BuildingService buildingService;
+  @CheckedTemplate
+  public static class Templates {
+
+    public static native TemplateInstance counters(DebtCountersDto dto);
+
+    public static native TemplateInstance grid(List<DebtTableItem> list);
+
+    public static native TemplateInstance responseForm(DebtFormResponse dto);
+  }
 
   @PUT
+  @Path("")
   @Produces(MediaType.TEXT_HTML)
   public Uni<TemplateInstance> update(@BeanParam DebtUpdateRequest request) {
 
@@ -124,15 +135,6 @@ public class DebtResource {
         .map(Templates::responseForm);
   }
 
-  @CheckedTemplate
-  public static class Templates {
-
-    public static native TemplateInstance counters(DebtCountersDto dto);
-
-    public static native TemplateInstance grid(List<DebtTableItem> list);
-
-    public static native TemplateInstance responseForm(DebtFormResponse dto);
-  }
 
   @Data
   public static class DebtUpdateRequest {

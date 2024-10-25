@@ -9,6 +9,7 @@ import com.yaz.api.domain.response.ApartmentTableResponse;
 import com.yaz.api.domain.response.AptCountersDto;
 import com.yaz.api.domain.response.apartments.ApartmentUpsertFormDto;
 import com.yaz.api.msg.ApartmentMessages;
+import com.yaz.api.resource.ReceiptResource.Templates;
 import com.yaz.core.service.EncryptionService;
 import com.yaz.core.service.entity.ApartmentService;
 import com.yaz.core.service.entity.BuildingService;
@@ -18,6 +19,9 @@ import com.yaz.core.util.StringUtil;
 import com.yaz.persistence.domain.query.ApartmentQuery;
 import com.yaz.persistence.entities.Apartment;
 import com.yaz.persistence.entities.Apartment.Keys;
+import com.yaz.persistence.entities.User;
+import io.quarkiverse.renarde.htmx.HxController;
+import io.quarkiverse.renarde.security.ControllerWithUser;
 import io.quarkus.oidc.IdToken;
 import io.quarkus.oidc.UserInfo;
 import io.quarkus.qute.CheckedTemplate;
@@ -48,10 +52,10 @@ import org.jboss.resteasy.reactive.RestResponse.ResponseBuilder;
 
 
 @Slf4j
-@Authenticated
+//@Authenticated
 @Path(ApartmentsResource.PATH)
 @RequiredArgsConstructor
-public class ApartmentsResource {
+public class ApartmentsResource extends ControllerWithUser<User> {
 
   public static final String PATH = "/api/apartments";
   public static final String EDIT_FORM_PATH = PATH + "/edit_form/";
@@ -67,6 +71,20 @@ public class ApartmentsResource {
   UserInfo userInfo;
   @Inject
   ApartmentMessages apartmentMessages;
+
+
+
+  @CheckedTemplate
+  public static class Templates {
+
+    public static native TemplateInstance grid(ApartmentTableResponse res);
+
+    public static native TemplateInstance init(ApartmentInitDto dto);
+
+    public static native TemplateInstance counters(AptCountersDto dto);
+
+    public static native TemplateInstance upsert(ApartmentUpsertFormDto dto);
+  }
 
   @GET
   @Path("init")
@@ -106,6 +124,7 @@ public class ApartmentsResource {
   }
 
   @DELETE
+  @Path("")
   @Produces(MediaType.TEXT_HTML)
   public Uni<TemplateInstance> delete(
       @RestQuery("apt_search_input") String q,
@@ -215,6 +234,7 @@ public class ApartmentsResource {
   }
 
   @PUT
+  @Path("")
   public Uni<TemplateInstance> upsert(@BeanParam ApartmentRequest request) {
 
     final var optKeys = Optional.ofNullable(StringUtil.trimFilter(request.getKey()))
@@ -303,18 +323,6 @@ public class ApartmentsResource {
         .map(file -> ResponseBuilder.ok(file.path())
             .header("Content-Disposition", "attachment; filename=" + file.fileName())
             .build());
-  }
-
-  @CheckedTemplate
-  public static class Templates {
-
-    public static native TemplateInstance grid(ApartmentTableResponse res);
-
-    public static native TemplateInstance init(ApartmentInitDto dto);
-
-    public static native TemplateInstance counters(AptCountersDto dto);
-
-    public static native TemplateInstance upsert(ApartmentUpsertFormDto dto);
   }
 
 }

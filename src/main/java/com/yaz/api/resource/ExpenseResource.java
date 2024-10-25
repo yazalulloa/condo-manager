@@ -19,6 +19,7 @@ import com.yaz.persistence.entities.Expense;
 import com.yaz.persistence.entities.Expense.Keys;
 import com.yaz.persistence.entities.Rate;
 import com.yaz.persistence.entities.Receipt;
+import io.quarkiverse.renarde.htmx.HxController;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
@@ -43,7 +44,7 @@ import org.jboss.resteasy.reactive.RestPath;
 @Authenticated
 @Path(ExpenseResource.PATH)
 @RequiredArgsConstructor
-public class ExpenseResource {
+public class ExpenseResource extends HxController {
 
   public static final String PATH = "/api/expenses";
   public static final String DELETE_PATH = PATH + "/";
@@ -53,6 +54,16 @@ public class ExpenseResource {
   private final RateService rateService;
   private final ReserveFundService reserveFundService;
   private final ReceiptService receiptService;
+
+  @CheckedTemplate
+  public static class Templates {
+
+    public static native TemplateInstance counters(ExpenseCountersDto dto);
+
+    public static native TemplateInstance grid(List<ExpenseTableItem> list);
+
+    public static native TemplateInstance responseForm(ExpenseFormResponse dto);
+  }
 
   private Uni<Rate> rateUni(long receiptId) {
     return receiptService.get(receiptId)
@@ -96,6 +107,7 @@ public class ExpenseResource {
   }
 
   @PUT
+  @Path("")
   @Produces(MediaType.TEXT_HTML)
   public Uni<TemplateInstance> upsert(@BeanParam ExpenseUpsertRequest request) {
     log.info("upsert: {}", request);
@@ -175,16 +187,6 @@ public class ExpenseResource {
               .build();
         })
         .map(Templates::responseForm);
-  }
-
-  @CheckedTemplate
-  public static class Templates {
-
-    public static native TemplateInstance counters(ExpenseCountersDto dto);
-
-    public static native TemplateInstance grid(List<ExpenseTableItem> list);
-
-    public static native TemplateInstance responseForm(ExpenseFormResponse dto);
   }
 
   @Data

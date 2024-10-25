@@ -1,5 +1,6 @@
 package com.yaz.api.resource;
 
+import io.quarkiverse.renarde.htmx.HxController;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
@@ -13,7 +14,7 @@ import org.jboss.resteasy.reactive.Cache;
 @ApplicationScoped
 @Authenticated
 @Path("/api/stc")
-public class fragments {
+public class fragments extends HxController {
 
   public static final int CACHE_MAX_AGE = 21600;
 

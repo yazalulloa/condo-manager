@@ -1,0 +1,61 @@
+{#include main.html }
+{#title}Login{/title}
+{#moreScripts}
+<script>
+  let theme = localStorage.getItem('theme');
+  if (theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+  }
+  const urlParams = new URLSearchParams(window.location.search);
+  const redirectTo = urlParams.get('redirect_to');
+  if (redirectTo && redirectTo.length > 1 && redirectTo.startsWith("/")) {
+    window.localStorage.setItem('redirect_to', redirectTo);
+  }
+
+  window.addEventListener('pageshow', (event) => {
+    if (event.persisted) {
+      // console.log('This page was restored from the bfcache.');
+      window.location.reload();
+    } else {
+      // console.log('This page was loaded normally.');
+    }
+  });
+
+</script>
+{/moreScripts}
+
+<div class="p-6">
+  <fieldset>
+    <legend>Login/Register</legend>
+    <div class="flex flex-col gap-2 justify-center">
+      <a class="btn" href="{uri:RenardeOidcController.loginUsingOidc('twitter')}" role="button">
+        Twitter
+        <img src="/assets/images/signin-twitter.svg" class="h-6 w-6" alt="twitter"/>
+      </a>
+      <a class="btn" href="{uri:RenardeOidcController.loginUsingOidc('github')}" role="button">
+        GitHub
+        <img src="/assets/images/signin-github.svg" class="h-6 w-6" alt="github"/>
+      </a>
+      <a class="btn" href="{uri:RenardeOidcController.loginUsingOidc('google')}" role="button">
+        Google
+        <img src="/assets/images/signin-google.svg" class="h-6 w-6" alt="google"/>
+      </a>
+      <a class="btn" href="{uri:RenardeOidcController.loginUsingOidc('microsoft')}" role="button">
+        Microsoft
+        <img src="/assets/images/signin-microsoft.svg" class="h-6 w-6" alt="microsoft"/>
+      </a>
+      <a class="btn" href="{uri:RenardeOidcController.loginUsingOidc('facebook')}" role="button">
+        Facebook
+        <img src="/assets/images/signin-facebook.svg" class="h-6 w-6" alt="facebook"/>
+      </a>
+      <a class="btn" href="{uri:RenardeOidcController.loginUsingOidc('apple')}" role="button">
+        Apple
+        <img src="/assets/images/signin-apple.svg" class="h-6 w-6" alt="apple"/>
+      </a>
+      <a class="btn" href="{uri:RenardeOidcController.loginUsingOidc('spotify')}" role="button">
+        Spotify
+        <img src="/assets/images/signin-spotify.svg" class="h-6 w-6" alt="spotify"/>
+      </a>
+    </div>
+  </fieldset>
+</div>

@@ -10,6 +10,7 @@ import com.yaz.core.util.MutinyUtil;
 import com.yaz.persistence.domain.Currency;
 import com.yaz.persistence.domain.query.RateQuery;
 import com.yaz.persistence.entities.Rate;
+import io.quarkiverse.renarde.htmx.HxController;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
@@ -36,7 +37,7 @@ import org.jboss.resteasy.reactive.RestResponse.ResponseBuilder;
 @Authenticated
 //@Authenticated
 @RequiredArgsConstructor
-public class RateResource {
+public class RateResource extends HxController {
 
   public static final String PATH = "/api/rates";
   public static final String DELETE_PATH = PATH + "/";
@@ -64,6 +65,7 @@ public class RateResource {
   }
 
   @GET
+  @Path("")
   @Produces(MediaType.TEXT_HTML)
   public Uni<TemplateInstance> rates(@RestQuery String nextPage, @RestQuery String date) {
 

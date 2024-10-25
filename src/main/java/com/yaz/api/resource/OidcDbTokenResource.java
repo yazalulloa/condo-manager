@@ -3,6 +3,7 @@ package com.yaz.api.resource;
 import com.yaz.api.domain.response.OidcDbTokenTableResponse;
 import com.yaz.core.service.entity.OidcDbTokenService;
 import com.yaz.persistence.domain.OidcDbTokenQueryRequest;
+import io.quarkiverse.renarde.htmx.HxController;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
@@ -21,7 +22,7 @@ import org.jboss.resteasy.reactive.RestQuery;
 @Authenticated
 @Path(OidcDbTokenResource.PATH)
 @RequiredArgsConstructor
-public class OidcDbTokenResource {
+public class OidcDbTokenResource extends HxController {
 
   public static final String PATH = "/api/oidc_tokens";
   public static final String DELETE_PATH = PATH + "/";
@@ -29,8 +30,17 @@ public class OidcDbTokenResource {
 
   private final OidcDbTokenService service;
 
+  @CheckedTemplate
+  public static class Templates {
+
+    public static native TemplateInstance tokens(OidcDbTokenTableResponse res);
+
+    public static native TemplateInstance counters(long totalCount);
+  }
+
   @GET
   @Produces(MediaType.TEXT_HTML)
+  @Path("")
   public Uni<TemplateInstance> tokens(@RestQuery String lastId) {
 
     final var query = OidcDbTokenQueryRequest.builder()
@@ -57,13 +67,5 @@ public class OidcDbTokenResource {
     return Uni.combine().all()
         .unis(service.delete(id), service.count())
         .with((i, count) -> Templates.counters(count - i));
-  }
-
-  @CheckedTemplate
-  public static class Templates {
-
-    public static native TemplateInstance tokens(OidcDbTokenTableResponse res);
-
-    public static native TemplateInstance counters(long totalCount);
   }
 }
