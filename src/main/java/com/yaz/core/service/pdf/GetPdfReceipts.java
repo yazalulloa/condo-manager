@@ -63,7 +63,7 @@ public class GetPdfReceipts {
 
   public Single<Collection<PdfReceiptItem>> pdfItems(CalculatedReceipt receipt) {
     final var tempPath = Paths.get("tmp", "receipts", receipt.building().id(), String.valueOf(receipt.id()));
-    return vertx.fileSystem().mkdirs(tempPath.toString())
+    return vertx.fileSystem().rxMkdirs(tempPath.toString())
         .andThen(Single.defer(() -> {
           final var start = System.currentTimeMillis();
 

@@ -1,7 +1,6 @@
 package com.yaz.api.resource;
 
 
-import com.yaz.core.client.LoadDataClient;
 import com.yaz.core.service.LoadBackupService;
 import com.yaz.core.util.MutinyUtil;
 import io.smallrye.mutiny.Uni;
@@ -17,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class LoadDataResource {
 
-  private final LoadDataClient loadDataClient;
   private final LoadBackupService backupService;
 
   @GET

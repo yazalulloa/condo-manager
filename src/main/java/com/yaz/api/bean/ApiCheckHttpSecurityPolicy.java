@@ -32,6 +32,6 @@ public class ApiCheckHttpSecurityPolicy implements HttpSecurityPolicy {
 
   @Override
   public String name() {
-    return "api-check";
+    return null;
   }
 }

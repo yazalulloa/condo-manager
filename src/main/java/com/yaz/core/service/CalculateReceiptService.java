@@ -93,10 +93,9 @@ public class CalculateReceiptService {
         .switchIfEmpty(Single.error(new IllegalArgumentException("Rate not found")));
 
     final var calculatedReceiptSingle = Single.zip(receiptSingle, buildingSingle, reserveFundsSingle, apartmentsSingle,
-        expensesSingle,
-        debtsSingle,
-        extraChargesSingle, rateSingle,
-        (receipt, building, reserveFundList, apartments, expenseList, debtList, extraChargeList, rate) -> {
+        expensesSingle, debtsSingle, extraChargesSingle, rateSingle,
+        (receipt, building, reserveFundList, apartments, expenseList,
+            debtList, extraChargeList, rate) -> {
 
           final var expenses = expenseList.stream()
               .filter(expense -> !expense.description().equals("DIFERENCIA DE ALIQUOTA"))
@@ -221,6 +220,9 @@ public class CalculateReceiptService {
               })
               .toList();
 
+          final var thereIsReserveFundExpense = reserveFundTotals.stream()
+              .anyMatch(reserveFundTotal -> reserveFundTotal.expense() != null);
+
           return CalculatedReceipt.builder()
               .id(receipt.id())
               .year(receipt.year())
@@ -237,6 +239,7 @@ public class CalculateReceiptService {
               .debts(debts)
               .aptTotals(aptTotals)
               .reserveFundTotals(reserveFundTotals)
+              .thereIsReserveFundExpense(thereIsReserveFundExpense)
               .apartments(apartments)
               .building(building)
               .emailConfigId(building.emailConfigId())

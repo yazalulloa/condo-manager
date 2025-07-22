@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+  <!--  <script src="https://unpkg.com/htmx.org@1.9.12" integrity="sha384-ujb1lZYygJmzgSwoxRggbCHcjc0rB2XoQrxeTUQyRjrOnlCoYta87iKBWq3EsdM2" crossorigin="anonymous"></script>-->
+  <script defer src="index.js"></script>
+  <script defer src="https://unpkg.com/htmx.org@2.0.4"
+          integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"
+          onload="htmxSetup()"></script>
+</head>
+<body>
+
+<button hx-get="https://httpstat.us/200"
+        hx-trigger="click"
+        hx-swap="afterend">
+  https://httpstat.us/200
+</button>
+
+
+<button hx-get="httpstat.us/204"
+        hx-trigger="click"
+        hx-swap="innerHTML">
+  httpstat.us/204
+</button>
+
+<button hx-get="/api"
+        hx-trigger="click"
+        hx-swap="innerHTML">
+  /api
+</button>
+
+<button hx-get="api"
+        hx-trigger="click"
+        hx-swap="innerHTML">
+  api
+</button>
+
+</body>
+</html>

@@ -922,7 +922,8 @@ public class ReceiptResource extends HxController {
                   .debtTotal(building.debtCurrency().format(debtTotal))
                   .build())
               .build();
-        }).map(Templates::formInit);
+        })
+        .map(Templates::formInit);
   }
 
   @GET

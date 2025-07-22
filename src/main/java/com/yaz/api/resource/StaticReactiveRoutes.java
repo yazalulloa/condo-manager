@@ -38,7 +38,7 @@ public class StaticReactiveRoutes {
   public StaticReactiveRoutes(
       @ConfigProperty(name = "app.management.path") String managementPath,
       @ConfigProperty(name = "app.telegram.webhook.url") String telegramPath) {
-    this.nextPaths = new String[]{managementPath, telegramPath, "/api", "/rpc", "/redirect", "/Login"};
+    this.nextPaths = new String[]{managementPath, telegramPath, "/api", "/rpc", "/redirect", "/Login", "/_renarde/security"};
   }
 
   private boolean isNextPath(String path) {

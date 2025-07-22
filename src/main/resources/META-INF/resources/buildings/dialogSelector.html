@@ -13,9 +13,7 @@
 >
   <div hx-get="/api/buildings/ids"
        hx-trigger="load"
-       hx-swap="outerHTML"
-  >
-
+       hx-swap="outerHTML">
   </div>
   <button class="btn btn-outline" @click.prevent="$el.nextElementSibling.showModal()">
     <h2 class="text-center">EDIFICIOS: <span x-text="buildings_selected.length"></span></h2>

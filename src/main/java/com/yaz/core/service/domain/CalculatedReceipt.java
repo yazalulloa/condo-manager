@@ -30,11 +30,13 @@ public record CalculatedReceipt(
     Currency totalUnCommonExpensesCurrency,
     List<AptDebt> debts,
     List<AptTotal> aptTotals,
+
     BigDecimal totalDebt,
     Integer debtReceiptsAmount,
     List<ExtraCharge> extraCharges,
     Rate rate,
     List<ReserveFundTotal> reserveFundTotals,
+    boolean thereIsReserveFundExpense,
     Building building,
     List<Apartment> apartments,
     String emailConfigId,

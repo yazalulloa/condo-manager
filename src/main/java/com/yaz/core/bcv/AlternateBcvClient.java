@@ -121,7 +121,7 @@ public class AlternateBcvClient implements BcvClient {
 
   public Single<HttpResponse<Void>> download(String path, String requestUri) {
 
-    return vertx.fileSystem().open(path, new OpenOptions().setWrite(true).setCreate(true))
+    return vertx.fileSystem().rxOpen(path, new OpenOptions().setWrite(true).setCreate(true))
         .flatMap(asyncFile -> {
           log.debug("Downloading file: {}", requestUri);
           return client.getAbs(requestUri)

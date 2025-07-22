@@ -92,8 +92,7 @@ public class UserTursoRepository implements UserRepository {
 
   @Override
   public Uni<String> save(User user) {
-    final var now = DateUtil.epochSecond();
-    final var id = now + UUID.randomUUID().toString();
+    final var id = DateUtil.epochSecond() + UUID.randomUUID().toString();
 
     return tursoWsService.executeQuery(INSERT, Value.text(id), Value.text(user.providerId()),
             Value.enumV(user.provider()), Value.text(user.email()), Value.text(user.username()), Value.text(user.name()),

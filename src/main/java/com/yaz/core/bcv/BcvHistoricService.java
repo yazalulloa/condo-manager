@@ -108,21 +108,21 @@ public class BcvHistoricService {
   }
 
   private Completable createDir(String path) {
-    return vertx.fileSystem().exists(path)
+    return vertx.fileSystem().rxExists(path)
         .flatMapCompletable(bool -> {
           if (bool) {
             log.debug("Dir exists {}", path);
             return Completable.complete();
           }
           log.debug("Dir does not exist {}", path);
-          return vertx.fileSystem().mkdirs(path)
+          return vertx.fileSystem().rxMkdirs(path)
               .andThen(createDir(path));
         });
   }
 
   public Completable createFile(String path) {
 
-    return vertx.fileSystem().open(path, new OpenOptions().setWrite(true).setCreate(true))
+    return vertx.fileSystem().rxOpen(path, new OpenOptions().setWrite(true).setCreate(true))
         .flatMapCompletable(AsyncFile::close)
         .doOnError(throwable -> log.error("FAIL_TO_OPEN_FILE {} {}", path, throwable.getMessage()))
         //.retryWhen(RetryWithDelay.retry(0, 1000, TimeUnit.MILLISECONDS))
@@ -203,10 +203,10 @@ public class BcvHistoricService {
   }
 
   private Completable cleanDir() {
-    return vertx.fileSystem().mkdirs(DIR)
-        .andThen(vertx.fileSystem().readDir(DIR))
+    return vertx.fileSystem().rxMkdirs(DIR)
+        .andThen(vertx.fileSystem().rxReadDir(DIR))
         .flatMapObservable(Observable::fromIterable)
-        .flatMapCompletable(vertx.fileSystem()::delete);
+        .flatMapCompletable(vertx.fileSystem()::rxDelete);
   }
 
   public Single<List<Rate>> historicRates() {
@@ -235,7 +235,7 @@ public class BcvHistoricService {
   }
 
   public Single<List<Rate>> parseRates() {
-    return vertx.fileSystem().readDir(DIR)
+    return vertx.fileSystem().rxReadDir(DIR)
         .flatMapObservable(Observable::fromIterable)
         .flatMapSingle(path -> {
           final var fileInfo = FileInfo.builder().path(path).build();

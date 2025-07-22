@@ -327,13 +327,13 @@ public class CreatePdfAptReceipt extends CreatePdfReceipt {
       table.addCell(amount);
     });
 
-    final var format = Currency.VED.format(total);
 
     final var description = PdfUtil.tableCell();
     description.setTextAlignment(TextAlignment.LEFT);
     description.add(new Paragraph(totalTitle));
     table.addCell(description);
 
+    final var format = Currency.VED.format(total);
     final var amount = PdfUtil.tableCell();
     amount.setTextAlignment(TextAlignment.RIGHT);
     amount.add(new Paragraph(format));

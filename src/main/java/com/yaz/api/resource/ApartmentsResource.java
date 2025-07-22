@@ -61,6 +61,7 @@ public class ApartmentsResource extends ControllerWithUser<User> {
   public static final String EDIT_FORM_PATH = PATH + "/edit_form/";
   public static final String ITEM_PATH = PATH + "/item/";
   public static final String TABLE_PATH = PATH + "/grid";
+
   private final ApartmentService apartmentService;
   private final BuildingService buildingService;
   private final EncryptionService encryptionService;

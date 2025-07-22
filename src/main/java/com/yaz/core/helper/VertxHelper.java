@@ -45,7 +45,7 @@ public class VertxHelper {
   }
 
   public Single<FileWithHash> fileWithHash(String path) {
-    return fileSystem().readFile(path)
+    return fileSystem().rxReadFile(path)
         .map(buffer -> {
           final var crc32 = new CRC32();
           crc32.update(buffer.getBytes());
@@ -60,7 +60,7 @@ public class VertxHelper {
 
   public Single<Long> crc32(String path) {
 
-    return fileSystem().open(path, new OpenOptions().setRead(true))
+    return fileSystem().rxOpen(path, new OpenOptions().setRead(true))
         .flatMap(asyncFile -> {
           return Single.<Long>create(emitter -> {
 

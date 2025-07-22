@@ -22,12 +22,12 @@ public class VertxFileSystemTest {
 
     final var data = generate(secureRandom, 1300, ALPHANUMERIC);
 
-    final var string = fileSystem.deleteRecursive(filePath, true)
-        .andThen(fileSystem.writeFile(filePath, Buffer.buffer(data)))
-        .andThen(fileSystem.exists(filePath))
+    final var string = fileSystem.rxDeleteRecursive(filePath, true)
+        .andThen(fileSystem.rxWriteFile(filePath, Buffer.buffer(data)))
+        .andThen(fileSystem.rxExists(filePath))
         .doOnSuccess(aBoolean -> log.info("Vertx File exists {}", aBoolean))
         .ignoreElement()
-        .andThen(fileSystem.readFile(filePath))
+        .andThen(fileSystem.rxReadFile(filePath))
         .blockingGet()
         .toString();
 

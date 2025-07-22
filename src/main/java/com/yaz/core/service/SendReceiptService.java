@@ -17,7 +17,6 @@ import com.yaz.core.util.DateUtil;
 import com.yaz.core.util.RxUtil;
 import com.yaz.core.util.rx.RetryWithDelay;
 import com.yaz.persistence.entities.Receipt;
-import com.yaz.persistence.entities.Receipt.Keys;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
@@ -46,7 +45,7 @@ public class SendReceiptService {
   private final VertxHelper vertxHelper;
 
 
-  public Completable sendReceipts(Keys keys, String clientId, SendReceiptRequest request) {
+  public Completable sendReceipts(Receipt.Keys keys, String clientId, SendReceiptRequest request) {
     return sendReceipts(keys, request.getKey(), clientId, request.getSubject(), request.getMsg(), request.getApts());
   }
 
@@ -54,7 +53,7 @@ public class SendReceiptService {
     return sendReceipts(keys, key, clientId, null, null, null);
   }
 
-  public Completable sendReceipts(Receipt.Keys keys, String key, String clientId, String subjectParam, String msgParam,
+  private Completable sendReceipts(Receipt.Keys keys, String key, String clientId, String subjectParam, String msgParam,
       Set<String> apts) {
 
     return pdfService.pdfs(keys.buildingId(), keys.id(), apts)

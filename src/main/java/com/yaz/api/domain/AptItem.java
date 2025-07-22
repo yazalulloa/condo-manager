@@ -59,26 +59,4 @@ public class AptItem {
   public String genCardIdRef() {
     return "#" + cardId;
   }
-
-  public AptEditAttr editAttr() {
-    return new AptEditAttr(
-        key,
-        apt.buildingId(),
-        apt.number(),
-        apt.name(),
-        apt.aliquot(),
-        apt.emails()
-    );
-  }
-
-  public record AptEditAttr(
-      String key,
-      String buildingId,
-      String number,
-      String name,
-      BigDecimal aliquot,
-      Set<String> emails
-  ) implements EditAttr {
-
-  }
 }

@@ -30,9 +30,9 @@ public class DeleteTmpDirJob {
 
   Uni<Void> deleteDirNow(String path) {
 
-    final var completable = vertx.fileSystem().exists(path)
+    final var completable = vertx.fileSystem().rxExists(path)
         .filter(b -> b)
-        .flatMapSingle(b -> vertx.fileSystem().readDir(path))
+        .flatMapSingle(b -> vertx.fileSystem().rxReadDir(path))
         .flatMapObservable(Observable::fromIterable)
         .flatMapCompletable(this::deleteFile);
 
@@ -40,7 +40,7 @@ public class DeleteTmpDirJob {
   }
 
   private Completable deleteFile(String file) {
-    return vertx.fileSystem().props(file)
+    return vertx.fileSystem().rxProps(file)
         .flatMapCompletable(fileProps -> {
           final var lastAccessTime = fileProps.lastAccessTime();
           final var diff = ChronoUnit.HOURS.between(Instant.ofEpochMilli(lastAccessTime), Instant.now());
@@ -48,7 +48,7 @@ public class DeleteTmpDirJob {
           if (diff <= 1) {
             return Completable.complete();
           }
-          return vertx.fileSystem().deleteRecursive(file, true)
+          return vertx.fileSystem().rxDeleteRecursive(file, true)
               .doOnComplete(() -> log.info("FILE_DELETED: {}", file))
               .doOnError(t -> log.error("FAILED_TO_DELETE {}", file))
               .onErrorComplete();

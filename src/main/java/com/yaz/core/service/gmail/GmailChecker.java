@@ -73,7 +73,7 @@ public class GmailChecker {
         .filter(s -> list.stream().noneMatch(s::endsWith))
         .doOnNext(s -> log.info("DELETE {}", s))
         .doOnNext(s -> helper.clearFlow(s, false))
-        .flatMapCompletable(s -> vertx.fileSystem().deleteRecursive(s, true));
+        .flatMapCompletable(s -> vertx.fileSystem().rxDeleteRecursive(s, true));
 
   }
 
@@ -103,7 +103,7 @@ public class GmailChecker {
                             credential.getExpirationTimeMilliseconds());
                       }
 
-                      return fileSystem().readFile(filePath(userId).toString())
+                      return fileSystem().rxReadFile(filePath(userId).toString())
                           .doOnError(throwable -> log.error("Error while reading file", throwable))
                           .map(buffer -> {
 
@@ -134,7 +134,7 @@ public class GmailChecker {
     final var dirPath = Paths.get(GmailHelper.DIR, userId);
     final var filePath = dirPath.resolve("StoredCredential");
     //final var filePath = Paths.get(GmailHelper.DIR, userId, "StoredCredential");
-    return fileSystem().exists(filePath.toString())
+    return fileSystem().rxExists(filePath.toString())
         .flatMapMaybe(bool -> {
 
           if (bool) {
@@ -145,7 +145,7 @@ public class GmailChecker {
                     return Maybe.just(Optional.<Long>empty());
                   }
 
-                  return fileSystem().delete(filePath.toString())
+                  return fileSystem().rxDelete(filePath.toString())
                       .andThen(Maybe.empty());
 
                 });
@@ -158,7 +158,7 @@ public class GmailChecker {
           helper.clearFlow(userId, false);
 
           return writeFile(userId, filePath.toString(), dirPath.toString())
-              .andThen(fileSystem().exists(filePath.toString()))
+              .andThen(fileSystem().rxExists(filePath.toString()))
 //              .doOnSuccess(aBoolean -> {
 //                log.info("Vertx File exists {} {}", aBoolean, filePath);
 //
@@ -181,8 +181,8 @@ public class GmailChecker {
   public Completable writeFile(String userId, String filePath, String dirPath) {
     return emailConfigService.getFile(userId)
         .flatMapCompletable(file -> {
-          return fileSystem().mkdirs(dirPath)
-              .andThen(fileSystem().writeFile(filePath, Buffer.buffer(file)));
+          return fileSystem().rxMkdirs(dirPath)
+              .andThen(fileSystem().rxWriteFile(filePath, Buffer.buffer(file)));
         });
   }
 }

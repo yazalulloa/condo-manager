@@ -30,10 +30,10 @@ public class GetStaticAssetsService {
   }
 
   private Single<List<String>> processDir(String path) {
-    return vertx.fileSystem().props(path)
+    return vertx.fileSystem().rxProps(path)
         .flatMap(fileProps -> {
           if (fileProps.isDirectory()) {
-            return vertx.fileSystem().readDir(path)
+            return vertx.fileSystem().rxReadDir(path)
                 .flatMapObservable(Observable::fromIterable)
                 .flatMapSingle(this::processDir)
                 .flatMap(Observable::fromIterable)
